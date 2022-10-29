@@ -9,8 +9,8 @@ class Generator(Optimisable):
     """
     __devices: List
 
-    def __construct(self):
-        pass
+    def __init__(self, devices: List):
+        self.__devices = devices
 
     def generateSignal(self):
         pass

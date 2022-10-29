@@ -16,6 +16,12 @@ class Hamiltonian:
     __drives: List
     __generator: Generator
 
+    def __init__(self, subsystems: List, couplings: List, drives: List, generator: Generator):
+        self.__subsystems = subsystems
+        self.__couplings = couplings
+        self.__drives = drives
+        self.__generator = generator
+
     def getMatrix(self) -> np.array:
         self.__generator.generateSignal()
         pass

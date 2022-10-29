@@ -8,7 +8,7 @@ from model import Hamiltonian
 class Model(Optimisable):
     _hamiltonian: Hamiltonian
 
-    def __construct(self, hamiltonian: Hamiltonian):
+    def __init__(self, hamiltonian: Hamiltonian):
         self._hamiltonian = hamiltonian
 
     def getParameters(self) -> List[Quantity]:

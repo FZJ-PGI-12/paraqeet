@@ -1,12 +1,14 @@
 import numpy as np
 
 from measurement.Measurement import Measurement
+from propagation.Propagation import Propagation
 
 
 class UnitaryFidelity(Measurement):
     __gate: np.array
 
-    def __construct(self, gate: np.array):
+    def __init__(self, propagation: Propagation, gate: np.array):
+        super(Measurement, self).__init__(propagation)
         self.__gate = gate
 
     def measure(self) -> float:

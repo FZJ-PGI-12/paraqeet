@@ -8,7 +8,7 @@ class Optimiser:
     _measure: Measurement
     __optimisables: List[Optimisable]
 
-    def __construct(self, measure: Measurement, optimisables: List[Optimisable]):
+    def __init__(self, measure: Measurement, optimisables: List[Optimisable]):
         self._measure = measure
         self.__optimisables = optimisables
 
