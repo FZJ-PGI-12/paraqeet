@@ -5,7 +5,7 @@ from Optimisable import Optimisable
 
 class Generator(Optimisable):
     """
-    Copy as before
+    TODO: Copy as before
     """
     __devices: List
 
