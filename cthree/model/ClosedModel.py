@@ -1,13 +1,13 @@
 from typing import List
 
-from Quantity import Quantity
-from model.Hamiltonian import Hamiltonian
-from model.Model import Model
+from cthree.Quantity import Quantity
+from cthree.model.Hamiltonian import Hamiltonian
+from cthree.model.Model import Model
 
 
 class ClosedModel(Model):
     def __init__(self, hamiltonian: Hamiltonian):
-        super(Model, self).__init__(hamiltonian)
+        super().__init__(hamiltonian)
 
     def getParameters(self) -> List[Quantity]:
         return []

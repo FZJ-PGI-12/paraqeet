@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from generation.Generator import Generator
+from cthree.generation.Generator import Generator
 
 
 class Hamiltonian:

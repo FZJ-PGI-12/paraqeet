@@ -9,7 +9,7 @@ class Euler(Propagation):
     __T: Quantity
 
     def __init__(self, model: Model, T: Quantity):
-        super(Propagation, self).__init__(model)
+        super().__init__(model)
         self.__T = T
 
     def getParameters(self) -> List[Quantity]:

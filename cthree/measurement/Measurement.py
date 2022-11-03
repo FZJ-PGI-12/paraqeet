@@ -1,6 +1,6 @@
 import numpy as np
 
-from propagation.Propagation import Propagation
+from cthree.propagation.Propagation import Propagation
 
 
 class Measurement:

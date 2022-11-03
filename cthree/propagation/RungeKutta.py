@@ -1,15 +1,15 @@
 from typing import List
 
-from Quantity import Quantity
-from model.Model import Model
-from propagation.Propagation import Propagation
+from cthree.Quantity import Quantity
+from cthree.model.Model import Model
+from cthree.propagation.Propagation import Propagation
 
 
 class RungeKutta(Propagation):
     __T: Quantity
 
     def __init__(self, model: Model, T: Quantity):
-        super(Propagation, self).__init__(model)
+        super().__init__(model)
         self.__T = T
 
     def getParameters(self) -> List[Quantity]:

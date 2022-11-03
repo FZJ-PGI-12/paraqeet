@@ -1,5 +1,5 @@
-from Optimisable import Optimisable
-from model.Model import Model
+from cthree.Optimisable import Optimisable
+from cthree.model.Model import Model
 
 
 class Propagation(Optimisable):

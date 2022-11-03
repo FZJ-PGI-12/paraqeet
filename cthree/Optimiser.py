@@ -1,7 +1,7 @@
 from typing import List
 
-from Optimisable import Optimisable
-from measurement.Measurement import Measurement
+from cthree.Optimisable import Optimisable
+from cthree.measurement.Measurement import Measurement
 
 
 class Optimiser:

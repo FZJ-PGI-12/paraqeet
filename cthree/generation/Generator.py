@@ -1,6 +1,6 @@
 from typing import List
 
-from Optimisable import Optimisable
+from cthree.Optimisable import Optimisable
 
 
 class Generator(Optimisable):

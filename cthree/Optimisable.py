@@ -1,6 +1,6 @@
 from typing import List
 
-from Quantity import Quantity
+from cthree.Quantity import Quantity
 
 
 class Optimisable:

@@ -1,8 +1,8 @@
 from typing import List
 
-from Optimisable import Optimisable
-from Quantity import Quantity
-from model import Hamiltonian
+from cthree.Optimisable import Optimisable
+from cthree.Quantity import Quantity
+from cthree.model import Hamiltonian
 
 
 class Model(Optimisable):
