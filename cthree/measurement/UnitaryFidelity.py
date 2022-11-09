@@ -14,3 +14,9 @@ class UnitaryFidelity(Measurement):
     def measure(self) -> float:
         U = self._getPropagator()
         return 1.0 - np.trace(np.conjugate(self.__gate.T) * U)
+
+    def _getPropagator(self) -> np.ndarray:
+        """
+        Provides the propagator to implementing classes.
+        """
+        return self.__propagation.propagate()
