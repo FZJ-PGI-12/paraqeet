@@ -18,6 +18,5 @@ class Propagation(Optimisable):
         """
         Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
         implementation and could for example be a propagated state vector or a propagator in matrix form.
-        :return:
         """
         pass
