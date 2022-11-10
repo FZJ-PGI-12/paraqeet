@@ -9,10 +9,10 @@ class StateTransferFidelity(Measurement):
     """
     Fidelity measure that compares the overlap of the initial and final state.
     """
-    __initialState: np.array
+    __initialState: np.ndarray
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, initialState: np.array):
+    def __init__(self, propagation: Propagation, initialState: np.ndarray):
         super().__init__()
         self.__propagation = propagation
         self.__initialState = initialState

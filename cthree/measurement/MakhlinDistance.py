@@ -13,7 +13,7 @@ class MakhlinDistance(Measurement):
     """
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, initialState: np.array):
+    def __init__(self, propagation: Propagation, initialState: np.ndarray):
         super().__init__()
         self.__propagation = propagation
 
@@ -24,7 +24,7 @@ class MakhlinDistance(Measurement):
         gs = self.__makhlinInvariants(U)
         return self.__makhlinDistance(*gs)
 
-    def __makhlinInvariants(self, U: np.array) -> Tuple[float, float, float]:
+    def __makhlinInvariants(self, U: np.ndarray) -> Tuple[float, float, float]:
         """
         Computes the Makhlin invariants for a matrix U. Returns a tuple with the three invariants g1,g2,g3.
         """

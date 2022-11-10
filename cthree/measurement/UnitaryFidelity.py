@@ -9,10 +9,10 @@ class UnitaryFidelity(Measurement):
     """
     Fidelity measure that compares the propagator with a desired gate.
     """
-    __gate: np.array
+    __gate: np.ndarray
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, gate: np.array):
+    def __init__(self, propagation: Propagation, gate: np.ndarray):
         super().__init__()
         self.__propagation = propagation
         self.__gate = gate

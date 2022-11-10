@@ -22,6 +22,6 @@ class Hamiltonian:
         self.__drives = drives
         self.__generator = generator
 
-    def getMatrix(self) -> np.array:
+    def getMatrix(self) -> np.ndarray:
         self.__generator.generateSignal()
         pass

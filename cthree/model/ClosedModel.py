@@ -14,5 +14,5 @@ class ClosedModel(Model):
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def getEquationOfMotion(self) -> np.array:
+    def getEquationOfMotion(self) -> np.ndarray:
         return -1.0j * self._hamiltonian.getMatrix()

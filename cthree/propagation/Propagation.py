@@ -14,7 +14,7 @@ class Propagation(Optimisable):
     def __init__(self, model: Model):
         self._model = model
 
-    def propagate(self) -> np.array:
+    def propagate(self) -> np.ndarray:
         """
         Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
         implementation and could for example be a propagated state vector or a propagator in matrix form.
