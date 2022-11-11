@@ -4,6 +4,8 @@ from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
 from cthree.model import Hamiltonian
 
+import numpy as np
+
 
 class Model(Optimisable):
     """
@@ -18,5 +20,9 @@ class Model(Optimisable):
     def getParameters(self) -> List[Quantity]:
         pass
 
-    def getEquationOfMotion(self):
+    def getEquationOfMotion(self) -> np.ndarray:
+        """
+        Returns the right-hand side of the equations of motion. The format depends on the implementation and could for
+        example be a state vector or a matrix.
+        """
         pass
