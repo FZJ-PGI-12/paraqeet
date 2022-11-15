@@ -1,7 +1,10 @@
 ## TODO
 
 - fix the quantity class
-- rename "Optimisable" into something more fitting ("QuantityProvider"?)
+- Better names
+  - rename "Optimisable" into something more fitting ("QuantityProvider"?)
+  - rename "Model" vs "Hamiltonian" (to Representation, even worse)
+  - "SignalGenerator", "LieGroupGenerator"
 - set up CI pipeline?
 - replace tensorflow with jax?
 - precommit
