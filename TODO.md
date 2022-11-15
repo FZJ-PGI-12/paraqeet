@@ -12,3 +12,5 @@ These tasks are waiting until some of the basic issues are solved.
 - examples for:
   - obtaining the signal from the generator and and plotting it
   - obtaining the propagator and plotting it
+  - how different combinations of layers can be used
+- look at the design of the PGI-8 software
