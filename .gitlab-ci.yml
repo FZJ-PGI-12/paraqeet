@@ -27,7 +27,7 @@ before_script:
   - python --version  # For debugging
   - pip install virtualenv pytest
   - pip install -r requirements.txt
-  - pip install setup.py
+  - pip install .
   - virtualenv venv
   - source venv/bin/activate
 
