@@ -21,15 +21,12 @@ variables:
 cache:
   paths:
     - .cache/pip
-    - venv/
 
 before_script:
   - python --version  # For debugging
   - pip install virtualenv pytest
   - pip install -r requirements.txt
   - pip install .
-  - virtualenv venv
-  - source venv/bin/activate
 
 test:
   script:
