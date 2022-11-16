@@ -26,7 +26,7 @@ cache:
 before_script:
   - python --version  # For debugging
   - pip install virtualenv pytest
-  - pip install requirements.txt
+  - pip install -r requirements.txt
   - virtualenv venv
   - source venv/bin/activate
 
