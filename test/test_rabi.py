@@ -8,7 +8,7 @@ from cthree.ScipyOptimiser import ScipyOptimiser
 FREQ = 4.8e9 * 2 * np.pi
 rabi = RabiExperiment(FREQ)
 params = rabi.getParameters()
-opt = ScipyOptimiser(rabi, params)
+opt = ScipyOptimiser(rabi)
 res = opt.optimise()
 
 
