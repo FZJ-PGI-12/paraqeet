@@ -1,5 +1,5 @@
 from typing import List
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
 
 from cthree.Optimiser import Optimiser
 from cthree.Quantity import Quantity
@@ -8,22 +8,18 @@ from cthree.measurement.Measurement import Measurement
 
 class ScipyOptimiser(Optimiser):
     _measure: Measurement
-    __optimisables: List[Quantity]
+    _optimisables: List[Quantity]
 
-    def __init__(self, measure: Measurement, optimisables: List[Quantity]):
-        self._measure = measure
-        self.__optimisables = optimisables
-
-    def optimise(self):
+    def optimise(self) -> OptimizeResult:
         init = []
-        for qty in self.__optimisables:
+        for qty in self._optimisables:
             init.append(qty.get_value())
         return minimize(
-            fun=self.set_parameters,
+            fun=self.setParameters,
             x0=init
         )
 
-    def set_parameters(self, values) -> float:
+    def setParameters(self, values) -> float:
         for index, val in enumerate(values):
-            self.__optimisables[index].set_value(val)
+            self._optimisables[index].set_value(val)
         return self._measure.measure()
