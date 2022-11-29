@@ -1,3 +1,7 @@
+from typing import List
+from cthree.Quantity import Quantity
+
+
 class Measurement:
     """
     Represents any observable and the process of measurement itself. The observable is measured after the propagation
@@ -5,6 +9,12 @@ class Measurement:
     """
 
     def __init__(self):
+        pass
+
+    def getParameters(self) -> List[Quantity]:
+        """
+        Return a list of parameters accessible in this measurement.
+        """
         pass
 
     def measure(self) -> float:
