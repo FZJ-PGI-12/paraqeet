@@ -1,5 +1,4 @@
-from typing import List
-from scipy.optimize import minimize
+from typing import List, Optional
 
 from cthree.Optimisable import Optimisable
 from cthree.measurement.Measurement import Measurement
@@ -7,11 +6,11 @@ from cthree.measurement.Measurement import Measurement
 
 class Optimiser:
     _measure: Measurement
-    __optimisables: List[Optimisable]
+    _optimisables: List[Optimisable]
 
-    def __init__(self, measure: Measurement, optimisables: List[Optimisable]):
+    def __init__(self, measure: Measurement, optimisables: Optional[List[Optimisable]] = None):
         self._measure = measure
-        self.__optimisables = optimisables
+        self._optimisables = optimisables or measure.getParameters()
 
     def optimise(self):
-        return minimize(self._measure.measure, x0=self.__optimisables.getParameters())
+        pass
