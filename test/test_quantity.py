@@ -28,7 +28,7 @@ def testGet() -> None:
 
 def testSet() -> None:
     """
-    Tests set_value, set_min_value, and set_max_value
+    Tests setValue, setMinValue, and setMaxValue
     """
     for N in range(1, 100):
         # create a random quantity with values that will be overwritten

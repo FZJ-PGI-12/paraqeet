@@ -24,10 +24,10 @@ class RabiExperiment(Measurement):
         ]
 
     def measure(self):
-        q_freq = self.__qubit_freq.get_value()
-        amp = self.__amp.get_value() * 100e6 * 2 * np.pi
-        freq = self.__freq.get_value() * q_freq
-        t = self.__time.get_value() * 10e-9
+        q_freq = self.__qubit_freq.getValue()
+        amp = self.__amp.getValue() * 100e6 * 2 * np.pi
+        freq = self.__freq.getValue() * q_freq
+        t = self.__time.getValue() * 10e-9
         diff_sq = (q_freq - freq) ** 2
         return 1 - np.abs(np.cos(np.sqrt(diff_sq + amp**2) / 2 * t) / np.sqrt(
             1 + diff_sq / (amp**2)
