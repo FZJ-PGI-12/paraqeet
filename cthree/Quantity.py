@@ -7,8 +7,6 @@ import numpy as np
 
 
 # TODO: change from numpy to tensorflow / jax
-# TODO: change from direct storage to reduced units using scale and offset
-# TODO: docstrings
 
 class Quantity:
     """
@@ -28,18 +26,17 @@ class Quantity:
     unit: str
         physical unit
     """
-    __value: np.array
-    __min_value: np.array
-    __max_value: np.array
     __unit: str
     __length: int
     __shape: Tuple
+    # internal representation of the value
+    __value: np.array
+    __offset: np.array
+    __scale: np.array
 
     def __init__(self, value: np.array, min_value: np.array, max_value: np.array, unit: str = None):
-        self.__value = value
-        self.__min_value = min_value
-        self.__max_value = max_value
         self.__unit = unit
+        self.__scale = 0
 
         value = np.array(value)
         if hasattr(value, "shape"):
@@ -49,126 +46,165 @@ class Quantity:
             self.__shape = (1,)
             self.__length = 1
 
+        self.__offset = np.array(min_value)
+        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        self.setValue(value)
+
     # Getter and setter functions
-    def get_value(self) -> np.array:
-        return self.__value
+    def getValue(self) -> np.array:
+        return self.__scale * (self.__value + 1) / 2 + self.__offset
 
-    def set_value(self, value) -> None:
-        self.__value = value
+    def setValue(self, value) -> None:
+        """
+        Sets the value of this quantity. Value needs to be within the range of min_value and max_value.
+        """
+        if isinstance(value, np.ndarray):
+            val = value.astype(np.float64)
+        else:
+            val = np.array(value, np.float64)
+        tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
-    def get_min_value(self) -> np.array:
-        return self.__min_value
+        if np.any(np.abs(tmp) > 1.0):
+            print("Error: ", val, self.getMinValue(), self.getMaxValue())
+            raise ValueError(
+                f"Value {self.__toString(val)}{self.__unit} out of bounds for quantity with "
+                f"min_val: {self.__toString(self.getMinValue())}{self.__unit} and "
+                f"max_val: {self.__toString(self.getMaxValue())}{self.__unit}",
+            )
+        self.__value = tmp
 
-    def get_max_value(self) -> np.array:
-        return self.__max_value
+    def getMinValue(self) -> np.array:
+        return self.__offset
 
-    def set_limits(self, min_value, max_value) -> None:
-        self.__min_value = min_value
-        self.__max_value = max_value
+    def getMaxValue(self) -> np.array:
+        return self.__scale + self.__offset
+
+    def setLimits(self, min_value, max_value) -> None:
+        """
+        Sets the allowed minimum and maximum of this quantity.
+        """
+        oldValue = self.getValue()
+        self.__offset = np.array(min_value)
+        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        # the value is based on offset and scale and needs to be updated
+        self.setValue(oldValue)
 
     # Python specific functions
     def __add__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() + other)
+        out_val.setValue(self.getValue() + other)
         return out_val
 
     def __radd__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() + other)
+        out_val.setValue(self.getValue() + other)
         return out_val
 
     def __sub__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() - other)
+        out_val.setValue(self.getValue() - other)
         return out_val
 
     def __rsub__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(other - self.get_value())
+        out_val.setValue(other - self.getValue())
         return out_val
 
     def __mul__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() * other)
+        out_val.setValue(self.getValue() * other)
         return out_val
 
     def __rmul__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() * other)
+        out_val.setValue(self.getValue() * other)
         return out_val
 
     def __pow__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() ** other)
+        out_val.setValue(np.float_power(self.getValue(), other))
         return out_val
 
     def __rpow__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(other ** self.get_value())
+        out_val.setValue(np.float_power(other, self.getValue()))
         return out_val
 
     def __truediv__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() / other)
+        out_val.setValue(self.getValue() / other)
         return out_val
 
     def __rtruediv__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(other / self.get_value())
+        out_val.setValue(other / self.getValue())
         return out_val
 
     def __mod__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
-        out_val.set_value(self.get_value() % other)
+        out_val.setValue(self.getValue() % other)
         return out_val
 
     def __lt__(self, other) -> bool:
-        return self.get_value() < other
+        return self.getValue() < other
 
     def __le__(self, other) -> bool:
-        return self.get_value() <= other
+        return self.getValue() <= other
 
     def __eq__(self, other) -> bool:
-        return self.get_value() == other
+        return self.getValue() == other
 
     def __ne__(self, other) -> bool:
-        return self.get_value() != other
+        return self.getValue() != other
 
     def __ge__(self, other) -> bool:
-        return self.get_value() >= other
+        return self.getValue() >= other
 
     def __gt__(self, other) -> bool:
-        return self.get_value() > other
+        return self.getValue() > other
 
     def __array__(self):
-        return np.array(self.get_value())
+        return np.array(self.getValue())
 
     def __len__(self):
         return self.__length
 
     def __getitem__(self, key):
         if self.__length == 1 and key == 0:
-            return self.get_value()
-        return self.get_value().__getitem__(key)
+            return self.getValue()
+        return self.getValue().__getitem__(key)
 
     def __float__(self):
         if self.__length > 1:
             raise NotImplementedError
-        return float(self.get_value())
+        return float(self.getValue())
 
     def __repr__(self):
-        return self.__str__()[:-1]
+        return self.__str__()
 
     def __str__(self):
-        val = self.get_value()
+        return self.__toString(self.getValue())
+
+    def __toString(self, val):
         ret = ""
         for entry in np.nditer(val):
-            if self.__unit is None:
-                ret += f"{entry:.3} "
+            if self.__unit is not None:
+                ret += self.__makeHumanReadable(entry) + self.__unit + " "
             else:
-                num, prefix = self.__engineeringNumber(entry)
-                ret += f"{entry:.3f} " + prefix + self.__unit + " "
+                ret += self.__makeHumanReadable(entry, use_prefix=False) + " "
         return ret
+
+    @staticmethod
+    def __makeHumanReadable(val, use_prefix: bool = True) -> str:
+        """
+        Converts a number to a human readable string in engineering notation.
+        """
+        if use_prefix:
+            num, prefix = Quantity.__engineeringNumber(val)
+            formatted_string = f"{num:.3} " + prefix
+        else:
+            formatted_string = f"{val:.3} "
+        return formatted_string
 
     # Internal utility functions
     @staticmethod
@@ -179,12 +215,12 @@ class Quantity:
         if np.isnan(val):
             return np.nan, "NaN"
 
-        sign = 1
+        sign = 1.0
         if val == 0:
-            return 0, ""
-        if val < 0:
+            return 0.0, ""
+        if val < 0.0:
             val = -val
-            sign = -1
+            sign = -1.0
         tmp = np.log10(val)
         idx = int(tmp // 3)
 
