@@ -13,7 +13,7 @@ class ScipyOptimiser(Optimiser):
     def optimise(self) -> OptimizeResult:
         init = []
         for qty in self._optimisables:
-            init.append(qty.get_value())
+            init.append(qty.getValue())
         return minimize(
             fun=self.setParameters,
             x0=init
@@ -21,5 +21,5 @@ class ScipyOptimiser(Optimiser):
 
     def setParameters(self, values) -> float:
         for index, val in enumerate(values):
-            self._optimisables[index].set_value(val)
+            self._optimisables[index].setValue(val)
         return self._measure.measure()
