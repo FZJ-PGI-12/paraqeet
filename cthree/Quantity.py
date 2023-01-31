@@ -6,8 +6,6 @@ from typing import Tuple, List
 import numpy as np
 
 
-# TODO: change from numpy to tensorflow / jax
-
 class Quantity:
     """
     Represents any physical quantity used in the model or the pulse specification. For arithmetic operations just the
@@ -34,7 +32,10 @@ class Quantity:
     __offset: np.array
     __scale: np.array
 
-    def __init__(self, value: np.array, min_value: np.array = None, max_value: np.array = None, unit: str = None):
+    def __init__(self, value: np.array, min_value: np.array, max_value: np.array, unit: str = ''):
+        if not value or not max_value or not min_value:
+            raise Exception("value, minimum, and maximum must be not null")
+
         self.__unit = unit
         self.__scale = 0
 
@@ -45,11 +46,6 @@ class Quantity:
         else:
             self.__shape = (1,)
             self.__length = 1
-
-        if max_value is None:
-            max_value = 1.5 * value if value >= 0 else 0.5 * value
-        if min_value is None:
-            min_value = 0.5 * value if value >= 0 else 1.5 * value
 
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
