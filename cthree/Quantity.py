@@ -33,7 +33,7 @@ class Quantity:
     __scale: np.array
 
     def __init__(self, value: np.array, min_value: np.array, max_value: np.array, unit: str = ''):
-        if not value or not max_value or not min_value:
+        if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
 
         self.__unit = unit
@@ -55,6 +55,9 @@ class Quantity:
     def getValue(self) -> np.array:
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
+    def getReducedValue(self) -> np.array:
+        return self.__value
+
     def setValue(self, value) -> None:
         """
         Sets the value of this quantity. Value needs to be within the range of min_value and max_value.
@@ -73,6 +76,9 @@ class Quantity:
                 f"max_val: {self.__toString(self.getMaxValue())}{self.__unit}",
             )
         self.__value = tmp
+
+    def setReducedValue(self, value) -> None:
+        self.__value = value
 
     def getMinValue(self) -> np.array:
         return self.__offset
