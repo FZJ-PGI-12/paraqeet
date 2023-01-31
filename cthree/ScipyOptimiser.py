@@ -1,4 +1,6 @@
 from typing import List
+
+import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 
 from cthree.Optimiser import Optimiser
@@ -13,13 +15,14 @@ class ScipyOptimiser(Optimiser):
     def optimise(self) -> OptimizeResult:
         init = []
         for qty in self._optimisables:
-            init.append(qty.get_value())
+            init.append(qty.getReducedValue())
         return minimize(
             fun=self.setParameters,
-            x0=init
+            x0=np.array(init),
+            bounds=[(-1, 1)] * len(self._optimisables),
         )
 
     def setParameters(self, values) -> float:
         for index, val in enumerate(values):
-            self._optimisables[index].set_value(val)
+            self._optimisables[index].setReducedValue(val)
         return self._measure.measure()

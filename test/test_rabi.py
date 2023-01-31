@@ -5,7 +5,7 @@ from cthree.measurement.RabiExperiment import RabiExperiment
 from cthree.ScipyOptimiser import ScipyOptimiser
 
 
-FREQ = 4.8e9 * 2 * np.pi
+FREQ = 4.8e9
 rabi = RabiExperiment(FREQ)
 params = rabi.getParameters()
 opt = ScipyOptimiser(rabi)
@@ -20,4 +20,4 @@ def test_rabi() -> None:
 
 
 def test_find_resonance() -> None:
-    assert_almost_equal(1, params[1].get_value(), decimal=4)
+    assert_almost_equal(FREQ / 1e9, params[1].getValue() / 1e9, decimal=4)
