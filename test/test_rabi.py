@@ -5,7 +5,7 @@ from cthree.measurement.RabiExperiment import RabiExperiment
 from cthree.ScipyOptimiser import ScipyOptimiser
 
 
-FREQ = 4.8e9 * 2 * np.pi
+FREQ = 4.8e9
 rabi = RabiExperiment(FREQ)
 params = rabi.getParameters()
 opt = ScipyOptimiser(rabi)
