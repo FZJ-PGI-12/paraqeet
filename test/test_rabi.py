@@ -20,4 +20,4 @@ def test_rabi() -> None:
 
 
 def test_find_resonance() -> None:
-    assert_almost_equal(FREQ, params[1].getValue(), decimal=4)
+    assert_almost_equal(FREQ / 1e9, params[1].getValue() / 1e9, decimal=4)
