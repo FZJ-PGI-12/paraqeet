@@ -1,10 +1,13 @@
 import numpy as np
 from cthree.signals.SimpleGenerator import CosGenerator
+from cthree.signals.Device import CosTone
 
 LEN_SIG = 1001
 
 ts = np.linspace(0, 10e-9, LEN_SIG)
-gen = CosGenerator()
+
+tone = CosTone()
+gen = CosGenerator(devices=[tone])
 
 
 def test_gen() -> None:
