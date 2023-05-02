@@ -8,11 +8,30 @@ import numpy as np
 
 
 class ClosedModel(Model):
+    """
+    Model of a closed physical system, defined by a Hamiltonian. Its dynamics given by the Schrödinger equation.
+    """
+
     def __init__(self, hamiltonian: Hamiltonian):
         super().__init__(hamiltonian)
 
     def getParameters(self) -> List[Quantity]:
-        return []
+        """
+        Optimizable parameters.
 
-    def getEquationOfMotion(self) -> np.ndarray:
-        return -1.0j * self._hamiltonian.getMatrix()
+        Returns:
+            List[Quantity]: List of optimizable parameters.
+        """
+        return self._hamiltonian.getParameters()
+
+    def getEquationOfMotion(self, t: np.ndarray) -> np.ndarray:
+        """
+        Computes the right hand side of the Schrödinger equation.
+
+        Args:
+            t (np.ndarray): Vector of time samples
+
+        Returns:
+            np.ndarray: RHS with dimension [t, n, n]  with t: time, n: hilbert space
+        """
+        return -1.0j * self._hamiltonian.getMatrix(t)
