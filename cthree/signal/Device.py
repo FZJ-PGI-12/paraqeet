@@ -22,10 +22,14 @@ class CosTone(Device):
     __frequency: Quantity
 
     def __init__(self) -> None:
-        self.__amplitude = Quantity(0.6)
-        self.__frequency = Quantity(0.6)
+        self.__amplitude = Quantity(
+            60e6 * 2 * np.pi, min_value=1e6 * 2 * np.pi, max_value=150e6 * 2 * np.pi
+        )
+        self.__frequency = Quantity(
+            5e9 * 2 * np.pi, min_value=4e9 * 2 * np.pi, max_value=6e9 * 2 * np.pi
+        )
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
-        amp = self.__amplitude.get_value() * 100e6 * 2 * np.pi
-        freq = self.__frequency.get_value() * 5e9 * 2 * np.pi
+        amp = self.__amplitude.getValue()
+        freq = self.__frequency.getValue()
         return amp * np.cos(freq * t)
