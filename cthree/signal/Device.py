@@ -33,3 +33,12 @@ class CosTone(Device):
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return amp * np.cos(freq * t)
+
+
+class ZeroTone(Device):
+    """
+    Create a zero tone.
+    """
+    
+    def computeOutput(self, t: np.ndarray) -> np.ndarray:
+        return np.zeros_like(t)
