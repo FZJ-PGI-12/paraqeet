@@ -1,6 +1,6 @@
 import numpy as np
-from cthree.signals.SimpleGenerator import CosGenerator
-from cthree.signals.Device import CosTone
+from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.Device import CosTone
 
 LEN_SIG = 1001
 
