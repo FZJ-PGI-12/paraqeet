@@ -2,9 +2,6 @@ from numpy.testing import assert_almost_equal
 from typing import List
 import numpy as np
 from cthree.propagation.ScipyExpm import ScipyExpm
-from cthree.model.ClosedModel import ClosedModel
-from cthree.signal.Device import ZeroTone
-from cthree.signal.SimpleGenerator import CosGenerator
 from cthree.model.Hamiltonian import Hamiltonian
 from cthree.model.Model import Model
 from cthree.Quantity import Quantity
