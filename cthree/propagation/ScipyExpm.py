@@ -17,5 +17,5 @@ class ScipyExpm(Propagation):
         return [self.__T]
 
     def propagate(self):
-        equationsOfMotion = self._model.getEquationOfMotion()
+        equationsOfMotion = self._model.getEquationOfMotion(self.__T)
         return scipy.linalg.expm(equationsOfMotion)
