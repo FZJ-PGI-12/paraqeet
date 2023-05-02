@@ -30,7 +30,11 @@ before_script:
 
 test:
   script:
-    - pytest test
+    - pytest test --junitxml=report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
 
 # pages:
 #   script:
