@@ -1,8 +1,8 @@
 from typing import List
 
-from Quantity import Quantity
-from model.Model import Model
-from propagation.Propagation import Propagation
+from cthree.Quantity import Quantity
+from cthree.model.Model import Model
+from cthree.propagation.Propagation import Propagation
 
 
 class Euler(Propagation):
