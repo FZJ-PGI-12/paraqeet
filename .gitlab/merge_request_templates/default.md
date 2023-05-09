@@ -1,0 +1,2 @@
+- [ ] Added doc strings to all new functions and classes
+- [ ] Added unit tests if necessary

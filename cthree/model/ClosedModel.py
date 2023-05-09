@@ -24,14 +24,14 @@ class ClosedModel(Model):
         """
         return self._hamiltonian.getParameters()
 
-    def getEquationOfMotion(self, t: np.ndarray) -> np.ndarray:
+    def getEquationOfMotion(self, time: np.ndarray) -> np.ndarray:
         """
         Computes the right hand side of the Schrödinger equation.
 
         Args:
-            t (np.ndarray): Vector of time samples
+            time (np.ndarray): Vector of time samples
 
         Returns:
             np.ndarray: RHS with dimension [t, n, n]  with t: time, n: hilbert space
         """
-        return -1.0j * self._hamiltonian.getMatrix(t)
+        return -1.0j * self._hamiltonian.getMatrix(time)

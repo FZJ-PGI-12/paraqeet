@@ -12,3 +12,8 @@
 - When storing `self.something` as a class variable, specify `something` in the top level of the class.
 - Make functions and variables private unless they are needed to be public
 - Use as few global functions as possible. Instead, put the function into a class an use inheritance.
+
+## Documentation
+
+- Add a doc string to every class and function, unless the function inherits the documentation from another class or interface.
+- Use the numpy format for arguments and return values (see https://numpydoc.readthedocs.io/en/latest/format.html)
