@@ -1,4 +1,3 @@
-import copy
 from typing import Tuple
 
 from cthree.Quantity import Quantity

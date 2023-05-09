@@ -5,14 +5,21 @@ from cthree.propagation.ScipyExpm import ScipyExpm
 from cthree.model.Hamiltonian import Hamiltonian
 from cthree.model.Model import Model
 from cthree.Quantity import Quantity
-
+from cthree.signal.Generator import Generator
 
 LEN_SIG = 20
 DIMS = 10
 
 
 ts = np.linspace(0, 1e-9, LEN_SIG)
-dummy_hamiltonian = np.zeros((LEN_SIG, DIMS, DIMS))
+
+
+class DummyHamiltonian(Hamiltonian):
+    def __init__(self):
+        super().__init__([], None, None, Generator())
+
+    def getMatrix(self, t: np.ndarray) -> np.ndarray:
+        return np.zeros((LEN_SIG, DIMS, DIMS))
 
 
 class dummy_model(Model):
@@ -23,16 +30,16 @@ class dummy_model(Model):
         pass
 
     def getEquationOfMotion(self, t: np.ndarray) -> np.ndarray:
-        return -1.0j * self._hamiltonian
+        return -1.0j * self._hamiltonian * (t[1:] - t[0:-1])
 
 
 def test_identity() -> None:
     """
     Check that no input signal gives identity matrix as propagators.
     """
-    model = dummy_model(dummy_hamiltonian)
-    propagation = ScipyExpm(model=model, T=ts)
-    propagators = propagation.propagate()
+    model = dummy_model(DummyHamiltonian())
+    propagation = ScipyExpm(model=model)
+    propagators = propagation.propagate(ts)
 
     identity = np.identity(DIMS)
 
