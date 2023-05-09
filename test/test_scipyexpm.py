@@ -30,7 +30,7 @@ class dummy_model(Model):
         pass
 
     def getEquationOfMotion(self, t: np.ndarray) -> np.ndarray:
-        return -1.0j * self._hamiltonian * (t[1:] - t[0:-1])
+        return -1.0j * self._hamiltonian.getMatrix(t) * (t[1:] - t[0:-1])
 
 
 def test_identity() -> None:
