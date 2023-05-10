@@ -9,6 +9,9 @@ from cthree.measurement.Measurement import Measurement
 
 
 class ScipyOptimiser(Optimiser):
+    """
+    TODO
+    """
     _measure: Measurement
     _optimisables: List[Quantity]
 
@@ -23,6 +26,9 @@ class ScipyOptimiser(Optimiser):
         )
 
     def setParameters(self, values) -> float:
+        """
+        TODO
+        """
         for index, val in enumerate(values):
             self._optimisables[index].setReducedValue(val)
         return self._measure.measure()

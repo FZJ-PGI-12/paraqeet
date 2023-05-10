@@ -23,4 +23,7 @@ class Generator(Optimisable):
     __devices: List[Device]
 
     def generateSignal(self, instr):
+        """
+        TODO
+        """
         pass

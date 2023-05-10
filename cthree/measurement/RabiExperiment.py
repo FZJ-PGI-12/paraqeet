@@ -5,6 +5,9 @@ from cthree.measurement.Measurement import Measurement
 
 
 class RabiExperiment(Measurement):
+    """
+    TODO
+    """
     __qubit_freq: Quantity
     __amp: Quantity
     __freq: Quantity

@@ -8,7 +8,11 @@ from cthree.propagation.Propagation import Propagation
 
 import scipy
 
+
 class ScipyExpm(Propagation):
+    """
+    TODO
+    """
     def __init__(self, model: Model):
         super().__init__(model)
 
