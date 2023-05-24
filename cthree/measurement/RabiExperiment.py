@@ -6,8 +6,12 @@ from cthree.measurement.Measurement import Measurement
 
 class RabiExperiment(Measurement):
     """
-    TODO
+    Analytic model of the general Rabi formula.
+
+    Args:
+        qubit_freq(float): Resonance of the single qubit.
     """
+
     __qubit_freq: Quantity
     __amp: Quantity
     __freq: Quantity
@@ -21,18 +25,25 @@ class RabiExperiment(Measurement):
         self.__time = Quantity(0.6e-9, 0, 10e-9)
 
     def getParameters(self):
-        return [
-            self.__amp,
-            self.__freq,
-            self.__time
-        ]
+        """
+        Return a list of parameters accessible in this measurement.
+        """
+        return [self.__amp, self.__freq, self.__time]
 
     def measure(self):
+        """
+        Gives the result of a general Rabi oscillation, depending of drive frequency, amplitude and time.
+        """
         q_freq = self.__qubit_freq.getValue()
         amp = self.__amp.getValue() * 2 * np.pi
         freq = self.__freq.getValue()
         t = self.__time.getValue()
         diff_sq = (q_freq - freq) ** 2
-        return 1 - np.abs(np.cos(np.sqrt(diff_sq + amp**2) / 2 * t) / np.sqrt(
-            1 + diff_sq / (amp**2)
-        )) ** 2
+        return (
+            1
+            - np.abs(
+                np.cos(np.sqrt(diff_sq + amp**2) / 2 * t)
+                / np.sqrt(1 + diff_sq / (amp**2))
+            )
+            ** 2
+        )
