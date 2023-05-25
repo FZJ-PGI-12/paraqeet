@@ -11,6 +11,7 @@ class RungeKutta(Propagation):
     """
     TODO
     """
+
     def __init__(self, model: Model):
         super().__init__(model)
 
@@ -18,9 +19,10 @@ class RungeKutta(Propagation):
         return []
 
     def propagate(self, time: np.ndarray):
-        equationsOfMotion = self._model.getEquationOfMotion(time)
+        # equationsOfMotion = self._model.getEquationOfMotion(time)
+        self.__rungeKuttaStep()
         # do something
-        pass
+        raise NotImplementedError
 
     def __rungeKuttaStep(self):
         pass
