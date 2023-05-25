@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Optional
 
 from cthree.Optimisable import Optimisable
@@ -20,6 +21,7 @@ class Optimiser:
         self._measure = measure
         self._optimisables = optimisables or measure.getParameters()
 
+    @abstractmethod
     def optimise(self):
         """
         Performs the actual optimisation. Depending on the implementation, this function might take a long time and

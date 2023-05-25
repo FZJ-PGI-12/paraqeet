@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List
 
 from cthree.Optimisable import Optimisable
@@ -17,9 +18,11 @@ class Model(Optimisable):
     def __init__(self, hamiltonian: Hamiltonian):
         self._hamiltonian = hamiltonian
 
+    @abstractmethod
     def getParameters(self) -> List[Quantity]:
         raise NotImplementedError()
 
+    @abstractmethod
     def getEquationOfMotion(self, time: np.ndarray) -> np.ndarray:
         """
         Returns the right-hand side of the equations of motion. The format depends on the implementation and could for

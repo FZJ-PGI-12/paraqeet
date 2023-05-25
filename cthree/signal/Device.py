@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import numpy as np
 
 from cthree.Quantity import Quantity
@@ -8,7 +9,7 @@ class Device(Optimisable):
     """
     Classical electronics.
     """
-
+    @abstractmethod
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
