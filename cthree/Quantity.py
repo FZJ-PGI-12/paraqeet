@@ -56,6 +56,9 @@ class Quantity:
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
     def getReducedValue(self) -> np.array:
+        """
+        Returns the value in the reduced representation as it is stored internally.
+        """
         return self.__value
 
     def setValue(self, value) -> None:
