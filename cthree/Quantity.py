@@ -24,6 +24,7 @@ class Quantity:
     unit: str
         physical unit
     """
+
     __unit: str
     __length: int
     __shape: Tuple
@@ -32,7 +33,9 @@ class Quantity:
     __offset: np.array
     __scale: np.array
 
-    def __init__(self, value: np.array, min_value: np.array, max_value: np.array, unit: str = ''):
+    def __init__(
+        self, value: np.array, min_value: np.array, max_value: np.array, unit: str = ""
+    ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
 
@@ -184,6 +187,9 @@ class Quantity:
             return self.getValue()
         return self.getValue().__getitem__(key)
 
+    def __abs__(self):
+        return abs(self.getValue())
+
     def __float__(self):
         if self.__length > 1:
             raise NotImplementedError
@@ -198,7 +204,7 @@ class Quantity:
     def __toString(self, val):
         ret = ""
         for entry in np.nditer(val):
-            if self.__unit is not None:
+            if self.__unit != "":
                 ret += self.__makeHumanReadable(entry) + self.__unit + " "
             else:
                 ret += self.__makeHumanReadable(entry, use_prefix=False) + " "

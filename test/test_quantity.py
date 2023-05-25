@@ -1,3 +1,4 @@
+import pytest
 from typing import Tuple
 
 from cthree.Quantity import Quantity
@@ -8,6 +9,16 @@ import numpy.testing as testing
 properties: __repr__, __str__
 arithmetic: add, subtract
 """
+
+
+@pytest.fixture
+def five():
+    return Quantity(5, 0, 15)
+
+
+@pytest.fixture
+def three():
+    return Quantity(3, 0, 15)
 
 
 # getter and setter
@@ -73,7 +84,7 @@ def testLen() -> None:
             10.0, np.random.randint(-10, 10)
         )
         q = __generateQuantity(values)
-        assert len(q) == N
+        testing.assert_almost_equal(len(q), N)
 
 
 # conversion
@@ -134,6 +145,42 @@ def testEquality() -> None:
         assert q2 == q2
         testing.assert_almost_equal(q1, value)
         testing.assert_almost_equal(q1, q1.getValue())
+
+
+def testNoInput():
+    """
+    Trying to instantiate without any parameters.
+    """
+    with pytest.raises(Exception):
+        Quantity(5)
+
+
+def testOutOfBounds():
+    num = Quantity(5, 3, 6)
+    with pytest.raises(Exception):
+        num.setValue(7)
+
+
+def testArithmetic(five, three):
+    testing.assert_almost_equal(five + three, 8)
+    testing.assert_almost_equal(5 + three, 8)
+    testing.assert_almost_equal(five - three, 2)
+    testing.assert_almost_equal(five * three, 15)
+    testing.assert_almost_equal(five / three, 5.0 / 3)
+    testing.assert_almost_equal(5 / three, 5.0 / 3)
+    testing.assert_almost_equal(five % 3, 5.0 % 3)
+    testing.assert_almost_equal(five * 3, 15)
+    testing.assert_almost_equal(5 * three, 15)
+    testing.assert_almost_equal(five**1, 5)
+    testing.assert_almost_equal(1**three, 1)
+
+
+def testStr(five):
+    str(five) == "5"
+    volts = Quantity(0.005, 0, 1, unit="V")
+    assert str(volts) == "5.0 mV "
+    resist = Quantity(2100, 0, 2500, unit="Ohm")
+    assert str(resist) == "2.1 KOhm "
 
 
 # helper functions
