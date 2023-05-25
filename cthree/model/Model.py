@@ -18,7 +18,7 @@ class Model(Optimisable):
         self._hamiltonian = hamiltonian
 
     def getParameters(self) -> List[Quantity]:
-        pass
+        raise NotImplementedError()
 
     def getEquationOfMotion(self, time: np.ndarray) -> np.ndarray:
         """
@@ -31,4 +31,4 @@ class Model(Optimisable):
         Returns:
             np.ndarray: the right-hand side of the equation of motion at each time stamp
         """
-        pass
+        raise NotImplementedError()

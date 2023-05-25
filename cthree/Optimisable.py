@@ -9,4 +9,4 @@ class Optimisable:
     all parameters (by reference) and update their values.
     """
     def getParameters(self) -> List[Quantity]:
-        pass
+        raise NotImplementedError()

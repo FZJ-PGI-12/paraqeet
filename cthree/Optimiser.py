@@ -25,4 +25,4 @@ class Optimiser:
         Performs the actual optimisation. Depending on the implementation, this function might take a long time and
         might need several calls to the underlying layers.
         """
-        pass
+        raise NotImplementedError()

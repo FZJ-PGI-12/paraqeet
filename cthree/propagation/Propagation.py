@@ -21,4 +21,4 @@ class Propagation(Optimisable):
 
         :param time: any one-dimensional vector of timestamps
         """
-        pass
+        raise NotImplementedError()

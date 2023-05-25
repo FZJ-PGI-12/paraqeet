@@ -15,10 +15,10 @@ class Measurement:
         """
         Return a list of parameters accessible in this measurement.
         """
-        pass
+        raise NotImplementedError()
 
     def measure(self) -> float:
         """
         Measures the observable and returns the value. This function must be implemented by subclasses.
         """
-        pass
+        raise NotImplementedError()

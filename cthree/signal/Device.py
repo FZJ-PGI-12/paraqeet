@@ -10,7 +10,7 @@ class Device(Optimisable):
     """
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
-        pass
+        raise NotImplementedError()
 
 
 class CosTone(Device):
