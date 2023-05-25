@@ -4,13 +4,14 @@ from cthree.Quantity import Quantity
 import numpy as np
 import numpy.testing as testing
 
-'''
+"""
 properties: __repr__, __str__
 arithmetic: add, subtract
-'''
+"""
 
 
 # getter and setter
+
 
 def testGet() -> None:
     """
@@ -18,7 +19,9 @@ def testGet() -> None:
     """
     for N in range(1, 100):
         # create a quantity with random values and check if the get functions return the same values
-        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        values = (2 * np.random.random(N) - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q = __generateQuantity(values)
         testing.assert_allclose(q.getValue(), values)
         testing.assert_array_less(q.getMinValue(), q.getValue())
@@ -31,7 +34,9 @@ def testSet() -> None:
     """
     for N in range(1, 100):
         # create a random quantity with values that will be overwritten
-        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        values = (2 * np.random.random(N) - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q = __generateQuantity(values)
         oldMin = q.getMinValue()
         oldMax = q.getMaxValue()
@@ -54,7 +59,9 @@ def testSet() -> None:
 
 def testGetItem() -> None:
     for N in range(1, 100):
-        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        values = (2 * np.random.random(N) - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q = __generateQuantity(values)
         for i, v in enumerate(q):
             testing.assert_almost_equal(v, values[i])
@@ -62,22 +69,28 @@ def testGetItem() -> None:
 
 def testLen() -> None:
     for N in range(1, 100):
-        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        values = (2 * np.random.random(N) - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q = __generateQuantity(values)
-        assert (len(q) == N)
+        assert len(q) == N
 
 
 # conversion
 def testFloat() -> None:
     for i in range(100):
-        value = (2 * np.random.random(1) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        value = (2 * np.random.random(1) - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q = __generateQuantity(value)
         testing.assert_almost_equal(float(q), value)
 
 
 def testToArray() -> None:
     for N in range(1, 100):
-        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        values = (2 * np.random.random(N) - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q = __generateQuantity(values)
         testing.assert_array_almost_equal(np.array(q), values)
 
@@ -89,16 +102,18 @@ def testComparisons() -> None:
     """
     for i in range(1, 100):
         # create a quantity with random values and check if the get functions return the same values
-        value = (2 * np.random.random() - 1) * np.power(10.0, np.random.randint(-10, 10))
+        value = (2 * np.random.random() - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q1 = __generateQuantity(value)
         q2 = __generateQuantity(2 * np.abs(value))
 
-        assert (q2 > q1)
-        assert (q2 >= q1)
-        assert (q1 < q2)
-        assert (q1 <= q2)
-        assert (q1 <= q1)
-        assert (q1 >= q1)
+        assert q2 > q1
+        assert q2 >= q1
+        assert q1 < q2
+        assert q1 <= q2
+        assert q1 <= q1
+        assert q1 >= q1
 
 
 def testEquality() -> None:
@@ -107,14 +122,16 @@ def testEquality() -> None:
     """
     for i in range(1, 100):
         # create a quantity with random values and check if the get functions return the same values
-        value = (2 * np.random.random() - 1) * np.power(10.0, np.random.randint(-10, 10))
+        value = (2 * np.random.random() - 1) * np.power(
+            10.0, np.random.randint(-10, 10)
+        )
         q1 = __generateQuantity(value)
         q2 = __generateQuantity(1.2 * np.abs(value))
 
-        assert (q1 != q2)
-        assert (q2 != q1)
-        assert (q1 == q1)
-        assert (q2 == q2)
+        assert q1 != q2
+        assert q2 != q1
+        assert q1 == q1
+        assert q2 == q2
         testing.assert_almost_equal(q1, value)
         testing.assert_almost_equal(q1, q1.getValue())
 
@@ -169,13 +186,3 @@ def __generateRandomLimits(values: np.array) -> Tuple:
                 min_values[i] = np.random.random() * v
                 max_values[i] = (np.random.random() + 1) * v
         return min_values, max_values
-
-
-testGet()
-testSet()
-testGetItem()
-testLen()
-testFloat()
-testToArray()
-testComparisons()
-testEquality()
