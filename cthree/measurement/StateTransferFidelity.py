@@ -19,7 +19,7 @@ class StateTransferFidelity(Measurement):
 
     def measure(self) -> float:
         state = self.__propagation.propagate()
-        if state.shape != self.__initialState.shape():
+        if state.shape != self.__initialState.shape:
             raise IncompatibleLayersException(
                 f"state vector of size {len(self.__initialState)} needed for unitary fidelity")
         return 1.0 - np.vdot(self.__initialState, state)
