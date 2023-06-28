@@ -1,7 +1,8 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 
+from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 from cthree.Exceptions import IncompatibleLayersException
@@ -11,11 +12,15 @@ class MakhlinDistance(Measurement):
     """
     Measures the distance of a propagator to a perfect entangler using Makhlin invariants.
     """
+
     __propagation: Propagation
 
     def __init__(self, propagation: Propagation, initialState: np.ndarray):
         super().__init__()
         self.__propagation = propagation
+
+    def getParameters(self) -> List[Quantity]:
+        return []
 
     def measure(self) -> float:
         U = self.__propagation.propagate()

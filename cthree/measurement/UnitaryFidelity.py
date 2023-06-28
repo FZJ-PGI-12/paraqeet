@@ -19,6 +19,6 @@ class UnitaryFidelity(Measurement):
 
     def measure(self) -> float:
         U = self.__propagation.propagate()
-        if U.shape != self.__gate.shape():
+        if U.shape != self.__gate.shape:
             raise IncompatibleLayersException("propagator needed for unitary fidelity")
         return 1.0 - np.trace(np.conjugate(self.__gate.T) * U)

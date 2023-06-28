@@ -8,7 +8,12 @@ from cthree.propagation.Propagation import Propagation
 
 import scipy
 
+
 class ScipyExpm(Propagation):
+    """
+    Solve the equation of motion by piecewise exponentation with the scipy package.
+    """
+
     def __init__(self, model: Model):
         super().__init__(model)
 

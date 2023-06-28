@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from cthree.Optimisable import Optimisable
 from cthree.model.Model import Model
 
@@ -14,6 +15,7 @@ class Propagation(Optimisable):
     def __init__(self, model: Model):
         self._model = model
 
+    @abstractmethod
     def propagate(self, time: np.ndarray) -> np.ndarray:
         """
         Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
@@ -21,4 +23,4 @@ class Propagation(Optimisable):
 
         :param time: any one-dimensional vector of timestamps
         """
-        pass
+        raise NotImplementedError()
