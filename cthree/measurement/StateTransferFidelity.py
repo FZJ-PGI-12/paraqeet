@@ -3,23 +3,35 @@ import numpy as np
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 from cthree.Exceptions import IncompatibleLayersException
+from cthree.QuantumState import QuantumState
 
 
 class StateTransferFidelity(Measurement):
     """
     Fidelity measure that compares the overlap of the initial and final state.
     """
-    __initialState: np.ndarray
+
+    __initialState: QuantumState
+    __targetState: QuantumState
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, initialState: np.ndarray):
+    def __init__(
+        self,
+        propagation: Propagation,
+        initialState: QuantumState,
+        targetState: QuantumState,
+    ):
         super().__init__()
         self.__propagation = propagation
         self.__initialState = initialState
+        self.__targetState = initialState
 
     def measure(self) -> float:
-        state = self.__propagation.propagate()
+        state = self.__propagation.propagate(
+            init=self.__initialState, time=self.__targetState.getTime()
+        )
         if state.shape != self.__initialState.shape:
             raise IncompatibleLayersException(
-                f"state vector of size {len(self.__initialState)} needed for unitary fidelity")
-        return 1.0 - np.vdot(self.__initialState, state)
+                f"state vector of size {len(self.__initialState)} needed for unitary fidelity"
+            )
+        return 1 - np.abs(np.vdot(self.__targetState.getVector(), state)) ** 2
