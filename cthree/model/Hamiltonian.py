@@ -20,9 +20,9 @@ class Hamiltonian:
     def __init__(
         self,
         subsystems: List,
-        couplings: Optional[List],
-        drives: Optional[List],
-        generator: Generator,
+        couplings: Optional[List] = [],
+        drives: Optional[List] = [],
+        generator: Optional[Generator] = None,
     ):
         self.__subsystems = subsystems
         self.__couplings = couplings or []
