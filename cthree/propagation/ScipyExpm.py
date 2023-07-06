@@ -13,7 +13,9 @@ import scipy
 class ScipyExpm(Propagation):
     """
     Solve the equation of motion by piecewise exponentation with the scipy package.
+    TODO: Implement resolution setup and looping over timestamps.
     """
+    __res: float
 
     def __init__(self, model: Model):
         super().__init__(model)
@@ -22,6 +24,9 @@ class ScipyExpm(Propagation):
         return []
 
     def propagate(self, init: QuantumState, time: np.ndarray):
+        """
+        Loop over all desired times in time at reasonable resolution.
+        """
         times = np.linspace(init.getTime(), time, 1001)
         psi_t = init.getVector()
         for t in times:

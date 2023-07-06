@@ -24,12 +24,16 @@ class StateTransferFidelity(Measurement):
         super().__init__()
         self.__propagation = propagation
         self.__initialState = initialState
-        self.__targetState = initialState
+        self.__targetState = targetState
+
 
     def measure(self) -> float:
         state = self.__propagation.propagate(
             init=self.__initialState, time=self.__targetState.getTime()
         )
+        """
+        TODO: Avoid unwrapping the QuantumState class by passing properties directly.
+        """
         if state.shape != self.__initialState.shape:
             raise IncompatibleLayersException(
                 f"state vector of size {len(self.__initialState)} needed for unitary fidelity"

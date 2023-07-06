@@ -4,6 +4,8 @@ import numpy as np
 class QuantumState:
     """
     Represents a quantum state at a given time.
+    TODO:
+        - Scrap this class
     """
 
     __vector: np.ndarray
