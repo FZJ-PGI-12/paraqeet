@@ -36,6 +36,6 @@ class StateTransferFidelity(Measurement):
         """
         if state.shape != self.__initialState.shape:
             raise IncompatibleLayersException(
-                f"state vector of size {len(self.__initialState)} needed for unitary fidelity"
+                f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
             )
         return 1 - np.abs(np.vdot(self.__targetState.getVector(), state)) ** 2
