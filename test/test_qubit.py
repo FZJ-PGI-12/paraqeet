@@ -19,8 +19,8 @@ params = tone.getParameters()
 
 FREQ = 4.8e9
 t_final = 10e-9
-sigmaZ = np.array([[1, 0], [0, -1]])
-sigmaX = np.array([[0, 1], [1, 0]])
+sigmaZ = np.array([[1.0, 0], [0, -1]])
+sigmaX = np.array([[0.0, 1], [1, 0]])
 
 drift = FREQ / 2 * sigmaZ
 
@@ -29,8 +29,8 @@ model = ClosedModel(controlled_qubit)
 
 prop = ScipyExpm(model)
 
-init = QuantumState(vec=np.array([[1], [0]]), time=0)
-target = QuantumState(vec=np.array([[0], [1]]), time=t_final)
+init = QuantumState(vec=np.array([[1.0], [0]]), time=0.0)
+target = QuantumState(vec=np.array([[0.0], [1]]), time=t_final)
 zeroone = StateTransferFidelity(propagation=prop, initialState=init, targetState=target)
 
 
