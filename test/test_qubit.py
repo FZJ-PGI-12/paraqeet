@@ -11,7 +11,6 @@ from cthree.model.Hamiltonian import Hamiltonian
 from cthree.signal.SimpleGenerator import CosGenerator
 from cthree.signal.Device import CosTone
 
-from cthree.QuantumState import QuantumState
 
 tone = CosTone()
 gen = CosGenerator(devices=[tone])
@@ -27,11 +26,13 @@ drift = FREQ / 2 * sigmaZ
 controlled_qubit = Hamiltonian(subsystems=drift, drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
-prop = ScipyExpm(model)
+prop = ScipyExpm(model, res=10e9)
 
-init = QuantumState(vec=np.array([[1.0], [0]]), time=0.0)
-target = QuantumState(vec=np.array([[0.0], [1]]), time=t_final)
-zeroone = StateTransferFidelity(propagation=prop, initialState=init, targetState=target)
+init = np.array([[1.0], [0]])
+target = np.array([[0.0], [1]])
+zeroone = StateTransferFidelity(
+    propagation=prop, initialState=init, targetState=target, times=[0.0, t_final]
+)
 
 
 @pytest.fixture
