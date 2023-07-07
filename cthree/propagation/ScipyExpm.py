@@ -33,10 +33,13 @@ class ScipyExpm(Propagation):
             t0 = time[ti - 1]
             t1 = time[ti]
             steps = int(np.ceil((t1 - t0) * self.__res))
-            times = np.linspace(t0, t1, steps)
+            times = np.linspace(t0, t1, steps, endpoint=False)
+            dt = times[1] - times[0]
             psi_t = psi[-1]
             for t in times:
-                equationsOfMotion = self._model.getEquationOfMotion(t)
+                equationsOfMotion = self._model.getEquationOfMotion(
+                    t + dt / 2
+                )  # Sampling at the center of the interval.
                 dU = scipy.linalg.expm(equationsOfMotion)
                 psi_t = dU @ psi_t
             psi.append(psi_t)
