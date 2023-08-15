@@ -12,23 +12,21 @@ class RungeKutta(Propagation):
     """
     Uses scipy's Runge Kutta implementation for propagating a state vector or density matrix.
     """
-    __initialState: np.ndarray
 
-    def __init__(self, model: Model, initialState: np.ndarray):
+    def __init__(self, model: Model):
         super().__init__(model)
-        self.__initialState = initialState
 
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def propagate(self, time: np.ndarray):
+    def propagate(self, initialState: np.ndarray, time: np.ndarray):
         if len(time) < 2:
             raise ValueError('Runge-Kutta needs at least two time steps')
 
         RK45(
             fun=self._model.getEquationOfMotion,
             t0=time[0],
-            y0=self.__initialState,
+            y0=self.initialState,
             t_bound=time[-1],
             first_step=time[1] - time[0],
             vectorized=True,
