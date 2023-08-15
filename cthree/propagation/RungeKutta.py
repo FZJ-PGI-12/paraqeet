@@ -26,7 +26,7 @@ class RungeKutta(Propagation):
         RK45(
             fun=self._model.getEquationOfMotion,
             t0=time[0],
-            y0=self.initialState,
+            y0=initialState,
             t_bound=time[-1],
             first_step=time[1] - time[0],
             vectorized=True,
