@@ -11,6 +11,6 @@ def test_parameters(rk):
     assert rk.getParameters() == []
 
 
-def test_propagation(rk, ts):
+def test_propagation(rk, identity, ts):
     with pytest.raises(NotImplementedError):
-        rk.propagate(ts)
+        rk.propagate(identity, ts)
