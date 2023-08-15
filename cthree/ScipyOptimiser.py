@@ -32,4 +32,4 @@ class ScipyOptimiser(Optimiser):
         """
         for index, val in enumerate(values):
             self._optimisables[index].setReducedValue(val)
-        return self._measure.measure()
+        return 1 - self._measure.measure()

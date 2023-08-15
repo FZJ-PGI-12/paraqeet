@@ -6,7 +6,7 @@ def test_parameters(model):
     assert propagation.getParameters() == []
 
 
-def test_resultion(model):
+def test_resolution(model):
     propagation = ScipyExpm(model=model, res=3)
     propagation.setResolution(532)
     assert propagation.getResolution() == 532
