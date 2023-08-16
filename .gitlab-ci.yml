@@ -28,16 +28,15 @@ cache:
   paths:
     - .cache/pip
 
-before_script:
-  - python --version  # For debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - pip install pytest-cov
-  - pip install -r requirements.txt
-  - pip install -e .
-
 test:
+  before_script:
+    - python --version  # For debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install pytest-cov
+    - pip install -r requirements.txt
+    - pip install -e .
   script:
     - pytest test --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
