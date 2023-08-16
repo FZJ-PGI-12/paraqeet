@@ -4,15 +4,15 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Python.gitlab-ci.yml
 
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: python:latest
+
 include:
   - template: Code-Quality.gitlab-ci.yml
 
 code_quality:
   services:            # Shut off Docker-in-Docker
-
-# Official language image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python/tags/
-image: python:latest
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
