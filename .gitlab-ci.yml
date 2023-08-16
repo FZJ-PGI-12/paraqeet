@@ -9,8 +9,6 @@ include:
 
 code_quality:
   services:            # Shut off Docker-in-Docker
-  tags:
-    - cq-sans-dind     # Set this job to only run on our new specialized runner
 
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
