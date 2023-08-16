@@ -4,6 +4,14 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Python.gitlab-ci.yml
 
+include:
+  - template: Code-Quality.gitlab-ci.yml
+
+code_quality:
+  services:            # Shut off Docker-in-Docker
+  tags:
+    - cq-sans-dind     # Set this job to only run on our new specialized runner
+
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
 image: python:latest
