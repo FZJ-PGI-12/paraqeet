@@ -12,6 +12,7 @@ include:
   - template: Code-Quality.gitlab-ci.yml
 
 code_quality:
+  image: docker:latest
   services:            # Shut off Docker-in-Docker
 
 # Change pip's cache directory to be inside the project directory since we can
