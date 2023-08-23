@@ -8,13 +8,6 @@
 # https://hub.docker.com/r/library/python/tags/
 image: python:latest
 
-include:
-  - template: Code-Quality.gitlab-ci.yml
-
-code_quality:
-  image: docker:latest
-  services:            # Shut off Docker-in-Docker
-
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
@@ -28,16 +21,19 @@ variables:
 cache:
   paths:
     - .cache/pip
+    - venv
+    - .mypy_cache
+
+before_script:
+  - python --version  # For debugging
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - pip install pytest-cov mypy mypy-gitlab-code-quality
+  - pip install -r requirements.txt
+  - pip install -e .
 
 test:
-  before_script:
-    - python --version  # For debugging
-    - pip install virtualenv
-    - virtualenv venv
-    - source venv/bin/activate
-    - pip install pytest-cov
-    - pip install -r requirements.txt
-    - pip install -e .
   script:
     - pytest test --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
@@ -48,6 +44,17 @@ test:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+
+codequality:
+  script:
+    - pip install mypy mypy-gitlab-code-quality
+    - mypy cthree --no-error-summary > mypy-out.txt
+    - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > codequality.json
+  artifacts:
+    when: always
+    reports:
+      codequality: codequality.json
+  allow_failure: true
 
 # pages:
 #   script:
