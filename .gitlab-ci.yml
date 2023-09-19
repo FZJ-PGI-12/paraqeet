@@ -21,13 +21,15 @@ variables:
 cache:
   paths:
     - .cache/pip
+    - venv
+    - .mypy_cache
 
 before_script:
   - python --version  # For debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install pytest-cov
+  - pip install pytest-cov mypy mypy-gitlab-code-quality
   - pip install -r requirements.txt
   - pip install -e .
 
@@ -42,6 +44,17 @@ test:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+
+codequality:
+  script:
+    - pip install mypy mypy-gitlab-code-quality
+    - mypy cthree --no-error-summary > mypy-out.txt
+    - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > codequality.json
+  artifacts:
+    when: always
+    reports:
+      codequality: codequality.json
+  allow_failure: true
 
 # pages:
 #   script:
