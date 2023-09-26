@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 from scipy.stats import unitary_group
 
@@ -16,5 +18,5 @@ class IdentityPropagation(Propagation):
     def setInitialState(self, state: np.ndarray):
         self.__state = state
 
-    def propagate(self, times: np.ndarray) -> np.ndarray:
-        return self.__state
+    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
+        return [self.__state] * len(time)

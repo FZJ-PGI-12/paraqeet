@@ -34,7 +34,7 @@ class RandomPropagation(Propagation):
     def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         if self.__autoUpdate:
             self.update()
-        return [self.__state]
+        return [self.__state] * len(time)
 
     def update(self) -> None:
         """
