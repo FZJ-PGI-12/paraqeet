@@ -24,19 +24,6 @@ class ClosedModel(Model):
         """
         return self._hamiltonian.getParameters()
 
-    def getEquationOfMotion(self, time: np.ndarray, state: np.ndarray) -> np.ndarray:
-        """
-        Computes the right hand side of the Schrödinger equation.
-
-        Args:
-            time (np.ndarray): Vector of time samples
-            state (np.ndarray): Physical state vector
-
-        Returns:
-            np.ndarray: RHS with dimension [t, n]  with t: time, n: hilbert space
-        """
-        return -1.0j * self._hamiltonian.getMatrix(time) @ state
-
     def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
         """
         Computes the right hand side of the Schrödinger equation without multiplying the state. Used for unitary
