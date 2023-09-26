@@ -26,6 +26,10 @@ class StateTransferFidelity(Measurement):
         self.__propagation = propagation
         self.__initialState = initialState
         self.__targetState = targetState
+        if targetState.shape != initialState.shape:
+            raise IncompatibleLayersException(
+                f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
+            )
         self.__times = times
 
     def measure(self) -> float:
@@ -33,8 +37,4 @@ class StateTransferFidelity(Measurement):
             init=self.__initialState, time=self.__times
         )
         final_state = states[-1]
-        if final_state.shape != self.__initialState.shape:
-            raise IncompatibleLayersException(
-                f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
-            )
         return np.abs(np.vdot(self.__targetState, final_state)) ** 2
