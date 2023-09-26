@@ -38,8 +38,6 @@ def test_vector_equality():
             state = randomState(size)
             propagation = IdentityPropagation()
             propagation.setInitialState(state)
-            measurement = StateTransferFidelity(propagation, state, state, np.ndarray([1.0]))
+            measurement = StateTransferFidelity(propagation, state, state, np.array([1.0]))
             m = measurement.measure()
-            np.testing.assert_almost_equal(m, 0.0)
-
-test_vector_equality()
+            np.testing.assert_almost_equal(m, 1.0)

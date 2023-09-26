@@ -23,7 +23,7 @@ def test_limits_vectors():
         state = randomMixedState(size)
         initialState = randomMixedState(size)
         targetState = randomMixedState(size)
-        propagation = RandomPropagation(size, False)
+        propagation = RandomPropagation(size, True)
         times = np.array([1.0])
         measurement = MixedStateTransferFidelity(propagation, targetState, times)
 
@@ -41,4 +41,4 @@ def test_vector_equality():
             propagation.setInitialState(state)
             measurement = MixedStateTransferFidelity(propagation, state, np.array([1.0]))
             m = measurement.measure()
-            np.testing.assert_almost_equal(m, 0.0, decimal=2)
+            np.testing.assert_almost_equal(m, 1.0, decimal=2)

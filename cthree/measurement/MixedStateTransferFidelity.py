@@ -27,11 +27,11 @@ class MixedStateTransferFidelity(Measurement):
         self.__targetStateSqrt = sclin.sqrtm(self.__targetState)
 
     def measure(self) -> float:
-        state = self.__propagation.propagate(self.__times)
+        state = self.__propagation.propagate(self.__times)[-1]
         if state.shape != self.__targetState.shape:
             raise IncompatibleLayersException(
-                f"Need a state vector of size {len(self.__targetState)} for the state transfer fidelity, but got shape {state.shape}")
+                f"Need a state vector of size {self.__targetState.shape} for the state transfer fidelity, but got shape {state.shape}")
 
         # density matrix
         product = self.__targetStateSqrt @ state @ self.__targetStateSqrt
-        return 1.0 - np.abs(np.trace(sclin.sqrtm(product))) ** 2
+        return np.abs(np.trace(sclin.sqrtm(product))) ** 2

@@ -1,4 +1,6 @@
 from abc import abstractmethod
+from typing import List
+
 from cthree.Optimisable import Optimisable
 from cthree.model.Model import Model
 
@@ -26,7 +28,7 @@ class Propagation(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         """
         Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
         implementation and could for example be a propagated state vector or a propagator in matrix form.
