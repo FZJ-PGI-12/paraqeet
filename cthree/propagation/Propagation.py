@@ -1,4 +1,6 @@
 from abc import abstractmethod
+from typing import List
+
 from cthree.Optimisable import Optimisable
 from cthree.model.Model import Model
 
@@ -15,8 +17,18 @@ class Propagation(Optimisable):
     def __init__(self, model: Model):
         self._model = model
 
+    def setInitialState(self, state: np.ndarray):
+        """
+        Sets the initial state for the propagation. Propagation implementations that do not need the state should not
+        implement this function.
+
+        :param state:
+        :return:
+        """
+        raise NotImplementedError()
+
     @abstractmethod
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         """
         Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
         implementation and could for example be a propagated state vector or a propagator in matrix form.

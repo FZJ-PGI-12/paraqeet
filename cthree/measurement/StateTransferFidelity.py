@@ -31,10 +31,9 @@ class StateTransferFidelity(Measurement):
                 f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
             )
         self.__times = times
+        self.__propagation.setInitialState(self.__initialState)
 
     def measure(self) -> float:
-        states = self.__propagation.propagate(
-            init=self.__initialState, time=self.__times
-        )
+        states = self.__propagation.propagate(time=self.__times)
         final_state = states[-1]
         return np.abs(np.vdot(self.__targetState, final_state)) ** 2
