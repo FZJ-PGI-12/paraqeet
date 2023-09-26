@@ -2,6 +2,7 @@ from typing import List
 
 import numpy as np
 
+from cthree.Exceptions import ConfigurationException
 from cthree.Quantity import Quantity
 from cthree.model.Model import Model
 from cthree.propagation.Propagation import Propagation
@@ -15,6 +16,7 @@ class ScipyExpm(Propagation):
     """
 
     __res: float
+    __init: np.ndarray = None
 
     def __init__(self, model: Model, res: float):
         """Setup propagation method.
@@ -25,6 +27,9 @@ class ScipyExpm(Propagation):
         """
         super().__init__(model)
         self.setResolution(res)
+
+    def setInitialState(self, state: np.ndarray):
+        self.__init = state
 
     def setResolution(self, res):
         self.__res = res
@@ -41,11 +46,14 @@ class ScipyExpm(Propagation):
         """
         return []
 
-    def propagate(self, init: np.ndarray, time: np.ndarray):
+    def propagate(self, time: np.ndarray):
         """
         Loop over all desired times in time at set resolution.
         """
-        psi = [init]
+        if self.__init is None:
+            raise ConfigurationException('Initial state is not set')
+
+        psi = [self.__init]
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
             t1 = time[ti]

@@ -26,7 +26,7 @@ class RandomPropagation(Propagation):
         self.__autoUpdate = autoUpdate
         self.update()
 
-    def propagate(self) -> np.ndarray:
+    def propagate(self, times: np.ndarray) -> np.ndarray:
         if self.__autoUpdate:
             self.update()
         return self.__state
