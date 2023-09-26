@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 from scipy.stats import unitary_group
 
@@ -26,10 +28,13 @@ class RandomPropagation(Propagation):
         self.__autoUpdate = autoUpdate
         self.update()
 
-    def propagate(self, times: np.ndarray) -> np.ndarray:
+    def setInitialState(self, state: np.ndarray):
+        pass
+
+    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         if self.__autoUpdate:
             self.update()
-        return self.__state
+        return [self.__state]
 
     def update(self) -> None:
         """

@@ -10,11 +10,10 @@ class IdentityPropagation(Propagation):
     """
     __state: np.ndarray
 
-    def __init__(self, state: np.ndarray):
-        """
-        :param state: the state to be returned
-        """
+    def __init__(self):
         super().__init__(None)
+
+    def setInitialState(self, state: np.ndarray):
         self.__state = state
 
     def propagate(self, times: np.ndarray) -> np.ndarray:

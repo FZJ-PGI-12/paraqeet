@@ -6,9 +6,11 @@ from cthree.propagation.Propagation import Propagation
 from cthree.Exceptions import IncompatibleLayersException
 
 
-class StateTransferFidelity(Measurement):
+class MixedStateTransferFidelity(Measurement):
     """
     Fidelity measure that compares the overlap of the initial and final state of density matrices.
+
+    Note: this implementation is still very inaccurate
     """
     __targetState: np.ndarray
     __targetStateSqrt: np.ndarray | None
@@ -32,4 +34,4 @@ class StateTransferFidelity(Measurement):
 
         # density matrix
         product = self.__targetStateSqrt @ state @ self.__targetStateSqrt
-        return 1.0 - np.trace(sclin.sqrtm(product)) ** 2
+        return 1.0 - np.abs(np.trace(sclin.sqrtm(product))) ** 2
