@@ -23,11 +23,18 @@ class RungeKutta(StatePropagation):
         if len(time) < 2:
             raise ValueError('Runge-Kutta propagation needs at least two time steps')
 
-        RK45(
-            fun=self._model.getEquationOfMotion,
+        callback = lambda time, state: self._model.getEquationOfMotion(np.array(time), np.array(state))
+        integrator = RK45(
+            fun=callback,
             t0=time[0],
             y0=self._initialState,
             t_bound=time[-1],
             first_step=time[1] - time[0],
-            vectorized=True,
+            vectorized=False,
         )
+
+        states = []
+        while integrator.t < time[-1]:
+            integrator.step()
+            states.append(integrator.y)
+        return states
