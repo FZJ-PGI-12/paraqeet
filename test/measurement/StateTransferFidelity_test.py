@@ -1,14 +1,9 @@
-import copy
-from typing import Tuple
-
 import numpy as np
 import numpy.testing as testing
 
-from cthree.Quantity import Quantity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from test.IdentityPropagation import IdentityPropagation
-
-from test.RandomPropagation import RandomPropagation
+from test.propagation.IdentityPropagation import IdentityPropagation
+from test.propagation.RandomPropagation import RandomPropagation
 
 
 def randomState(dimension):
@@ -19,7 +14,6 @@ def randomState(dimension):
 # test that the fidelity for state vectors is always in the interval [0, 1)
 def test_limits_vectors():
     for size in range(2, 30):
-        state = randomState(size)
         initialState = randomState(size)
         targetState = randomState(size)
         propagation = RandomPropagation(size, False)

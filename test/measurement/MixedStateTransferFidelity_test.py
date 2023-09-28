@@ -1,14 +1,9 @@
-import copy
-from typing import Tuple
-
 import numpy as np
 import numpy.testing as testing
 
-from cthree.Quantity import Quantity
 from cthree.measurement.MixedStateTransferFidelity import MixedStateTransferFidelity
-from test.IdentityPropagation import IdentityPropagation
-
-from test.RandomPropagation import RandomPropagation
+from test.propagation.IdentityPropagation import IdentityPropagation
+from test.propagation.RandomPropagation import RandomPropagation
 
 
 def randomMixedState(dimension):
