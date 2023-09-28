@@ -28,3 +28,15 @@ def identity():
 @pytest.fixture
 def model():
     return DummyModel(EmptyHamiltonian(DIMS))
+
+
+@pytest.fixture
+def randomState():
+    """
+    Returns a method that generates random normalised states for a given dimension.
+    """
+    def _method(dimension):
+        state = np.random.random(dimension) + 1j * np.random.random(dimension)
+        return state / np.sqrt(np.vdot(state, state))
+
+    return _method
