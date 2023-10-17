@@ -14,5 +14,5 @@ class DummyModel(Model):
     def getParameters(self) -> List[Quantity]:
         pass
 
-    def getMatrixEOM(self, t: np.ndarray) -> np.ndarray:
-        return -1.0j * self._hamiltonian.getMatrix(t) * (t[1] - t[0])
+    def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
+        return -1.0j * self._hamiltonian.getMatrix(time)

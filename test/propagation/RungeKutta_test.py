@@ -1,7 +1,9 @@
 import pytest
 import numpy as np
 from cthree.propagation.RungeKutta import RungeKutta
-from test.conftest import model, ts, dummy_model, DummyHamiltonian, LEN_SIG, DIMS
+from test.conftest import DIMS, LEN_SIG
+from test.model.DummyModel import DummyModel
+from test.model.EmptyHamiltonian import EmptyHamiltonian
 
 
 def randomState(dimension):
@@ -24,5 +26,4 @@ def test_state_dimension(rk, ts):
     rk.setInitialState(state)
     propagatedStates = rk.propagate(ts)
     assert len(propagatedStates) == len(ts)
-    #assert propagatedStates[-1].shape == state.shape
-    #np.testing.assert_almost_equal(propagatedStates[-1], 1.0)
+    assert propagatedStates[-1].shape == state.shape
