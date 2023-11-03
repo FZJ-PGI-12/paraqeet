@@ -25,3 +25,10 @@ class Measurement:
         Measures the observable and returns the value. This function must be implemented by subclasses.
         """
         raise NotImplementedError()
+
+    def measureNormalised(self) -> float:
+        """
+        Measures the observable and returns the value between 0 and 1, 1 representing the perfect result.
+        This function must be implemented by subclasses, unless identical to self.measure().
+        """
+        return self.measure()

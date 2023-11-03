@@ -20,13 +20,13 @@ class Hamiltonian:
     def __init__(
         self,
         subsystems: List,
-        couplings: Optional[List],
-        drives: Optional[List],
-        generator: Generator,
+        couplings: List = [],
+        drives: List = [],
+        generator: Optional[Generator] = None,
     ):
         self.__subsystems = subsystems
-        self.__couplings = couplings or []
-        self.__drives = drives or []
+        self.__couplings = couplings
+        self.__drives = drives
         self.__generator = generator
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:

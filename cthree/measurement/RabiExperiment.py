@@ -40,8 +40,7 @@ class RabiExperiment(Measurement):
         t = self.__time.getValue()
         diff_sq = (q_freq - freq) ** 2
         return (
-            1
-            - np.abs(
+            np.abs(
                 np.cos(np.sqrt(diff_sq + amp**2) / 2 * t)
                 / np.sqrt(1 + diff_sq / (amp**2))
             )

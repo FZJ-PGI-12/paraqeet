@@ -9,8 +9,4 @@ These tasks are waiting until some of the basic issues are solved.
 - how to gate sequences?
   - some fidelity classes can handle gate sets
   - they will have a full pipeline (from generator to propagation) for each gate
-- examples for:
-  - obtaining the signal from the generator and and plotting it
-  - obtaining the propagator and plotting it
-  - how different combinations of layers can be used
 - look at the design of the PGI-8 software
