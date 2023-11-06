@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import List, Optional
 
-from cthree.Optimisable import Optimisable
+from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 
 
@@ -12,14 +12,29 @@ class Optimiser:
 
     Args:
         measure: implementation of the Measurement class that measures the observable to be minimised
-        optimisables: A list of parameters that can be optimised. If none, only the parameters of the measure will be used.
+        optimisables: A list of parameters that can be optimised. If none, only the parameters of the measure will be
+        used.
     """
-    _measure: Measurement
-    _optimisables: List[Optimisable]
 
-    def __init__(self, measure: Measurement, optimisables: Optional[List[Optimisable]] = None):
+    _measure: Measurement
+    _optimisables: List[Quantity]
+
+    def __init__(
+        self, measure: Measurement, optimisables: Optional[List[Quantity]] = None
+    ):
         self._measure = measure
-        self._optimisables = optimisables or measure.getParameters()
+        self.setOptimisables(optimisables or measure.getParameters())
+
+    def setOptimisables(self, opt: List[Quantity]) -> None:
+        """
+        Registers optimisables and their length to keep track of vector and matrix valued parameters.
+        """
+        self._optimisables = opt
+        self.opt_idxs = []
+        index = 0
+        for qty in opt:
+            index += qty.getLength()
+            self.opt_idxs.append(index)
 
     @abstractmethod
     def optimise(self):
