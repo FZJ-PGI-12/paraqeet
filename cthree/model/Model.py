@@ -3,7 +3,7 @@ from typing import List
 
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
-from cthree.model import Hamiltonian
+from cthree.model.Hamiltonian import Hamiltonian
 
 import numpy as np
 
