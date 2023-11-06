@@ -22,14 +22,16 @@ class ScipyOptimiser(Optimiser):
             init.append(qty.getReducedValue())
         return minimize(
             fun=self.setParameters,
-            x0=np.array(init),
-            bounds=[(-1, 1)] * len(self._optimisables),
+            x0=np.concatenate(init, axis=1).flatten(),
+            bounds=[(-1, 1)] * self.opt_idxs[-1],
+            method="L-BFGS-B",
+            options={"disp": True},
         )
 
     def setParameters(self, values) -> float:
         """
         Update the parameter values and return the measurement result.
         """
-        for index, val in enumerate(values):
+        for index, val in enumerate(np.split(values, self.opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
         return 1 - self._measure.measure()
