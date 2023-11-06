@@ -91,6 +91,9 @@ class Quantity:
 
     def getMaxValue(self) -> np.array:
         return self.__scale + self.__offset
+    
+    def getLength(self) -> np.ndarray:
+        return self.__length
 
     def setLimits(self, min_value, max_value) -> None:
         """
