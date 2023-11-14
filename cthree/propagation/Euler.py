@@ -4,13 +4,16 @@ import numpy as np
 
 from cthree.Quantity import Quantity
 from cthree.model.Model import Model
-from cthree.propagation.Propagation import Propagation
+from cthree.propagation.StatePropagation import StatePropagation
 
 
-class Euler(Propagation):
+class Euler(StatePropagation):
     """
-    TODO
+    Simple implementation of first order Euler propagation. Solves the equation of motion d/dt psi(t) = F(psi(t), t) with
+    a finite step size d as psi(t+d) = psi(t) + F(psi(t), t). The step size can be variable and is calculated from the
+    time array that is passed to the propagate function.
     """
+
     def __init__(self, model: Model):
         super().__init__(model)
 
@@ -18,6 +21,13 @@ class Euler(Propagation):
         return []
 
     def propagate(self, time: np.ndarray):
-        equationsOfMotion = self._model.getEquationOfMotion(time)
-        # do something
-        pass
+        equationsOfMotion = self._model.getMatrixEOM(time)
+
+        dt = time[1:] - time[0:-1]
+        states = []
+        state = self._initialState.copy()
+        for i in range(len(dt)-1):
+            state += dt[i] * equationsOfMotion[i]
+            states.append(state)
+
+        return states

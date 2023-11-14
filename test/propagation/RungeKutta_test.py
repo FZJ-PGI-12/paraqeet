@@ -1,5 +1,14 @@
 import pytest
+import numpy as np
 from cthree.propagation.RungeKutta import RungeKutta
+from test.conftest import DIMS, LEN_SIG
+from test.model.DummyModel import DummyModel
+from test.model.EmptyHamiltonian import EmptyHamiltonian
+
+
+def randomState(dimension):
+    state = np.random.random(dimension) + 1j * np.random.random(dimension)
+    return state / np.sqrt(np.vdot(state, state))
 
 
 @pytest.fixture
@@ -11,6 +20,10 @@ def test_parameters(rk):
     assert rk.getParameters() == []
 
 
-def test_propagation(rk, ts):
-    with pytest.raises(NotImplementedError):
-        rk.propagate(ts)
+# test that the dimension and norm of state vectors is the same after propagation
+def test_state_dimension(rk, ts):
+    state = randomState(DIMS)
+    rk.setInitialState(state)
+    propagatedStates = rk.propagate(ts)
+    assert len(propagatedStates) == len(ts)
+    assert propagatedStates[-1].shape == state.shape
