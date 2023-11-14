@@ -20,7 +20,7 @@ class UnitaryFidelity(Measurement):
             equivalent to the L2 trace norm. Defaults to [].
     """
 
-    __basis_states: np.ndarray
+    __basis_states: np.ndarray | None
     __target_costates: np.ndarray
     __propagation: Propagation
 
@@ -29,11 +29,12 @@ class UnitaryFidelity(Measurement):
         propagation: Propagation,
         gate: np.ndarray,
         times: List[float],
-        basis_states: List[np.ndarray] = [],
+        basis_states: np.ndarray = None,
     ):
         super().__init__()
         self.__propagation = propagation
-        self.__propagation.setInitialStates(basis_states)
+        if basis_states:
+            self.__propagation.setInitialState(basis_states)
         self.__basis_states = basis_states
         self.__times = times
         self.setIdealGate(gate)
@@ -44,15 +45,13 @@ class UnitaryFidelity(Measurement):
         """
         final_states = self.__propagation.propagate(time=self.__times)
         overlap = np.trace(self.__target_costates.conj().T @ final_states[-1])
-        return np.abs(overlap / len(self.__basis_states)) ** 2
+        return np.abs(overlap / final_states.shape[0]) ** 2
 
     def setIdealGate(self, gate):
         """
         Compute target states for the L2 norm.
         """
-        if len(self.__basis_states) < 1:
+        if self.__basis_states is None:
             self.__target_costates = gate
         else:
-            self.__target_costates = (
-                gate @ np.concatenate(self.__basis_states, axis=1).conj().T
-            )
+            self.__target_costates = gate @ self.__basis_states.conj().T

@@ -29,7 +29,7 @@ class Propagation(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
+    def propagate(self, time: List[float]) -> np.ndarray:
         """
         Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
         implementation and could for example be a propagated state vector or a propagator in matrix form.
