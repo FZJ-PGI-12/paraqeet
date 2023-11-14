@@ -29,12 +29,16 @@ class Quantity:
     __length: int
     __shape: Tuple
     # internal representation of the value
-    __value: np.array
-    __offset: np.array
-    __scale: np.array
+    __value: np.ndarray
+    __offset: np.ndarray
+    __scale: np.ndarray
 
     def __init__(
-        self, value: np.array, min_value: np.array, max_value: np.array, unit: str = ""
+        self,
+        value: np.array,
+        min_value: np.ndarray,
+        max_value: np.ndarray,
+        unit: str = "",
     ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
@@ -58,11 +62,11 @@ class Quantity:
     def getValue(self) -> np.array:
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
-    def getReducedValue(self) -> np.array:
+    def getReducedValue(self) -> np.ndarray:
         """
         Returns the value in the reduced representation as it is stored internally.
         """
-        return self.__value
+        return np.reshape(self.__value, (-1, 1))
 
     def setValue(self, value) -> None:
         """
@@ -86,11 +90,14 @@ class Quantity:
     def setReducedValue(self, value) -> None:
         self.__value = value
 
-    def getMinValue(self) -> np.array:
+    def getMinValue(self) -> np.ndarray:
         return self.__offset
 
-    def getMaxValue(self) -> np.array:
+    def getMaxValue(self) -> np.ndarray:
         return self.__scale + self.__offset
+
+    def getLength(self) -> int:
+        return self.__length
 
     def setLimits(self, min_value, max_value) -> None:
         """

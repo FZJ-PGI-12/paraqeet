@@ -51,20 +51,25 @@ class ScipyExpm(Propagation):
         Loop over all desired times in time at set resolution.
         """
         if self.__init is None:
-            raise ConfigurationException('Initial state is not set')
+            raise ConfigurationException("Initial state is not set")
 
-        psi = [self.__init]
+        psi = [self.__init] * len(time)
+        eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
             t1 = time[ti]
             steps = int(np.ceil((t1 - t0) * self.__res))
             times = np.linspace(t0, t1, steps, endpoint=False)
-            dt = times[1] - times[0]
-            psi_t = psi[-1]
+            if steps < 2:
+                dt = t1 - t0
+            else:
+                dt = times[1] - times[0]
+            psis_t = psi[ti - 1]
             for t in times:
-                eom = self._model.getMatrixEOM
                 # Sampling at the center of the interval.
-                dU = scipy.linalg.expm(eom(t + dt / 2))
-                psi_t = dU @ psi_t
-            psi.append(psi_t)
+                psis_t = (
+                    scipy.linalg.expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt)
+                    @ psis_t
+                )
+            psi[ti] = psis_t
         return psi
