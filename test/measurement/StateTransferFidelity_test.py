@@ -18,7 +18,10 @@ def test_limits_vectors():
         propagation = RandomPropagation(size, False)
         times = np.array([1.0])
         measurement = StateTransferFidelity(
-            propagation, initialState, targetState, times
+            propagation,
+            initialState,
+            targetState,
+            times,
         )
 
         for i in range(100):

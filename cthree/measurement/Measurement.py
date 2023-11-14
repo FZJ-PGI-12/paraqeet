@@ -12,7 +12,7 @@ class Measurement:
     """
 
     def __init__(self, times: np.ndarray | None = None):
-        self.__times = times
+        self._times = times
 
     @abstractmethod
     def getParameters(self) -> List[Quantity]:
