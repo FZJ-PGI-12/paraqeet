@@ -60,7 +60,10 @@ class ScipyExpm(Propagation):
             t1 = time[ti]
             steps = int(np.ceil((t1 - t0) * self.__res))
             times = np.linspace(t0, t1, steps, endpoint=False)
-            dt = times[1] - times[0]
+            if steps < 2:
+                dt = t1 - t0
+            else:
+                dt = times[1] - times[0]
             psis_t = psi[ti - 1]
             for t in times:
                 # Sampling at the center of the interval.
