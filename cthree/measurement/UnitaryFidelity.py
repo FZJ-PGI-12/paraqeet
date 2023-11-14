@@ -28,7 +28,7 @@ class UnitaryFidelity(Measurement):
         self,
         propagation: Propagation,
         gate: np.ndarray,
-        times: List[float],
+        times: np.ndarray,
         basis_states: np.ndarray = None,
     ):
         super().__init__()
