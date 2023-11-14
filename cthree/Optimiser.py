@@ -18,6 +18,7 @@ class Optimiser:
 
     _measure: Measurement
     _optimisables: List[Quantity]
+    __opt_idxs: List[int]
 
     def __init__(
         self, measure: Measurement, optimisables: Optional[List[Quantity]] = None
@@ -30,11 +31,6 @@ class Optimiser:
         Registers optimisables and their length to keep track of vector and matrix valued parameters.
         """
         self._optimisables = opt
-        self.opt_idxs = []
-        index = 0
-        for qty in opt:
-            index += qty.getLength()
-            self.opt_idxs.append(index)
 
     @abstractmethod
     def optimise(self):
