@@ -67,6 +67,9 @@ class ScipyExpm(Propagation):
             psis_t = psi[ti - 1]
             for t in times:
                 # Sampling at the center of the interval.
-                psis_t = scipy.linalg.expm(eom(t + dt / 2) * dt) @ psis_t
+                psis_t = (
+                    scipy.linalg.expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt)
+                    @ psis_t
+                )
             psi[ti] = psis_t
         return psi
