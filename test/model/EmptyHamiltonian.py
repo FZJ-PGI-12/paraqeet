@@ -1,17 +1,17 @@
 import numpy as np
 
 from cthree.model.Hamiltonian import Hamiltonian
-from cthree.signal.Generator import Generator
 
 
 class EmptyHamiltonian(Hamiltonian):
     """
     A Hamiltonian that is filled with zeros for all time steps.
     """
+
     dimension: int
 
     def __init__(self, dimension: int):
-        super().__init__([], [], [], Generator())
+        super().__init__([], [], [], None)
 
         self.dimension = dimension
 

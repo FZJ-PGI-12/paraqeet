@@ -12,12 +12,15 @@ class MixedStateTransferFidelity(Measurement):
 
     Note: this implementation is still very inaccurate
     """
+
     __targetState: np.ndarray
     __targetStateSqrt: np.ndarray | None
     __propagation: Propagation
     __times: np.ndarray
 
-    def __init__(self, propagation: Propagation, targetState: np.ndarray, times: np.ndarray):
+    def __init__(
+        self, propagation: Propagation, targetState: np.ndarray, times: np.ndarray
+    ):
         super().__init__()
         self.__propagation = propagation
         self.__targetState = targetState
@@ -30,7 +33,9 @@ class MixedStateTransferFidelity(Measurement):
         state = self.__propagation.propagate(self.__times)[-1]
         if state.shape != self.__targetState.shape:
             raise IncompatibleLayersException(
-                f"Need a state vector of size {self.__targetState.shape} for the state transfer fidelity, but got shape {state.shape}")
+                f"Need a state vector of size {self.__targetState.shape} for the state transfer fidelity, "
+                "but got shape {state.shape}"
+            )
 
         # density matrix
         product = self.__targetStateSqrt @ state @ self.__targetStateSqrt

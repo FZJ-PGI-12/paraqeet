@@ -1,7 +1,5 @@
 import numpy as np
 
-from typing import List
-
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 

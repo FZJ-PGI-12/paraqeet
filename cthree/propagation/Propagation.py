@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from typing import List
 
 from cthree.Optimisable import Optimisable
 from cthree.model.Model import Model

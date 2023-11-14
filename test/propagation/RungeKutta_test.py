@@ -1,9 +1,7 @@
 import pytest
 import numpy as np
 from cthree.propagation.RungeKutta import RungeKutta
-from test.conftest import DIMS, LEN_SIG
-from test.model.DummyModel import DummyModel
-from test.model.EmptyHamiltonian import EmptyHamiltonian
+from test.conftest import DIMS
 
 
 def randomState(dimension):
