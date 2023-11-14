@@ -28,16 +28,6 @@ class Propagation(Optimisable):
         """
         raise NotImplementedError()
 
-    def setInitialStates(self, state: np.ndarray):
-        """
-        Sets the initial state for the propagation. Propagation implementations that do not need the state should not
-        implement this function.
-
-        :param state:
-        :return:
-        """
-        raise NotImplementedError()
-
     @abstractmethod
     def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         """

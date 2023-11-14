@@ -31,9 +31,6 @@ class ScipyExpm(Propagation):
     def setInitialState(self, state: np.ndarray):
         self.__init = state
 
-    def setInitialStates(self, states: List[np.ndarray]):
-        self.__init = np.concatenate(states, axis=1)
-
     def setResolution(self, res):
         self.__res = res
 
