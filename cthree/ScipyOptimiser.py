@@ -22,7 +22,7 @@ class ScipyOptimiser(Optimiser):
             init.append(qty.getReducedValue())
         return minimize(
             fun=self.setParameters,
-            x0=np.concatenate(init, axis=1).flatten(),
+            x0=np.concatenate(init).flatten(),
             bounds=[(-1, 1)] * self.opt_idxs[-1],
             method="L-BFGS-B",
             options={"disp": True},

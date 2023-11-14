@@ -34,7 +34,11 @@ class Quantity:
     __scale: np.ndarray
 
     def __init__(
-        self, value: np.array, min_value: np.ndarray, max_value: np.ndarray, unit: str = ""
+        self,
+        value: np.array,
+        min_value: np.ndarray,
+        max_value: np.ndarray,
+        unit: str = "",
     ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
@@ -62,7 +66,7 @@ class Quantity:
         """
         Returns the value in the reduced representation as it is stored internally.
         """
-        return self.__value
+        return np.reshape(self.__value, (-1, 1))
 
     def setValue(self, value) -> None:
         """
@@ -91,7 +95,7 @@ class Quantity:
 
     def getMaxValue(self) -> np.ndarray:
         return self.__scale + self.__offset
-    
+
     def getLength(self) -> int:
         return self.__length
 
