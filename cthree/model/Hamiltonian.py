@@ -12,10 +12,10 @@ class Hamiltonian:
     Takes care of frame transformations.
     """
 
-    __subsystems: List
-    __couplings: List
-    __drives: List
-    __generator: Generator
+    _subsystems: List
+    _couplings: List
+    _drives: List
+    _generator: Generator
 
     def __init__(
         self,
@@ -24,10 +24,10 @@ class Hamiltonian:
         drives: List = [],
         generator: Optional[Generator] = None,
     ):
-        self.__subsystems = subsystems
-        self.__couplings = couplings
-        self.__drives = drives
-        self.__generator = generator
+        self._subsystems = subsystems
+        self._couplings = couplings
+        self._drives = drives
+        self._generator = generator
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         """
@@ -39,5 +39,5 @@ class Hamiltonian:
         Returns:
             np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
         """
-        sig = self.__generator.generateSignal(t)
-        return self.__subsystems[0] + sig * self.__drives[0]
+        sig = self._generator.generateSignal(t)
+        return self._subsystems[0] + sig * self._drives[0]

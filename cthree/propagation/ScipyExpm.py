@@ -31,6 +31,9 @@ class ScipyExpm(Propagation):
     def setInitialState(self, state: np.ndarray):
         self.__init = state
 
+    def setInitialStates(self, states: List[np.ndarray]):
+        self.__init = np.concatenate(states, axis=1)
+
     def setResolution(self, res):
         self.__res = res
 
@@ -53,18 +56,17 @@ class ScipyExpm(Propagation):
         if self.__init is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = [self.__init]
+        psi = [self.__init] * len(time)
         eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
             t1 = time[ti]
-            steps = 1 + int(np.ceil((t1 - t0) * self.__res))
+            steps = int(np.ceil((t1 - t0) * self.__res))
             times = np.linspace(t0, t1, steps, endpoint=False)
             dt = times[1] - times[0]
-            psi_t = psi[-1]
+            psis_t = psi[ti - 1]
             for t in times:
                 # Sampling at the center of the interval.
-                dU = scipy.linalg.expm(eom(t + dt / 2) * dt)
-                psi_t = dU @ psi_t
-            psi.append(psi_t)
+                psis_t = scipy.linalg.expm(eom(t + dt / 2) * dt) @ psis_t
+            psi[ti] = psis_t
         return psi
