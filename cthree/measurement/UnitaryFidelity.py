@@ -1,7 +1,5 @@
 import numpy as np
 
-from typing import List
-
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 
@@ -33,7 +31,7 @@ class UnitaryFidelity(Measurement):
     ):
         super().__init__()
         self.__propagation = propagation
-        if basis_states:
+        if basis_states is not None:
             self.__propagation.setInitialState(basis_states)
         self.__basis_states = basis_states
         self.__times = times
