@@ -3,9 +3,10 @@ from typing import List, Optional
 import numpy as np
 
 from cthree.signal.Generator import Generator
+from cthree.Optimisable import Optimisable
 
 
-class Hamiltonian:
+class Hamiltonian(Optimisable):
     """
     Matrix representation of a Hamiltonian.
     Contains subsystems, couplings, and drive lines.
