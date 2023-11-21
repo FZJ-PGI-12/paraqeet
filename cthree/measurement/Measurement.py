@@ -1,5 +1,7 @@
 from abc import abstractmethod
 from typing import List
+
+import numpy as np
 from cthree.Quantity import Quantity
 
 
@@ -9,8 +11,8 @@ class Measurement:
     class has solved the equation of motion.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, times: np.ndarray | None = None):
+        self._times = times
 
     @abstractmethod
     def getParameters(self) -> List[Quantity]:

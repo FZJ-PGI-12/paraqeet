@@ -74,8 +74,8 @@ def testGetItem() -> None:
             10.0, np.random.randint(-10, 10)
         )
         q = __generateQuantity(values)
-        for i, v in enumerate(q):
-            testing.assert_almost_equal(v, values[i])
+        for i in range(len(q)):
+            testing.assert_almost_equal(q[i], values[i])
 
 
 def testLen() -> None:

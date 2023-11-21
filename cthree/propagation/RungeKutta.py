@@ -13,6 +13,7 @@ class RungeKutta(StatePropagation):
     """
     Uses scipy's Runge Kutta implementation for propagating a state vector or density matrix.
     """
+
     __initialTimeStep: float
 
     def __init__(self, model: Model, initialTimeStep: float | None = None):
@@ -27,10 +28,10 @@ class RungeKutta(StatePropagation):
 
     def propagate(self, time: np.ndarray):
         if self._initialState is None:
-            raise ConfigurationException('Initial state is not set')
+            raise ConfigurationException("Initial state is not set")
 
         if len(time) < 2:
-            raise ValueError('Runge-Kutta propagation needs at least two time steps')
+            raise ValueError("Runge-Kutta propagation needs at least two time steps")
 
         def callback(time, state):
             return self._model.getEquationOfMotion(np.array([time]), np.array(state))
@@ -52,7 +53,7 @@ class RungeKutta(StatePropagation):
                 vectorized=False,
             )
 
-            while integrator.status == 'running':
+            while integrator.status == "running":
                 integrator.step()
             states.append(integrator.y)
         return states

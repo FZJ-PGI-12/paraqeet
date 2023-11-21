@@ -1,5 +1,6 @@
 from typing import List, Optional
 import numpy as np
+from cthree.Quantity import Quantity
 
 from cthree.signal.Device import Device
 from cthree.signal.Generator import Generator
@@ -23,3 +24,9 @@ class CosGenerator(Generator):
         for dev in self.__devices:
             sig += dev.computeOutput(t)
         return sig
+
+    def getParameters(self) -> List[Quantity]:
+        pars = []
+        for dev in self.__devices:
+            pars.extend(dev.getParameters())
+        return pars

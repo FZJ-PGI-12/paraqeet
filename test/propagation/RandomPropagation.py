@@ -10,12 +10,15 @@ class RandomPropagation(Propagation):
     """
     Mock propagation implementation that returns random state vectors or density matrices.
     """
+
     __dimension: int
     __mixedState: bool
     __autoUpdate: bool
     __state: np.ndarray
 
-    def __init__(self, dimension: int, mixedState: bool = False, autoUpdate: bool = True):
+    def __init__(
+        self, dimension: int, mixedState: bool = False, autoUpdate: bool = True
+    ):
         """
         :param dimension: Hilbert space size for the generated states
         :param mixedState: whether to generate density matrices instead of vectors
@@ -48,5 +51,7 @@ class RandomPropagation(Propagation):
             self.__state = np.conjugate(U.T) @ rho @ U
         else:
             # generate a random state vector
-            state = np.random.random(self.__dimension) + 1j * np.random.random(self.__dimension)
+            state = np.random.random(self.__dimension) + 1j * np.random.random(
+                self.__dimension
+            )
             self.__state = state / np.sqrt(np.vdot(state, state))

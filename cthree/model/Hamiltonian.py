@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import numpy as np
+from cthree.Quantity import Quantity
 
 from cthree.signal.Generator import Generator
 from cthree.Optimisable import Optimisable
@@ -16,7 +17,7 @@ class Hamiltonian(Optimisable):
     __subsystems: List
     __couplings: List
     __drives: List
-    __generator: Generator
+    __generator: Generator | None
 
     def __init__(
         self,
@@ -40,5 +41,9 @@ class Hamiltonian(Optimisable):
         Returns:
             np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
         """
-        sig = self.__generator.generateSignal(t)
+        if self.__generator:
+            sig = self.__generator.generateSignal(t)
         return self.__subsystems[0] + sig * self.__drives[0]
+
+    def getParameters(self) -> List[Quantity]:
+        return []

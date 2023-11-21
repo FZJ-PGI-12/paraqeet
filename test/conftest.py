@@ -2,12 +2,6 @@ import pytest
 
 import numpy as np
 
-from typing import List
-
-from cthree.model.Hamiltonian import Hamiltonian
-from cthree.model.Model import Model
-from cthree.Quantity import Quantity
-from cthree.signal.Generator import Generator
 from test.model.DummyModel import DummyModel
 from test.model.EmptyHamiltonian import EmptyHamiltonian
 
@@ -35,6 +29,7 @@ def randomState():
     """
     Returns a method that generates random normalised states for a given dimension.
     """
+
     def _method(dimension):
         state = np.random.random(dimension) + 1j * np.random.random(dimension)
         return state / np.sqrt(np.vdot(state, state))

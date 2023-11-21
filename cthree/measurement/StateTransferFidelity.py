@@ -1,4 +1,6 @@
+from typing import List
 import numpy as np
+from cthree.Quantity import Quantity
 
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
@@ -22,7 +24,7 @@ class StateTransferFidelity(Measurement):
         targetState: np.ndarray,
         times: np.ndarray,
     ):
-        super().__init__()
+        super().__init__(times=times)
         self.__propagation = propagation
         self.__initialState = initialState
         self.__targetState = targetState
@@ -30,10 +32,12 @@ class StateTransferFidelity(Measurement):
             raise IncompatibleLayersException(
                 f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
             )
-        self.__times = times
         self.__propagation.setInitialState(self.__initialState)
 
     def measure(self) -> float:
-        states = self.__propagation.propagate(time=self.__times)
+        states = self.__propagation.propagate(time=self._times)
         final_state = states[-1]
         return np.abs(np.vdot(self.__targetState, final_state)) ** 2
+
+    def getParameters(self) -> List[Quantity]:
+        return []

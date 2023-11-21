@@ -26,12 +26,15 @@ drift = FREQ / 2 * sigmaZ
 controlled_qubit = Hamiltonian(subsystems=drift, drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
-prop = ScipyExpm(model, res=10e9)
+prop = ScipyExpm(model, res=100e9)
 
 init = np.array([[1.0], [0]])
 target = np.array([[0.0], [1]])
 zeroone = StateTransferFidelity(
-    propagation=prop, initialState=init, targetState=target, times=[0.0, t_final]
+    propagation=prop,
+    initialState=init,
+    targetState=target,
+    times=np.array([0.0, t_final]),
 )
 
 

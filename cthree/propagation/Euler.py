@@ -9,9 +9,9 @@ from cthree.propagation.StatePropagation import StatePropagation
 
 class Euler(StatePropagation):
     """
-    Simple implementation of first order Euler propagation. Solves the equation of motion d/dt psi(t) = F(psi(t), t) with
-    a finite step size d as psi(t+d) = psi(t) + F(psi(t), t). The step size can be variable and is calculated from the
-    time array that is passed to the propagate function.
+    Simple implementation of first order Euler propagation. Solves the equation of motion d/dt psi(t) = F(psi(t), t)
+    with a finite step size d as psi(t+d) = psi(t) + F(psi(t), t). The step size can be variable and is calculated from
+    the time array that is passed to the propagate function.
     """
 
     def __init__(self, model: Model):
@@ -26,7 +26,7 @@ class Euler(StatePropagation):
         dt = time[1:] - time[0:-1]
         states = []
         state = self._initialState.copy()
-        for i in range(len(dt)-1):
+        for i in range(len(dt) - 1):
             state += dt[i] * equationsOfMotion[i]
             states.append(state)
 

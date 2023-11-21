@@ -1,7 +1,6 @@
 from typing import List
 
 import numpy as np
-from scipy.stats import unitary_group
 
 from cthree.propagation.Propagation import Propagation
 
@@ -10,6 +9,7 @@ class IdentityPropagation(Propagation):
     """
     Mock propagation implementation that returns the initial state as the target state.
     """
+
     __state: np.ndarray
 
     def __init__(self):

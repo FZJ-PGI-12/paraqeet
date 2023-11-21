@@ -1,5 +1,4 @@
 import numpy as np
-import numpy.testing as testing
 
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from test.propagation.IdentityPropagation import IdentityPropagation
@@ -18,7 +17,12 @@ def test_limits_vectors():
         targetState = randomState(size)
         propagation = RandomPropagation(size, False)
         times = np.array([1.0])
-        measurement = StateTransferFidelity(propagation, initialState, targetState, times)
+        measurement = StateTransferFidelity(
+            propagation,
+            initialState,
+            targetState,
+            times,
+        )
 
         for i in range(100):
             m = measurement.measure()
@@ -32,6 +36,8 @@ def test_vector_equality():
             state = randomState(size)
             propagation = IdentityPropagation()
             propagation.setInitialState(state)
-            measurement = StateTransferFidelity(propagation, state, state, np.array([1.0]))
+            measurement = StateTransferFidelity(
+                propagation, state, state, np.array([1.0])
+            )
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
