@@ -18,7 +18,9 @@ class ScipyOptimiser(Optimiser):
     __opt_idxs: List[int]
 
     def optimise(self) -> OptimizeResult:
-        self._logger.start()
+        if self._logger:
+            self._logger.start()
+
         init = []
         for qty in self._optimisables:
             init.append(qty.getReducedValue())
@@ -29,8 +31,10 @@ class ScipyOptimiser(Optimiser):
             method="L-BFGS-B",
             options={"disp": True},
         )
-        self._logger.write_msg(str(opt_res))
-        self._logger.stop()
+
+        if self._logger:
+            self._logger.stop(str(opt_res))
+
         return opt_res
 
     def setOptimisables(self, opt: List[Quantity]) -> None:
@@ -51,7 +55,9 @@ class ScipyOptimiser(Optimiser):
         log = []
         for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
-            log.append(self._optimisables[index].getValue().tolist())
+            log.append(self._optimisables[index])
         infid = 1 - self._measure.measure()
-        self._logger.write_json(log, infid)
+
+        if self._logger:
+            self._logger.log(log, infid)
         return infid
