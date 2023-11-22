@@ -10,28 +10,33 @@ from cthree.Exceptions import IncompatibleLayersException
 
 class MakhlinDistance(Measurement):
     """
-    Measures the distance of a propagator to a perfect entangler using Makhlin invariants.
+    Measures the distance of a propagator to a perfect entangler using Makhlin invariants. If a list of ideal Makhlin
+    invariants is given, the distance is measured as the Euclidean distance between the actual and ideal invariants.
+    Else, the Makhlin distance is used.
     """
 
     __propagation: Propagation
+    __idealInvariants: np.ndarray
 
-    def __init__(
-        self, propagation: Propagation, initialState: np.ndarray, times: np.ndarray
-    ):
+    def __init__(self, propagation: Propagation, times: np.ndarray, idealInvariants: np.ndarray = None):
         super().__init__(times=times)
         self.__propagation = propagation
+        self.__idealInvariants = idealInvariants
 
     def getParameters(self) -> List[Quantity]:
         return []
 
     def measure(self) -> float:
-        U = self.__propagation.propagate(self.__times)
+        U = self.__propagation.propagate(self._times)[-1]
         if U.shape[0] != U.shape[1]:
             raise IncompatibleLayersException(
                 "quadratic unitary needed for Makhlin invariants"
             )
         gs = self.__makhlinInvariants(U)
-        return self.__makhlinDistance(*gs)
+        if self.__idealInvariants:
+            return np.linalg.norm(gs - self.__idealInvariants)
+        else:
+            return gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0]
 
     def __makhlinInvariants(self, U: np.ndarray) -> Tuple[float, float, float]:
         """
@@ -52,22 +57,3 @@ class MakhlinDistance(Measurement):
         g2 = np.imag(trSq) / 16.0
         g3 = np.real((trSq - tr2)) / 4.0
         return g1, g2, g3
-
-    def __makhlinDistance(self, g1: float, g2: float, g3: float) -> float:
-        """
-        Computes the distance of the point specified by three invariants to the space of perfect entanglers.
-        """
-        roots = np.roots(
-            [1, -g3, 4 * np.sqrt(g1**2 + g2**2) - 1, g3 - 4 * g1]
-        ).real()
-        roots = np.round(roots, 5)
-        z = np.sort(roots)
-
-        d = g3 * np.sqrt(g1**2 + g2**2) - g1
-        s = np.pi - np.arccos(z[0]) - np.arccos(z[2])
-        if d > 0 and s > 0:
-            return d
-        elif d < 0 and s < 0:
-            return -d
-        else:
-            return 0

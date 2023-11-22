@@ -34,10 +34,10 @@ class RandomPropagation(Propagation):
     def setInitialState(self, state: np.ndarray):
         pass
 
-    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
+    def propagate(self, time: np.ndarray) -> np.ndarray:
         if self.__autoUpdate:
             self.update()
-        return [self.__state] * len(time)
+        return np.array([self.__state] * len(time))
 
     def update(self) -> None:
         """
