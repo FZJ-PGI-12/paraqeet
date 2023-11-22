@@ -47,3 +47,8 @@ class Hamiltonian(Optimisable):
 
     def getParameters(self) -> List[Quantity]:
         return []
+
+    def gradient(self, t: np.ndarray) -> np.ndarray:
+        if self.__generator:
+            sig = self.__generator.generateSignalGradient(t)
+        return self.__subsystems[0] + sig * self.__drives[0]

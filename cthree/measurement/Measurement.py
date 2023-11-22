@@ -34,3 +34,18 @@ class Measurement:
         This function must be implemented by subclasses, unless identical to self.measure().
         """
         return self.measure()
+
+    def measureGradient(self) -> np.ndarray:
+        """
+        Compute the gradient of the measurement wrt to parameters.
+
+        Returns
+        -------
+        np.ndarray
+            Gradient
+
+        Raises
+        ------
+        NotImplementedError
+        """
+        raise NotImplementedError()

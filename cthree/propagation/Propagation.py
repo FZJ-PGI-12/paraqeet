@@ -36,3 +36,10 @@ class Propagation(Optimisable):
         :param time: any one-dimensional vector of timestamps
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def gradient(self) -> np.ndarray:
+        """
+        Computes this part of the chain rule for a gradient trace. i.e. result of the propagation wrt model.
+        """
+        raise NotImplementedError()

@@ -26,3 +26,7 @@ class Generator(Optimisable):
     @abstractmethod
     def generateSignal(self, instr):
         raise NotImplementedError()
+
+    @abstractmethod
+    def generateSignalGradient(self, instr):
+        raise NotImplementedError()
