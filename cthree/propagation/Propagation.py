@@ -38,7 +38,7 @@ class Propagation(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def gradient(self) -> np.ndarray:
+    def gradient(self, time: np.ndarray) -> np.ndarray:
         """
         Computes this part of the chain rule for a gradient trace. i.e. result of the propagation wrt model.
         """
