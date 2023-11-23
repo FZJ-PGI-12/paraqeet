@@ -118,6 +118,7 @@ class GOAT(Propagation):
                 integrator.step()
                 dpsi_t += coEom(time[ti], dpsi_t, integrator.y) * integrator.step_size
             dpsi.append(dpsi_t)
+            psi.append(integrator.y)
         return dpsi
 
     def gradient(self, time: np.ndarray):
