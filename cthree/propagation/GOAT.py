@@ -94,7 +94,7 @@ class GOAT(Propagation):
         def coEom(time, dpsi_dp, psi):
             time = np.reshape(time, (-1,))
             dH_dp = self._model._hamiltonian.getDrives()[0]
-            return dH_dp @ psi + eom(time, dpsi_dp)
+            return -1j * (dH_dp @ psi + eom(time, dpsi_dp))
 
         psi = [self._initialState]
         dpsi = [np.zeros_like(self._initialState)]
