@@ -40,6 +40,11 @@ class CosTone(Device):
         freq = self.__frequency.getValue()
         return amp * np.cos(freq * t)
 
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+        amp = self.__amplitude.getValue()
+        freq = self.__frequency.getValue()
+        return [np.cos(freq * t), -amp * t * np.sin(freq * t)]
+
 
 class ZeroTone(Device):
     """

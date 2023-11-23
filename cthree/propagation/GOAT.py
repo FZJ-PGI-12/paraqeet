@@ -97,7 +97,7 @@ class GOAT(Propagation):
             return dH_dp @ psi + eom(time, dpsi_dp)
 
         psi = [self._initialState]
-        dpsi = [self._initialState]
+        dpsi = [np.zeros_like(self._initialState)]
 
         for ti in range(1, len(time)):
             dt = self.__initialTimeStep
@@ -121,4 +121,6 @@ class GOAT(Propagation):
         return dpsi
 
     def gradient(self, time: np.ndarray):
-        return self.__grad(time)
+        dpsi_dc = self.__grad(time)
+        dc_dp_list = self._model.gradient(time)
+        return [dpsi_dc * dc_dp for dc_dp in dc_dp_list]

@@ -41,8 +41,8 @@ class Model(Optimisable):
     def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
-    def gradient(self):
+    def gradient(self, t):
         """
         Passthrough
         """
-        return self._hamiltonian.gradient()
+        return self._hamiltonian.gradient(t)

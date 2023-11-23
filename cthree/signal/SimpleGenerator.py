@@ -25,8 +25,8 @@ class CosGenerator(Generator):
             sig += np.reshape(dev.computeOutput(t), sig.shape)
         return sig
 
-    def generateSignalGradient(self, instr):
-        raise NotImplementedError()
+    def generateSignalGradient(self, t):
+        return self.__devices[0].computeGradient(t)
 
     def getParameters(self) -> List[Quantity]:
         pars = []
