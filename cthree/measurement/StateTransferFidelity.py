@@ -39,5 +39,10 @@ class StateTransferFidelity(Measurement):
         final_state = states[-1]
         return np.abs(np.vdot(self.__targetState, final_state)) ** 2
 
+    def measureGradient(self) -> np.ndarray:
+        states = self.__propagation.gradient(time=self._times)
+        final_state = states[-1]
+        return np.abs(np.vdot(self.__targetState, final_state)) ** 2 * np.array([1, 1])
+
     def getParameters(self) -> List[Quantity]:
         return []

@@ -31,6 +31,9 @@ class Hamiltonian(Optimisable):
         self.__drives = drives
         self.__generator = generator
 
+    def getDrives(self) -> List[np.ndarray]:
+        return self.__drives
+
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         """
         Return the matrix representation of the Hamiltonian.
