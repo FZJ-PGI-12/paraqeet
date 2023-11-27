@@ -55,4 +55,4 @@ class ScipyOptimiserGradient(Optimiser):
         """
         for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
-        return self._measure.measureGradient()
+        return -1 * self._measure.measureGradient()
