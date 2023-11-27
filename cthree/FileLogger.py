@@ -39,11 +39,10 @@ class FileLogger(Logger):
 
     def stop(self, resultMessage: str = None):
         super().stop()
-        if resultMessage:
-            with open(self.__logfile, "a") as log:
+        with open(self.__resultFile, "a") as log:
+            if resultMessage:
                 log.write(resultMessage)
                 log.write("\n")
-        with open(self.__resultFile, "a") as log:
             log.write(f"Finished at {self._stopTime}\n")
             log.write(f"Total runtime: {self._stopTime - self._startTime}")
             log.write("\n")
