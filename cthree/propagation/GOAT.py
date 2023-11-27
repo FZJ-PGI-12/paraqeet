@@ -83,6 +83,7 @@ class GOAT(Propagation):
             while integrator.status == "running":
                 integrator.step()
             states.append(integrator.y)
+        self._initialState = states[-1]
         return states
 
     def __grad(self, time: np.ndarray):
@@ -91,13 +92,19 @@ class GOAT(Propagation):
         """
         eom = self._model.getEquationOfMotion
 
-        def coEom(time, dpsi_dp, psi):
+        def coEom(time, dpsi_dp):
             time = np.reshape(time, (-1,))
             dH_dp = self._model._hamiltonian.getDrives()[0]
-            return -1j * (dH_dp @ psi + eom(time, dpsi_dp))
+            if time == self._initTime:
+                states = [self._initialState]
+            else:
+                states = self.propagate([self._initTime, time])
+                self._initialState = states[-1]
+            return -1j * (dH_dp @ states[-1] + eom(time, dpsi_dp))
 
-        psi = [self._initialState]
         dpsi = [np.zeros_like(self._initialState)]
+
+        self._initTime = time[0]
 
         for ti in range(1, len(time)):
             dt = self.__initialTimeStep
@@ -105,9 +112,9 @@ class GOAT(Propagation):
                 dt = (time[ti] - time[ti - 1]) / 5
 
             integrator = RK45(
-                fun=eom,
+                fun=coEom,
                 t0=time[ti - 1],
-                y0=psi[-1],
+                y0=dpsi[-1],
                 t_bound=time[ti],
                 first_step=dt,
                 vectorized=False,
@@ -116,11 +123,7 @@ class GOAT(Propagation):
             dpsi_t += dpsi[-1]
             while integrator.status == "running":
                 integrator.step()
-                dpsi_t += (
-                    coEom(integrator.t, dpsi_t, integrator.y) * integrator.step_size
-                )
-            dpsi.append(dpsi_t)
-            psi.append(integrator.y)
+            dpsi.append(integrator.y)
         return dpsi
 
     def gradient(self, time: np.ndarray):
