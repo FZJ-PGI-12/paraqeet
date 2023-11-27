@@ -47,7 +47,7 @@ class StateTransferFidelity(Measurement):
             dF_dc.append(
                 self.measure() * np.abs(np.vdot(self.__targetState, final_state))
             )
-        return dF_dc
+        return np.array(dF_dc)
 
     def getParameters(self) -> List[Quantity]:
         return []
