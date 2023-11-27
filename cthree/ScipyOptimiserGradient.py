@@ -8,7 +8,7 @@ from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 
 
-class ScipyOptimiser(Optimiser):
+class ScipyOptimiserGradient(Optimiser):
     """
     Minimize the outcome of a measuremnt with the scipy optimisation package.
     """
