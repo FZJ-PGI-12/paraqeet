@@ -20,4 +20,4 @@ class Logger:
         self._counter += 1
 
     def stop(self, resultMessage: str = None):
-        self._startTime = datetime.now()
+        self._stopTime = datetime.now()
