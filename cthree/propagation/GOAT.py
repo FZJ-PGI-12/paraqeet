@@ -116,7 +116,9 @@ class GOAT(Propagation):
             dpsi_t += dpsi[-1]
             while integrator.status == "running":
                 integrator.step()
-                dpsi_t += coEom(time[ti], dpsi_t, integrator.y) * integrator.step_size
+                dpsi_t += (
+                    coEom(integrator.t, dpsi_t, integrator.y) * integrator.step_size
+                )
             dpsi.append(dpsi_t)
             psi.append(integrator.y)
         return dpsi

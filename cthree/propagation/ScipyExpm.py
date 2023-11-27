@@ -16,7 +16,7 @@ class ScipyExpm(Propagation):
     """
 
     __res: float
-    __init: np.ndarray = None
+    _initialState: np.ndarray = None
 
     def __init__(self, model: Model, res: float):
         """Setup propagation method.
@@ -29,7 +29,7 @@ class ScipyExpm(Propagation):
         self.setResolution(res)
 
     def setInitialState(self, state: np.ndarray):
-        self.__init = state
+        self._initialState = state
 
     def setResolution(self, res):
         self.__res = res
@@ -50,10 +50,10 @@ class ScipyExpm(Propagation):
         """
         Loop over all desired times in time at set resolution.
         """
-        if self.__init is None:
+        if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = [self.__init] * len(time)
+        psi = [self._initialState] * len(time)
         eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
@@ -73,3 +73,44 @@ class ScipyExpm(Propagation):
                 )
             psi[ti] = psis_t
         return psi
+
+    def __grad(self, time: np.ndarray):
+        """
+        Solve the GOAT equation for the gradient vector
+        """
+        eom = self._model.getMatrixEOM
+
+        def coEom(time, dpsi_dp, psi):
+            time = np.reshape(time, (-1,))
+            dH_dp = self._model._hamiltonian.getDrives()[0]
+            return -1j * (dH_dp @ psi + eom(time) @ dpsi_dp)
+
+        psi = [self._initialState]
+        dpsi = [np.zeros_like(self._initialState)]
+
+        for ti in range(1, len(time)):
+            t0 = time[ti - 1]
+            t1 = time[ti]
+            steps = int(np.ceil((t1 - t0) * self.__res))
+            times = np.linspace(t0, t1, steps, endpoint=False)
+            if steps < 2:
+                dt = t1 - t0
+            else:
+                dt = times[1] - times[0]
+            psis_t = psi[-1]
+            dpsis_t = dpsi[-1]
+            for t in times:
+                # Sampling at the center of the interval.
+                psis_t = (
+                    scipy.linalg.expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt)
+                    @ psis_t
+                )
+                dpsis_t += coEom(t, dpsis_t, psis_t) * dt
+            psi.append(psis_t)
+            dpsi.append(dpsis_t)
+        return dpsi
+
+    def gradient(self, time: np.ndarray):
+        dpsi_dc = self.__grad(time)
+        dc_dp_list = self._model.gradient(time)
+        return [dpsi_dc[-1] * dc_dp for dc_dp in dc_dp_list]
