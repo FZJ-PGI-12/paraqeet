@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.propagation.GOAT import GOAT
-from cthree.ScipyOptimiserGradient import ScipyOptimiser
+from cthree.propagation.ScipyExpm import ScipyExpm
+from cthree.ScipyOptimiserGradient import ScipyOptimiserGradient
 
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
@@ -26,7 +26,7 @@ drift = FREQ / 2 * sigmaZ
 controlled_qubit = Hamiltonian(subsystems=drift, drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
-prop = GOAT(model=model, initialTimeStep=0.001e-9)
+prop = ScipyExpm(model=model, res=100e9)
 
 init = np.array([[1.0], [0.0j]])
 target = np.array([[0.0j], [1]])
@@ -40,7 +40,7 @@ zeroone = StateTransferFidelity(
 
 @pytest.fixture
 def opt():
-    return ScipyOptimiser(zeroone, optimisables=params)
+    return ScipyOptimiserGradient(zeroone, optimisables=params)
 
 
 def test_optim(opt) -> None:
