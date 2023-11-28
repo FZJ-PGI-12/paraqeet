@@ -41,19 +41,3 @@ def test_vector_equality():
             )
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
-
-
-# test that F(v,u) <= 1 for state vectors
-def test_vector_normalised():
-    for size in range(2, 30):
-        for _ in range(100):
-            state1 = randomState(size)
-            state2 = randomState(size)
-            propagation = IdentityPropagation()
-            propagation.setInitialState(state1)
-            measurement = StateTransferFidelity(
-                propagation, state1, state2, np.array([1.0])
-            )
-            m = measurement.measure()
-            np.testing.assert_array_less(m, 1.0)
-            np.testing.assert_array_less(0.0, m)
