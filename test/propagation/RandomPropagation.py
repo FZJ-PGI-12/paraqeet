@@ -8,26 +8,26 @@ from cthree.propagation.Propagation import Propagation
 
 class RandomPropagation(Propagation):
     """
-    Mock propagation implementation that returns random state vectors or density matrices.
+    Mock propagation implementation that returns random state vectors, density matrices, or propagators.
     """
 
     __dimension: int
-    __mixedState: bool
+    __createMatrices: bool
     __autoUpdate: bool
     __state: np.ndarray
 
     def __init__(
-        self, dimension: int, mixedState: bool = False, autoUpdate: bool = True
+        self, dimension: int, generateMatrices: bool = False, autoUpdate: bool = True
     ):
         """
         :param dimension: Hilbert space size for the generated states
-        :param mixedState: whether to generate density matrices instead of vectors
+        :param generateMatrices: whether to generate matrices instead of vectors
         :param autoUpdate: Whether to return a new random state at every call of propagate. If false, propagate will
                            return the same state until update was called.
         """
         super().__init__(None)
         self.__dimension = dimension
-        self.__mixedState = mixedState
+        self.__createMatrices = generateMatrices
         self.__autoUpdate = autoUpdate
         self.update()
 
@@ -43,7 +43,7 @@ class RandomPropagation(Propagation):
         """
         Makes sure that the next call to propagate will return a new random state.
         """
-        if self.__mixedState:
+        if self.__createMatrices:
             # generate a random density matrix by rotating a random diagonal matrix
             rho = np.diag(np.random.random(self.__dimension))
             rho /= np.trace(rho)

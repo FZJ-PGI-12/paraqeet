@@ -28,7 +28,7 @@ class MakhlinDistance(Measurement):
 
     def measure(self) -> float:
         U = self.__propagation.propagate(self._times)[-1]
-        if U.shape[0] != U.shape[1]:
+        if len(U.shape) < 2 or U.shape[0] != U.shape[1]:
             raise IncompatibleLayersException(
                 "quadratic unitary needed for Makhlin invariants"
             )
@@ -36,7 +36,7 @@ class MakhlinDistance(Measurement):
         if self.__idealInvariants:
             return np.linalg.norm(gs - self.__idealInvariants)
         else:
-            return gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0]
+            return np.abs(gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
     def __makhlinInvariants(self, U: np.ndarray) -> Tuple[float, float, float]:
         """

@@ -8,17 +8,17 @@ from test.propagation.RandomPropagation import RandomPropagation
 
 # test that the distance is greater or equal 0
 def test_positivity():
-    for size in range(2, 30):
-        propagation = RandomPropagation(size, False)
-        times = np.array([1.0])
-        measurement = MakhlinDistance(
-            propagation,
-            times,
-        )
+    propagation = RandomPropagation(4, True)
+    times = np.array([1.0])
+    matrix = propagation.propagate(times)
+    measurement = MakhlinDistance(
+        propagation,
+        times,
+    )
 
-        for i in range(100):
-            m = measurement.measure()
-            assert 0.0 <= m
+    for i in range(100):
+        m = measurement.measure()
+        assert 0.0 <= m
 
 
 # test that local rotations have a distance of 2
