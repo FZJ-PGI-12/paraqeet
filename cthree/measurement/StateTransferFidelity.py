@@ -40,14 +40,15 @@ class StateTransferFidelity(Measurement):
         return np.abs(np.vdot(self.__targetState, final_state)) ** 2
 
     def measureGradient(self) -> np.ndarray:
-        dg_dc_list = self.__propagation.gradient(time=self._times)
-        dF_dc = []
-        for dg_dc in dg_dc_list:
-            final_state = dg_dc[-1]
-            dF_dc.append(
-                self.measure() * np.abs(np.vdot(self.__targetState, final_state))
-            )
-        return np.array(dF_dc)
+        states = self.__propagation.propagate(time=self._times)
+        final_state = states[-1]
+        dg_dp_list = self.__propagation.gradient(time=self._times)
+        dF_dp = []
+        f = np.vdot(self.__targetState, final_state)
+        for dg_dp in dg_dp_list:
+            g = np.vdot(self.__targetState, dg_dp)
+            dF_dp.append(f.conj() * g + f * g.conj())
+        return np.array(dF_dp)
 
     def getParameters(self) -> List[Quantity]:
         return []
