@@ -16,14 +16,18 @@ tone = CosTone()
 gen = CosGenerator(devices=[tone])
 params = tone.getParameters()
 
-FREQ = 4.8e9
+FREQ = 4.8e9 * 2 * np.pi
 t_final = 10e-9
+
+params[0].setValue(0.8 * np.pi / t_final)
+params[1].setValue(1.01 * FREQ)
+
 sigmaZ = np.array([[1.0, 0], [0, -1]])
 sigmaX = np.array([[0.0, 1], [1, 0]])
 
 drift = FREQ / 2 * sigmaZ
 
-controlled_qubit = Hamiltonian(subsystems=drift, drives=[sigmaX], generator=gen)
+controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
 prop = ScipyExpm(model, res=100e9)
