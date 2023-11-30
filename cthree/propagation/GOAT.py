@@ -18,6 +18,7 @@ class GOAT(Propagation):
     __initialTimeStep: float
     _initialState: np.ndarray
     _timegrid: List[np.ndarray]
+    _TIME_SCALE: float
 
     def __init__(self, model: Model, initialTimeStep: float | None = None):
         """
@@ -25,6 +26,7 @@ class GOAT(Propagation):
         """
         super().__init__(model)
         self.__initialTimeStep = initialTimeStep
+        self._TIME_SCALE = 1e-9
 
     def setInitialState(self, state: np.ndarray):
         """
@@ -33,7 +35,7 @@ class GOAT(Propagation):
         :param state:
         :return:
         """
-        self._initialState = np.reshape(state, (-1,))
+        self._initialState = state
 
     def setResolution(self, res):
         self.__res = res
@@ -57,10 +59,16 @@ class GOAT(Propagation):
         if len(time) < 2:
             raise ValueError("Runge-Kutta propagation needs at least two time steps")
 
+        TIME_SCALE = self._TIME_SCALE  # ns
+
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._model.getEquationOfMotion(np.array([time]), column_state), (-1,)
+                TIME_SCALE
+                * self._model.getEquationOfMotion(
+                    np.array([time]) * TIME_SCALE, column_state
+                ),
+                (-1,),
             )
 
         # Since RK45 uses adaptive time steps and does not guarantee to return a state for each time stamp, this
@@ -73,31 +81,44 @@ class GOAT(Propagation):
 
             integrator = RK45(
                 fun=callback,
-                t0=time[ti - 1],
-                y0=states[-1],
-                t_bound=time[ti],
-                first_step=dt,
+                t0=time[ti - 1] / TIME_SCALE,
+                y0=np.reshape(states[-1], (-1,)),
+                t_bound=time[ti] / TIME_SCALE,
+                first_step=dt / TIME_SCALE,
                 vectorized=False,
             )
 
             while integrator.status == "running":
                 integrator.step()
-            states.append(integrator.y)
+            states.append(np.reshape(integrator.y, (-1, 1)))
         return states
 
     def __grad(self, time: np.ndarray):
         """
         Solve the GOAT equation for the gradient vector
         """
-        eom = self._model.getEquationOfMotion
+
+        TIME_SCALE = self._TIME_SCALE  # ns
+
+        def callback(time, state):
+            column_state = np.reshape(state, (-1, 1))
+            return np.reshape(
+                TIME_SCALE
+                * self._model.getEquationOfMotion(
+                    np.array([time]) * TIME_SCALE, column_state
+                ),
+                (-1,),
+            )
 
         def coEom(time, dpsi_dp, psi):
-            time = np.reshape(time, (-1,))
+            time = np.reshape(time, (-1,)) * TIME_SCALE
             dH_dp = self._model._hamiltonian.getDrives()[0]
-            return -1j * (dH_dp @ psi + eom(time, dpsi_dp))
+            return (
+                -1j * (dH_dp @ psi) + self._model.getMatrixEOM(time) @ dpsi_dp
+            ) * TIME_SCALE
 
-        psi = [self._initialState]
-        dpsi = [np.zeros_like(self._initialState)]
+        psi = [np.reshape(self._initialState, (-1,))]
+        dpsi = [np.zeros((psi[0].size, 1), dtype=np.complex128)]
 
         for ti in range(1, len(time)):
             dt = self.__initialTimeStep
@@ -105,25 +126,29 @@ class GOAT(Propagation):
                 dt = (time[ti] - time[ti - 1]) / 5
 
             integrator = RK45(
-                fun=eom,
-                t0=time[ti - 1],
+                fun=callback,
+                t0=time[ti - 1] / TIME_SCALE,
                 y0=psi[-1],
-                t_bound=time[ti],
-                first_step=dt,
+                t_bound=time[ti] / TIME_SCALE,
+                first_step=dt / TIME_SCALE,
                 vectorized=False,
             )
             dpsi_t = 0
             dpsi_t += dpsi[-1]
+            psi_t = dpsi[-1]
             while integrator.status == "running":
                 integrator.step()
-                dpsi_t += (
-                    coEom(integrator.t, dpsi_t, integrator.y) * integrator.step_size
-                )
+                dt = integrator.step_size
+                dpsi_t += (coEom(integrator.t - dt, dpsi_t, psi_t)) * dt
+                psi_t = np.reshape(integrator.y, (-1, 1))
             dpsi.append(dpsi_t)
             psi.append(integrator.y)
         return dpsi
 
     def gradient(self, time: np.ndarray):
         dpsi_dc = self.__grad(time)
-        dc_dp_list = self._model.gradient(time)
-        return [dpsi_dc * dc_dp for dc_dp in dc_dp_list]
+        dt = 0.001e-9
+        ts = np.arange(time[0], time[-1], dt)
+        dc_dp_list = self._model.gradient(ts)
+        dpsi_dp = [dpsi_dc[-1] * np.sum(dc_dp) * dt for dc_dp in dc_dp_list]
+        return dpsi_dp
