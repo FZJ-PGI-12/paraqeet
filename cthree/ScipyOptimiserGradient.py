@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
@@ -16,6 +16,15 @@ class ScipyOptimiserGradient(Optimiser):
     _measure: Measurement
     _optimisables: List[Quantity]
     __opt_idxs: List[int]
+    __options: Dict
+    __method: str
+
+    def __init__(
+        self, measure: Measurement, optimisables: List[Quantity] | None = None
+    ):
+        super().__init__(measure, optimisables)
+        self.__options = {"disp": True}
+        self.__method = "L-BFGS-B"
 
     def optimise(self) -> OptimizeResult:
         init = []
@@ -26,9 +35,18 @@ class ScipyOptimiserGradient(Optimiser):
             jac=self._setParametersAndMeasureJac,
             x0=np.concatenate(init).flatten(),
             bounds=[(-1, 1)] * self.__opt_idxs[-1],
-            method="L-BFGS-B",
-            options={"disp": True},
+            method=self.__method,
+            options=self.__options,
         )
+
+    def setMethod(self, method: str):
+        self.__method = method
+
+    def setOptions(self, opts: Dict):
+        self.__options = opts
+
+    def updateOption(self, key, val):
+        self.__options.update(key, val)
 
     def setOptimisables(self, opt: List[Quantity]) -> None:
         """
@@ -47,7 +65,7 @@ class ScipyOptimiserGradient(Optimiser):
         """
         for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
-        return 1 - self._measure.measure()
+        return 1 - self._measure.measureNormalised()
 
     def _setParametersAndMeasureJac(self, values) -> float:
         """
