@@ -96,6 +96,9 @@ class Quantity:
     def getMaxValue(self) -> np.ndarray:
         return self.__scale + self.__offset
 
+    def getScale(self) -> np.ndarray:
+        return self.__scale
+
     def getLength(self) -> int:
         return self.__length
 
