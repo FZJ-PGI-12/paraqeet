@@ -37,7 +37,7 @@ class Measurement:
 
     def measureGradient(self) -> np.ndarray:
         """
-        Compute the gradient of the measurement wrt to parameters.
+        Compute the gradient of the measurement wrt to parameters. Needs to be consistent with measureNormalised()!
 
         Returns
         -------

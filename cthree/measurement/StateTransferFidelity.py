@@ -45,7 +45,7 @@ class StateTransferFidelity(Measurement):
         dg_dp_list = self.__propagation.gradient(time=self._times)
         dF_dp = []
         f = np.vdot(self.__targetState, final_state)
-        for dg_dp in dg_dp_list:
+        for dg_dp in dg_dp_list[-1]:
             g = np.vdot(self.__targetState, dg_dp)
             dF_dp.append(f.conj() * g + f * g.conj())
         return np.array(dF_dp)
