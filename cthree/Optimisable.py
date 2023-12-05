@@ -21,7 +21,7 @@ class Optimisable:
     def setOptimisableParameters(self, params: List[Quantity]) -> None:
         """
         Sets which parameters shall be considered during optimisation. All quantities that are not in the response of
-        getParameters will be filtered out. This function is called by the optimised before gradient based optimisation
+        getParameters will be filtered out. This function is called by the optimiser before gradient based optimisation
         to tell the layers which gradients to compute.
         """
         allParams = self.getParameters()

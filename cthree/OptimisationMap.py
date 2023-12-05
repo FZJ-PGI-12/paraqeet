@@ -50,3 +50,24 @@ class OptimisationMap:
         for params in self.__optimisableToParameterMap.values():
             quantities += params
         return quantities
+
+    def registerParamsWithOptimisables(self) -> None:
+        """
+        Utility function that synchronises the list oif parameters with each optimisable class. This needs to be called
+        by the optimiser before gradient based optimisation to tell the layers which gradients to compute.
+        :return:
+        """
+        for optimisable, params in self.__optimisableToParameterMap.items():
+            optimisable.setOptimisableParameters(params)
+
+    def filterParameters(self, filterFunction) -> None:
+        """
+        Updates the list of parameters for all Optimisables in this map using a filter function. Only parameters for
+        which the filter function returns true will remain in this map.
+
+        :param filterFunction: any function that maps quantities to boolean values
+        :return:
+        """
+        for key in self.__optimisableToParameterMap.keys():
+            filtered = filter(filterFunction, self.__optimisableToParameterMap[key])
+            self.__optimisableToParameterMap[key] = list(filtered)
