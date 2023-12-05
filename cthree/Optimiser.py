@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import List, Optional
 
+from cthree.OptimisationMap import OptimisationMap
 from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 from cthree.FileLogger import Logger
@@ -13,29 +14,37 @@ class Optimiser:
 
     Args:
         measure: implementation of the Measurement class that measures the observable to be minimised
-        optimisables: A list of parameters that can be optimised. If none, only the parameters of the measure will be
+        optimisables: An optimisation map containing all parameters that can be optimised. If none, an empty map will
+         be created to which the parameters can be added later
         used.
     """
 
     _measure: Measurement
-    _optimisables: List[Quantity]
+    _optimisables: OptimisationMap
     __opt_idxs: List[int]
     __logger: Logger
 
     def __init__(
         self,
         measure: Measurement,
-        optimisables: Optional[List[Quantity]] = None,
+        optimisables: OptimisationMap = None,
         logger: Logger = None
     ):
         self._measure = measure
         self._logger = logger
-        self.setOptimisables(optimisables or measure.getParameters())
+        self.setOptimisables(optimisables or OptimisationMap())
 
     def setLogger(self, logger: Logger):
         self._logger = logger
 
-    def setOptimisables(self, opt: List[Quantity]) -> None:
+    def getOptimisables(self) -> OptimisationMap:
+        """
+        Returns the optimisation map that this optimiser uses. Parameters that can be optimised need to be added to this
+        map.
+        """
+        return self._optimisables
+
+    def setOptimisables(self, opt: OptimisationMap) -> None:
         """
         Registers optimisables and their length to keep track of vector and matrix valued parameters.
         """
