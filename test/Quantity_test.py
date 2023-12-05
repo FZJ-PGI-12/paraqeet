@@ -147,6 +147,16 @@ def testEquality() -> None:
         testing.assert_almost_equal(q1, q1.getValue())
 
 
+def testEqualityById():
+    q1 = __generateRandomQuantity(1)
+    q2 = Quantity(q1.getValue(), q1.getMinValue(), q1.getMaxValue(), q1.getUnit())
+    assert q1 == q2
+    assert q1 is not q2
+    assert q2 is not q1
+    assert q1 is q1
+    assert q2 is q2
+
+
 def testNoInput():
     """
     Trying to instantiate without any parameters.
