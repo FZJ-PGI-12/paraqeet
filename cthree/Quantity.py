@@ -114,8 +114,15 @@ class Quantity:
         # the value is based on offset and scale and needs to be updated
         self.setValue(oldValue)
 
-    def getName(self):
-        return self.__name
+    def getName(self) -> str:
+        """
+        Returns the symbol or description or this quantity. Note that this does not have to be unique. For uniquely
+        identifying a quantity, use getUUID.
+        :return:
+        """
+
+    def getUnit(self) -> str:
+        return self.__unit
 
     # Python specific functions
     def __add__(self, other) -> Quantity:
