@@ -23,9 +23,12 @@ class Quantity:
         Maximum this quantity is allowed to take. If this is null, a default interval around the value will be chosen.
     unit: str
         physical unit
+    name: str
+        symbol or description of this quantity
     """
 
     __unit: str
+    __name: str
     __length: int
     __shape: Tuple
     # internal representation of the value
@@ -39,11 +42,13 @@ class Quantity:
         min_value: np.ndarray,
         max_value: np.ndarray,
         unit: str = "",
+        name: str = "",
     ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
 
         self.__unit = unit
+        self.__name = name
         self.__scale = 0
 
         value = np.array(value)
@@ -108,6 +113,9 @@ class Quantity:
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
         # the value is based on offset and scale and needs to be updated
         self.setValue(oldValue)
+
+    def getName(self):
+        return self.__name
 
     # Python specific functions
     def __add__(self, other) -> Quantity:
@@ -215,6 +223,8 @@ class Quantity:
                 ret += self.__makeHumanReadable(entry) + self.__unit + " "
             else:
                 ret += self.__makeHumanReadable(entry, use_prefix=False) + " "
+        if self.__name:
+            ret = self.__name + ": " + ret
         return ret
 
     @staticmethod
