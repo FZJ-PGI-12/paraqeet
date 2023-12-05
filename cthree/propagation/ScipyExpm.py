@@ -80,13 +80,10 @@ class ScipyExpm(Propagation):
         """
         eom = self._model.getMatrixEOM
 
-        def coEom(time, dpsi_dp, psi):
-            time = np.reshape(time, (-1,))
-            dH_dp = self._model._hamiltonian.getDrives()[0]
-            return -1j * (dH_dp @ psi + eom(time) @ dpsi_dp)
+        n_params = 2
 
         psi = [self._initialState]
-        dpsi = [np.zeros_like(self._initialState)]
+        dpsis = [[np.zeros_like(self._initialState)] * n_params]
 
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
@@ -97,20 +94,28 @@ class ScipyExpm(Propagation):
                 dt = t1 - t0
             else:
                 dt = times[1] - times[0]
-            psis_t = psi[-1]
-            dpsis_t = dpsi[-1]
+            superState = [psi[-1]]
+            superState.extend(dpsis[-1])
+            psis_t = np.concatenate(superState)
             for t in times:
                 # Sampling at the center of the interval.
-                psis_t = (
-                    scipy.linalg.expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt)
-                    @ psis_t
-                )
-                dpsis_t += coEom(t, dpsis_t, psis_t) * dt
-            psi.append(psis_t)
-            dpsi.append(dpsis_t)
-        return dpsi
+                dc_dp_list = self._model.gradient(t + dt / 2)
+                dH_dc = self._model._hamiltonian.getDrives()[0]
+                dim = dH_dc.shape[0]
+                this_h = eom(np.reshape(t, (-1, 1)) + dt / 2)
+                h_list = [this_h] * (n_params + 1)
+                goat_ham = scipy.linalg.block_diag(*h_list)
+                for ii, dc_dp in enumerate(dc_dp_list):
+                    goat_ham[
+                        np.ix_([dim * (ii + 1), dim * (ii + 2) - 1], [0, dim - 1])
+                    ] = (-1.0j * dH_dc * dc_dp)
+                psis_t = scipy.linalg.expm(goat_ham * dt) @ psis_t
+            psi.append(psis_t[0:dim])
+            dpsis.append(
+                [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+            )
+        return psi, dpsis
 
     def gradient(self, time: np.ndarray):
-        dpsi_dc = self.__grad(time)
-        dc_dp_list = self._model.gradient(time)
-        return [dpsi_dc[-1] * dc_dp for dc_dp in dc_dp_list]
+        _, grad = self.__grad(time)
+        return grad
