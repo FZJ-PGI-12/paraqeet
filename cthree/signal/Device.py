@@ -42,10 +42,13 @@ class CosTone(Device):
         freq = self.__frequency.getValue()
         return amp * np.cos(freq * t)
 
-    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+    def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return [np.cos(freq * t), -amp * t * np.sin(freq * t)]
+        return [
+            np.cos(freq * t) * self.__amplitude.getScale(),
+            -amp * t * np.sin(freq * t) * self.__frequency.getScale(),
+        ]
 
 
 class CosToneErf(Device):
@@ -78,18 +81,16 @@ class CosToneErf(Device):
 
     def __envelope(self, t):
         t0 = self.__t_final.getValue()
-        return (
-            (1 + erf((t - t0 / 5) * self.__slope))
-            * (1 + erf((-t + 4 * t0 / 5) * self.__slope))
-            / 4
-        )
+        rampUp = 1 + erf((t - t0 / 5) * self.__slope)
+        rampDown = 1 + erf((-t + 4 * t0 / 5) * self.__slope)
+        return rampUp * rampDown / 4
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self.__envelope(t) * amp * np.cos(freq * t)
 
-    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+    def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         dc_dAmp = np.cos(freq * t) * self.__envelope(t)
