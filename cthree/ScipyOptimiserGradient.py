@@ -69,7 +69,7 @@ class ScipyOptimiserGradient(Optimiser):
 
     def _setParametersAndMeasureJac(self, values) -> float:
         """
-        Update the parameter values and return the measurement result. Internal callback.
+        Update the parameter values and return the gradient of a measurement result. Internal callback.
         """
         for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
