@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 
 from cthree.propagation.ScipyExpm import ScipyExpm
 
@@ -13,9 +14,18 @@ class ScipyExpmGOAT(ScipyExpm):
     _res: float
     _initialState: np.ndarray = None
 
-    def gradient(self, time: np.ndarray):
-        """
-        Solve the GOAT equation for the gradient vector
+    def gradient(self, time: np.ndarray) -> List[List[np.ndarray]]:
+        """Solve the GOAT equation for the gradient vector.
+
+        Parameters
+        ----------
+        time : np.ndarray
+            array of timesteps
+
+        Returns
+        -------
+        List[List[np.ndarray]]
+            Outer list dimension is parameter, inner list dimension is time.
         """
         eom = self._model.getMatrixEOM
 

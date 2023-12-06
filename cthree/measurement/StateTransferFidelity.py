@@ -34,7 +34,7 @@ class StateTransferFidelity(Measurement):
             )
         self.__propagation.setInitialState(self.__initialState)
 
-    def measure(self) -> float:
+    def measure(self) -> np.ndarray:
         states = self.__propagation.propagate(time=self._times)
         final_state = states[-1]
         return np.abs(np.vdot(self.__targetState, final_state)) ** 2

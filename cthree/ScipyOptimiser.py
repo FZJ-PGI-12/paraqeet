@@ -27,6 +27,13 @@ class ScipyOptimiser(Optimiser):
         self._method = "L-BFGS-B"
 
     def setMethod(self, method: str):
+        """Select method from scipy.optimize.minimize.
+        See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+
+        Parameters
+        ----------
+        method : str
+        """
         self._method = method
 
     def setOptions(self, opts: Dict):

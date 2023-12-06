@@ -32,7 +32,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             options=self._options,
         )
 
-    def _setParametersAndMeasureJac(self, values) -> float:
+    def _setParametersAndMeasureJac(self, values) -> np.ndarray:
         """
         Update the parameter values and return the gradient of a measurement result. Internal callback.
         """

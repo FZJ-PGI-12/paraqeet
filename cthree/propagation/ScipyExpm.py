@@ -28,10 +28,10 @@ class ScipyExpm(StatePropagation):
         super().__init__(model)
         self.setResolution(res)
 
-    def setResolution(self, res):
+    def setResolution(self, res: float):
         self._res = res
 
-    def getResolution(self):
+    def getResolution(self) -> float:
         return self._res
 
     def getParameters(self) -> List[Quantity]:
@@ -43,7 +43,7 @@ class ScipyExpm(StatePropagation):
         """
         return []
 
-    def propagate(self, time: np.ndarray):
+    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         """
         Loop over all desired times in time at set resolution.
         """
