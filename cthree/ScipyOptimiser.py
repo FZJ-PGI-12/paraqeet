@@ -43,16 +43,24 @@ class ScipyOptimiser(Optimiser):
         self._options.update(key, val)
 
     def optimise(self) -> OptimizeResult:
+        if self._logger:
+            self._logger.start()
+
         init = []
         for qty in self._optimisables:
             init.append(qty.getReducedValue())
-        return minimize(
+        opt_res = minimize(
             fun=self._setParametersAndMeasure,
             x0=np.concatenate(init).flatten(),
             bounds=[(-1, 1)] * self._opt_idxs[-1],
             method=self._method,
             options=self._options,
         )
+
+        if self._logger:
+            self._logger.stop(str(opt_res))
+
+        return opt_res
 
     def setOptimisables(self, opt: List[Quantity]) -> None:
         """
@@ -69,6 +77,12 @@ class ScipyOptimiser(Optimiser):
         """
         Update the parameter values and return the measurement result. Internal callback.
         """
-        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
+        log = []
+        for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
-        return 1 - self._measure.measureNormalised()
+            log.append(self._optimisables[index])
+        infid = 1 - self._measure.measureNormalised()
+
+        if self._logger:
+            self._logger.log(log, infid)
+        return infid

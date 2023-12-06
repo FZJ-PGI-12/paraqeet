@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
+from cthree.FileLogger import Logger
 
 
 class Optimiser:
@@ -19,11 +20,16 @@ class Optimiser:
     _measure: Measurement
     _optimisables: List[Quantity]
     __opt_idxs: List[int]
+    __logger: Logger
 
     def __init__(
-        self, measure: Measurement, optimisables: Optional[List[Quantity]] = None
+        self,
+        measure: Measurement,
+        optimisables: Optional[List[Quantity]] = None,
+        logger: Logger = None
     ):
         self._measure = measure
+        self._logger = logger
         self.setOptimisables(optimisables or measure.getParameters())
 
     def setOptimisables(self, opt: List[Quantity]) -> None:
