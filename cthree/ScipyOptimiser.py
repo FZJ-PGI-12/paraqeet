@@ -78,7 +78,7 @@ class ScipyOptimiser(Optimiser):
         Update the parameter values and return the measurement result. Internal callback.
         """
         log = []
-        for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
+        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
             log.append(self._optimisables[index])
         infid = 1 - self._measure.measureNormalised()
