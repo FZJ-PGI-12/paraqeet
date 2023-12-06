@@ -5,8 +5,11 @@ from test.conftest import DIMS
 
 
 def randomState(dimension):
+    """
+    Generate randon column vector.
+    """
     state = np.random.random(dimension) + 1j * np.random.random(dimension)
-    return state / np.sqrt(np.vdot(state, state))
+    return np.reshape(state / np.sqrt(np.vdot(state, state)), (-1, 1))
 
 
 @pytest.fixture
