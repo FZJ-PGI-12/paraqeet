@@ -38,4 +38,7 @@ class ClosedModel(Model):
         return -1.0j * self._hamiltonian.getMatrix(time)
 
     def gradient(self, t) -> List[np.ndarray]:
-        return self._hamiltonian.gradient(t)
+        """
+        Compute the gradient of getMatrixEOM.
+        """
+        return [-1.0j * h for h in self._hamiltonian.gradient(t)]

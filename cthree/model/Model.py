@@ -43,4 +43,7 @@ class Model(Optimisable):
 
     @abstractmethod
     def gradient(self, t):
+        """
+        Implement the gradient of either getEquationOfMotion or getMatrixEOM here.
+        """
         raise NotImplementedError()
