@@ -59,7 +59,7 @@ class RungeKutta(StatePropagation):
             integrator = RK45(
                 fun=callback,
                 t0=time[ti - 1],
-                y0=states[-1],
+                y0=np.reshape(states[-1], (-1,)),
                 t_bound=time[ti],
                 first_step=dt,
                 vectorized=False,
@@ -67,5 +67,5 @@ class RungeKutta(StatePropagation):
 
             while integrator.status == "running":
                 integrator.step()
-            states.append(integrator.y)
+            states.append(np.reshape(integrator.y, (-1, 1)))
         return states
