@@ -27,7 +27,7 @@ class ScipyExpmGOAT(ScipyExpm):
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
             t1 = time[ti]
-            steps = int(np.ceil((t1 - t0) * self.__res))
+            steps = int(np.ceil((t1 - t0) * self._res))
             times = np.linspace(t0, t1, steps, endpoint=False)
             if steps < 2:
                 dt = t1 - t0

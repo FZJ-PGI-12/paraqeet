@@ -15,9 +15,9 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
     _measure: Measurement
     _optimisables: List[Quantity]
-    __opt_idxs: List[int]
-    __options: Dict
-    __method: str
+    _opt_idxs: List[int]
+    _options: Dict
+    _method: str
 
     def optimise(self) -> OptimizeResult:
         init = []
@@ -27,15 +27,15 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             fun=self._setParametersAndMeasure,
             jac=self._setParametersAndMeasureJac,
             x0=np.concatenate(init).flatten(),
-            bounds=[(-1, 1)] * self.__opt_idxs[-1],
-            method=self.__method,
-            options=self.__options,
+            bounds=[(-1, 1)] * self._opt_idxs[-1],
+            method=self._method,
+            options=self._options,
         )
 
     def _setParametersAndMeasureJac(self, values) -> float:
         """
         Update the parameter values and return the gradient of a measurement result. Internal callback.
         """
-        for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
+        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
         return -1 * self._measure.measureGradient()

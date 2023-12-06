@@ -15,25 +15,25 @@ class ScipyOptimiser(Optimiser):
 
     _measure: Measurement
     _optimisables: List[Quantity]
-    __opt_idxs: List[int]
-    __options: Dict
-    __method: str
+    _opt_idxs: List[int]
+    _options: Dict
+    _method: str
 
     def __init__(
         self, measure: Measurement, optimisables: List[Quantity] | None = None
     ):
         super().__init__(measure, optimisables)
-        self.__options = {"disp": True}
-        self.__method = "L-BFGS-B"
+        self._options = {"disp": True}
+        self._method = "L-BFGS-B"
 
     def setMethod(self, method: str):
-        self.__method = method
+        self._method = method
 
     def setOptions(self, opts: Dict):
-        self.__options = opts
+        self._options = opts
 
     def updateOption(self, key, val):
-        self.__options.update(key, val)
+        self._options.update(key, val)
 
     def optimise(self) -> OptimizeResult:
         init = []
@@ -42,9 +42,9 @@ class ScipyOptimiser(Optimiser):
         return minimize(
             fun=self._setParametersAndMeasure,
             x0=np.concatenate(init).flatten(),
-            bounds=[(-1, 1)] * self.__opt_idxs[-1],
-            method=self.__method,
-            options=self.__options,
+            bounds=[(-1, 1)] * self._opt_idxs[-1],
+            method=self._method,
+            options=self._options,
         )
 
     def setOptimisables(self, opt: List[Quantity]) -> None:
@@ -52,16 +52,16 @@ class ScipyOptimiser(Optimiser):
         Registers optimisables and their length to keep track of vector and matrix valued parameters.
         """
         super().setOptimisables(opt)
-        self.__opt_idxs = []
+        self._opt_idxs = []
         index = 0
         for qty in opt:
             index += qty.getLength()
-            self.__opt_idxs.append(index)
+            self._opt_idxs.append(index)
 
     def _setParametersAndMeasure(self, values) -> float:
         """
         Update the parameter values and return the measurement result. Internal callback.
         """
-        for index, val in enumerate(np.split(values, self.__opt_idxs[:-1])):
+        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             self._optimisables[index].setReducedValue(val)
         return 1 - self._measure.measureNormalised()
