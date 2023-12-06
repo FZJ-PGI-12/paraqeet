@@ -3,7 +3,7 @@ import numpy as np
 
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 
-from cthree.propagation.ScipyExpm import ScipyExpm
+from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.ScipyOptimiser import ScipyOptimiser
 from cthree.ScipyOptimiserGradient import ScipyOptimiserGradient
 
@@ -30,7 +30,7 @@ drift = FREQ / 2 * sigmaZ
 controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
-prop = ScipyExpm(model=model, res=100e9)
+prop = ScipyExpmGOAT(model=model, res=100e9)
 
 init = np.array([[1.0], [0.0j]])
 target = np.array([[0.0j], [1]])
