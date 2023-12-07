@@ -31,6 +31,9 @@ class Hamiltonian(Optimisable):
         self.__drives = drives
         self.__generator = generator
 
+    def getDrives(self) -> List[np.ndarray]:
+        return self.__drives
+
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         """
         Return the matrix representation of the Hamiltonian.
@@ -47,3 +50,10 @@ class Hamiltonian(Optimisable):
 
     def getParameters(self) -> List[Quantity]:
         return []
+
+    def gradient(self, t: np.ndarray) -> List[np.ndarray]:
+        """
+        Return the gradient of each parameter as a list.
+        """
+        grads = self.__generator.generateSignalGradient(t)
+        return [g * self.getDrives()[0] for g in grads]

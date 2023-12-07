@@ -36,3 +36,9 @@ class ClosedModel(Model):
             np.ndarray: RHS with dimension [t, n, n]  with t: time, n: hilbert space
         """
         return -1.0j * self._hamiltonian.getMatrix(time)
+
+    def gradient(self, t) -> List[np.ndarray]:
+        """
+        Compute the gradient of getMatrixEOM.
+        """
+        return [-1.0j * h for h in self._hamiltonian.gradient(t)]

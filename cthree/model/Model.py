@@ -40,3 +40,10 @@ class Model(Optimisable):
     @abstractmethod
     def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
+
+    @abstractmethod
+    def gradient(self, t):
+        """
+        Implement the gradient of either getEquationOfMotion or getMatrixEOM here.
+        """
+        raise NotImplementedError()

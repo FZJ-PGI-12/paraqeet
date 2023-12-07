@@ -26,6 +26,15 @@ class RungeKutta(StatePropagation):
     def getParameters(self) -> List[Quantity]:
         return []
 
+    def setInitialState(self, state: np.ndarray):
+        """
+        Sets the initial state for the propagation. Subclasses can access the state in the _initialState field.
+
+        :param state:
+        :return:
+        """
+        self._initialState = np.reshape(state, (-1,))
+
     def propagate(self, time: np.ndarray):
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
@@ -34,7 +43,10 @@ class RungeKutta(StatePropagation):
             raise ValueError("Runge-Kutta propagation needs at least two time steps")
 
         def callback(time, state):
-            return self._model.getEquationOfMotion(np.array([time]), np.array(state))
+            column_state = np.reshape(state, (-1, 1))
+            return np.reshape(
+                self._model.getEquationOfMotion(np.array([time]), column_state), (-1,)
+            )
 
         # Since RK45 uses adaptive time steps and does not guarantee to return a state for each time stamp, this
         # function has to iterate over the time steps itself.
@@ -47,7 +59,7 @@ class RungeKutta(StatePropagation):
             integrator = RK45(
                 fun=callback,
                 t0=time[ti - 1],
-                y0=states[-1],
+                y0=np.reshape(states[-1], (-1,)),
                 t_bound=time[ti],
                 first_step=dt,
                 vectorized=False,
@@ -55,5 +67,5 @@ class RungeKutta(StatePropagation):
 
             while integrator.status == "running":
                 integrator.step()
-            states.append(integrator.y)
+            states.append(np.reshape(integrator.y, (-1, 1)))
         return states

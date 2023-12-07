@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List
 
 from cthree.Optimisable import Optimisable
 from cthree.model.Model import Model
@@ -34,5 +35,12 @@ class Propagation(Optimisable):
         implementation and could for example be a propagated state vector or a propagator in matrix form.
 
         :param time: any one-dimensional vector of timestamps
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def gradient(self, time: np.ndarray) -> List[np.ndarray]:
+        """
+        Computes this part of the chain rule for a gradient trace. i.e. result of the propagation wrt model.
         """
         raise NotImplementedError()

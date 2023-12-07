@@ -46,6 +46,9 @@ class UnitaryFidelity(Measurement):
         overlap = np.trace(m)
         return np.abs(overlap / m.shape[0]) ** 2
 
+    def measureGradient(self) -> np.ndarray:
+        return self.__grad() * self.__propagation.gradient()
+
     def setIdealGate(self, gate):
         """
         Compute target states for the L2 norm.
@@ -54,3 +57,9 @@ class UnitaryFidelity(Measurement):
             self.__target_costates = gate
         else:
             self.__target_costates = gate @ self.__basis_states.conj().T
+
+    def __grad(self):
+        """
+        Partial derivative of measure() wrt final_states
+        """
+        pass

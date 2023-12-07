@@ -5,18 +5,18 @@ import numpy as np
 from cthree.Exceptions import ConfigurationException
 from cthree.Quantity import Quantity
 from cthree.model.Model import Model
-from cthree.propagation.Propagation import Propagation
+from cthree.propagation.StatePropagation import StatePropagation
 
 import scipy
 
 
-class ScipyExpm(Propagation):
+class ScipyExpm(StatePropagation):
     """
     Solve the equation of motion by piecewise exponentation with the scipy package.
     """
 
-    __res: float
-    __init: np.ndarray = None
+    _res: float
+    _initialState: np.ndarray = None
 
     def __init__(self, model: Model, res: float):
         """Setup propagation method.
@@ -28,14 +28,11 @@ class ScipyExpm(Propagation):
         super().__init__(model)
         self.setResolution(res)
 
-    def setInitialState(self, state: np.ndarray):
-        self.__init = state
+    def setResolution(self, res: float):
+        self._res = res
 
-    def setResolution(self, res):
-        self.__res = res
-
-    def getResolution(self):
-        return self.__res
+    def getResolution(self) -> float:
+        return self._res
 
     def getParameters(self) -> List[Quantity]:
         """
@@ -46,19 +43,19 @@ class ScipyExpm(Propagation):
         """
         return []
 
-    def propagate(self, time: np.ndarray):
+    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
         """
         Loop over all desired times in time at set resolution.
         """
-        if self.__init is None:
+        if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = [self.__init] * len(time)
+        psi = [self._initialState] * len(time)
         eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             t0 = time[ti - 1]
             t1 = time[ti]
-            steps = int(np.ceil((t1 - t0) * self.__res))
+            steps = int(np.ceil((t1 - t0) * self._res))
             times = np.linspace(t0, t1, steps, endpoint=False)
             if steps < 2:
                 dt = t1 - t0
