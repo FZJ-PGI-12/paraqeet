@@ -20,10 +20,13 @@ class ScipyOptimiserGradient(ScipyOptimiser):
     _method: str
 
     def optimise(self) -> OptimizeResult:
+        if self._logger:
+            self._logger.start()
+
         init = []
         for qty in self._optimisables:
             init.append(qty.getReducedValue())
-        return minimize(
+        result = minimize(
             fun=self._setParametersAndMeasure,
             jac=self._setParametersAndMeasureJac,
             x0=np.concatenate(init).flatten(),
@@ -31,6 +34,10 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             method=self._method,
             options=self._options,
         )
+
+        if self._logger:
+            self._logger.stop(str(result))
+        return result
 
     def _setParametersAndMeasureJac(self, values) -> np.ndarray:
         """

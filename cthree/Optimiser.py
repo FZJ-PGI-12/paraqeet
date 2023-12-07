@@ -32,6 +32,9 @@ class Optimiser:
         self._logger = logger
         self.setOptimisables(optimisables or measure.getParameters())
 
+    def setLogger(self, logger: Logger):
+        self._logger = logger
+
     def setOptimisables(self, opt: List[Quantity]) -> None:
         """
         Registers optimisables and their length to keep track of vector and matrix valued parameters.
