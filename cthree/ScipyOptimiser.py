@@ -53,6 +53,8 @@ class ScipyOptimiser(Optimiser):
             index += qty.getLength()
             self._opt_idxs.append(index)
 
+        self._optimisables.registerParamsWithOptimisables()
+
         # Collect the initial values of all parameters
         init = []
         for qty in params:
