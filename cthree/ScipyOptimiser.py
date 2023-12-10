@@ -45,19 +45,12 @@ class ScipyOptimiser(Optimiser):
         if self._logger:
             self._logger.start()
 
-        # Register optimisables and their length to keep track of vector and matrix valued parameters.
-        params = self._optimisables.getAllParameters()
-        self._opt_idxs = []
-        index = 0
-        for qty in params:
-            index += qty.getLength()
-            self._opt_idxs.append(index)
-
+        self._buildOptimisableIndexList()
         self._optimisables.registerParamsWithOptimisables()
 
         # Collect the initial values of all parameters
         init = []
-        for qty in params:
+        for qty in self._optimisables.getAllParameters():
             init.append(qty.getReducedValue())
 
         opt_res = minimize(
@@ -87,3 +80,14 @@ class ScipyOptimiser(Optimiser):
         if self._logger:
             self._logger.log(log, infid)
         return infid
+
+    def _buildOptimisableIndexList(self):
+        """
+        Register optimisables and their length to keep track of vector and matrix valued parameters.
+        """
+        params = self._optimisables.getAllParameters()
+        self._opt_idxs = []
+        index = 0
+        for qty in params:
+            index += qty.getLength()
+            self._opt_idxs.append(index)

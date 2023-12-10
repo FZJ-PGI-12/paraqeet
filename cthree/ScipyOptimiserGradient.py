@@ -14,7 +14,6 @@ class ScipyOptimiserGradient(ScipyOptimiser):
     """
 
     _measure: Measurement
-    _optimisables: List[Quantity]
     _opt_idxs: List[int]
     _options: Dict
     _method: str
@@ -23,8 +22,11 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         if self._logger:
             self._logger.start()
 
+        self._buildOptimisableIndexList()
+        self._optimisables.registerParamsWithOptimisables()
+
         init = []
-        for qty in self._optimisables:
+        for qty in self._optimisables.getAllParameters():
             init.append(qty.getReducedValue())
         result = minimize(
             fun=self._setParametersAndMeasure,
@@ -43,6 +45,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         """
         Update the parameter values and return the gradient of a measurement result. Internal callback.
         """
+        params = self._optimisables.getAllParameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            self._optimisables[index].setReducedValue(val)
+            params[index].setReducedValue(val)
         return -1 * self._measure.measureGradient()
