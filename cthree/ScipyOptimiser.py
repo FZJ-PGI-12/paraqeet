@@ -19,7 +19,7 @@ class ScipyOptimiser(Optimiser):
     _method: str
 
     def __init__(
-        self, measure: Measurement, optimisables: OptimisationMap = None
+        self, measure: Measurement, optimisables: OptimisationMap
     ):
         super().__init__(measure, optimisables)
         self._options = {"disp": True}
@@ -52,6 +52,9 @@ class ScipyOptimiser(Optimiser):
         init = []
         for qty in self._optimisables.getAllParameters():
             init.append(qty.getReducedValue())
+
+        x = self._optimisables.getOptimisables()
+        y = self._optimisables.getAllParameters()
 
         opt_res = minimize(
             fun=self._setParametersAndMeasure,

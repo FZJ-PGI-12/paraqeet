@@ -27,12 +27,12 @@ class Optimiser:
     def __init__(
         self,
         measure: Measurement,
-        optimisables: OptimisationMap = None,
+        optimisables: OptimisationMap,
         logger: Logger = None
     ):
         self._measure = measure
         self._logger = logger
-        self.setOptimisables(optimisables or OptimisationMap())
+        self.setOptimisables(optimisables)
 
     def setLogger(self, logger: Logger):
         self._logger = logger

@@ -1,6 +1,7 @@
 import pytest
 from numpy.testing import assert_almost_equal
 
+from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.RabiExperiment import RabiExperiment
 from cthree.ScipyOptimiser import ScipyOptimiser
 
@@ -10,7 +11,9 @@ FREQ = 4.8e9
 
 @pytest.fixture
 def opt(rabi):
-    return ScipyOptimiser(rabi)
+    optmap = OptimisationMap()
+    optmap.add(rabi, rabi.getParameters())
+    return ScipyOptimiser(rabi, optmap)
 
 
 @pytest.fixture
