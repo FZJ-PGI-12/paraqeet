@@ -9,7 +9,8 @@ class Optimisable:
     This interface must be implemented by any class that provides optimisable parameters. The optimiser will collect
     all parameters (by reference) and update their values.
     """
-    _optimisableParameters = []
+
+    _optimisableParameters: List[Quantity] = []
 
     @abstractmethod
     def getParameters(self) -> List[Quantity]:
