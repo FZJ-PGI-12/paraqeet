@@ -6,7 +6,7 @@ from cthree.Quantity import Quantity
 
 class OptimisationMap:
     """
-    Utility class that collects all parameters that shall be considered during optimisation and associates them will
+    Utility class that collects all parameters that shall be considered during optimisation and associates them with
     the corresponding Optimisable interface. With this class, Quantities can be traced back to the Optimisable to which
     they belong. Before optimisation, an instance of this class needs to be filled and passed to the optimiser.
     """
