@@ -10,12 +10,29 @@ class OptimisationMap:
     the corresponding Optimisable interface. With this class, Quantities can be traced back to the Optimisable to which
     they belong. Before optimisation, an instance of this class needs to be filled and passed to the optimiser.
     """
+
     __optimisableToParameterMap: Dict[Optimisable, List[Quantity]]
 
     def __init__(self):
         self.__optimisableToParameterMap = {}
 
-    def add(self, optimisable: Optimisable, optimisableQuantites: List[Quantity] = None):
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        """
+        Human readable representation of the parameters set to optimise.
+        """
+        om_str = ""
+        for key, val in self.__optimisableToParameterMap.items():
+            om_str += f"==== {key} ====\n"
+            om_str += str(val)
+            om_str += "\n\n"
+        return om_str
+
+    def add(
+        self, optimisable: Optimisable, optimisableQuantites: List[Quantity] = None
+    ):
         """
         Adds an optimisable object and a list of its quantities to the map. The list contains all parameters
         of the optimisable object that shall be considered during the optimisation. If the list is empty, all parameters
@@ -41,7 +58,7 @@ class OptimisationMap:
         :param optimisable:
         :return: the list of parameters or None if the optimisable has not been added yet
         """
-        return self.__optimisableToParameterMap(optimisable)
+        return self.__optimisableToParameterMap[optimisable]
 
     def getAllParameters(self) -> List[Quantity]:
         """
@@ -49,7 +66,7 @@ class OptimisationMap:
         """
         quantities = []
         for params in self.__optimisableToParameterMap.values():
-            quantities += params
+            quantities.extend(params)
         return quantities
 
     def registerParamsWithOptimisables(self) -> None:
