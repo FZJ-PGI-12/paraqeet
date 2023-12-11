@@ -41,6 +41,7 @@ class OptimisationMap:
         :param optimisable:
         :return: the list of parameters or None if the optimisable has not been added yet
         """
+return self.__optimisableToParameterMap(optimisable)
 
     def getAllParameters(self) -> List[Quantity]:
         """
