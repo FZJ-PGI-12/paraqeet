@@ -53,7 +53,7 @@ class OptimisationMap:
 
     def registerParamsWithOptimisables(self) -> None:
         """
-        Utility function that synchronises the list oif parameters with each optimisable class. This needs to be called
+        Utility function that synchronises the list of parameters with each optimisable class. This needs to be called
         by the optimiser before gradient based optimisation to tell the layers which gradients to compute.
         :return:
         """
