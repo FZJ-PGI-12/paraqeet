@@ -44,6 +44,14 @@ class OptimisationMap:
         """
         params = optimisableQuantites or optimisable.getParameters()
         self.__optimisableToParameterMap[optimisable] = params
+        if len(self.__optimisableToParameterMap[optimisable]) < 1:
+            self.__optimisableToParameterMap.pop(optimisable)
+
+    def remove(self, optimisable: Optimisable):
+        try:
+            self.__optimisableToParameterMap.pop(optimisable)
+        except:
+            pass
 
     def getOptimisables(self) -> Set[Optimisable]:
         """
@@ -89,3 +97,8 @@ class OptimisationMap:
         for key in self.__optimisableToParameterMap.keys():
             filtered = filter(filterFunction, self.__optimisableToParameterMap[key])
             self.__optimisableToParameterMap[key] = list(filtered)
+        self.__optimisableToParameterMap = dict((k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0)
+
+
+    def filterByName(self, name: str):
+        return self.filterParameters(lambda quantity: quantity.getName() == name)
