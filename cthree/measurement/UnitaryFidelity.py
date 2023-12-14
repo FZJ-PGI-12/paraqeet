@@ -1,5 +1,7 @@
 import numpy as np
 
+from typing import List
+
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 
@@ -21,6 +23,7 @@ class UnitaryFidelity(Measurement):
     __basis_states: np.ndarray | None
     __target_costates: np.ndarray
     __propagation: Propagation
+    _times: np.ndarray
 
     def __init__(
         self,
@@ -34,20 +37,41 @@ class UnitaryFidelity(Measurement):
         if basis_states is not None:
             self.__propagation.setInitialState(basis_states)
         self.__basis_states = basis_states
-        self.__times = times
+        self._times = times
         self.setIdealGate(gate)
+
+    @staticmethod
+    def __fid(overlaps: List) -> float:
+        """
+        Gate fidelity from state overlaps.
+        """
+        return np.abs(np.average(overlaps)) ** 2
 
     def measure(self) -> float:
         """
         Return the L2 norm of the last time step compared to the ideal gate.
         """
-        final_states = self.__propagation.propagate(time=self.__times)
-        m = self.__target_costates @ final_states[-1]
-        overlap = np.trace(m)
-        return np.abs(overlap / m.shape[0]) ** 2
+        states = self.__propagation.propagate(time=self._times)
+        overlaps = []
+        for ii, s in enumerate(self.__target_costates):
+            overlaps.append(np.vdot(s, states[-1][ii]))
+        return self.__fid(overlaps)
 
     def measureGradient(self) -> np.ndarray:
-        return self.__grad() * self.__propagation.gradient()
+        states = self.__propagation.propagate(time=self._times)
+        overlaps = []
+        for ii, s in enumerate(self.__target_costates):
+            overlaps.append(np.vdot(s, states[-1][ii]))
+        f = np.average(overlaps)
+        dg_dp_list = self.__propagation.gradient(time=self._times)
+        dF_dp = []
+        for dg_dp in dg_dp_list[-1]:
+            gs = []
+            for ii, s in enumerate(self.__target_costates):
+                gs.append(np.vdot(s, dg_dp[ii]))
+            g = np.average(gs)
+            dF_dp.append(f.conj() * g + f * g.conj())
+        return np.array(dF_dp)
 
     def setIdealGate(self, gate):
         """
@@ -57,9 +81,3 @@ class UnitaryFidelity(Measurement):
             self.__target_costates = gate
         else:
             self.__target_costates = gate @ self.__basis_states.conj().T
-
-    def __grad(self):
-        """
-        Partial derivative of measure() wrt final_states
-        """
-        pass
