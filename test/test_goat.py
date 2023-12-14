@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 
+from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
@@ -51,15 +52,21 @@ def fid():
         times=np.array([0.0, t_final]),
     )
 
+@pytest.fixture
+def optMap():
+    optmap = OptimisationMap()
+    optmap.add(tone, params)
+    return optmap
+
 
 @pytest.fixture
-def gradOpt(fid):
-    return ScipyOptimiserGradient(fid, optimisables=params)
+def gradOpt(fid, optMap):
+    return ScipyOptimiserGradient(fid, optimisables=optMap)
 
 
 @pytest.fixture
-def opt(fid):
-    return ScipyOptimiser(fid, optimisables=params)
+def opt(fid, optMap):
+    return ScipyOptimiser(fid, optimisables=optMap)
 
 
 def test_optim(opt) -> None:

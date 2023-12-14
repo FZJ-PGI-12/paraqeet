@@ -2,10 +2,12 @@ from abc import abstractmethod
 from typing import List
 
 import numpy as np
+
+from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
 
 
-class Measurement:
+class Measurement(Optimisable):
     """
     Represents any observable and the process of measurement itself. The observable is measured after the propagation
     class has solved the equation of motion.

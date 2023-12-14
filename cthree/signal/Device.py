@@ -28,10 +28,18 @@ class CosTone(Device):
 
     def __init__(self) -> None:
         self.__amplitude = Quantity(
-            2e5 * 2 * np.pi, min_value=1e5 * 2 * np.pi, max_value=250e6 * 2 * np.pi
+            2e5 * 2 * np.pi,
+            min_value=1e5 * 2 * np.pi,
+            max_value=250e6 * 2 * np.pi,
+            unit="Hz",
+            name="Amplitude",
         )
         self.__frequency = Quantity(
-            5e9 * 2 * np.pi, min_value=4e9 * 2 * np.pi, max_value=6e9 * 2 * np.pi
+            5e9 * 2 * np.pi,
+            min_value=4e9 * 2 * np.pi,
+            max_value=6e9 * 2 * np.pi,
+            unit="Hz",
+            name="Frequency",
         )
 
     def getParameters(self) -> List[Quantity]:
@@ -69,14 +77,18 @@ class CosToneErf(Device):
             min_value=1e5 * 2 * np.pi,
             max_value=250e6 * 2 * np.pi,
             unit="Hz",
+            name="Amplitude",
         )
         self.__frequency = Quantity(
             5e9 * 2 * np.pi,
             min_value=4e9 * 2 * np.pi,
             max_value=6e9 * 2 * np.pi,
             unit="Hz",
+            name="Frequency",
         )
-        self.__t_final = Quantity(10e-9, min_value=0e-9, max_value=100e-9, unit="s")
+        self.__t_final = Quantity(
+            10e-9, min_value=0e-9, max_value=100e-9, unit="s", name="Gate time"
+        )
 
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency, self.__t_final]

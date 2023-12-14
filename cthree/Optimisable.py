@@ -10,6 +10,20 @@ class Optimisable:
     all parameters (by reference) and update their values.
     """
 
+    _optimisableParameters: List[Quantity] = []
+
     @abstractmethod
     def getParameters(self) -> List[Quantity]:
+        """
+        Returns all parameters of this class that can be optimised.
+        """
         raise NotImplementedError()
+
+    def setOptimisableParameters(self, params: List[Quantity]) -> None:
+        """
+        Sets which parameters shall be considered during optimisation. All quantities that are not in the response of
+        getParameters will be filtered out. This function is called by the optimiser before gradient based optimisation
+        to tell the layers which gradients to compute.
+        """
+        allParams = self.getParameters()
+        self._optimisableParameters = [p for p in params if p in allParams]

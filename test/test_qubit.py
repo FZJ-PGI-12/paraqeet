@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 
+from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.propagation.ScipyExpm import ScipyExpm
 from cthree.ScipyOptimiser import ScipyOptimiser
@@ -44,7 +45,9 @@ zeroone = StateTransferFidelity(
 
 @pytest.fixture
 def opt():
-    return ScipyOptimiser(zeroone, optimisables=params)
+    optmap = OptimisationMap()
+    optmap.add(tone, params)
+    return ScipyOptimiser(zeroone, optimisables=optmap)
 
 
 def test_optim(opt) -> None:

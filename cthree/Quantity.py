@@ -123,6 +123,7 @@ class Quantity:
         identifying a quantity, use getUUID.
         :return:
         """
+        return self.__name
 
     def getUnit(self) -> str:
         return self.__unit
