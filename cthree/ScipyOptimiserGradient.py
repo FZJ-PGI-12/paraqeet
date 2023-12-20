@@ -4,7 +4,6 @@ import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 
 from cthree.ScipyOptimiser import ScipyOptimiser
-from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 
 
@@ -47,5 +46,5 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         """
         params = self._optimisables.getAllParameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            params[index].setReducedValue(val)
+            params[index].setReducedValue(val[0])
         return -1 * self._measure.measureGradient()

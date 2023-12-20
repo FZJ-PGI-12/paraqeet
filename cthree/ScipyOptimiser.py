@@ -18,9 +18,7 @@ class ScipyOptimiser(Optimiser):
     _options: Dict
     _method: str
 
-    def __init__(
-        self, measure: Measurement, optimisables: OptimisationMap
-    ):
+    def __init__(self, measure: Measurement, optimisables: OptimisationMap):
         super().__init__(measure, optimisables)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
@@ -53,8 +51,8 @@ class ScipyOptimiser(Optimiser):
         for qty in self._optimisables.getAllParameters():
             init.append(qty.getReducedValue())
 
-        x = self._optimisables.getOptimisables()
-        y = self._optimisables.getAllParameters()
+        # x = self._optimisables.getOptimisables()
+        # y = self._optimisables.getAllParameters()
 
         opt_res = minimize(
             fun=self._setParametersAndMeasure,
@@ -76,7 +74,7 @@ class ScipyOptimiser(Optimiser):
         log = []
         params = self._optimisables.getAllParameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            params[index].setReducedValue(val)
+            params[index].setReducedValue(val[0])
             log.append(params[index])
         infid = 1 - self._measure.measureNormalised()
 
