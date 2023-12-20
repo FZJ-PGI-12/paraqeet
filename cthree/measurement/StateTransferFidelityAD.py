@@ -1,11 +1,17 @@
 from typing import List
-import jax.numpy as np
-from jax import grad
-from cthree.Quantity import Quantity
 
+from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 from cthree.Exceptions import IncompatibleLayersException
+
+from functools import partial
+
+import jax
+import jax.numpy as np
+from jax import grad
+
+jax.config.update("jax_enable_x64", True)
 
 
 class StateTransferFidelityAD(Measurement):
@@ -42,9 +48,11 @@ class StateTransferFidelityAD(Measurement):
         overlap = self.__computeoverlap(final_state, target_state)
         return self.__computeMeasure(overlap)
 
-    def __computeoverlap(self, final_state, target_state):
+    @partial(jax.jit, static_argnums=(0,))
+    def __computeoverlap(self, target_state, final_state):
         return np.vdot(target_state, final_state)
 
+    @partial(jax.jit, static_argnums=(0,))
     def __computeMeasure(self, overlap):
         return np.abs(overlap) ** 2
 
@@ -52,14 +60,13 @@ class StateTransferFidelityAD(Measurement):
         target_state = self.__targetState
         states = self.__propagation.propagate(time=self._times)
         final_state = states[-1]
-        overlap = self.__computeoverlap(final_state, target_state)
-        dg_dc_list = self.__propagation.gradient(time=self._times)
+        f = self.__computeoverlap(target_state, final_state)
+        dg_dp_list = self.__propagation.gradient(time=self._times)
         dF_dp = []
-        for dg_dc in dg_dc_list:
-            final_state_grad = dg_dc[-1]
-            doverlap = self.__computeoverlap(final_state_grad, target_state)
-            dfdc = grad(self.__computeMeasure, argnums=0)(overlap) * doverlap
-            dF_dp.append(dfdc)
+        for dg_dp in dg_dp_list[-1]:
+            g = self.__computeoverlap(target_state, dg_dp)
+            dfdp = grad(self.__computeMeasure, argnums=0)(f) * g
+            dF_dp.append(dfdp)
         return np.array(dF_dp)
 
     def getParameters(self) -> List[Quantity]:

@@ -21,10 +21,10 @@ def costoneerfAD():
 
 def test_values(costoneAD, costoneerfAD):
     assert costoneAD.computeOutput(time) == pytest.approx(
-        costone.computeOutput(time), rel=1e-4
+        costone.computeOutput(time), rel=1e-6
     )
     assert costoneerfAD.computeOutput(time) == pytest.approx(
-        costoneerf.computeOutput(time), rel=1e-4
+        costoneerf.computeOutput(time), rel=1e-6
     )
 
 
@@ -35,7 +35,7 @@ def test_gradients(costoneAD, costoneerfAD):
     grad_costoneerf_AD = costoneerfAD.computeGradient(time)
     grad_costoneerf = costoneerf.computeGradient(time)
 
-    assert np.array(grad_costone_AD) == pytest.approx(np.array(grad_costone), rel=1e-4)
+    assert np.array(grad_costone_AD) == pytest.approx(np.array(grad_costone), rel=1e-6)
     assert np.array(grad_costoneerf_AD) == pytest.approx(
-        np.array(grad_costoneerf), rel=1e-4
+        np.array(grad_costoneerf), rel=1e-6
     )

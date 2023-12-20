@@ -3,9 +3,13 @@ from typing import List, Callable
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
 
+import jax
 import jax.numpy as np
 from jax import grad, vmap
 from jax.scipy.special import erf
+from functools import partial
+
+jax.config.update("jax_enable_x64", True)
 
 
 class DeviceAD(Optimisable):
@@ -60,6 +64,7 @@ class CosToneAD(DeviceAD):
         freq = self.__frequency.getValue()
         return self.__computeOutput(amp, freq, t)
 
+    @partial(jax.jit, static_argnums=(0,))
     def __computeOutput(self, amp, freq, t):
         return amp * np.cos(freq * t)
 
@@ -105,6 +110,7 @@ class CosToneErfAD(DeviceAD):
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency, self.__t_final]
 
+    @partial(jax.jit, static_argnums=(0,))
     def __computeOutput(self, amp, freq, t):
         return self.__envelope(t) * amp * np.cos(freq * t)
 
@@ -132,6 +138,9 @@ class CosToneErfAD(DeviceAD):
         partial_grad = self.gradientFunction(
             self.__computeOutput, argnums=(0, 1), vmap_axes=(None, None, 0)
         )
+
+        if np.shape(t) == ():
+            t = np.array([t])
 
         return np.array(partial_grad(amp, freq, t)) * np.array(
             [
