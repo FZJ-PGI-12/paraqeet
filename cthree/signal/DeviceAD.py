@@ -39,6 +39,7 @@ class CosToneAD(DeviceAD):
 
     __amplitude: Quantity
     __frequency: Quantity
+    __gradientFunction: Callable
 
     def __init__(self) -> None:
         self.__amplitude = Quantity(
@@ -55,6 +56,7 @@ class CosToneAD(DeviceAD):
             unit="Hz",
             name="Frequency",
         )
+        self.__gradientFunction = None
 
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency]
@@ -68,13 +70,21 @@ class CosToneAD(DeviceAD):
     def __computeOutput(self, amp, freq, t):
         return amp * np.cos(freq * t)
 
+    def __evaluateGradientFunction(self):
+        self.__gradientFunction = self.gradientFunction(
+            self.__computeOutput, argnums=(0, 1), vmap_axes=(None, None, 0)
+        )
+
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        partial_grad = self.gradientFunction(
-            self.__computeOutput, argnums=(0, 1), vmap_axes=(None, None, 0)
-        )
-        return np.array(partial_grad(amp, freq, t)) * np.array(
+        if np.shape(t) == ():
+            t = np.array([t])
+
+        if self.__gradientFunction is None:
+            self.__evaluateGradientFunction()
+
+        return np.array(self.__gradientFunction(amp, freq, t)) * np.array(
             [[self.__amplitude.getScale()], [self.__frequency.getScale()]]
         )
 
@@ -87,6 +97,7 @@ class CosToneErfAD(DeviceAD):
     __amplitude: Quantity
     __frequency: Quantity
     __t_final: Quantity
+    __gradientFunction: Callable
 
     def __init__(self) -> None:
         self.__amplitude = Quantity(
@@ -106,6 +117,7 @@ class CosToneErfAD(DeviceAD):
         self.__t_final = Quantity(
             10e-9, min_value=0e-9, max_value=100e-9, unit="s", name="Gate time"
         )
+        self.__gradientFunction = None
 
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency, self.__t_final]
@@ -129,20 +141,25 @@ class CosToneErfAD(DeviceAD):
         freq = self.__frequency.getValue()
         return self.__computeOutput(amp, freq, t)
 
+    def __evaluateGradientFunction(self):
+        self.__gradientFunction = self.gradientFunction(
+            self.__computeOutput, argnums=(0, 1), vmap_axes=(None, None, 0)
+        )
+
     def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
         """
         Returns the gradient wrt dimensionless parameters.
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        partial_grad = self.gradientFunction(
-            self.__computeOutput, argnums=(0, 1), vmap_axes=(None, None, 0)
-        )
 
         if np.shape(t) == ():
             t = np.array([t])
 
-        return np.array(partial_grad(amp, freq, t)) * np.array(
+        if self.__gradientFunction is None:
+            self.__evaluateGradientFunction()
+
+        return np.array(self.__gradientFunction(amp, freq, t)) * np.array(
             [
                 [self.__amplitude.getScale()],
                 [self.__frequency.getScale()],
