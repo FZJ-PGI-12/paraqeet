@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Callable
 
 from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
@@ -23,6 +23,7 @@ class StateTransferFidelityAD(Measurement):
     __targetState: np.ndarray
     __times: np.ndarray
     __propagation: Propagation
+    __gradientFunction: Callable
 
     def __init__(
         self,
@@ -40,6 +41,7 @@ class StateTransferFidelityAD(Measurement):
                 f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
             )
         self.__propagation.setInitialState(self.__initialState)
+        self.__gradientFunction = grad(self.__computeMeasure, argnums=0)
 
     def measure(self) -> float:
         states = self.__propagation.propagate(time=self._times)
@@ -65,7 +67,7 @@ class StateTransferFidelityAD(Measurement):
         dF_dp = []
         for dg_dp in dg_dp_list[-1]:
             g = self.__computeoverlap(target_state, dg_dp)
-            dfdp = grad(self.__computeMeasure, argnums=0)(f) * g
+            dfdp = self.__gradientFunction(f) * g
             dF_dp.append(dfdp)
         return np.array(dF_dp)
 
