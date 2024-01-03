@@ -58,20 +58,32 @@ class UnitaryFidelity(Measurement):
         return self.__fid(overlaps)
 
     def measureGradient(self) -> np.ndarray:
-        states = self.__propagation.propagate(time=self._times)
+        """
+        Gives the analytic expression for the gradient of the L2 norm.
+
+        Returns
+        -------
+        np.ndarray
+            of shape (n_parameters,)
+        """
+        states = self.__propagation.propagate(
+            time=self._times
+        )  # recomputes propagation, might be optimized
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
             overlaps.append(np.vdot(s, states[-1][ii]))
         f = np.average(overlaps)
-        dg_dp_list = self.__propagation.gradient(time=self._times)
+        dg_dp_list = self.__propagation.gradient(
+            time=self._times
+        )  # gradient of states wrt parameters
         dF_dp = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
             for ii, s in enumerate(self.__target_costates):
                 gs.append(np.vdot(s, dg_dp[ii]))
             g = np.average(gs)
-            dF_dp.append(f.conj() * g + f * g.conj())
-        return np.array(dF_dp)
+            dF_dp.append(f.conj() * g + f * g.conj())  # chain rule for abs^2
+        return np.array(dF_dp)  # shape (n_parameters,)
 
     def setIdealGate(self, gate):
         """
