@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import List
+from typing import List, Tuple
 
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
@@ -57,18 +57,16 @@ class UnitaryFidelity(Measurement):
             overlaps.append(np.vdot(s, states[-1][ii]))
         return self.__fid(overlaps)
 
-    def measureGradient(self) -> np.ndarray:
+    def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Gives the analytic expression for the gradient of the L2 norm.
+        Gives the L2 norm and the analytic expression for the gradient.
 
         Returns
         -------
-        np.ndarray
-            of shape (n_parameters,)
+        Tuple[np.ndarray, np.ndarray]
+            Tuple of function value and gradient of shape (n_parameters,)
         """
-        states = self.__propagation.propagate(
-            time=self._times
-        )  # recomputes propagation, might be optimized
+        states = self.__propagation.propagate(time=self._times)
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
             overlaps.append(np.vdot(s, states[-1][ii]))
@@ -83,7 +81,7 @@ class UnitaryFidelity(Measurement):
                 gs.append(np.vdot(s, dg_dp[ii]))
             g = np.average(gs)
             dF_dp.append(f.conj() * g + f * g.conj())  # chain rule for abs^2
-        return np.array(dF_dp)  # shape (n_parameters,)
+        return self.__fid(overlaps), np.array(dF_dp)  # shape (n_parameters,)
 
     def setIdealGate(self, gate):
         """

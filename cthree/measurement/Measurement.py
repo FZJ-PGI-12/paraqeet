@@ -37,9 +37,9 @@ class Measurement(Optimisable):
         """
         return self.measure()
 
-    def measureGradient(self) -> np.ndarray:
+    def measureWithGradient(self) -> np.ndarray:
         """
-        Compute the gradient of the measurement wrt to parameters. Needs to be consistent with measureNormalised()!
+        Compute the measurement value as in measureNormalised() but with the gradient wrt to parameters.
 
         Returns
         -------
