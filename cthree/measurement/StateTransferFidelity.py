@@ -14,7 +14,7 @@ class StateTransferFidelity(Measurement):
 
     __initialState: np.ndarray
     __targetState: np.ndarray
-    __times: np.ndarray
+    _times: np.ndarray
     __propagation: Propagation
 
     def __init__(
