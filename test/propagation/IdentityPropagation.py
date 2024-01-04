@@ -18,5 +18,5 @@ class IdentityPropagation(Propagation):
     def setInitialState(self, state: np.ndarray):
         self.__state = state
 
-    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
-        return [self.__state] * len(time)
+    def propagate(self, time: np.ndarray) -> np.ndarray:
+        return np.array([self.__state] * len(time))

@@ -29,7 +29,7 @@ class ScipyExpmGOAT(ScipyExpm):
         """
         eom = self._model.getMatrixEOM
 
-        n_params = 2
+        n_params = len(self._model.gradient(0))
 
         psi = [self._initialState]
         dpsis = [[np.zeros_like(self._initialState)] * n_params]
