@@ -12,7 +12,7 @@ from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
 
 from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.DeviceAD import CosToneErfAD
+from cthree.signal.Device import CosToneErfAD
 
 tone = CosToneErfAD()
 gen = CosGenerator(devices=[tone])

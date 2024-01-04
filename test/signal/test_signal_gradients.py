@@ -1,7 +1,7 @@
 import pytest
 import jax.numpy as np
 
-from cthree.signal.DeviceAD import CosToneAD, CosToneErfAD
+from cthree.signal.Device import CosToneAD, CosToneErfAD
 from cthree.signal.Device import CosTone, CosToneErf
 
 costone = CosTone()
