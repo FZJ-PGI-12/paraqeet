@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.measurement.StateTransferFidelityAD import StateTransferFidelityAD
+from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.ScipyOptimiser import ScipyOptimiser

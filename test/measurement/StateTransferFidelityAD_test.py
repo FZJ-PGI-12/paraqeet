@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from cthree.measurement.StateTransferFidelityAD import StateTransferFidelityAD
+from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 from test.propagation.IdentityPropagation import IdentityPropagation
 from test.propagation.RandomPropagation import RandomPropagation
 
