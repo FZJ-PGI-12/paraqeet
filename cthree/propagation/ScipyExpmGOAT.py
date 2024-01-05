@@ -3,7 +3,8 @@ from typing import List
 
 from cthree.propagation.ScipyExpm import ScipyExpm
 
-import scipy
+from scipy.linalg import block_diag
+from jax.scipy.linalg import expm
 
 
 class ScipyExpmGOAT(ScipyExpm):
@@ -56,7 +57,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
                 # Initialize the GOAT H with the diagonal
                 h_list = [this_h] * (n_params + 1)
-                goat_ham = scipy.linalg.block_diag(*h_list)
+                goat_ham = block_diag(*h_list)
 
                 # Add the first column of derivatives
                 for ii, dH_dp in enumerate(EOM_grad):
@@ -64,7 +65,7 @@ class ScipyExpmGOAT(ScipyExpm):
                         np.ix_([dim * (ii + 1), dim * (ii + 2) - 1], [0, dim - 1])
                     ] = dH_dp
 
-                psis_t = scipy.linalg.expm(goat_ham * dt) @ psis_t
+                psis_t = expm(goat_ham * dt) @ psis_t
             psi.append(psis_t[0:dim])
             dpsis.append(
                 [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
