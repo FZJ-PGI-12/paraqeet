@@ -9,7 +9,7 @@ from scipy.special import erf
 
 import jax
 import jax.numpy as jnp
-from jax import grad, vmap
+from jax import grad, vmap, jit
 from jax.scipy.special import erf as jerf
 from functools import partial
 
@@ -30,7 +30,7 @@ class Device(Optimisable):
     ) -> Callable:
         grads = grad(signalFunction, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
-        return partial_grads
+        return jit(partial_grads)
 
 
 class CosTone(Device):

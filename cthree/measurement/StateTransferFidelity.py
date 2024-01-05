@@ -8,7 +8,7 @@ from cthree.Exceptions import IncompatibleLayersException
 
 import jax
 import jax.numpy as jnp
-from jax import grad
+from jax import grad, jit
 from functools import partial
 
 jax.config.update("jax_enable_x64", True)
@@ -99,7 +99,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         """
 
         if self.__gradientFunction is None:
-            self.__gradientFunction = grad(self._computeMeasure, argnums=0)
+            self.__gradientFunction = jit(grad(self._computeMeasure, argnums=0))
 
         target_state = self.__targetState
         states = self.__propagation.propagate(time=self._times)
