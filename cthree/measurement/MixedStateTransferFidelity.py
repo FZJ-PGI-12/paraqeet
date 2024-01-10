@@ -29,7 +29,7 @@ class MixedStateTransferFidelity(Measurement):
         # store the sqrt of the density matrix to simplify the measurement
         self.__targetStateSqrt = sclin.sqrtm(self.__targetState)
 
-    def measure(self) -> float:
+    def measure(self) -> np.ndarray:
         state = self.__propagation.propagate(self.__times)[-1]
         if state.shape != self.__targetState.shape:
             raise IncompatibleLayersException(

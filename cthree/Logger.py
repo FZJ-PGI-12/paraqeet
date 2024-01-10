@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+import numpy as np
 
 from cthree.Quantity import Quantity
 
@@ -8,6 +9,7 @@ class Logger:
     """
     Abstract base class that can be used as a callback in the optimiser.
     """
+
     _startTime: datetime
     _stopTime: datetime
     _counter: int
@@ -16,7 +18,7 @@ class Logger:
         self._startTime = datetime.now()
         self._counter = 0
 
-    def log(self, params: List[Quantity], infid: float):
+    def log(self, params: List[Quantity], infid: np.ndarray):
         self._counter += 1
 
     def stop(self, resultMessage: str = None):

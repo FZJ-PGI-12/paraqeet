@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 
 from typing import List
 
@@ -11,6 +12,7 @@ class FileLogger(Logger):
     """
     Logger that writes messages to a file.
     """
+
     __logdir: str
     __logfile: str
     __resultFile: str
@@ -28,10 +30,14 @@ class FileLogger(Logger):
     def start(self):
         super().start()
 
-    def log(self, params: List[Quantity], infidelity: float):
+    def log(self, params: List[Quantity], infidelity: np.ndarray):
         super().log(params, infidelity)
         formattedParams = [param.getValue().tolist() for param in params]
-        status = {"Eval": self._counter, "Parameters": formattedParams, "Goal": infidelity}
+        status = {
+            "Eval": self._counter,
+            "Parameters": formattedParams,
+            "Goal": infidelity,
+        }
         with open(self.__logfile, "a") as log:
             log.write(json.dumps(status))
             log.write("\n")

@@ -18,9 +18,7 @@ class ScipyOptimiser(Optimiser):
     _options: Dict
     _method: str
 
-    def __init__(
-        self, measure: Measurement, optimisables: OptimisationMap
-    ):
+    def __init__(self, measure: Measurement, optimisables: OptimisationMap):
         super().__init__(measure, optimisables)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
@@ -53,9 +51,6 @@ class ScipyOptimiser(Optimiser):
         for qty in self._optimisables.getAllParameters():
             init.append(qty.getReducedValue())
 
-        x = self._optimisables.getOptimisables()
-        y = self._optimisables.getAllParameters()
-
         opt_res = minimize(
             fun=self._setParametersAndMeasure,
             x0=np.concatenate(init).flatten(),
@@ -69,7 +64,7 @@ class ScipyOptimiser(Optimiser):
 
         return opt_res
 
-    def _setParametersAndMeasure(self, values) -> float:
+    def _setParametersAndMeasure(self, values) -> np.ndarray:
         """
         Update the parameter values and return the measurement result. Internal callback.
         """
