@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 from cthree.Quantity import Quantity
@@ -24,7 +24,7 @@ class Hamiltonian(Optimisable):
         subsystems: List,
         couplings: List = [],
         drives: List = [],
-        generator: Optional[Generator] = None,
+        generator: Generator | None = None,
     ):
         self.__subsystems = subsystems
         self.__couplings = couplings

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 import numpy as np
 from cthree.Quantity import Quantity
 
@@ -13,7 +13,7 @@ class CosGenerator(Generator):
 
     __devices: List[Device]
 
-    def __init__(self, devices: Optional[List]):
+    def __init__(self, devices: List | None):
         self.__devices = devices or []
 
     def generateSignal(self, t):

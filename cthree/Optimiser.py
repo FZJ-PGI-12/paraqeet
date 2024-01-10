@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Optional
+from typing import List
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.Quantity import Quantity
