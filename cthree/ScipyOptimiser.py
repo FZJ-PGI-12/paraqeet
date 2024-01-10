@@ -64,7 +64,7 @@ class ScipyOptimiser(Optimiser):
 
         return opt_res
 
-    def _setParametersAndMeasure(self, values) -> float:
+    def _setParametersAndMeasure(self, values) -> np.ndarray:
         """
         Update the parameter values and return the measurement result. Internal callback.
         """

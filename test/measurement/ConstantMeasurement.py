@@ -19,7 +19,7 @@ class ConstantMeasurement(Measurement):
         self,
         propagation: Propagation,
         value: float = 1.0,
-        times: np.ndarray | None = None,
+        times: float | None = None,
     ):
         super().__init__(times=times)
         self.__propagation = propagation
@@ -28,5 +28,5 @@ class ConstantMeasurement(Measurement):
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def measure(self) -> float:
+    def measure(self) -> np.ndarray:
         return self.__value

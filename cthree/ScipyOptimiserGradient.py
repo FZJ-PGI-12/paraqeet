@@ -41,7 +41,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             self._logger.stop(str(result))
         return result
 
-    def _setParametersAndMeasure(self, values) -> float:
+    def _setParametersAndMeasure(self, values) -> np.ndarray:
         """
         Update the parameter values and return the measurement result including gradient.
         The gradient is stored in a local cache for lookup. This tailored for L-BFGS-B or
