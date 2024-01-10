@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 from cthree.Quantity import Quantity
 
@@ -44,19 +44,23 @@ class StateTransferFidelity(Measurement):
         f = np.vdot(self.__targetState, final_state)
         return self._fid(f)
 
-    def measureWithGradient(self) -> np.ndarray:
+    def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute function value and corresponding gradient.
+
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            Tuple of function value and gradient of shape (n_parameters,)
         """
-        states = self.__propagation.propagate(time=self._times)
+        states, dg_dp_list = self.__propagation.gradient(time=self._times)
         final_state = states[-1]
-        dg_dp_list = self.__propagation.gradient(time=self._times)
         dF_dp = []
         f = np.vdot(self.__targetState, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = np.vdot(self.__targetState, dg_dp)
-            dF_dp.append(f.conj() * g + f * g.conj())
-        return self._fid(f), np.array(dF_dp)
+            dF_dp.append(f.conj() * g + f * g.conj())  # chain rule for abs^2
+        return self._fid(f), np.array(dF_dp)  # shape scalar, (n_parameters,)
 
     def getParameters(self) -> List[Quantity]:
         return []

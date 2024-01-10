@@ -41,13 +41,13 @@ class UnitaryFidelity(Measurement):
         self.setIdealGate(gate)
 
     @staticmethod
-    def __fid(overlaps: List) -> float:
+    def __fid(overlaps: List) -> np.ndarray:
         """
         Gate fidelity from state overlaps.
         """
         return np.abs(np.average(overlaps)) ** 2
 
-    def measure(self) -> float:
+    def measure(self) -> np.ndarray:
         """
         Return the L2 norm of the last time step compared to the ideal gate.
         """
@@ -66,14 +66,15 @@ class UnitaryFidelity(Measurement):
         Tuple[np.ndarray, np.ndarray]
             Tuple of function value and gradient of shape (n_parameters,)
         """
-        states = self.__propagation.propagate(time=self._times)
+        states, dg_dp_list = self.__propagation.gradient(
+            time=self._times
+        )  # gradient of states wrt parameters
+
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
             overlaps.append(np.vdot(s, states[-1][ii]))
         f = np.average(overlaps)
-        dg_dp_list = self.__propagation.gradient(
-            time=self._times
-        )  # gradient of states wrt parameters
+
         dF_dp = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
@@ -81,7 +82,7 @@ class UnitaryFidelity(Measurement):
                 gs.append(np.vdot(s, dg_dp[ii]))
             g = np.average(gs)
             dF_dp.append(f.conj() * g + f * g.conj())  # chain rule for abs^2
-        return self.__fid(overlaps), np.array(dF_dp)  # shape (n_parameters,)
+        return self.__fid(overlaps), np.array(dF_dp)  # shape scalar, (n_parameters,)
 
     def setIdealGate(self, gate):
         """
