@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Tuple
 
 from cthree.Optimisable import Optimisable
 from cthree.model.Model import Model
@@ -39,7 +39,7 @@ class Propagation(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def gradient(self, time: np.ndarray) -> List[np.ndarray]:
+    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, List[np.ndarray]]:
         """
         Computes this part of the chain rule for a gradient trace. i.e. result of the propagation wrt model.
         """

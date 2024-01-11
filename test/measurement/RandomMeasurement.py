@@ -21,5 +21,5 @@ class RandomMeasurement(Measurement):
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def measure(self) -> float:
+    def measure(self) -> np.ndarray:
         return np.random.random()

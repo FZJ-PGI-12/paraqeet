@@ -12,6 +12,7 @@
 - When storing `self.something` as a class variable, specify `something` in the top level of the class.
 - Make functions and variables private unless they are needed to be public
 - Use as few global functions as possible. Instead, put the function into a class an use inheritance.
+- For optional parameters, use the type `X | None` instead of `Optional[X]`
 
 ## Documentation
 

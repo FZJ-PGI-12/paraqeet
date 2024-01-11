@@ -18,7 +18,12 @@ class MakhlinFunctional(Measurement):
     __propagation: Propagation
     __idealInvariants: np.ndarray
 
-    def __init__(self, propagation: Propagation, times: np.ndarray, idealInvariants: np.ndarray = None):
+    def __init__(
+        self,
+        propagation: Propagation,
+        times: np.ndarray,
+        idealInvariants: np.ndarray = None,
+    ):
         super().__init__(times=times)
         self.__propagation = propagation
         self.__idealInvariants = idealInvariants
@@ -26,7 +31,7 @@ class MakhlinFunctional(Measurement):
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def measure(self) -> float:
+    def measure(self) -> np.ndarray:
         U = self.__propagation.propagate(self._times)[-1]
         if len(U.shape) < 2 or U.shape[0] != U.shape[1]:
             raise IncompatibleLayersException(
@@ -38,7 +43,9 @@ class MakhlinFunctional(Measurement):
         else:
             return np.abs(gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
-    def __makhlinInvariants(self, U: np.ndarray) -> Tuple[float, float, float]:
+    def __makhlinInvariants(
+        self, U: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Computes the Makhlin invariants for a matrix U. Returns a tuple with the three invariants g1,g2,g3.
         """

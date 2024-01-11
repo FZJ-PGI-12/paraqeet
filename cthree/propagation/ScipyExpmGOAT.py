@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 from cthree.propagation.ScipyExpm import ScipyExpm
 
@@ -14,7 +14,7 @@ class ScipyExpmGOAT(ScipyExpm):
     _res: float
     _initialState: np.ndarray = None
 
-    def gradient(self, time: np.ndarray) -> List[List[np.ndarray]]:
+    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, List[List[np.ndarray]]]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
@@ -63,4 +63,4 @@ class ScipyExpmGOAT(ScipyExpm):
             dpsis.append(
                 [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
             )
-        return dpsis
+        return psi, dpsis
