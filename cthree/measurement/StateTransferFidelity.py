@@ -9,7 +9,6 @@ from cthree.Exceptions import IncompatibleLayersException
 import jax
 import jax.numpy as jnp
 from jax import grad, jit
-from functools import partial
 
 jax.config.update("jax_enable_x64", True)
 
@@ -94,29 +93,28 @@ class StateTransferFidelityAD(StateTransferFidelity):
         self.__propagation.setInitialState(self.__initialState)
         self.__gradientFunction = None
 
-    @partial(jax.jit, static_argnums=(0,))
-    def _computeMeasure(self, overlap):
+    @staticmethod
+    @jit
+    def _fid(overlap):
         """
-        Overwrite inherited `_computeMeasure` function to make it JAX compatible.
+        Overwrite inherited `_fid` function to make it JAX compatible.
         """
         return jnp.abs(overlap) ** 2
 
-    def measureGradient(self) -> np.ndarray:
+    def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Overwrite inherited `measureGradient` to calculate gradients using AD.
+        Overwrite inherited `measureWithGradient` to calculate gradients using AD.
         """
 
         if self.__gradientFunction is None:
-            self.__gradientFunction = jit(grad(self._computeMeasure, argnums=0))
+            self.__gradientFunction = jit(grad(self._fid, argnums=0))
 
-        target_state = self.__targetState
-        states = self.__propagation.propagate(time=self._times)
+        states, dg_dp_list = self.__propagation.gradient(time=self._times)
         final_state = states[-1]
-        f = jnp.vdot(target_state, final_state)
-        dg_dp_list = self.__propagation.gradient(time=self._times)
         dF_dp = []
+        f = jnp.vdot(self.__targetState, final_state)
         for dg_dp in dg_dp_list[-1]:
-            g = jnp.vdot(target_state, dg_dp)
+            g = jnp.vdot(self.__targetState, dg_dp)
             dfdp = self.__gradientFunction(f) * g
             dF_dp.append(dfdp)
-        return np.array(dF_dp)
+        return self._fid(f), np.array(dF_dp)  # shape scalar, (n_parameters,)
