@@ -10,7 +10,7 @@ from scipy.special import erf
 import jax
 import jax.numpy as jnp
 from jax import grad, vmap, jit
-from jax.scipy.special import erf as jerf
+from jax.scipy.special import erf as jax_erf
 from functools import partial
 
 jax.config.update("jax_enable_x64", True)
@@ -237,8 +237,8 @@ class CosToneErfAD(CosToneErf):
         t_final = self.getParameters()[2]
         t0 = t_final.getValue()
         ramp_time = t0 / 10
-        rampUp = 1 + jerf((t - t0 / 5) / ramp_time)
-        rampDown = 1 + jerf((-t + 4 * t0 / 5) / ramp_time)
+        rampUp = 1 + jax_erf((t - t0 / 5) / ramp_time)
+        rampDown = 1 + jax_erf((-t + 4 * t0 / 5) / ramp_time)
         return rampUp * rampDown / 4
 
     @partial(jax.jit, static_argnums=(0,))
