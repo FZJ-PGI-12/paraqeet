@@ -1,9 +1,6 @@
 import numpy as np
-import jax
-import jax.numpy as jnp
 
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 from test.propagation.IdentityPropagation import IdentityPropagation
 from test.propagation.RandomPropagation import RandomPropagation
 
@@ -27,7 +24,7 @@ def test_limits_vectors():
             times,
         )
 
-        for i in range(100):
+        for _ in range(100):
             m = measurement.measure()
             assert 0.0 <= m <= 1.0
 
@@ -35,7 +32,7 @@ def test_limits_vectors():
 # test that F(v,v) = 1 for state vectors
 def test_vector_equality():
     for size in range(2, 30):
-        for i in range(100):
+        for _ in range(100):
             state = randomState(size)
             propagation = IdentityPropagation()
             propagation.setInitialState(state)
@@ -44,37 +41,3 @@ def test_vector_equality():
             )
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
-
-
-def test_limits_vectors_AD():
-    with jax.disable_jit():
-        for size in range(2, 30):
-            initialState = randomState(size)
-            targetState = randomState(size)
-            propagation = RandomPropagation(size, False)
-            times = jnp.array([1.0])
-            measurement = StateTransferFidelityAD(
-                propagation,
-                initialState,
-                targetState,
-                times,
-            )
-
-            for i in range(100):
-                m = measurement.measure()
-                assert 0.0 <= m <= 1.0
-
-
-# test that F(v,v) = 1 for state vectors
-def test_vector_equality_AD():
-    with jax.disable_jit():
-        for size in range(2, 30):
-            for i in range(100):
-                state = randomState(size)
-                propagation = IdentityPropagation()
-                propagation.setInitialState(state)
-                measurement = StateTransferFidelityAD(
-                    propagation, state, state, jnp.array([1.0])
-                )
-                m = measurement.measure()
-                assert np.isclose(m, 1.0)
