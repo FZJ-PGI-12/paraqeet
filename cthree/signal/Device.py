@@ -13,6 +13,8 @@ from jax import grad, vmap, jit
 from jax.scipy.special import erf as jax_erf
 from functools import partial
 
+from jax.typing import ArrayLike
+
 jax.config.update("jax_enable_x64", True)
 
 
@@ -174,7 +176,7 @@ class CosToneAD(CosTone):
     This class is for testing purposes and hence runs slower than analytically calculated gradients.
     """
 
-    __gradientFunction: Callable
+    __gradientFunction: Callable | None
 
     def __init__(self) -> None:
         super().__init__()
@@ -194,7 +196,7 @@ class CosToneAD(CosTone):
         """
         return amp * jnp.cos(freq * t)
 
-    def computeGradient(self, t: np.ndarray) -> List[jnp.ndarray]:
+    def computeGradient(self, t: np.ndarray) -> ArrayLike:
         """
         Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
         """
@@ -255,7 +257,7 @@ class CosToneErfAD(CosToneErf):
         """
         return self._envelope(t) * amp * jnp.cos(freq * t)
 
-    def computeGradient(self, t: np.ndarray) -> List[jnp.ndarray]:
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """
         Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
         """

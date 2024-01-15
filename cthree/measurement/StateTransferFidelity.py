@@ -8,6 +8,7 @@ from cthree.Exceptions import IncompatibleLayersException
 import jax
 import jax.numpy as jnp
 from jax import grad, jit
+from jax.typing import ArrayLike
 
 jax.config.update("jax_enable_x64", True)
 
@@ -17,17 +18,17 @@ class StateTransferFidelity(Measurement):
     Fidelity measure that compares the overlap of the initial and final state.
     """
 
-    __initialState: jnp.ndarray
-    __targetState: jnp.ndarray
-    _times: jnp.ndarray
+    __initialState: ArrayLike
+    __targetState: ArrayLike
+    _times: ArrayLike
     __propagation: Propagation
 
     def __init__(
         self,
         propagation: Propagation,
-        initialState: jnp.ndarray,
-        targetState: jnp.ndarray,
-        times: jnp.ndarray,
+        initialState: ArrayLike,
+        targetState: ArrayLike,
+        times: ArrayLike,
     ):
         super().__init__(times=times)
         self.__propagation = propagation
@@ -43,19 +44,19 @@ class StateTransferFidelity(Measurement):
     def _fid(overlap):
         return jnp.abs(overlap) ** 2
 
-    def measure(self) -> jnp.ndarray:
+    def measure(self) -> ArrayLike:
         states = self.__propagation.propagate(time=self._times)
         final_state = states[-1]
         f = jnp.vdot(self.__targetState, final_state)
         return self._fid(f)
 
-    def measureWithGradient(self) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    def measureWithGradient(self) -> Tuple[ArrayLike, ArrayLike]:
         """
         Compute function value and corresponding gradient.
 
         Returns
         -------
-        Tuple[jnp.ndarray, jnp.ndarray]
+        Tuple[ArrayLike, ArrayLike]
             Tuple of function value and gradient of shape (n_parameters,)
         """
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
@@ -72,14 +73,14 @@ class StateTransferFidelity(Measurement):
 
 
 class StateTransferFidelityAD(StateTransferFidelity):
-    __gradientFunction: Callable
+    __gradientFunction: Callable | None
 
     def __init__(
         self,
         propagation: Propagation,
-        initialState: jnp.ndarray,
-        targetState: jnp.ndarray,
-        times: jnp.ndarray,
+        initialState: ArrayLike,
+        targetState: ArrayLike,
+        times: ArrayLike,
     ):
         super().__init__(propagation, initialState, targetState, times)
         self.__propagation = propagation
@@ -92,7 +93,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         self.__propagation.setInitialState(self.__initialState)
         self.__gradientFunction = None
 
-    def measureWithGradient(self) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    def measureWithGradient(self) -> Tuple[ArrayLike, ArrayLike]:
         """
         Overwrite inherited `measureWithGradient` to calculate gradients using AD.
         """
