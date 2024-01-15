@@ -49,7 +49,7 @@ class ScipyExpm(StatePropagation):
     def _propagatePsi(eom_matrix, psis_t):
         return expm(eom_matrix) @ psis_t
 
-    def _constuctTimes(self, time, ti):
+    def _constructTimes(self, time, ti):
         t0 = time[ti - 1]
         t1 = time[ti]
         steps = int(np.ceil((t1 - t0) * self._res))
@@ -70,7 +70,7 @@ class ScipyExpm(StatePropagation):
         psi = [self._initialState] * len(time)
         eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
-            times, dt = self._constuctTimes(time, ti)
+            times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
             for t in times:
                 # Sampling at the center of the interval.

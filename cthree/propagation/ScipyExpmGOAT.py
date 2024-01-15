@@ -35,7 +35,7 @@ class ScipyExpmGOAT(ScipyExpm):
         dpsis = [[np.zeros_like(self._initialState)] * n_params]
 
         for ti in range(1, len(time)):
-            times, dt = self._constuctTimes(time, ti)
+            times, dt = self._constructTimes(time, ti)
             superState = [psi[-1]]
             superState.extend(dpsis[-1])
             psis_t = np.concatenate(superState)
