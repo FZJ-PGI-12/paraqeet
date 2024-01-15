@@ -221,7 +221,7 @@ class CosToneErfAD(CosToneErf):
     This class is for testing purposes and hence runs slower than analytically calculated gradients.
     """
 
-    __gradientFunction: Callable
+    __gradientFunction: Callable | None
 
     def __init__(self) -> None:
         super().__init__()
