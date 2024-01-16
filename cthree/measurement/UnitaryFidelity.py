@@ -54,7 +54,7 @@ class UnitaryFidelity(Measurement):
         states = self.__propagation.propagate(time=self._times)
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
-            overlaps.append(np.vdot(s, states[-1][ii]))
+            overlaps.append(np.vdot(s, states[-1].T[ii]))
         return self.__fid(overlaps)
 
     def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -72,14 +72,14 @@ class UnitaryFidelity(Measurement):
 
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
-            overlaps.append(np.vdot(s, states[-1][ii]))
+            overlaps.append(np.vdot(s, states[-1].T[ii]))
         f = np.average(overlaps)
 
         dF_dp = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
             for ii, s in enumerate(self.__target_costates):
-                gs.append(np.vdot(s, dg_dp[ii]))
+                gs.append(np.vdot(s, dg_dp.T[ii]))
             g = np.average(gs)
             dF_dp.append(f.conj() * g + f * g.conj())  # chain rule for abs^2
         return self.__fid(overlaps), np.array(dF_dp)  # shape scalar, (n_parameters,)
