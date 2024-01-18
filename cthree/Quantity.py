@@ -51,13 +51,13 @@ class Quantity:
         self.__name = name
         self.__scale = 0
 
-        value = np.array(value)
-        if hasattr(value, "shape"):
-            self.__shape = value.shape
-            self.__length = int(np.prod(value.shape))
+        if np.shape(value) == ():
+            value = np.array([value])
         else:
-            self.__shape = (1,)
-            self.__length = 1
+            value = np.array(value)
+
+        self.__shape = value.shape
+        self.__length = int(np.prod(value.shape))
 
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
@@ -93,6 +93,8 @@ class Quantity:
         self.__value = tmp
 
     def setReducedValue(self, value) -> None:
+        if np.shape(value) == ():
+            value = np.array([value])
         self.__value = value
 
     def getMinValue(self) -> np.ndarray:
@@ -219,7 +221,7 @@ class Quantity:
     def __float__(self):
         if self.__length > 1:
             raise NotImplementedError
-        return float(self.getValue())
+        return float(np.squeeze(self.getValue()))
 
     def __repr__(self):
         return self.__str__()
