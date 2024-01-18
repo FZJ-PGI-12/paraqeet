@@ -71,9 +71,7 @@ class ScipyOptimiser(Optimiser):
         log = []
         params = self._optimisables.getAllParameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            params[index].setReducedValue(
-                val[0]
-            )  # val has an extra dimension due to np.split, we remove that with 0
+            params[index].setReducedValue(val)
             log.append(params[index])
         infid = 1 - self._measure.measureNormalised()
 
