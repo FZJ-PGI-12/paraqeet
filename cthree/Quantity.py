@@ -93,6 +93,8 @@ class Quantity:
         self.__value = tmp
 
     def setReducedValue(self, value) -> None:
+        if np.shape(value) == ():
+            value = np.array([value])
         self.__value = value
 
     def getMinValue(self) -> np.ndarray:
