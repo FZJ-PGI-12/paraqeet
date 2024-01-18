@@ -194,7 +194,7 @@ class CosToneAD(CosTone):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return amp * jnp.cos(freq * t)
+        return jnp.squeeze(amp * jnp.cos(freq * t))
 
     def computeGradient(self, t: np.ndarray) -> ArrayLike:
         """
@@ -211,8 +211,12 @@ class CosToneAD(CosTone):
         if jnp.shape(t) == ():
             t = jnp.array([t])
 
-        return jnp.array(self.__gradientFunction(amp, freq, t)) * jnp.array(
-            [[params[0].getScale()], [params[1].getScale()]]
+        parameter_scales = jnp.array(
+            [[[params[0].getScale()]], [[params[1].getScale()]]]
+        )
+
+        return jnp.squeeze(
+            jnp.array(self.__gradientFunction(amp, freq, t)) * parameter_scales
         )
 
 
@@ -255,7 +259,7 @@ class CosToneErfAD(CosToneErf):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return self._envelope(t) * amp * jnp.cos(freq * t)
+        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """
@@ -272,6 +276,10 @@ class CosToneErfAD(CosToneErf):
         if jnp.shape(t) == ():
             t = jnp.array([t])
 
-        return jnp.array(self.__gradientFunction(amp, freq, t)) * jnp.array(
-            [[params[0].getScale()], [params[1].getScale()]]
+        parameter_scales = jnp.array(
+            [[[params[0].getScale()]], [[params[1].getScale()]]]
+        )
+
+        return jnp.squeeze(
+            jnp.array(self.__gradientFunction(amp, freq, t)) * parameter_scales
         )
