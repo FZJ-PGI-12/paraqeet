@@ -5,6 +5,11 @@ from cthree.Quantity import Quantity
 from cthree.signal.Device import Device
 from cthree.signal.Generator import Generator
 
+import jax.numpy as jnp
+from jax import jit
+from functools import partial
+from jax.typing import ArrayLike
+
 
 class CosGenerator(Generator):
     """
@@ -33,3 +38,23 @@ class CosGenerator(Generator):
         for dev in self.__devices:
             pars.extend(dev.getParameters())
         return pars
+
+
+class CosGeneratorAD(CosGenerator):
+    """
+    JAX numpy based CosGenerator
+    """
+
+    def __init__(self, devices: List | None):
+        super().__init__(devices)
+        self.__devices = devices or []
+
+    @partial(jit, static_argnums=(0,))
+    def generateSignal(self, t: ArrayLike):
+        """
+        Overwrite the `generateSignal` method with jnp
+        """
+        sig = jnp.zeros_like(t)
+        for dev in self.__devices:
+            sig += jnp.reshape(dev.computeOutput(t), sig.shape)
+        return sig
