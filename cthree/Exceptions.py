@@ -11,3 +11,10 @@ class ConfigurationException(Exception):
     """
 
     pass
+
+class IncompatibleQuantityException(Exception):
+    """
+    Raised when a quantity has an unexpected shape, e.g. a vector quantity if a scalar was expected.
+    """
+
+    pass
