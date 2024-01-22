@@ -2,7 +2,7 @@ from typing import List, Tuple
 import numpy as np
 
 import jax.numpy as jnp
-from jax import jit
+from jax import jit, vmap
 from jax.lax import scan, dynamic_update_slice
 from jax.scipy.linalg import block_diag
 from jax.typing import ArrayLike
@@ -22,18 +22,17 @@ class ScipyExpmJax(ScipyExpm):
         super().__init__(model, res)
 
     @partial(jit, static_argnums=(0,))
-    def _propagateInTime(self, psis_t, times, dt):
+    def _propagateInTime(self, psis_t, eom, steps_arr):
         """
         Propagate from `time[ti] to time[ti+1]`.
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
         """
 
-        def propagateBody(psis_t, t):
-            eom = self._model.getMatrixEOM(jnp.reshape(t, (-1, 1)) + dt / 2) * dt
-            psis_t = self._propagatePsi(eom, psis_t)
+        def propagateBody(psis_t, index):
+            psis_t = self._propagatePsi(eom[index], psis_t)
             return psis_t, psis_t
 
-        psis_t, _ = scan(propagateBody, psis_t, jnp.array(times))
+        psis_t, _ = scan(propagateBody, psis_t, steps_arr)
 
         return psis_t
 
@@ -42,10 +41,12 @@ class ScipyExpmJax(ScipyExpm):
         Overwrite the `propagte` implementation.
         """
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
+        eom_func = vmap(self._model.getMatrixEOM)
         for ti in range(1, len(time)):
-            times, dt = self._constructTimes(time, ti)
+            times, dt, steps = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
-            psis_t = self._propagateInTime(psis_t, times, dt)
+            eom = vmap(eom_func)(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, steps, 1))
             psi.append(psis_t)
         return psi
 
