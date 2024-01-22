@@ -43,10 +43,10 @@ class ScipyExpmJax(ScipyExpm):
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
         eom_func = vmap(self._model.getMatrixEOM)
         for ti in range(1, len(time)):
-            times, dt, steps = self._constructTimes(time, ti)
+            times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
-            eom = vmap(eom_func)(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
-            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, steps, 1))
+            eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
         return psi
 
@@ -59,22 +59,21 @@ class ScipyExpmJax(ScipyExpm):
         psi_t = jnp.concatenate(superState)
         return psi_t
 
-    def _createGOATHam(self, n_params, dim, EOM_grad, dt, t):
-        this_h = self._model.getMatrixEOM(jnp.reshape(t, (-1, 1)) + dt / 2)
-        h_list = jnp.repeat(this_h[jnp.newaxis, :, :], n_params + 1, axis=0)
+    def _createGOATHam(self, n_params, dim, eom, grads):
+        h_list = jnp.repeat(eom[jnp.newaxis, :, :], n_params + 1, axis=0)
         goat_ham = block_diag(*h_list)
-        for ii, dH_dp in enumerate(EOM_grad):
+        for ii, dH_dp in enumerate(grads):
             goat_ham = dynamic_update_slice(goat_ham, dH_dp, (dim * (ii + 1), 0))
         return goat_ham
 
-    def _propagteGradient(self, n_params, dim, psis_t, times, dt):
-        def propagateBody(psis_t, t):
-            EOM_grad = self._model.gradient(t + dt / 2)
-            goat_ham = self._createGOATHam(n_params, dim, EOM_grad, dt, t)
-            psis_t = self._propagatePsi(goat_ham * dt, psis_t)
+    @partial(jit, static_argnums=(0, 1))
+    def _propagteGradient(self, n_params, dim, psis_t, eom, grads, steps_arr):
+        def propagateBody(psis_t, index):
+            goat_ham = self._createGOATHam(n_params, dim, eom[index], grads[:, index])
+            psis_t = self._propagatePsi(goat_ham, psis_t)
             return psis_t, psis_t
 
-        psis_t, _ = scan(propagateBody, psis_t, jnp.array(times))
+        psis_t, _ = scan(propagateBody, psis_t, steps_arr)
         return psis_t
 
     def gradient(self, time: np.ndarray) -> Tuple[Array, List[List[Array]]]:
@@ -94,10 +93,19 @@ class ScipyExpmJax(ScipyExpm):
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
         dpsis = [[jnp.zeros_like(self._initialState, dtype=jnp.complex128)] * n_params]
 
+        eom_func = vmap(self._model.getMatrixEOM)
+        grad_func = vmap(self._model.gradient)
+
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = self._createSuperState(psi[-1], dpsis[-1])
-            psis_t = self._propagteGradient(n_params, dim, psis_t, times, dt)
+
+            eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            grads = jnp.array(grad_func(times + dt / 2)) * dt
+
+            psis_t = self._propagteGradient(
+                n_params, dim, psis_t, eom, grads, jnp.arange(0, len(times), 1)
+            )
             psi.append(psis_t[0:dim])
             dpsis.append(
                 [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
