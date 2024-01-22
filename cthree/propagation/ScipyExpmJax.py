@@ -5,7 +5,7 @@ import jax.numpy as jnp
 from jax import jit, vmap
 from jax.lax import scan, dynamic_update_slice
 from jax.scipy.linalg import block_diag
-from jax.typing import ArrayLike
+from jax import Array
 from functools import partial
 
 from cthree.model.Model import Model
@@ -36,7 +36,7 @@ class ScipyExpmJax(ScipyExpm):
 
         return psis_t
 
-    def propagate(self, time: np.ndarray) -> List[ArrayLike]:
+    def propagate(self, time: np.ndarray) -> List[Array]:
         """
         Overwrite the `propagte` implementation.
         """
@@ -77,7 +77,7 @@ class ScipyExpmJax(ScipyExpm):
         psis_t, _ = scan(propagateBody, psis_t, jnp.array(times))
         return psis_t
 
-    def gradient(self, time: np.ndarray) -> Tuple[ArrayLike, List[List[ArrayLike]]]:
+    def gradient(self, time: np.ndarray) -> Tuple[Array, List[List[Array]]]:
         """
         Solve the GOAT equation for propagating the gradient vectors.
         Compatible with Jax and Jit.

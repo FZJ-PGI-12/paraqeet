@@ -6,7 +6,6 @@ from cthree.signal.Device import Device
 from cthree.signal.Generator import Generator
 
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 
 class CosGenerator(Generator):
@@ -49,7 +48,7 @@ class CosGeneratorAD(CosGenerator):
         super().__init__(devices)
         self.__devices = devices or []
 
-    def generateSignal(self, t: ArrayLike):
+    def generateSignal(self, t):
         """
         Overwrite the `generateSignal` method with jnp
         """
