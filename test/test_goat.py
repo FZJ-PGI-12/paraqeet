@@ -6,6 +6,8 @@ from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
 
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
+from cthree.propagation.ScipyExpmJax import ScipyExpmJax
+
 from cthree.ScipyOptimiser import ScipyOptimiser
 from cthree.ScipyOptimiserGradient import ScipyOptimiserGradient
 
@@ -13,6 +15,8 @@ from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
 
 from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.SimpleGenerator import CosGeneratorAD
+
 from cthree.signal.Device import CosToneErf
 
 from cthree.signal.Device import CosToneErfAD
@@ -123,7 +127,7 @@ def toneAD():
 
 @pytest.fixture
 def genAD(toneAD):
-    genAD = CosGenerator(devices=[toneAD])
+    genAD = CosGeneratorAD(devices=[toneAD])
     return genAD
 
 
@@ -134,7 +138,7 @@ def propAD(genAD):
     drift = FREQ / 2 * sigmaZ
     controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=genAD)
     model = ClosedModel(controlled_qubit)
-    return ScipyExpmGOAT(model=model, res=RES)
+    return ScipyExpmJax(model=model, res=RES)
 
 
 @pytest.fixture

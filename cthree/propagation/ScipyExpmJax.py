@@ -62,13 +62,10 @@ class ScipyExpmJax(ScipyExpm):
         this_h = self._model.getMatrixEOM(jnp.reshape(t, (-1, 1)) + dt / 2)
         h_list = jnp.repeat(this_h[jnp.newaxis, :, :], n_params + 1, axis=0)
         goat_ham = block_diag(*h_list)
-
         for ii, dH_dp in enumerate(EOM_grad):
             goat_ham = dynamic_update_slice(goat_ham, dH_dp, (dim * (ii + 1), 0))
-
         return goat_ham
 
-    @partial(jit, static_argnums=(0, 1))
     def _propagteGradient(self, n_params, dim, psis_t, times, dt):
         def propagateBody(psis_t, t):
             EOM_grad = self._model.gradient(t + dt / 2)
