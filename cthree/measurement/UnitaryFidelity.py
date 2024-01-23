@@ -81,7 +81,7 @@ class UnitaryFidelity(Measurement):
             for ii, s in enumerate(self.__target_costates):
                 gs.append(np.vdot(s, dg_dp.T[ii]))
             g = np.average(gs)
-            dF_dp.append(f.conj() * g + f * g.conj())  # chain rule for abs^2
+            dF_dp.append(np.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
         return self.__fid(overlaps), np.array(dF_dp)  # shape scalar, (n_parameters,)
 
     def setIdealGate(self, gate):
