@@ -5,6 +5,8 @@ from typing import Tuple
 
 import numpy as np
 
+from cthree.Exceptions import IncompatibleQuantityException
+
 
 class Quantity:
     """
@@ -12,6 +14,11 @@ class Quantity:
     numeric value is used. The value itself is stored in an optimizer friendly way as a float between -1 and 1. The
     conversion is given by
         scale * (value + 1) / 2 + offset
+
+    Note on python's operators: equality checks `q == p` and `q != p` check for the values of the quantities q and p.
+    For vector or matrix quantities, these check if all values are equal. If you want to be sure that two quantities
+    are the same object (i.e. the same memory address), use `q is p`. Ordering operators like `q > p` will only work
+    for scalar quantities and will raise an exception for vector or matrix quantities.
 
     Parameters
     ----------
@@ -130,6 +137,12 @@ class Quantity:
     def getUnit(self) -> str:
         return self.__unit
 
+    def isScalar(self) -> bool:
+        return self.__length == 1
+
+    def isVector(self) -> bool:
+        return self.__length > 1 and len(self.__shape) == 1
+
     # Python specific functions
     def __add__(self, other) -> Quantity:
         out_val = copy.deepcopy(self)
@@ -187,21 +200,33 @@ class Quantity:
         return out_val
 
     def __lt__(self, other) -> bool:
-        return self.getValue() < other
+        if not self.isScalar():
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
+        return self.getValue() < other.getValue()
 
     def __le__(self, other) -> bool:
+        if not self.isScalar():
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() <= other
 
     def __eq__(self, other) -> bool:
-        return self.getValue() == other
+        if self.__shape != other.__shape:
+            return False
+        return all(self.getValue() == other)
 
     def __ne__(self, other) -> bool:
-        return self.getValue() != other
+        if self.__shape != other.__shape:
+            return True
+        return any(self.getValue() != other)
 
     def __ge__(self, other) -> bool:
+        if not self.isScalar():
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() >= other
 
     def __gt__(self, other) -> bool:
+        if not self.isScalar():
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() > other
 
     def __array__(self):

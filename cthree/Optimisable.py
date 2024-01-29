@@ -26,4 +26,4 @@ class Optimisable:
         to tell the layers which gradients to compute.
         """
         allParams = self.getParameters()
-        self._optimisableParameters = [p for p in params if p in allParams]
+        self._optimisableParameters = [p for p in params if any([p is q for q in allParams])]
