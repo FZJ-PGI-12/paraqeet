@@ -41,22 +41,24 @@ class ScipyExpmGOAT(ScipyExpm):
             psis_t = np.concatenate(superState)
             for t in times:
                 # Sampling at the center of the interval.
-                this_h = eom(np.reshape(t, (-1, 1)) + dt / 2)
-                dim = this_h.shape[0]
+                hamiltonian = eom(np.reshape(t, (-1, 1)) + dt / 2)
+                dim = hamiltonian.shape[0]
 
                 # Get the gradients of the MatrixEOM
                 EOM_grad = self._model.gradient(t + dt / 2)
 
-                # Initialize the GOAT H with the diagonal
-                h_list = [this_h] * (n_params + 1)
-                goat_ham = block_diag(*h_list)
+                line = [hamiltonian]
+                line.extend([np.zeros_like(hamiltonian)] * n_params)
+                goat_ham_list = [line]
 
-                # Add the first column of derivatives
-                for ii, dH_dp in enumerate(EOM_grad):
-                    goat_ham[dim * (ii + 1) : dim * (ii + 2), 0:dim] = dH_dp
+                for ii, dH_dp in enumerate(EOM_grad, start=1):
+                    line = [dH_dp]
+                    line.extend([np.zeros_like(hamiltonian)] * (ii-1))
+                    line.append(hamiltonian)
+                    line.extend([np.zeros_like(hamiltonian)] * (n_params - ii))
+                    goat_ham_list.append(line)
 
-                # psis_t = expm(goat_ham * dt) @ psis_t
-                psis_t = self._propagatePsi(goat_ham * dt, psis_t)
+                psis_t = self._propagatePsi(np.block(goat_ham_list) * dt, psis_t)
             psi.append(psis_t[0:dim])
             dpsis.append(
                 [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
