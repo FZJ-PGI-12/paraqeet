@@ -24,9 +24,9 @@ class Generator(Optimisable):
     __devices: List[Device]
 
     @abstractmethod
-    def generateSignal(self, instr):
+    def generateSignal(self, times):
         raise NotImplementedError()
 
     @abstractmethod
-    def generateSignalGradient(self, instr):
+    def generateSignalGradient(self, times):
         raise NotImplementedError()
