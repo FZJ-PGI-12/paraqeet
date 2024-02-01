@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 
 from cthree.Optimisable import Optimisable
+from cthree.model.Drive import Drive
 
 
 class Hamiltonian(Optimisable):
@@ -10,12 +11,19 @@ class Hamiltonian(Optimisable):
     Matrix representation of a Hamiltonian.
     Implementations can contain subsystems, couplings, and drive lines and have to take care of frame transformations.
     """
+    _drives: List[Drive]
+
+    def __init__(self, drives=None):
+        self._drives = [d for d in drives if d is not None] or []
 
     def dimension(self) -> int:
         """
         Returns the dimension of the Hilbert space of this Hamiltonian.
         """
         raise NotImplementedError()
+
+    def getDrives(self) -> List[Drive]:
+        return self._drives
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         """
@@ -29,11 +37,33 @@ class Hamiltonian(Optimisable):
         """
         raise NotImplementedError()
 
+    def _getDriveMatrix(self, annihilationOperator: np.ndarray, t: np.ndarray) -> np.ndarray:
+        """
+        Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
+        including the drive.
+        """
+        dim = self.dimension()
+        M = np.zeros((dim, dim))
+        for drive in self._drives:
+            M += drive.getMatrix(annihilationOperator, t)
+        return M
+
     def gradient(self, t: np.ndarray) -> np.ndarray:
         """
         Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter as a list.
         """
         raise NotImplementedError()
+
+    def _getDriveGradients(self, annihilationOperator: np.ndarray, t: np.ndarray) -> List[np.ndarray]:
+        """
+        Returns the gradients of all drives. This function can be used be Hamiltonian implementations for including
+        the drive gradients.
+        """
+        dim = self.dimension()
+        driveGrads = []
+        for drive in self._drives:
+            driveGrads += drive.gradient(annihilationOperator, t)
+        return driveGrads
 
     @staticmethod
     def _repeatInTime(M: np.ndarray, times: np.ndarray) -> np.ndarray:

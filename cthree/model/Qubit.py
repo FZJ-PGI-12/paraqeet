@@ -17,6 +17,7 @@ class Qubit(Hamiltonian):
     __frequency: Quantity
 
     def __init__(self, frequency: Quantity):
+        super().__init__()
         self.__frequency = frequency
 
     def getFrequency(self) -> Quantity:
