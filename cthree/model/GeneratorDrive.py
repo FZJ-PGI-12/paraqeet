@@ -9,7 +9,7 @@ from cthree.signal.Generator import Generator
 
 class GeneratorDrive(Drive):
     """
-    Transversal (a^\dagger a) or longitudinal (a^\dagger a) drive with a time-dependent scalar coefficient that is 
+    Transversal (a^\\dagger a) or longitudinal (a^\\dagger a) drive with a time-dependent scalar coefficient that is
     generator by a Generator object.
     """
     __generator: Generator

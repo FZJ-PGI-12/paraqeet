@@ -39,7 +39,7 @@ class Transmon(Hamiltonian):
         self.__anharmonicity = anharmonicity
 
     def getParameters(self) -> List[Quantity]:
-        return [self.__frequency, self.__anharmonicity]
+        return [self.__frequency, self.__anharmonicity] + self._getDriveParameters()
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         H = (self.__frequency.getValue() * self.__numOp +

@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 
 from cthree.Optimisable import Optimisable
+from cthree.Quantity import Quantity
 from cthree.model.Drive import Drive
 
 
@@ -24,6 +25,15 @@ class Hamiltonian(Optimisable):
 
     def getDrives(self) -> List[Drive]:
         return self._drives
+
+    def _getDriveParameters(self) -> List[Quantity]:
+        """
+        Returns the combined list of parameters from all drives.
+        """
+        params = []
+        for d in self._drives:
+            params += d.getParameters()
+        return params
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         """

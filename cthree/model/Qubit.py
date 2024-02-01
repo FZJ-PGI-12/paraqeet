@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 
 from cthree.Quantity import Quantity
+from cthree.model.Drive import Drive
 from cthree.model.Hamiltonian import Hamiltonian
 
 
@@ -16,8 +17,8 @@ class Qubit(Hamiltonian):
     """
     __frequency: Quantity
 
-    def __init__(self, frequency: Quantity):
-        super().__init__()
+    def __init__(self, frequency: Quantity, drives: List[Drive] = None):
+        super().__init__(drives)
         self.__frequency = frequency
 
     def getFrequency(self) -> Quantity:
@@ -27,13 +28,13 @@ class Qubit(Hamiltonian):
         self.__frequency = frequency
 
     def getParameters(self) -> List[Quantity]:
-        return [self.__frequency]
+        return [self.__frequency] + self._getDriveParameters()
 
     def dimension(self) -> int:
         return 2
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
-        H = 0.5 * self.__frequency * np.diag([1.0, -1.0])
+        H = 0.5 * self.__frequency.getValue() * np.diag([1.0, -1.0])
         return self._repeatInTime(H, t)
 
     def gradient(self, t: np.ndarray) -> List[np.ndarray]:
