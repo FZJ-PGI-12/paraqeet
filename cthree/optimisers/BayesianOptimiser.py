@@ -2,7 +2,7 @@ import numpy as np
 from bayes_opt import BayesianOptimization
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser
 from cthree.measurement.Measurement import Measurement
 
 
@@ -21,7 +21,13 @@ class BayesianOptimiser(Optimiser):
     __initialSamples: int
     __iterations: int
 
-    def __init__(self, measure: Measurement, optimisables: OptimisationMap, initialSamples=10, iterations=100):
+    def __init__(
+        self,
+        measure: Measurement,
+        optimisables: OptimisationMap,
+        initialSamples=10,
+        iterations=100,
+    ):
         super().__init__(measure, optimisables)
         self.__initialSamples = initialSamples
         self.__iterations = iterations
@@ -57,12 +63,14 @@ class BayesianOptimiser(Optimiser):
         optimiser.maximize(init_points=self.__initialSamples, n_iter=self.__iterations)
 
         # The last measurement is not necessarily the best. We therefore set the optimised parameters to the best value.
-        bestValues = optimiser.max['params']
+        bestValues = optimiser.max["params"]
         for i, param in enumerate(params):
             param.setReducedValue(bestValues[str(i)])
 
         # Use the actual names and the non-reduced values for the return value
-        result = {params[i].getName(): params[i].getValue() for i in range(len(bestValues))}
+        result = {
+            params[i].getName(): params[i].getValue() for i in range(len(bestValues))
+        }
         if self._logger:
             self._logger.stop(str(result))
 

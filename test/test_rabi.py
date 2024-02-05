@@ -3,7 +3,7 @@ from numpy.testing import assert_almost_equal
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.RabiExperiment import RabiExperiment
-from cthree.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 
 
 FREQ = 4.8e9

@@ -4,7 +4,7 @@ import numpy as np
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.propagation.ScipyExpm import ScipyExpm
-from cthree.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian

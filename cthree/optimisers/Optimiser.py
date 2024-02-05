@@ -2,7 +2,6 @@ from abc import abstractmethod
 from typing import List
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 from cthree.FileLogger import Logger
 
@@ -25,10 +24,7 @@ class Optimiser:
     __logger: Logger
 
     def __init__(
-        self,
-        measure: Measurement,
-        optimisables: OptimisationMap,
-        logger: Logger = None
+        self, measure: Measurement, optimisables: OptimisationMap, logger: Logger = None
     ):
         self._measure = measure
         self._logger = logger

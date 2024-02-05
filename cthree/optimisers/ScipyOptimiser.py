@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser
 from cthree.measurement.Measurement import Measurement
 
 

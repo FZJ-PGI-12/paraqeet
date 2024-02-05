@@ -3,7 +3,7 @@ from typing import Dict, List
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 
-from cthree.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.measurement.Measurement import Measurement
 
 
