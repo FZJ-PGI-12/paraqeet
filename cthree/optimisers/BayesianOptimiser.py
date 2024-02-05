@@ -11,6 +11,8 @@ class BayesianOptimiser(Optimiser):
     Minimizes the outcome of a measuremnt using Bayesian optimisation. This is useful if the evaluation of the
     measurement is costly. This class is mostly a wrapper around the implementing package.
 
+    See also: http://bayesian-optimization.github.io/BayesianOptimization/index.html
+
     :param measure: the measure to be optimised
     :param optimisables: all optimisable parameters
     :param initialSamples: Number of iterations before the explorations starts the exploration for the maximum.
@@ -71,6 +73,7 @@ class BayesianOptimiser(Optimiser):
         result = {
             params[i].getName(): params[i].getValue() for i in range(len(bestValues))
         }
+        result["fun"] = 1 - optimiser.max["target"]
         if self._logger:
             self._logger.stop(str(result))
 

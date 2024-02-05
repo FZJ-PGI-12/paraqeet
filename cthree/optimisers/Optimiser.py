@@ -53,3 +53,14 @@ class Optimiser:
         might need several calls to the underlying layers.
         """
         raise NotImplementedError()
+
+    def _buildOptimisableIndexList(self):
+        """
+        Register optimisables and their length to keep track of vector and matrix valued parameters.
+        """
+        params = self._optimisables.getAllParameters()
+        self._opt_idxs = []
+        index = 0
+        for qty in params:
+            index += qty.getLength()
+            self._opt_idxs.append(index)
