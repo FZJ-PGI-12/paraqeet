@@ -5,6 +5,8 @@ from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.propagation.ScipyExpm import ScipyExpm
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisers.CMAEsOptimiser import CMAEsOptimiser
+from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
 
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
@@ -50,9 +52,40 @@ def opt():
     return ScipyOptimiser(zeroone, optimisables=optmap)
 
 
+@pytest.fixture
+def cma_opt():
+    optmap = OptimisationMap()
+    optmap.add(tone, params)
+    return CMAEsOptimiser(zeroone, optimisables=optmap)
+
+
+@pytest.fixture
+def bay_opt():
+    optmap = OptimisationMap()
+    optmap.add(tone, params)
+    return BayesianOptimiser(zeroone, optimisables=optmap)
+
+
 def test_optim(opt) -> None:
     """
     Check that the optimization goes below threshold.
     """
     res = opt.optimise()
     assert res.fun < 1e-4
+
+
+def test_cma(cma_opt: CMAEsOptimiser) -> None:
+    """
+    Check that the optimization goes below threshold.
+    """
+    res = cma_opt.optimise()
+    assert res.fbest < 1e-4
+
+
+def test_baysian(bay_opt: BayesianOptimiser) -> None:
+    """
+    Check that the optimization goes below threshold.
+    """
+    bay_opt.setIterations(150)
+    res = bay_opt.optimise()
+    assert res["fun"] < 1e-4
