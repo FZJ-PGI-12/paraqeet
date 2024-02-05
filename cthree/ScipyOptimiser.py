@@ -34,7 +34,7 @@ class ScipyOptimiser(Optimiser):
         self._method = method
 
     def setOptions(self, opts: Dict):
-        self._options = opts
+        self._options.update(opts)
 
     def updateOption(self, key, val):
         self._options.update(key, val)
