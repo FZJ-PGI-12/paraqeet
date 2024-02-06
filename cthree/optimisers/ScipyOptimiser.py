@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser
 from cthree.measurement.Measurement import Measurement
 
 
@@ -34,7 +34,7 @@ class ScipyOptimiser(Optimiser):
         self._method = method
 
     def setOptions(self, opts: Dict):
-        self._options = opts
+        self._options.update(opts)
 
     def updateOption(self, key, val):
         self._options.update(key, val)
@@ -78,14 +78,3 @@ class ScipyOptimiser(Optimiser):
         if self._logger:
             self._logger.log(log, infid)
         return infid
-
-    def _buildOptimisableIndexList(self):
-        """
-        Register optimisables and their length to keep track of vector and matrix valued parameters.
-        """
-        params = self._optimisables.getAllParameters()
-        self._opt_idxs = []
-        index = 0
-        for qty in params:
-            index += qty.getLength()
-            self._opt_idxs.append(index)

@@ -3,18 +3,20 @@ import numpy as np
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.propagation.ScipyExpm import ScipyExpm
-from cthree.ScipyOptimiser import ScipyOptimiser
+from cthree.propagation.ScipyExpmJax import ScipyExpmJax
+from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisers.CMAEsOptimiser import CMAEsOptimiser
+from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
 
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
 
-from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.Device import CosTone
+from cthree.signal.SimpleGenerator import CosGeneratorAD
+from cthree.signal.Device import CosToneAD
 
 
-tone = CosTone()
-gen = CosGenerator(devices=[tone])
+tone = CosToneAD()
+gen = CosGeneratorAD(devices=[tone])
 params = tone.getParameters()
 
 FREQ = 4.8e9 * 2 * np.pi
@@ -31,7 +33,7 @@ drift = FREQ / 2 * sigmaZ
 controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
-prop = ScipyExpm(model, res=100e9)
+prop = ScipyExpmJax(model, res=100e9)
 
 init = np.array([[1.0], [0]])
 target = np.array([[0.0], [1]])
@@ -50,9 +52,40 @@ def opt():
     return ScipyOptimiser(zeroone, optimisables=optmap)
 
 
+@pytest.fixture
+def cma_opt():
+    optmap = OptimisationMap()
+    optmap.add(tone, params)
+    return CMAEsOptimiser(zeroone, optimisables=optmap)
+
+
+@pytest.fixture
+def bay_opt():
+    optmap = OptimisationMap()
+    optmap.add(tone, params)
+    return BayesianOptimiser(zeroone, optimisables=optmap)
+
+
 def test_optim(opt) -> None:
     """
     Check that the optimization goes below threshold.
     """
     res = opt.optimise()
     assert res.fun < 1e-4
+
+
+def test_cma(cma_opt: CMAEsOptimiser) -> None:
+    """
+    Check that the optimization goes below threshold.
+    """
+    res = cma_opt.optimise()
+    assert res.fbest < 1e-4
+
+
+def test_baysian(bay_opt: BayesianOptimiser) -> None:
+    """
+    Check that the optimization goes below threshold.
+    """
+    bay_opt.setIterations(150)
+    res = bay_opt.optimise()
+    assert res["fun"] < 1e-4

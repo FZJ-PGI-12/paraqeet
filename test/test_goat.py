@@ -8,8 +8,8 @@ from cthree.measurement.UnitaryFidelity import UnitaryFidelity
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.propagation.ScipyExpmJax import ScipyExpmJax
 
-from cthree.ScipyOptimiser import ScipyOptimiser
-from cthree.ScipyOptimiserGradient import ScipyOptimiserGradient
+from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
 
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
