@@ -45,7 +45,7 @@ class Hamiltonian(Optimisable):
             np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
         """
         if self.__generator:
-            sig = self.__generator.generateSignal(t).reshape((len(t), 1, 1))
+            sig = self.__generator.generateSignal(t).reshape((t.shape[0], 1, 1))
         drive = self.__drives[0].reshape((1,) + self.__drives[0].shape)
         return self._repeatInTime(self.__subsystems[0], t) + sig * drive
 
@@ -56,9 +56,10 @@ class Hamiltonian(Optimisable):
         """
         Return the gradient of each parameter as a list.
         """
-        grads = self.__generator.generateSignalGradient(t).reshape((len(t), 1, 1))
-        drive = self.__drives[0].reshape((1,) + self.__drives[0].shape)
-        return [g * drive for g in grads]
+        grads = self.__generator.generateSignalGradient(t)
+        grads = grads.reshape((t.shape[0], grads.shape[0], 1, 1))
+        drive = self.__drives[0].reshape((1, 1, ) + self.__drives[0].shape)
+        return grads * drive
 
     @staticmethod
     def _repeatInTime(M: np.ndarray, times: np.ndarray) -> np.ndarray:
@@ -66,4 +67,4 @@ class Hamiltonian(Optimisable):
         Utility function that repeats the matrix M for each timestep in the times array. Returns an array with shape
         [t, n, m] where t is the number of time steps and M is a n times m matrix.
         """
-        return M.reshape((1,) + M.shape).repeat(len(times), axis=0)
+        return M.reshape((1,) + M.shape).repeat(times.shape[0], axis=0)

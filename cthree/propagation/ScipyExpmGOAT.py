@@ -29,7 +29,7 @@ class ScipyExpmGOAT(ScipyExpm):
         """
         eom = self._model.getMatrixEOM
 
-        n_params = len(self._model.gradient(0))
+        n_params = len(self._model.gradient(np.array([0])))
 
         psi = [self._initialState]
         dpsis = [[np.zeros_like(self._initialState)] * n_params]
@@ -45,7 +45,7 @@ class ScipyExpmGOAT(ScipyExpm):
                 dim = self._initialState.shape[0]
 
                 # Get the gradients of the MatrixEOM
-                EOM_grad = self._model.gradient(t + dt / 2)
+                EOM_grad = self._model.gradient(np.reshape(t, (-1, 1)) + dt / 2)
 
                 line = [hamiltonian]
                 line.extend([np.zeros_like(hamiltonian)] * n_params)

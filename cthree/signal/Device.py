@@ -84,10 +84,10 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return [
+        return np.array([
             np.cos(freq * t) * self.__amplitude.getScale(),
             -amp * t * np.sin(freq * t) * self.__frequency.getScale(),
-        ]
+        ])
 
 
 class CosToneErf(Device):
@@ -155,10 +155,10 @@ class CosToneErf(Device):
         freq = self.__frequency.getValue()
         dc_dAmp = np.cos(freq * t) * self._envelope(t)
         dc_dFreq = -amp * t * np.sin(freq * t) * self._envelope(t)
-        return [
+        return np.array([
             self.__amplitude.getScale() * dc_dAmp,
             self.__frequency.getScale() * dc_dFreq,
-        ]
+        ])
 
 
 class ZeroTone(Device):
