@@ -39,8 +39,11 @@ class Propagation(Optimisable):
         """
         raise NotImplementedError()
 
-    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, List[np.ndarray]]:
+    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Computes this part of the chain rule for a gradient trace. i.e. result of the propagation wrt model.
+        Computes this part of the chain rule for a gradient trace. i.e. result of the propagation wrt model. The
+        returned tuple contains the time-evolved state as well as the gradient. The time-dependent state is returned
+        in the same shape as from the propagate method. In the gradient. the second dimension is the parameter index,
+        i.e. result[i] will be the gradient at time t_i.
         """
         raise NotImplementedError()

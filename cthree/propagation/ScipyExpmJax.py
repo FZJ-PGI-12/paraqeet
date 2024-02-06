@@ -84,7 +84,7 @@ class ScipyExpmJax(ScipyExpm):
         psis_t, _ = scan(propagateBody, psis_t, steps_arr)
         return psis_t
 
-    def gradient(self, time: np.ndarray) -> Tuple[Array, List[List[Array]]]:
+    def gradient(self, time: np.ndarray) -> Tuple[Array, Array]:
         """
         Solve the GOAT equation for propagating the gradient vectors.
         Compatible with Jax and Jit.
@@ -93,7 +93,7 @@ class ScipyExpmJax(ScipyExpm):
             time (np.ndarray): Array of timesteps
 
         Returns:
-            Tuple[ArrayLike, List[List[ArrayLike]]]: Return the propagated states and gradient vectors.
+            Tuple[ArrayLike, ArrayLike]: Return the propagated states and gradient vectors.
         """
 
         n_params = len(self._model.gradient(0))
@@ -116,6 +116,6 @@ class ScipyExpmJax(ScipyExpm):
             )
             psi.append(psis_t[0:dim])
             dpsis.append(
-                [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+                jnp.array([psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)])
             )
-        return psi, dpsis
+        return jnp.array(psi), jnp.array(dpsis)

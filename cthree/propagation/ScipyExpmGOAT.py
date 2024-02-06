@@ -14,7 +14,7 @@ class ScipyExpmGOAT(ScipyExpm):
     _res: float
     _initialState: np.ndarray = None
 
-    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, List[List[np.ndarray]]]:
+    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
@@ -24,8 +24,8 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        List[List[np.ndarray]]
-            Outer list dimension is parameter, inner list dimension is time.
+        np.ndarray
+            first dimension is time, second dimension is the parameter
         """
         eom = self._model.getMatrixEOM
 
@@ -61,6 +61,6 @@ class ScipyExpmGOAT(ScipyExpm):
                 psis_t = self._propagatePsi(np.block(goat_ham_list) * dt, psis_t)
             psi.append(psis_t[0:dim])
             dpsis.append(
-                [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+                np.array([psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)])
             )
-        return psi, dpsis
+        return np.array(psi), np.array(dpsis)
