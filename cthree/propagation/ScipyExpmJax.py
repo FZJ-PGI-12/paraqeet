@@ -45,7 +45,7 @@ class ScipyExpmJax(ScipyExpm):
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
-            eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            eom = eom_func(times + dt / 2) * dt
             psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
         return jnp.array(psi)
@@ -108,7 +108,7 @@ class ScipyExpmJax(ScipyExpm):
             times, dt = self._constructTimes(time, ti)
             psis_t = self._createSuperState(psi[-1], dpsis[-1])
 
-            eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            eom = eom_func(times + dt / 2) * dt
             grads = jnp.array(grad_func(times + dt / 2)) * dt
 
             psis_t = self._propagateGradient(

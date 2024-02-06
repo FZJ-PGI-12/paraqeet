@@ -67,7 +67,7 @@ class ScipyExpm(StatePropagation):
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = np.array([self._initialState] * len(time))
+        psi = np.array([self._initialState] * len(time), dtype=np.complex128)
         eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
