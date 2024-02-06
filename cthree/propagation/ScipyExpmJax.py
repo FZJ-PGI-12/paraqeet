@@ -41,14 +41,14 @@ class ScipyExpmJax(ScipyExpm):
         Overwrite the `propagte` implementation.
         """
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
-        eom_func = vmap(self._model.getMatrixEOM)
+        eom_func = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
             eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
             psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
-        return Array(psi)
+        return jnp.array(psi)
 
     def _createSuperState(self, psi, dpsis):
         """
