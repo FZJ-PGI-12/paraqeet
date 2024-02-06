@@ -36,7 +36,7 @@ class ScipyExpmJax(ScipyExpm):
 
         return psis_t
 
-    def propagate(self, time: np.ndarray) -> List[Array]:
+    def propagate(self, time: np.ndarray) -> Array:
         """
         Overwrite the `propagte` implementation.
         """
@@ -48,7 +48,7 @@ class ScipyExpmJax(ScipyExpm):
             eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
             psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
-        return psi
+        return Array(psi)
 
     def _createSuperState(self, psi, dpsis):
         """

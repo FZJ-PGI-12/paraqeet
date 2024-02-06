@@ -31,8 +31,9 @@ class Propagation(Optimisable):
     @abstractmethod
     def propagate(self, time: np.ndarray) -> np.ndarray:
         """
-        Returns the solution of the equations of motion. Like in the model, the format of the result depends on the
-        implementation and could for example be a propagated state vector or a propagator in matrix form.
+        Returns the solution of the equations of motion. The first dimension of the result will always be the time.
+        Like in the model, the format of the other dimensions depends on the implementation and could for example be a
+        propagated state vector or a propagator in matrix form.
 
         :param time: any one-dimensional vector of timestamps
         """

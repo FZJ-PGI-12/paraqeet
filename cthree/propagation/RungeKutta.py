@@ -35,7 +35,7 @@ class RungeKutta(StatePropagation):
         """
         self._initialState = np.reshape(state, (-1,))
 
-    def propagate(self, time: np.ndarray):
+    def propagate(self, time: np.ndarray) -> np.ndarray:
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
@@ -50,7 +50,7 @@ class RungeKutta(StatePropagation):
 
         # Since RK45 uses adaptive time steps and does not guarantee to return a state for each time stamp, this
         # function has to iterate over the time steps itself.
-        states = [self._initialState]
+        states = np.array([self._initialState] * len(time))
         for ti in range(1, len(time)):
             dt = self.__initialTimeStep
             if dt is None or dt > time[ti] - time[ti - 1]:
@@ -67,5 +67,5 @@ class RungeKutta(StatePropagation):
 
             while integrator.status == "running":
                 integrator.step()
-            states.append(np.reshape(integrator.y, (-1, 1)))
+            states[ti] = integrator.y
         return states
