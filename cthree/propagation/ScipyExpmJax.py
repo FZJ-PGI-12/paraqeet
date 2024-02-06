@@ -96,13 +96,13 @@ class ScipyExpmJax(ScipyExpm):
             Tuple[ArrayLike, ArrayLike]: Return the propagated states and gradient vectors.
         """
 
-        n_params = len(self._model.gradient(0))
+        n_params = len(self._model.gradient([0]))
         dim = self._initialState.shape[0]
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
         dpsis = [[jnp.zeros_like(self._initialState, dtype=jnp.complex128)] * n_params]
 
-        eom_func = vmap(self._model.getMatrixEOM)
-        grad_func = vmap(self._model.gradient)
+        eom_func = self._model.getMatrixEOM
+        grad_func = self._model.gradient
 
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)

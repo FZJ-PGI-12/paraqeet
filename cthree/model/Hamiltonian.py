@@ -56,8 +56,9 @@ class Hamiltonian(Optimisable):
         """
         Return the gradient of each parameter as a list.
         """
-        grads = self.__generator.generateSignalGradient(t)
-        return [g * self.getDrives()[0] for g in grads]
+        grads = self.__generator.generateSignalGradient(t).reshape((len(t), 1, 1))
+        drive = self.__drives[0].reshape((1,) + self.__drives[0].shape)
+        return [g * drive for g in grads]
 
     @staticmethod
     def _repeatInTime(M: np.ndarray, times: np.ndarray) -> np.ndarray:
