@@ -8,7 +8,6 @@ import cma.evolution_strategy as cma
 
 
 class CMAEsOptimiser(Optimiser):
-    _options: Dict
     """
     Wrapper for the pycma implementation of CMA-Es. See also:
 
@@ -32,6 +31,8 @@ class CMAEsOptimiser(Optimiser):
             Custom stopping condition. Stop if the cloud shrunk to this standard
             deviation.
     """
+
+    _options: Dict
 
     def __init__(
         self, measure: Measurement, optimisables: OptimisationMap, logger: Logger = None
