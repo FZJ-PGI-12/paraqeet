@@ -9,8 +9,9 @@ from cthree.model.Drive import Drive
 
 class Hamiltonian(Optimisable):
     """
-    Matrix representation of a Hamiltonian.
-    Implementations can contain subsystems, couplings, and drive lines and have to take care of frame transformations.
+    Matrix representation of a Hamiltonian. Implementations can contain subsystems, couplings, and drive lines and have
+    to take care of frame transformations. Derived classes need to implement the functions getMatrix, gradient, and
+    dimension.
     """
     _drives: List[Drive]
 
@@ -20,6 +21,24 @@ class Hamiltonian(Optimisable):
     def dimension(self) -> int:
         """
         Returns the dimension of the Hilbert space of this Hamiltonian.
+        """
+        raise NotImplementedError()
+
+    def getMatrix(self, t: np.ndarray) -> np.ndarray:
+        """
+        Return the matrix representation of the Hamiltonian.
+
+        Args:
+            t (np.ndarray): Vector of time samples
+
+        Returns:
+            np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
+        """
+        raise NotImplementedError()
+
+    def gradient(self, t: np.ndarray) -> np.ndarray:
+        """
+        Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter as a list.
         """
         raise NotImplementedError()
 
@@ -35,18 +54,6 @@ class Hamiltonian(Optimisable):
             params += d.getParameters()
         return params
 
-    def getMatrix(self, t: np.ndarray) -> np.ndarray:
-        """
-        Return the matrix representation of the Hamiltonian.
-
-        Args:
-            t (np.ndarray): Vector of time samples
-
-        Returns:
-            np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
-        """
-        raise NotImplementedError()
-
     def _getDriveMatrix(self, annihilationOperator: np.ndarray, t: np.ndarray) -> np.ndarray:
         """
         Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
@@ -57,12 +64,6 @@ class Hamiltonian(Optimisable):
         for drive in self._drives:
             M += drive.getMatrix(annihilationOperator, t)
         return M
-
-    def gradient(self, t: np.ndarray) -> np.ndarray:
-        """
-        Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter as a list.
-        """
-        raise NotImplementedError()
 
     def _getDriveGradients(self, annihilationOperator: np.ndarray, t: np.ndarray) -> List[np.ndarray]:
         """

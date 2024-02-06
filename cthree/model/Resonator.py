@@ -13,13 +13,15 @@ class Resonator(Hamiltonian):
     """
     __dimension: int
     __frequency: Quantity
+    __annihilationOp: np.ndarray
     __numOp: np.ndarray
 
     def __init__(self, dimension: int, frequency: Quantity, drives: List[Drive] = None):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
-        self.__numOp = np.diag(np.arange(0, self.__dimension))
+        self.__annihilationOp = np.sqrt(np.diag(np.arange(1, dimension, dtype=np.float64), k=1))
+        self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
 
     def dimension(self):
         return self.__dimension
@@ -35,9 +37,9 @@ class Resonator(Hamiltonian):
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         H = self.__frequency * self.__numOp
-        return self._repeatInTime(H, t) + self._getDriveMatrix(t)
+        return self._repeatInTime(H, t) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: np.ndarray) -> List[np.ndarray]:
         # Derivative wrt to the frequency
         grad = self.__numOp.reshape(self.__numOp.shape + (1,))
-        return [self._repeatInTime(grad, t)] + self._getDriveGradients(t)
+        return [self._repeatInTime(grad, t)] + self._getDriveGradients(self.__annihilationOp, t)

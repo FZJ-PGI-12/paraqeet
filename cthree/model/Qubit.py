@@ -16,10 +16,15 @@ class Qubit(Hamiltonian):
     first entry), use a resonator and restrict its dimension to 2.
     """
     __frequency: Quantity
+    __annihilationOp: np.ndarray
 
     def __init__(self, frequency: Quantity, drives: List[Drive] = None):
         super().__init__(drives)
         self.__frequency = frequency
+        self.__annihilationOp = np.array([
+            [0.0, 0.0],
+            [1.0, 0.0],
+        ])
 
     def getFrequency(self) -> Quantity:
         return self.__frequency
@@ -35,9 +40,9 @@ class Qubit(Hamiltonian):
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         H = 0.5 * self.__frequency.getValue() * np.diag([1.0, -1.0])
-        return self._repeatInTime(H, t)
+        return self._repeatInTime(H, t) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: np.ndarray) -> List[np.ndarray]:
         # derivative wrt the frequency
         H = 0.5 * np.diag([1.0, -1.0])
-        return [self._repeatInTime(H, t)]
+        return [self._repeatInTime(H, t)] + self._getDriveGradients(self.__annihilationOp, t)
