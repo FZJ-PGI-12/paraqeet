@@ -1,30 +1,28 @@
 import pytest
 import numpy as np
 from cthree.propagation.RungeKutta import RungeKutta
-from test.conftest import DIMS
-
-
-def randomState(dimension):
-    """
-    Generate random column vector.
-    """
-    state = np.random.random(dimension) + 1j * np.random.random(dimension)
-    return np.reshape(state / np.sqrt(np.vdot(state, state)), (-1, 1))
+from test.model.DummyModel import DummyModel
+from test.model.EmptyHamiltonian import EmptyHamiltonian
 
 
 @pytest.fixture
-def rk(model):
-    return RungeKutta(model)
+def rk():
+    def _method(dimension):
+        return RungeKutta(DummyModel(EmptyHamiltonian(dimension)))
+    return _method
 
 
 def test_parameters(rk):
-    assert rk.getParameters() == []
+    assert rk(2).getParameters() == []
 
 
 # test that the dimension and norm of state vectors is the same after propagation
-def test_state_dimension(rk, ts):
-    state = randomState(DIMS)
-    rk.setInitialState(state)
-    propagatedStates = rk.propagate(ts)
-    assert len(propagatedStates) == len(ts)
-    assert propagatedStates[-1].shape == state.shape
+def test_state_dimension(randomState, rk, ts):
+    for i in range(10):
+        dim = np.random.randint(2, 30)
+        state = randomState(dim)
+        propagation = rk(dim)
+        propagation.setInitialState(state)
+        propagatedStates = propagation.propagate(ts)
+        assert propagatedStates.shape[0] == len(ts)
+        assert propagatedStates.shape[1:] == state.shape
