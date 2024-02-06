@@ -59,17 +59,25 @@ class ScipyExpmJax(ScipyExpm):
         psi_t = jnp.concatenate(superState)
         return psi_t
 
-    def _createGOATHam(self, n_params, dim, eom, grads):
-        h_list = jnp.repeat(eom[jnp.newaxis, :, :], n_params + 1, axis=0)
-        goat_ham = block_diag(*h_list)
-        for ii, dH_dp in enumerate(grads):
-            goat_ham = dynamic_update_slice(goat_ham, dH_dp, (dim * (ii + 1), 0))
-        return goat_ham
+    def _createGOATHam(self, n_params, eom, grads):
+        line = [eom]
+        zeros_like_eom = jnp.zeros_like(eom)
+        line.extend([zeros_like_eom]*n_params)
+        goat_ham_list = [line]
+        for ii, dH_dp in enumerate(grads, start=1):
+            line = [dH_dp]
+            line.extend([zeros_like_eom]*(ii-1))
+            line.append(eom)
+            line.extend([zeros_like_eom] *(n_params - ii))
+            goat_ham_list.append(line)
+
+        return jnp.block(goat_ham_list)
+
 
     @partial(jit, static_argnums=(0, 1))
-    def _propagteGradient(self, n_params, dim, psis_t, eom, grads, steps_arr):
+    def _propagateGradient(self, n_params, psis_t, eom, grads, steps_arr):
         def propagateBody(psis_t, index):
-            goat_ham = self._createGOATHam(n_params, dim, eom[index], grads[:, index])
+            goat_ham = self._createGOATHam(n_params, eom[index], grads[:, index])
             psis_t = self._propagatePsi(goat_ham, psis_t)
             return psis_t, psis_t
 
@@ -103,8 +111,8 @@ class ScipyExpmJax(ScipyExpm):
             eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
             grads = jnp.array(grad_func(times + dt / 2)) * dt
 
-            psis_t = self._propagteGradient(
-                n_params, dim, psis_t, eom, grads, jnp.arange(0, len(times), 1)
+            psis_t = self._propagateGradient(
+                n_params, psis_t, eom, grads, jnp.arange(0, len(times), 1)
             )
             psi.append(psis_t[0:dim])
             dpsis.append(
