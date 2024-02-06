@@ -28,4 +28,4 @@ class GeneratorDrive(Drive):
     def getMatrix(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
         signal = self.__generator.generateSignal(t)
         matrix = (np.conjugate(a.T) @ a) if self.__isLongitudinal else (np.conjugate(a.T) + a)
-        return signal.reshape((len(signal), 1, 1)) * self._repeatInTime(matrix, t)
+        return signal.reshape((signal.shape[0], 1, 1)) * self._repeatInTime(matrix, t)

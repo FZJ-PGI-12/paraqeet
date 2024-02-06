@@ -23,7 +23,7 @@ class Transmon(Hamiltonian):
         self.__frequency = frequency
         self.__anharmonicity = anharmonicity
         self.__annihilationOp = np.sqrt(np.diag(np.arange(1, dimension, dtype=np.float64), k=1))
-        self.__numOp = np.diag(np.arange(0, self.__dimension))
+        self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
 
     def dimension(self) -> int:
         return self.__dimension
