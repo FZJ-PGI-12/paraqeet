@@ -38,7 +38,7 @@ def test_gen(gen, time_samples) -> None:
     """
     Computes a sample signal and checks vectorized generation.
     """
-    sig = gen.generateSignal(time_samples)
+    sig= gen.generateSignal(time_samples)
     assert len(sig) == LEN_SIG
 
 
@@ -55,3 +55,8 @@ def test_getParamters(genMultipleTones):
     gen, all_params = genMultipleTones
     params = gen.getParameters()
     assert np.all(params == all_params)
+
+
+def test_gradient_shape(gen, time_samples):
+    grads = gen.generateSignalGradient(time_samples)
+    assert grads.shape[0] == time_samples.shape[0]

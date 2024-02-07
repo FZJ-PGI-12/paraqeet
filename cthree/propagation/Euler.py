@@ -27,7 +27,7 @@ class Euler(StatePropagation):
         shape1 = (len(time), )
         shape2 = self._initialState.shape
         shape = shape1 + shape2
-        states = np.zeros(shape=shape)
+        states = np.zeros(shape=shape, dtype=np.complex128)
         states[0] = self._initialState
         for i in range(len(dt) - 1):
             states[i+1] = states[i] + dt[i] * equationsOfMotion[i] @ states[i]
