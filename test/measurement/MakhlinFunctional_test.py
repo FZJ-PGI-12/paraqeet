@@ -1,7 +1,7 @@
 import numpy as np
+import pytest
 
 from cthree.measurement.MakhlinFunctional import MakhlinFunctional
-from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from test.propagation.IdentityPropagation import IdentityPropagation
 from test.propagation.RandomPropagation import RandomPropagation
 
@@ -30,11 +30,11 @@ sqrtSwap = np.array([
     [0, 0, 0, 1.0]
 ])
 
+
 # test that the distance is greater or equal 0
 def test_positivity():
     propagation = RandomPropagation(4, True)
     times = np.array([1.0])
-    matrix = propagation.propagate(times)
     measurement = MakhlinFunctional(
         propagation,
         times,
@@ -94,3 +94,13 @@ def test_invariants():
         measurement = MakhlinFunctional(propagation, np.array([1.0]), np.array(invariants))
         m = measurement.measure()
         np.testing.assert_almost_equal(m, 0.0)
+
+
+# Test that all propagators which are not 4-dimensional raise an exception
+def test_incompatible_shape():
+    incompatibleDimensions = np.delete(np.arange(2, 100), 2)
+    for dim in incompatibleDimensions:
+        propagation = RandomPropagation(dim, True)
+        measurement = MakhlinFunctional(propagation, np.array([1.0]))
+        with pytest.raises(Exception):
+            m = measurement.measure()
