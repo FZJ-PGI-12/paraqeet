@@ -11,7 +11,7 @@ class StatePropagation(Propagation):
     setInitialState function.
     """
 
-    _initialState: np.ndarray
+    _initialState: np.ndarray | None = None
 
     def __init__(self, model: Model):
         super().__init__(model)
