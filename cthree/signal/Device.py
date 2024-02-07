@@ -5,15 +5,12 @@ import numpy as np
 from cthree.Quantity import Quantity
 from cthree.Optimisable import Optimisable
 
-from scipy.special import erf
+from jax.scipy.special import erf
 
 import jax
 import jax.numpy as jnp
-from jax import grad, vmap, jit
-from jax.scipy.special import erf as jax_erf
+from jax import Array, grad, vmap, jit
 from functools import partial
-
-from jax.typing import ArrayLike
 
 jax.config.update("jax_enable_x64", True)
 
@@ -62,6 +59,7 @@ class CosTone(Device):
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency]
 
+    @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, amp, freq, t):
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
@@ -71,23 +69,23 @@ class CosTone(Device):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return amp * np.cos(freq * t)
+        return amp * jnp.cos(freq * t)
 
-    def computeOutput(self, t: np.ndarray) -> np.ndarray:
+    def computeOutput(self, t: np.ndarray) -> Array:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
-    def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Returns the gradient wrt dimensionless parameters.
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return np.stack(
+        return jnp.stack(
             [
-                np.cos(freq * t) * self.__amplitude.getScale(),
-                -amp * t * np.sin(freq * t) * self.__frequency.getScale(),
+                jnp.cos(freq * t) * self.__amplitude.getScale(),
+                -amp * t * jnp.sin(freq * t) * self.__frequency.getScale(),
             ],
             axis=1,
         )
@@ -134,6 +132,7 @@ class CosToneErf(Device):
         rampDown = 1 + erf((-t + 4 * t0 / 5) / ramp_time)
         return rampUp * rampDown / 4
 
+    @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, amp, freq, t):
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
@@ -143,22 +142,22 @@ class CosToneErf(Device):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return self._envelope(t) * amp * np.cos(freq * t)
+        return self._envelope(t) * amp * jnp.cos(freq * t)
 
-    def computeOutput(self, t: np.ndarray) -> np.ndarray:
+    def computeOutput(self, t: np.ndarray) -> Array:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
-    def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Returns the gradient wrt dimensionless parameters.
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        dc_dAmp = np.cos(freq * t) * self._envelope(t)
-        dc_dFreq = -amp * t * np.sin(freq * t) * self._envelope(t)
-        return np.stack(
+        dc_dAmp = jnp.cos(freq * t) * self._envelope(t)
+        dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
+        return jnp.stack(
             [
                 self.__amplitude.getScale() * dc_dAmp,
                 self.__frequency.getScale() * dc_dFreq,
@@ -172,8 +171,8 @@ class ZeroTone(Device):
     Create a zero tone.
     """
 
-    def computeOutput(self, t: np.ndarray) -> np.ndarray:
-        return np.zeros_like(t)
+    def computeOutput(self, t: np.ndarray) -> Array:
+        return jnp.zeros_like(t)
 
 
 class CosToneAD(CosTone):
@@ -202,7 +201,7 @@ class CosToneAD(CosTone):
         """
         return jnp.squeeze(amp * jnp.cos(freq * t))
 
-    def computeGradient(self, t: np.ndarray) -> ArrayLike:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
         """
@@ -220,9 +219,8 @@ class CosToneAD(CosTone):
         parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
         parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
 
-        grads = (
-            jnp.squeeze(jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)) * parameter_scales
-        )
+        grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
+        grads = jnp.squeeze(grads) * parameter_scales
         return grads
 
 
@@ -249,8 +247,8 @@ class CosToneErfAD(CosToneErf):
         t_final = self.getParameters()[2]
         t0 = t_final.getValue()
         ramp_time = t0 / 10
-        rampUp = 1 + jax_erf((t - t0 / 5) / ramp_time)
-        rampDown = 1 + jax_erf((-t + 4 * t0 / 5) / ramp_time)
+        rampUp = 1 + erf((t - t0 / 5) / ramp_time)
+        rampDown = 1 + erf((-t + 4 * t0 / 5) / ramp_time)
         return rampUp * rampDown / 4
 
     @partial(jax.jit, static_argnums=(0,))
@@ -267,7 +265,7 @@ class CosToneErfAD(CosToneErf):
         """
         return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
 
-    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
         """
@@ -285,7 +283,6 @@ class CosToneErfAD(CosToneErf):
         parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
         parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
 
-        grads = (
-            jnp.squeeze(jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)) * parameter_scales
-        )
+        grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
+        grads = jnp.squeeze(grads) * parameter_scales
         return grads
