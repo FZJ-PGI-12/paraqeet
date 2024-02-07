@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from test.propagation.IdentityPropagation import IdentityPropagation
@@ -41,3 +42,20 @@ def test_vector_equality():
             )
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
+
+
+# Test that a set of initial and target state with different dimensions raise an exception
+def test_incompatible_shape():
+    allDims = np.arange(2, 30)
+    for dim in allDims:
+        for i in range(100):
+            initialState = randomState(dim)
+            dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
+            targetState = randomState(np.random.choice(dimensions))
+
+            propagation = IdentityPropagation()
+
+            with pytest.raises(Exception):
+                StateTransferFidelity(
+                    propagation, initialState, targetState, np.array([1.0])
+                )
