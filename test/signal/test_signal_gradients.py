@@ -29,6 +29,32 @@ def test_values(costoneAD, costoneerfAD):
 
 
 def test_gradients(costoneAD, costoneerfAD):
+    """
+    Test generation of analytic and AD signal gradients one at a time
+    """
+    grad_costone = []
+    grad_costone_AD = []
+
+    grad_costoneerf = []
+    grad_costoneerf_AD = []
+
+    for t in time:
+        grad_costone_AD.append(costoneAD.computeGradient(t))
+        grad_costone.append(costone.computeGradient(t))
+
+    grad_costoneerf_AD.append(costoneerfAD.computeGradient(t))
+    grad_costoneerf.append(costoneerf.computeGradient(t))
+
+    assert np.array(grad_costone_AD) == pytest.approx(np.array(grad_costone), rel=1e-6)
+    assert np.array(grad_costoneerf_AD) == pytest.approx(
+        np.array(grad_costoneerf), rel=1e-6
+    )
+
+
+def test_gradients_vectorized(costoneAD, costoneerfAD):
+    """
+    Test vectorized generation of analytic and AD signal gradients
+    """
     grad_costone_AD = costoneAD.computeGradient(time)
     grad_costone = costone.computeGradient(time)
 
