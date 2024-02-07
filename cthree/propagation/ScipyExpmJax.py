@@ -1,10 +1,9 @@
-from typing import List, Tuple
+from typing import Tuple
 import numpy as np
 
 import jax.numpy as jnp
-from jax import jit, vmap
-from jax.lax import scan, dynamic_update_slice
-from jax.scipy.linalg import block_diag
+from jax import jit
+from jax.lax import scan
 from jax import Array
 from functools import partial
 
@@ -62,22 +61,21 @@ class ScipyExpmJax(ScipyExpm):
     def _createGOATHam(self, n_params, eom, grads):
         line = [eom]
         zeros_like_eom = jnp.zeros_like(eom)
-        line.extend([zeros_like_eom]*n_params)
+        line.extend([zeros_like_eom] * n_params)
         goat_ham_list = [line]
         for ii, dH_dp in enumerate(grads, start=1):
             line = [dH_dp]
-            line.extend([zeros_like_eom]*(ii-1))
+            line.extend([zeros_like_eom] * (ii - 1))
             line.append(eom)
-            line.extend([zeros_like_eom] *(n_params - ii))
+            line.extend([zeros_like_eom] * (n_params - ii))
             goat_ham_list.append(line)
 
         return jnp.block(goat_ham_list)
 
-
     @partial(jit, static_argnums=(0, 1))
     def _propagateGradient(self, n_params, psis_t, eom, grads, steps_arr):
         def propagateBody(psis_t, index):
-            goat_ham = self._createGOATHam(n_params, eom[index], grads[:, index])
+            goat_ham = self._createGOATHam(n_params, eom[index], grads[index])
             psis_t = self._propagatePsi(goat_ham, psis_t)
             return psis_t, psis_t
 
@@ -96,7 +94,7 @@ class ScipyExpmJax(ScipyExpm):
             Tuple[ArrayLike, ArrayLike]: Return the propagated states and gradient vectors.
         """
 
-        n_params = len(self._model.gradient(jnp.array([0])))
+        n_params = self._model.gradient(jnp.array([0])).shape[1]
         dim = self._initialState.shape[0]
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
         dpsis = [[jnp.zeros_like(self._initialState, dtype=jnp.complex128)] * n_params]
@@ -116,6 +114,8 @@ class ScipyExpmJax(ScipyExpm):
             )
             psi.append(psis_t[0:dim])
             dpsis.append(
-                jnp.array([psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)])
+                jnp.array(
+                    [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+                )
             )
         return jnp.array(psi), jnp.array(dpsis)

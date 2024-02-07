@@ -76,7 +76,7 @@ class ScipyExpm(StatePropagation):
                 # Sampling at the center of the interval.
                 # psis_t = expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt) @ psis_t
                 psis_t = self._propagatePsi(
-                    eom(np.reshape(t, (-1, 1)) + dt / 2) * dt, psis_t
+                    eom(np.reshape(t, (-1, 1)) + dt / 2)[0] * dt, psis_t
                 )
             psi[ti] = psis_t
         return psi

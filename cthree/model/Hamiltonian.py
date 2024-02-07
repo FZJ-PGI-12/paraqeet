@@ -57,8 +57,10 @@ class Hamiltonian(Optimisable):
         Return the gradient of each parameter as a list.
         """
         grads = self.__generator.generateSignalGradient(t)
-        grads = grads.reshape((t.shape[0], grads.shape[0], 1, 1))
-        drive = self.__drives[0].reshape((1, 1, ) + self.__drives[0].shape)
+        grads = grads.reshape((t.shape[0], grads.shape[1], 1, 1))
+        drive = self.__drives[0].reshape(
+            (1, 1,) + self.__drives[0].shape
+        )
         return grads * drive
 
     @staticmethod

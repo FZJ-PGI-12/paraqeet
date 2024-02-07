@@ -84,10 +84,13 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return np.array([
-            np.cos(freq * t) * self.__amplitude.getScale(),
-            -amp * t * np.sin(freq * t) * self.__frequency.getScale(),
-        ])
+        return np.stack(
+            [
+                np.cos(freq * t) * self.__amplitude.getScale(),
+                -amp * t * np.sin(freq * t) * self.__frequency.getScale(),
+            ],
+            axis=1,
+        )
 
 
 class CosToneErf(Device):
@@ -155,10 +158,13 @@ class CosToneErf(Device):
         freq = self.__frequency.getValue()
         dc_dAmp = np.cos(freq * t) * self._envelope(t)
         dc_dFreq = -amp * t * np.sin(freq * t) * self._envelope(t)
-        return np.array([
-            self.__amplitude.getScale() * dc_dAmp,
-            self.__frequency.getScale() * dc_dFreq,
-        ])
+        return np.stack(
+            [
+                self.__amplitude.getScale() * dc_dAmp,
+                self.__frequency.getScale() * dc_dFreq,
+            ],
+            axis=1,
+        )
 
 
 class ZeroTone(Device):
@@ -211,13 +217,13 @@ class CosToneAD(CosTone):
         if jnp.shape(t) == ():
             t = jnp.array([t])
 
-        parameter_scales = jnp.array(
-            [[[params[0].getScale()]], [[params[1].getScale()]]]
-        )
+        parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
+        parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
 
-        return jnp.squeeze(
-            jnp.array(self.__gradientFunction(amp, freq, t)) * parameter_scales
+        grads = (
+            jnp.squeeze(jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)) * parameter_scales
         )
+        return grads
 
 
 class CosToneErfAD(CosToneErf):
@@ -276,10 +282,10 @@ class CosToneErfAD(CosToneErf):
         if jnp.shape(t) == ():
             t = jnp.array([t])
 
-        parameter_scales = jnp.array(
-            [[[params[0].getScale()]], [[params[1].getScale()]]]
-        )
+        parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
+        parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
 
-        return jnp.squeeze(
-            jnp.array(self.__gradientFunction(amp, freq, t)) * parameter_scales
+        grads = (
+            jnp.squeeze(jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)) * parameter_scales
         )
+        return grads

@@ -41,4 +41,4 @@ class ClosedModel(Model):
         """
         Compute the gradient of getMatrixEOM.
         """
-        return np.array([-1.0j * h for h in self._hamiltonian.gradient(t)], dtype=np.complex128)
+        return -1.0j * self._hamiltonian.gradient(t)
