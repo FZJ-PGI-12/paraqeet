@@ -1,6 +1,8 @@
+from functools import partial
 from typing import List
 
 import numpy as np
+import jax.numpy as jnp
 
 from cthree.Exceptions import ConfigurationException
 from cthree.Quantity import Quantity
@@ -8,7 +10,8 @@ from cthree.model.Model import Model
 from cthree.propagation.StatePropagation import StatePropagation
 
 from jax.scipy.linalg import expm
-from jax import jit
+from jax import Array, jit
+from jax.lax import scan
 
 
 class ScipyExpm(StatePropagation):
@@ -44,11 +47,6 @@ class ScipyExpm(StatePropagation):
         """
         return []
 
-    @staticmethod
-    @jit
-    def _propagatePsi(eom_matrix, psis_t):
-        return expm(eom_matrix) @ psis_t
-
     def _constructTimes(self, time, ti):
         t0 = time[ti - 1]
         t1 = time[ti]
@@ -60,23 +58,39 @@ class ScipyExpm(StatePropagation):
             dt = times[1] - times[0]
         return times, dt
 
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    @partial(jit, static_argnums=(0,))
+    def _propagateInTime(self, psis_t, eom, steps_arr):
+        """
+        Propagate from `time[ti] to time[ti+1]`.
+        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        """
+
+        def propagateBody(psis_t, index):
+            psis_t = self._propagatePsi(eom[index], psis_t)
+            return psis_t, psis_t
+
+        psis_t, _ = scan(propagateBody, psis_t, steps_arr)
+
+        return psis_t
+
+    @staticmethod
+    @jit
+    def _propagatePsi(eom_matrix, psis_t):
+        return expm(eom_matrix) @ psis_t
+
+    def propagate(self, time: np.ndarray) -> Array:
         """
         Loop over all desired times in time at set resolution.
         """
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = np.array([self._initialState] * len(time), dtype=np.complex128)
-        eom = self._model.getMatrixEOM
+        psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
+        eom_func = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
-            for t in times:
-                # Sampling at the center of the interval.
-                # psis_t = expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt) @ psis_t
-                psis_t = self._propagatePsi(
-                    eom(np.reshape(t, (-1, 1)) + dt / 2)[0] * dt, psis_t
-                )
-            psi[ti] = psis_t
-        return psi
+            eom = eom_func(times + dt / 2) * dt
+            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
+            psi.append(psis_t)
+        return jnp.array(psi)
