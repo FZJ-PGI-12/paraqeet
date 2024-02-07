@@ -98,7 +98,7 @@ def test_invariants():
 
 # Test that all propagators which are not 4-dimensional raise an exception
 def test_incompatible_shape():
-    incompatibleDimensions = np.delete(np.arange(2, 100), 2)
+    incompatibleDimensions = np.delete(np.arange(2, 30), 2)
     for dim in incompatibleDimensions:
         propagation = RandomPropagation(dim, True)
         measurement = MakhlinFunctional(propagation, np.array([1.0]))

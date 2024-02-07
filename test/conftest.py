@@ -1,6 +1,7 @@
 import pytest
 
 import numpy as np
+from scipy.stats import unitary_group
 
 from test.model.DummyModel import DummyModel
 from test.model.EmptyHamiltonian import EmptyHamiltonian
@@ -41,15 +42,14 @@ def randomState():
 
     return _method
 
+
 @pytest.fixture
-def randomMatrix():
+def randomUnitaryMatrix():
     """
-    Returns a method that generates random matrix for given dimensions n and m. The matrix is normalised to have
-    trace 1.
+    Returns a method that generates random unitary matrices for a given dimension.
     """
 
-    def _method(n, m):
-        state = np.random.random(size=(n, m)) + 1j * np.random.random(size=(n, m))
-        return state / np.trace(state)
+    def _method(dim):
+        return unitary_group.rvs(dim)
 
     return _method

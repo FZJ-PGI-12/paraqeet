@@ -54,7 +54,7 @@ class UnitaryFidelity(Measurement):
         states = self.__propagation.propagate(time=self._times)
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
-            overlaps.append(np.vdot(s, states[-1].T[ii]))
+            overlaps.append(np.vdot(s, states[-1, ii]))
         return self.__fid(overlaps)
 
     def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
