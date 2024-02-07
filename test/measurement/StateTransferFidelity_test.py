@@ -57,6 +57,7 @@ def test_incompatible_shape(identityPropagation, randomState):
             with pytest.raises(Exception):
                 StateTransferFidelityAD(identityPropagation, initialState, targetState, np.array([1.0]))
 
+
 def test_no_parameters(identityPropagation, randomState):
     state = randomState(np.random.randint(2, 30))
     measurement = StateTransferFidelity(identityPropagation, state, state, np.array([1.0]))
