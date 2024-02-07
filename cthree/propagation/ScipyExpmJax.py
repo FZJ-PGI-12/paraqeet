@@ -1,10 +1,9 @@
-from typing import List, Tuple
+from typing import Tuple
 import numpy as np
 
 import jax.numpy as jnp
-from jax import jit, vmap
-from jax.lax import scan, dynamic_update_slice
-from jax.scipy.linalg import block_diag
+from jax import jit
+from jax.lax import scan
 from jax import Array
 from functools import partial
 
@@ -36,19 +35,19 @@ class ScipyExpmJax(ScipyExpm):
 
         return psis_t
 
-    def propagate(self, time: np.ndarray) -> List[Array]:
+    def propagate(self, time: np.ndarray) -> Array:
         """
         Overwrite the `propagte` implementation.
         """
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
-        eom_func = vmap(self._model.getMatrixEOM)
+        eom_func = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
-            eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            eom = eom_func(times + dt / 2) * dt
             psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
-        return psi
+        return jnp.array(psi)
 
     def _createSuperState(self, psi, dpsis):
         """
@@ -62,29 +61,28 @@ class ScipyExpmJax(ScipyExpm):
     def _createGOATHam(self, n_params, eom, grads):
         line = [eom]
         zeros_like_eom = jnp.zeros_like(eom)
-        line.extend([zeros_like_eom]*n_params)
+        line.extend([zeros_like_eom] * n_params)
         goat_ham_list = [line]
         for ii, dH_dp in enumerate(grads, start=1):
             line = [dH_dp]
-            line.extend([zeros_like_eom]*(ii-1))
+            line.extend([zeros_like_eom] * (ii - 1))
             line.append(eom)
-            line.extend([zeros_like_eom] *(n_params - ii))
+            line.extend([zeros_like_eom] * (n_params - ii))
             goat_ham_list.append(line)
 
         return jnp.block(goat_ham_list)
 
-
     @partial(jit, static_argnums=(0, 1))
     def _propagateGradient(self, n_params, psis_t, eom, grads, steps_arr):
         def propagateBody(psis_t, index):
-            goat_ham = self._createGOATHam(n_params, eom[index], grads[:, index])
+            goat_ham = self._createGOATHam(n_params, eom[index], grads[index])
             psis_t = self._propagatePsi(goat_ham, psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagateBody, psis_t, steps_arr)
         return psis_t
 
-    def gradient(self, time: np.ndarray) -> Tuple[Array, List[List[Array]]]:
+    def gradient(self, time: np.ndarray) -> Tuple[Array, Array]:
         """
         Solve the GOAT equation for propagating the gradient vectors.
         Compatible with Jax and Jit.
@@ -93,22 +91,22 @@ class ScipyExpmJax(ScipyExpm):
             time (np.ndarray): Array of timesteps
 
         Returns:
-            Tuple[ArrayLike, List[List[ArrayLike]]]: Return the propagated states and gradient vectors.
+            Tuple[ArrayLike, ArrayLike]: Return the propagated states and gradient vectors.
         """
 
-        n_params = len(self._model.gradient(0))
+        n_params = self._model.gradient(jnp.array([0])).shape[1]
         dim = self._initialState.shape[0]
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
         dpsis = [[jnp.zeros_like(self._initialState, dtype=jnp.complex128)] * n_params]
 
-        eom_func = vmap(self._model.getMatrixEOM)
-        grad_func = vmap(self._model.gradient)
+        eom_func = self._model.getMatrixEOM
+        grad_func = self._model.gradient
 
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = self._createSuperState(psi[-1], dpsis[-1])
 
-            eom = eom_func(jnp.reshape(times, (-1, 1)) + dt / 2) * dt
+            eom = eom_func(times + dt / 2) * dt
             grads = jnp.array(grad_func(times + dt / 2)) * dt
 
             psis_t = self._propagateGradient(
@@ -116,6 +114,8 @@ class ScipyExpmJax(ScipyExpm):
             )
             psi.append(psis_t[0:dim])
             dpsis.append(
-                [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+                jnp.array(
+                    [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+                )
             )
-        return psi, dpsis
+        return jnp.array(psi), jnp.array(dpsis)

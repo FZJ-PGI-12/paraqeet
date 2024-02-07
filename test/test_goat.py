@@ -50,8 +50,8 @@ def prop(gen):
 
 @pytest.fixture
 def states(prop):
-    init = np.array([[1.0], [0.0j]])
-    target = np.array([[0.0j], [1]])
+    init = np.array([1.0, 0.0j])
+    target = np.array([0.0j, 1])
     return StateTransferFidelity(
         propagation=prop,
         initialState=init,

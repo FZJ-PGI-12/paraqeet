@@ -16,3 +16,9 @@ class DummyModel(Model):
 
     def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
         return -1.0j * self._hamiltonian.getMatrix(time)
+
+    def gradient(self, t) -> List[np.ndarray]:
+        """
+        Compute the gradient of getMatrixEOM.
+        """
+        return [-1.0j * h for h in self._hamiltonian.gradient(t)]

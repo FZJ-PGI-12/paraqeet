@@ -20,14 +20,16 @@ class Euler(StatePropagation):
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def propagate(self, time: np.ndarray):
+    def propagate(self, time: np.ndarray) -> np.ndarray:
         equationsOfMotion = self._model.getMatrixEOM(time)
 
         dt = time[1:] - time[0:-1]
-        states = []
-        state = self._initialState.copy()
+        shape1 = (len(time), )
+        shape2 = self._initialState.shape
+        shape = shape1 + shape2
+        states = np.zeros(shape=shape)
+        states[0] = self._initialState
         for i in range(len(dt) - 1):
-            state += dt[i] * equationsOfMotion[i]
-            states.append(state)
+            states[i+1] = states[i] + dt[i] * equationsOfMotion[i] @ states[i]
 
         return states

@@ -60,14 +60,14 @@ class ScipyExpm(StatePropagation):
             dt = times[1] - times[0]
         return times, dt
 
-    def propagate(self, time: np.ndarray) -> List[np.ndarray]:
+    def propagate(self, time: np.ndarray) -> np.ndarray:
         """
         Loop over all desired times in time at set resolution.
         """
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = [self._initialState] * len(time)
+        psi = np.array([self._initialState] * len(time), dtype=np.complex128)
         eom = self._model.getMatrixEOM
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
@@ -76,7 +76,7 @@ class ScipyExpm(StatePropagation):
                 # Sampling at the center of the interval.
                 # psis_t = expm(eom(np.reshape(t, (-1, 1)) + dt / 2) * dt) @ psis_t
                 psis_t = self._propagatePsi(
-                    eom(np.reshape(t, (-1, 1)) + dt / 2) * dt, psis_t
+                    eom(np.reshape(t, (-1, 1)) + dt / 2)[0] * dt, psis_t
                 )
             psi[ti] = psis_t
         return psi

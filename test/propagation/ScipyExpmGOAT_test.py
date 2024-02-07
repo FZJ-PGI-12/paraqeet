@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from cthree.propagation.ScipyExpm import ScipyExpm
+from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from test.model.DummyModel import DummyModel
 from test.model.EmptyHamiltonian import EmptyHamiltonian
 
@@ -9,7 +9,7 @@ from test.model.EmptyHamiltonian import EmptyHamiltonian
 @pytest.fixture
 def expm():
     def _method(dimension, res):
-        return ScipyExpm(DummyModel(EmptyHamiltonian(dimension)), res=res)
+        return ScipyExpmGOAT(DummyModel(EmptyHamiltonian(dimension)), res=res)
     return _method
 
 

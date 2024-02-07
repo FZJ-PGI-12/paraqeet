@@ -14,7 +14,7 @@ class ScipyExpmGOAT(ScipyExpm):
     _res: float
     _initialState: np.ndarray = None
 
-    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, List[List[np.ndarray]]]:
+    def gradient(self, time: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
@@ -24,12 +24,12 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        List[List[np.ndarray]]
-            Outer list dimension is parameter, inner list dimension is time.
+        np.ndarray
+            first dimension is time, second dimension is the parameter
         """
         eom = self._model.getMatrixEOM
 
-        n_params = len(self._model.gradient(0))
+        n_params = self._model.gradient(np.array([0])).shape[1]
 
         psi = [self._initialState]
         dpsis = [[np.zeros_like(self._initialState)] * n_params]
@@ -41,11 +41,11 @@ class ScipyExpmGOAT(ScipyExpm):
             psis_t = np.concatenate(superState)
             for t in times:
                 # Sampling at the center of the interval.
-                hamiltonian = eom(np.reshape(t, (-1, 1)) + dt / 2)
-                dim = hamiltonian.shape[0]
+                hamiltonian = eom(np.reshape(t, (-1, 1)) + dt / 2)[0]
+                dim = self._initialState.shape[0]
 
                 # Get the gradients of the MatrixEOM
-                EOM_grad = self._model.gradient(t + dt / 2)
+                EOM_grad = self._model.gradient(np.reshape(t, (-1, 1)) + dt / 2)[0]
 
                 line = [hamiltonian]
                 line.extend([np.zeros_like(hamiltonian)] * n_params)
@@ -63,4 +63,4 @@ class ScipyExpmGOAT(ScipyExpm):
             dpsis.append(
                 [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
             )
-        return psi, dpsis
+        return np.array(psi), np.array(dpsis)
