@@ -9,10 +9,8 @@ from jax.scipy.special import erf
 
 import jax
 import jax.numpy as jnp
-from jax import grad, vmap, jit
+from jax import Array, grad, vmap, jit
 from functools import partial
-
-from jax.typing import ArrayLike
 
 jax.config.update("jax_enable_x64", True)
 
@@ -73,12 +71,12 @@ class CosTone(Device):
         """
         return amp * jnp.cos(freq * t)
 
-    def computeOutput(self, t: np.ndarray) -> np.ndarray:
+    def computeOutput(self, t: np.ndarray) -> Array:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
-    def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Returns the gradient wrt dimensionless parameters.
         """
@@ -146,12 +144,12 @@ class CosToneErf(Device):
         """
         return self._envelope(t) * amp * jnp.cos(freq * t)
 
-    def computeOutput(self, t: np.ndarray) -> np.ndarray:
+    def computeOutput(self, t: np.ndarray) -> Array:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
-    def computeGradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Returns the gradient wrt dimensionless parameters.
         """
@@ -173,8 +171,8 @@ class ZeroTone(Device):
     Create a zero tone.
     """
 
-    def computeOutput(self, t: np.ndarray) -> np.ndarray:
-        return np.zeros_like(t)
+    def computeOutput(self, t: np.ndarray) -> Array:
+        return jnp.zeros_like(t)
 
 
 class CosToneAD(CosTone):
@@ -203,7 +201,7 @@ class CosToneAD(CosTone):
         """
         return jnp.squeeze(amp * jnp.cos(freq * t))
 
-    def computeGradient(self, t: np.ndarray) -> ArrayLike:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
         """
@@ -267,7 +265,7 @@ class CosToneErfAD(CosToneErf):
         """
         return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
 
-    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+    def computeGradient(self, t: np.ndarray) -> Array:
         """
         Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
         """

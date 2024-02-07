@@ -7,7 +7,7 @@ from cthree.Exceptions import IncompatibleLayersException
 
 import jax
 import jax.numpy as jnp
-from jax import grad, jit
+from jax import Array, grad, jit
 from jax.typing import ArrayLike
 
 jax.config.update("jax_enable_x64", True)
@@ -50,7 +50,7 @@ class StateTransferFidelity(Measurement):
         f = jnp.vdot(self.__targetState, final_state)
         return self._fid(f)
 
-    def measureWithGradient(self) -> Tuple[ArrayLike, ArrayLike]:
+    def measureWithGradient(self) -> Tuple[Array, Array]:
         """
         Compute function value and corresponding gradient.
 
@@ -93,7 +93,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         self.__propagation.setInitialState(self.__initialState)
         self.__gradientFunction = None
 
-    def measureWithGradient(self) -> Tuple[ArrayLike, ArrayLike]:
+    def measureWithGradient(self) -> Tuple[Array, Array]:
         """
         Overwrite inherited `measureWithGradient` to calculate gradients using AD.
         """

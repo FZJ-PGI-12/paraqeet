@@ -1,10 +1,12 @@
 from typing import List
-from cthree.Quantity import Quantity
 
+import numpy as np
+import jax.numpy as jnp
+from jax import Array
+
+from cthree.Quantity import Quantity
 from cthree.signal.Device import Device
 from cthree.signal.Generator import Generator
-
-import jax.numpy as jnp
 
 
 class CosGenerator(Generator):
@@ -17,7 +19,7 @@ class CosGenerator(Generator):
     def __init__(self, devices: List | None):
         self.__devices = devices or []
 
-    def generateSignal(self, t):
+    def generateSignal(self, t: np.ndarray) -> Array:
         """
         Generate a signal for time(s) t.
         """
