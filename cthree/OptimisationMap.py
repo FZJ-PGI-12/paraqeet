@@ -99,6 +99,5 @@ class OptimisationMap:
             self.__optimisableToParameterMap[key] = list(filtered)
         self.__optimisableToParameterMap = dict((k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0)
 
-
     def filterByName(self, name: str):
         return self.filterParameters(lambda quantity: quantity.getName() == name)
