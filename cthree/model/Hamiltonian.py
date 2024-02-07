@@ -52,7 +52,7 @@ class Hamiltonian(Optimisable):
     def getParameters(self) -> List[Quantity]:
         return []
 
-    def gradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def gradient(self, t: np.ndarray) -> np.ndarray:
         """
         Return the gradient of each parameter as a list.
         """

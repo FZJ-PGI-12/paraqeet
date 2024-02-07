@@ -29,7 +29,7 @@ class ScipyExpmGOAT(ScipyExpm):
         """
         eom = self._model.getMatrixEOM
 
-        n_params = len(self._model.gradient(np.array([0])))
+        n_params = self._model.gradient(np.array([0])).shape[1]
 
         psi = [self._initialState]
         dpsis = [[np.zeros_like(self._initialState)] * n_params]
@@ -41,11 +41,11 @@ class ScipyExpmGOAT(ScipyExpm):
             psis_t = np.concatenate(superState)
             for t in times:
                 # Sampling at the center of the interval.
-                hamiltonian = eom(np.reshape(t, (-1, 1)) + dt / 2)
+                hamiltonian = eom(np.reshape(t, (-1, 1)) + dt / 2)[0]
                 dim = self._initialState.shape[0]
 
                 # Get the gradients of the MatrixEOM
-                EOM_grad = self._model.gradient(np.reshape(t, (-1, 1)) + dt / 2)
+                EOM_grad = self._model.gradient(np.reshape(t, (-1, 1)) + dt / 2)[0]
 
                 line = [hamiltonian]
                 line.extend([np.zeros_like(hamiltonian)] * n_params)
@@ -58,7 +58,7 @@ class ScipyExpmGOAT(ScipyExpm):
                     line.extend([np.zeros_like(hamiltonian)] * (n_params - ii))
                     goat_ham_list.append(line)
 
-                psis_t = self._propagatePsi(np.block(goat_ham_list) * dt, psis_t)[0]
+                psis_t = self._propagatePsi(np.block(goat_ham_list) * dt, psis_t)
             psi.append(psis_t[0:dim])
             dpsis.append(
                 [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
