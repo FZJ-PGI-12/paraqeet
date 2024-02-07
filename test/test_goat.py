@@ -6,7 +6,6 @@ from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
 
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
-from cthree.propagation.ScipyExpmJax import ScipyExpmJax
 
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
@@ -138,7 +137,7 @@ def propAD(genAD):
     drift = FREQ / 2 * sigmaZ
     controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=genAD)
     model = ClosedModel(controlled_qubit)
-    return ScipyExpmJax(model=model, res=RES)
+    return ScipyExpmGOAT(model=model, res=RES)
 
 
 @pytest.fixture
