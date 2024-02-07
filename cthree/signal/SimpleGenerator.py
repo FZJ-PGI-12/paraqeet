@@ -1,5 +1,4 @@
 from typing import List
-import numpy as np
 from cthree.Quantity import Quantity
 
 from cthree.signal.Device import Device
@@ -22,9 +21,9 @@ class CosGenerator(Generator):
         """
         Generate a signal for time(s) t.
         """
-        sig = np.zeros_like(t)
+        sig = jnp.zeros_like(t)
         for dev in self.__devices:
-            sig += np.reshape(dev.computeOutput(t), sig.shape)
+            sig += jnp.reshape(dev.computeOutput(t), sig.shape)
         return sig
 
     def generateSignalGradient(self, t):
@@ -35,24 +34,3 @@ class CosGenerator(Generator):
         for dev in self.__devices:
             pars.extend(dev.getParameters())
         return pars
-
-
-class CosGeneratorAD(CosGenerator):
-    """
-    JAX numpy based CosGenerator
-    """
-
-    __devices: List[Device]
-
-    def __init__(self, devices: List | None):
-        super().__init__(devices)
-        self.__devices = devices or []
-
-    def generateSignal(self, t):
-        """
-        Overwrite the `generateSignal` method with jnp
-        """
-        sig = jnp.zeros_like(t)
-        for dev in self.__devices:
-            sig += jnp.reshape(dev.computeOutput(t), sig.shape)
-        return sig

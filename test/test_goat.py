@@ -14,7 +14,6 @@ from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
 
 from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.SimpleGenerator import CosGeneratorAD
 
 from cthree.signal.Device import CosToneErf
 
@@ -126,7 +125,7 @@ def toneAD():
 
 @pytest.fixture
 def genAD(toneAD):
-    genAD = CosGeneratorAD(devices=[toneAD])
+    genAD = CosGenerator(devices=[toneAD])
     return genAD
 
 

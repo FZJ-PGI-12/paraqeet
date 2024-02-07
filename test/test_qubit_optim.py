@@ -3,7 +3,7 @@ import numpy as np
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.propagation.ScipyExpmJax import ScipyExpmJax
+from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.CMAEsOptimiser import CMAEsOptimiser
 from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
@@ -11,12 +11,12 @@ from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.Hamiltonian import Hamiltonian
 
-from cthree.signal.SimpleGenerator import CosGeneratorAD
-from cthree.signal.Device import CosToneAD
+from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.Device import CosTone
 
 
-tone = CosToneAD()
-gen = CosGeneratorAD(devices=[tone])
+tone = CosTone()
+gen = CosGenerator(devices=[tone])
 params = tone.getParameters()
 
 FREQ = 4.8e9 * 2 * np.pi
@@ -33,7 +33,7 @@ drift = FREQ / 2 * sigmaZ
 controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=gen)
 model = ClosedModel(controlled_qubit)
 
-prop = ScipyExpmJax(model, res=100e9)
+prop = ScipyExpmGOAT(model, res=100e9)
 
 init = np.array([[1.0], [0]])
 target = np.array([[0.0], [1]])
