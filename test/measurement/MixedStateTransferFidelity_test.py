@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from cthree.measurement.MixedStateTransferFidelity import MixedStateTransferFidelity
 from test.propagation.IdentityPropagation import IdentityPropagation
@@ -38,3 +39,19 @@ def test_vector_equality():
             )
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0, decimal=2)
+
+
+# Test that propagators which have a different dimension than the target state raise an exception
+def test_incompatible_shape():
+    allDims = np.arange(2, 30)
+    for dim in allDims:
+        for i in range(100):
+            targetState = randomMixedState(dim)
+
+            # create a propagator of a different dimension
+            dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
+            propagation = RandomPropagation(np.random.choice(dimensions), True)
+
+            measurement = MixedStateTransferFidelity(propagation, targetState, np.array([1.0]))
+            with pytest.raises(Exception):
+                measurement.measure()
