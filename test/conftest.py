@@ -53,3 +53,20 @@ def randomUnitaryMatrix():
         return unitary_group.rvs(dim)
 
     return _method
+
+
+@pytest.fixture
+def randomBasisVectors():
+    """
+        Returns a method that generates N vectors, each with 0 everywhere except a 1 at a random index. All vectors will
+        be orthogonal.
+        """
+
+    def _method(dim, N):
+        v = np.zeros((N, dim))
+        indices = np.random.choice(np.arange(0, dim), N, replace=False)
+        for i in range(N):
+            v[i, indices[i]] = 1
+        return v
+
+    return _method
