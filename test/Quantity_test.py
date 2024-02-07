@@ -162,7 +162,13 @@ def testNoInput():
     Trying to instantiate without any parameters.
     """
     with pytest.raises(Exception):
-        Quantity(5)
+        Quantity(np.random.random())
+    with pytest.raises(Exception):
+        Quantity()
+    with pytest.raises(Exception):
+        Quantity(np.random.random(), min_value=np.random.random(), max_value=None)
+    with pytest.raises(Exception):
+        Quantity(np.random.random(), min_value=None, max_value=np.random.random())
 
 
 def testOutOfBounds():
@@ -186,11 +192,33 @@ def testArithmetic(five, three):
 
 
 def testStr(five):
-    str(five) == "5"
     volts = Quantity(0.005, 0, 1, unit="V")
     assert str(volts) == "5.0 mV "
     resist = Quantity(2100, 0, 2500, unit="Ohm")
     assert str(resist) == "2.1 KOhm "
+
+
+def testIsScalarOrVector():
+    for i in range(20):
+        q = __generateRandomQuantity(1)
+        assert q.isScalar()
+        assert not q.isVector()
+
+    for dim in range(2, 100):
+        for i in range(20):
+            q = __generateRandomQuantity(dim)
+            assert q.isVector()
+            assert not q.isScalar()
+
+            v = __generateRandomMatrix(dim)
+            q2 = Quantity(v, v - 1, v + 1)
+            assert not q2.isVector()
+            assert not q2.isScalar()
+
+
+def __generateRandomMatrix(N: int) -> np.ndarray:
+    magnitude = np.power(10.0, np.random.randint(-10, 10))
+    return (2 * np.random.random((N, N)) - 1) * magnitude
 
 
 # helper functions
