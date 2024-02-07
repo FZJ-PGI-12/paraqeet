@@ -56,7 +56,7 @@ def test_incompatible_shape(identityPropagation, randomUnitaryMatrix):
                 measurement.measure()
 
 
-def test_no_parameters(identityPropagation, randomState):
-    state = randomState(np.random.randint(2, 30))
-    measurement = UnitaryFidelity(identityPropagation, state, state, np.array([1.0]))
+def test_no_parameters(identityPropagation, randomUnitaryMatrix):
+    state = randomUnitaryMatrix(np.random.randint(2, 30))
+    measurement = UnitaryFidelity(identityPropagation, state, np.array([1.0]))
     assert measurement.getParameters() == []

@@ -47,6 +47,20 @@ def randomState():
 
 
 @pytest.fixture
+def randomMatrix():
+    """
+    Returns a method that generates random matrix for given dimensions n and m. The matrix is normalised to have
+    trace 1.
+    """
+
+    def _method(n, m):
+        state = np.random.random(size=(n, m)) + 1j * np.random.random(size=(n, m))
+        return state / np.trace(state)
+
+    return _method
+
+
+@pytest.fixture
 def randomUnitaryMatrix():
     """
     Returns a method that generates random unitary matrices for a given dimension.

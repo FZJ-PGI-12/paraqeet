@@ -2,6 +2,7 @@ import numpy as np
 
 from typing import List, Tuple
 
+from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 
@@ -40,6 +41,9 @@ class UnitaryFidelity(Measurement):
         self._times = times
         self.setIdealGate(gate)
 
+    def getParameters(self) -> List[Quantity]:
+        return []
+
     @staticmethod
     def __fid(overlaps: List) -> np.ndarray:
         """
@@ -72,14 +76,14 @@ class UnitaryFidelity(Measurement):
 
         overlaps = []
         for ii, s in enumerate(self.__target_costates):
-            overlaps.append(np.vdot(s, states[-1].T[ii]))
+            overlaps.append(np.vdot(s, states[-1, ii]))
         f = np.average(overlaps)
 
         dF_dp = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
             for ii, s in enumerate(self.__target_costates):
-                gs.append(np.vdot(s, dg_dp.T[ii]))
+                gs.append(np.vdot(s, dg_dp[ii]))
             g = np.average(gs)
             dF_dp.append(np.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
         return self.__fid(overlaps), np.array(dF_dp)  # shape scalar, (n_parameters,)
@@ -91,4 +95,4 @@ class UnitaryFidelity(Measurement):
         if self.__basis_states is None:
             self.__target_costates = gate
         else:
-            self.__target_costates = gate @ self.__basis_states.conj().T
+            self.__target_costates = self.__basis_states.conj() @ gate
