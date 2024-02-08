@@ -28,7 +28,8 @@ class CosGenerator(Generator):
             sig += jnp.reshape(dev.computeOutput(t), sig.shape)
         return sig
 
-    def generateSignalGradient(self, t):
+    def generateSignalGradient(self, t) -> Array:
+        # TODO
         return self.__devices[0].computeGradient(t)
 
     def getParameters(self) -> List[Quantity]:

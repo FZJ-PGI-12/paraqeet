@@ -24,6 +24,10 @@ class Device(Optimisable):
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
+    @abstractmethod
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+        raise NotImplementedError()
+
     def _computeGradientFunction(
         self, signalFunction: Callable, argnums: tuple[int, ...], vmap_axes: tuple
     ) -> Callable:
@@ -60,7 +64,7 @@ class CosTone(Device):
         return [self.__amplitude, self.__frequency]
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp, freq, t):
+    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray) -> Array:
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
@@ -133,7 +137,7 @@ class CosToneErf(Device):
         return rampUp * rampDown / 4
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp, freq, t):
+    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray):
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
