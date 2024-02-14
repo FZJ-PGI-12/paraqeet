@@ -35,6 +35,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             bounds=[(-1, 1)] * self._opt_idxs[-1],
             method=self._method,
             options=self._options,
+            callback=self._callback,
         )
 
         if self._logger:

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Callable, Dict
 from cthree.FileLogger import Logger
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.Measurement import Measurement
@@ -43,6 +43,7 @@ class CMAEsOptimiser(Optimiser):
             "batch_noise": 0,
             "init_point": False,
             "spread": 0.1,
+            "bounds": [-1.0, 1],
         }
 
     def getOptions(self) -> Dict:
@@ -50,6 +51,9 @@ class CMAEsOptimiser(Optimiser):
 
     def setOptions(self, opts):
         self._options.update(opts)
+
+    def setCallback(self, cbfun: Callable) -> None:
+        self._callback = cbfun
 
     def optimise(self) -> cma.CMAEvolutionStrategyResult:
         options = {}
@@ -131,6 +135,7 @@ class CMAEsOptimiser(Optimiser):
             es.disp()
 
             iter += 1
+            self._callback(samples)
 
         if self._logger:
             self._logger.stop(es.result_pretty())
