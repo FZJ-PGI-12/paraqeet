@@ -5,11 +5,6 @@ from cthree.Quantity import Quantity
 import numpy as np
 import numpy.testing as testing
 
-"""
-properties: __repr__, __str__
-arithmetic: add, subtract
-"""
-
 
 @pytest.fixture
 def five():
@@ -24,7 +19,7 @@ def three():
 # getter and setter
 
 
-def testGet() -> None:
+def testGet(randomQuantityForValues) -> None:
     """
     Tests get_value, get_min_value, and get_max_value
     """
@@ -33,13 +28,13 @@ def testGet() -> None:
         values = (2 * np.random.random(N) - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q = __generateQuantity(values)
+        q = randomQuantityForValues(values)
         testing.assert_allclose(q.getValue(), values)
         testing.assert_array_less(q.getMinValue(), q.getValue())
         testing.assert_array_less(q.getValue(), q.getMaxValue())
 
 
-def testSet() -> None:
+def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
     """
     Tests setValue, setMinValue, and setMaxValue
     """
@@ -48,7 +43,7 @@ def testSet() -> None:
         values = (2 * np.random.random(N) - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q = __generateQuantity(values)
+        q = randomQuantityForValues(values)
         oldMin = q.getMinValue()
         oldMax = q.getMaxValue()
 
@@ -60,7 +55,7 @@ def testSet() -> None:
         testing.assert_allclose(q.getMaxValue(), oldMax)
 
         # set new limits and check that the values stay unchanged
-        newLimits = __generateRandomLimits(newValues)
+        newLimits = randomLimitsForQuantity(newValues)
         q.setLimits(*newLimits)
         testing.assert_allclose(q.getMinValue(), newLimits[0])
         testing.assert_allclose(q.getMaxValue(), newLimits[1])
@@ -68,46 +63,46 @@ def testSet() -> None:
         testing.assert_array_less(q.getValue(), q.getMaxValue())
 
 
-def testGetItem() -> None:
+def testGetItem(randomQuantityForValues) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q = __generateQuantity(values)
+        q = randomQuantityForValues(values)
         for i in range(len(q)):
             testing.assert_almost_equal(q[i], values[i])
 
 
-def testLen() -> None:
+def testLen(randomQuantityForValues) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q = __generateQuantity(values)
+        q = randomQuantityForValues(values)
         testing.assert_almost_equal(len(q), N)
 
 
 # conversion
-def testFloat() -> None:
+def testFloat(randomQuantityForValues) -> None:
     for i in range(100):
         value = (2 * np.random.random(1) - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q = __generateQuantity(value)
+        q = randomQuantityForValues(value)
         testing.assert_almost_equal(float(q), value)
 
 
-def testToArray() -> None:
+def testToArray(randomQuantityForValues) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q = __generateQuantity(values)
+        q = randomQuantityForValues(values)
         testing.assert_array_almost_equal(np.array(q), values)
 
 
 # comparison
-def testComparisons() -> None:
+def testComparisons(randomQuantityForValues) -> None:
     """
     Tests __lt__, __le__, __gt__, and __ge__ for scalar quantities.
     """
@@ -116,8 +111,8 @@ def testComparisons() -> None:
         value = (2 * np.random.random() - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q1 = __generateQuantity(value)
-        q2 = __generateQuantity(2 * np.abs(value))
+        q1 = randomQuantityForValues(value)
+        q2 = randomQuantityForValues(2 * np.abs(value))
 
         assert q2 > q1
         assert q2 >= q1
@@ -127,7 +122,7 @@ def testComparisons() -> None:
         assert q1 >= q1
 
 
-def testEquality() -> None:
+def testEquality(randomQuantityForValues) -> None:
     """
     Tests __eq__ and __ne__ for scalar quantities.
     """
@@ -136,8 +131,8 @@ def testEquality() -> None:
         value = (2 * np.random.random() - 1) * np.power(
             10.0, np.random.randint(-10, 10)
         )
-        q1 = __generateQuantity(value)
-        q2 = __generateQuantity(1.2 * np.abs(value))
+        q1 = randomQuantityForValues(value)
+        q2 = randomQuantityForValues(1.2 * np.abs(value))
 
         assert q1 != q2
         assert q2 != q1
@@ -147,8 +142,8 @@ def testEquality() -> None:
         testing.assert_almost_equal(q1, q1.getValue())
 
 
-def testEqualityById():
-    q1 = __generateRandomQuantity(1)
+def testEqualityById(randomQuantity):
+    q1 = randomQuantity(1)
     q2 = Quantity(q1.getValue(), q1.getMinValue(), q1.getMaxValue(), q1.getUnit())
     assert q1 == q2
     assert q1 is not q2
@@ -162,7 +157,13 @@ def testNoInput():
     Trying to instantiate without any parameters.
     """
     with pytest.raises(Exception):
-        Quantity(5)
+        Quantity(np.random.random())
+    with pytest.raises(Exception):
+        Quantity()
+    with pytest.raises(Exception):
+        Quantity(np.random.random(), min_value=np.random.random(), max_value=None)
+    with pytest.raises(Exception):
+        Quantity(np.random.random(), min_value=None, max_value=np.random.random())
 
 
 def testOutOfBounds():
@@ -186,60 +187,30 @@ def testArithmetic(five, three):
 
 
 def testStr(five):
-    str(five) == "5"
     volts = Quantity(0.005, 0, 1, unit="V")
     assert str(volts) == "5.0 mV "
     resist = Quantity(2100, 0, 2500, unit="Ohm")
     assert str(resist) == "2.1 KOhm "
 
 
-# helper functions
-def __generateRandomQuantity(N: int) -> Quantity:
-    """
-    Generates a quantity with N positive and negative numbers, each with the same order of magnitude which is chosen
-    randomly between 1e-10 and 1e10.
-    """
+def testIsScalarOrVector(randomQuantity):
+    for i in range(20):
+        q = randomQuantity(1)
+        assert q.isScalar()
+        assert not q.isVector()
+
+    for dim in range(2, 100):
+        for i in range(20):
+            q = randomQuantity(dim)
+            assert q.isVector()
+            assert not q.isScalar()
+
+            v = __generateRandomMatrix(dim)
+            q2 = Quantity(v, v - 1, v + 1)
+            assert not q2.isVector()
+            assert not q2.isScalar()
+
+
+def __generateRandomMatrix(N: int) -> np.ndarray:
     magnitude = np.power(10.0, np.random.randint(-10, 10))
-    values = (2 * np.random.random(N) - 1) * magnitude
-    return __generateQuantity(values)
-
-
-def __generateQuantity(values: np.array) -> Quantity:
-    """
-    Generates a quantity from the given array of values, making sure that the limits are set correctly.
-    """
-    limits = __generateRandomLimits(values)
-    return Quantity(values, min_value=limits[0], max_value=limits[1], unit="")
-
-
-def __generateRandomLimits(values: np.array) -> Tuple:
-    """
-    Returns random but valid minimum and maximum values for the given value array while taking acount for negative
-    values.
-    """
-    if len(values.shape) == 0:
-        # scalar quantity
-        if values == 0.0:
-            min_value = -1
-            max_value = +1
-        elif values < 0:
-            min_value = (np.random.random() + 1) * values
-            max_value = np.random.random() * values
-        else:
-            min_value = np.random.random() * values
-            max_value = (np.random.random() + 1) * values
-        return min_value, max_value
-    else:
-        # list quantity
-        min_values, max_values = np.zeros_like(values), np.zeros_like(values)
-        for i, v in enumerate(values):
-            if v == 0.0:
-                min_values[i] = -1
-                max_values[i] = +1
-            elif v < 0:
-                min_values[i] = (np.random.random() + 1) * v
-                max_values[i] = np.random.random() * v
-            else:
-                min_values[i] = np.random.random() * v
-                max_values[i] = (np.random.random() + 1) * v
-        return min_values, max_values
+    return (2 * np.random.random((N, N)) - 1) * magnitude

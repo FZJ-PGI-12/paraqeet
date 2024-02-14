@@ -17,13 +17,6 @@ class Measurement(Optimisable):
         self._times = times
 
     @abstractmethod
-    def getParameters(self) -> List[Quantity]:
-        """
-        Return a list of parameters accessible in this measurement.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def measure(self) -> np.ndarray:
         """
         Measures the observable and returns the value. This function must be implemented by subclasses.
