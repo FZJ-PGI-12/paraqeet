@@ -35,7 +35,11 @@ class CMAEsOptimiser(Optimiser):
     _options: Dict
 
     def __init__(
-        self, measure: Measurement, optimisables: OptimisationMap, logger: Logger = None
+        self,
+        measure: Measurement,
+        optimisables: OptimisationMap,
+        logger: Logger = None,
+        callback: Callable = None,
     ):
         super().__init__(measure, optimisables, logger)
         self._options = {
@@ -45,6 +49,7 @@ class CMAEsOptimiser(Optimiser):
             "spread": 0.1,
             "bounds": [-1.0, 1],
         }
+        self.setCallback(callback)
 
     def getOptions(self) -> Dict:
         return self._options
@@ -135,7 +140,8 @@ class CMAEsOptimiser(Optimiser):
             es.disp()
 
             iter += 1
-            self._callback(samples)
+            if self._callback is not None:
+                self._callback(samples)
 
         if self._logger:
             self._logger.stop(es.result_pretty())
