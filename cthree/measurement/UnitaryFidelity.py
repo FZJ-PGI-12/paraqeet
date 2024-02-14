@@ -37,6 +37,8 @@ class UnitaryFidelity(Measurement):
         self.__propagation = propagation
         if basis_states is not None:
             self.__propagation.setInitialState(basis_states)
+        else:
+            basis_states = np.eye(gate.shape[0])
         self.__basis_states = basis_states
         self._times = times
         self.setIdealGate(gate)
@@ -57,8 +59,8 @@ class UnitaryFidelity(Measurement):
         """
         states = self.__propagation.propagate(time=self._times)
         overlaps = []
-        for ii, s in enumerate(self.__target_costates):
-            overlaps.append(np.vdot(s, states[-1, ii]))
+        for ii, s in enumerate(self.__target_costates.T):
+            overlaps.append(np.vdot(s, states[-1][:, ii]))
         return self.__fid(overlaps)
 
     def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -73,20 +75,21 @@ class UnitaryFidelity(Measurement):
         states, dg_dp_list = self.__propagation.gradient(
             time=self._times
         )  # gradient of states wrt parameters
-
         overlaps = []
-        for ii, s in enumerate(self.__target_costates):
-            overlaps.append(np.vdot(s, states[-1, ii]))
+        for ii, s in enumerate(self.__target_costates.T):
+            overlaps.append(np.vdot(s, states[-1][:, ii]))
         f = np.average(overlaps)
 
         dF_dp = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
-            for ii, s in enumerate(self.__target_costates):
-                gs.append(np.vdot(s, dg_dp[ii]))
+            for ii, s in enumerate(self.__target_costates.T):
+                gs.append(np.vdot(s, dg_dp[:, ii]))
             g = np.average(gs)
             dF_dp.append(np.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
-        return self.__fid(overlaps), np.array(dF_dp)  # shape scalar, (n_parameters,)
+
+        fid = self.__fid(overlaps)
+        return fid, np.array(dF_dp)  # shape scalar, (n_parameters,)
 
     def setIdealGate(self, gate):
         """
@@ -95,4 +98,4 @@ class UnitaryFidelity(Measurement):
         if self.__basis_states is None:
             self.__target_costates = gate
         else:
-            self.__target_costates = self.__basis_states.conj() @ gate
+            self.__target_costates = self.__basis_states @ gate
