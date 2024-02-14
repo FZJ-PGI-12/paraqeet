@@ -45,20 +45,6 @@ def randomState():
 
 
 @pytest.fixture
-def randomSubBasis():
-    """
-    Returns a method that generates random subspace vectors, i.e. a rectangular
-    matrix, built from column vectors of a given dimension.
-    """
-
-    def _method(dimension, num_states):
-        shape = (dimension, num_states)
-        return np.exp(1j * np.random.random(shape)) / np.sqrt(dimension)
-
-    return _method
-
-
-@pytest.fixture
 def randomMatrix():
     """
     Returns a method that generates random matrix for given dimensions n and m. The matrix is normalised to have
@@ -92,10 +78,10 @@ def randomBasisVectors():
     """
 
     def _method(dim, N):
-        v = np.zeros((N, dim))
+        v = np.zeros((dim, N))
         indices = np.random.choice(np.arange(0, dim), N, replace=False)
         for i in range(N):
-            v[i, indices[i]] = 1
+            v[indices[i], i] = 1
         return v
 
     return _method
