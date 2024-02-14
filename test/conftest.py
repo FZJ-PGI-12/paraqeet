@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import pytest
 
 import numpy as np
@@ -47,6 +45,20 @@ def randomState():
 
 
 @pytest.fixture
+def randomSubBasis():
+    """
+    Returns a method that generates random subspace vectors, i.e. a rectangular
+    matrix, built from column vectors of a given dimension.
+    """
+
+    def _method(dimension, num_states):
+        shape = (dimension, num_states)
+        return np.exp(1j * np.random.random(shape)) / np.sqrt(dimension)
+
+    return _method
+
+
+@pytest.fixture
 def randomMatrix():
     """
     Returns a method that generates random matrix for given dimensions n and m. The matrix is normalised to have
@@ -75,9 +87,9 @@ def randomUnitaryMatrix():
 @pytest.fixture
 def randomBasisVectors():
     """
-        Returns a method that generates N vectors, each with 0 everywhere except a 1 at a random index. All vectors will
-        be orthogonal.
-        """
+    Returns a method that generates N vectors, each with 0 everywhere except a 1 at a random index. All vectors will
+    be orthogonal.
+    """
 
     def _method(dim, N):
         v = np.zeros((N, dim))
@@ -96,6 +108,7 @@ def randomQuantity(randomQuantityForValues):
     Generates a quantity with N positive and negative numbers, each with the same order of magnitude which is chosen
     randomly between 1e-10 and 1e10.
     """
+
     def _method(N: int):
         magnitude = np.power(10.0, np.random.randint(-10, 10))
         values = (2 * np.random.random(N) - 1) * magnitude

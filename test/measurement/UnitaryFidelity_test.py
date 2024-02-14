@@ -22,7 +22,9 @@ def test_positivity(randomUnitaryMatrix, randomBasisVectors):
             assert 0.0 <= m
 
             basisStates = randomBasisVectors(dim, np.random.randint(1, dim))
-            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]), basisStates)
+            measurement = UnitaryFidelity(
+                propagation, gate, np.array([1.0]), basisStates
+            )
             m = measurement.measure()
             assert 0.0 <= m
 
@@ -36,6 +38,20 @@ def test_equality(identityPropagation, randomUnitaryMatrix):
             propagation = IdentityPropagation()
             propagation.setInitialState(gate)
             measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
+            m = measurement.measure()
+            np.testing.assert_almost_equal(m, 1.0)
+
+
+def test_projection(identityPropagation, randomSubBasis):
+    for dim in range(2, 30):
+        for i in range(100):
+            gate = np.eye(dim)
+            init_state = randomSubBasis(dim + 4, dim)
+            propagation = identityPropagation
+            propagation.setInitialState(gate)
+            measurement = UnitaryFidelity(
+                propagation, gate, np.array([1.0]), basis_states=init_state
+            )
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
 

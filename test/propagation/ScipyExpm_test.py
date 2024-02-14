@@ -11,6 +11,7 @@ from test.model.EmptyHamiltonian import EmptyHamiltonian
 def expm():
     def _method(dimension, res):
         return ScipyExpm(DummyModel(EmptyHamiltonian(dimension)), res=res)
+
     return _method
 
 
@@ -27,7 +28,6 @@ def test_resolution(expm):
         assert propagation.getResolution() == resolution
 
 
-
 # test that the dimension and norm of state vectors is the same after propagation
 def test_state_dimension_vector(randomState, expm, ts):
     for i in range(10):
@@ -42,13 +42,15 @@ def test_state_dimension_vector(randomState, expm, ts):
 
 def test_state_dimension_matrix(randomMatrix, expm, ts):
     for i in range(10):
-        dim = np.random.randint(2, 30)
-        state = randomMatrix(dim, dim)
+        basis = np.random.randint(2, 30)
+        dim = basis + np.random.randint(1, 3)
+        state = randomMatrix(dim, basis)  # rect matrix with dim>basis
         propagation = expm(dim, res=3)
         propagation.setInitialState(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape
+
 
 def test_initial_state(model):
     propagation = ScipyExpm(model=model, res=3)
