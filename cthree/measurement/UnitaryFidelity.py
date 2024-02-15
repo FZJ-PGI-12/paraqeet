@@ -2,6 +2,7 @@ import numpy as np
 
 from typing import List, Tuple
 
+from cthree.Quantity import Quantity
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
 
@@ -46,6 +47,9 @@ class UnitaryFidelity(Measurement):
         self._bestState = np.zeros_like(basis_states)
         self.setIdealGate(gate)
 
+    def getParameters(self) -> List[Quantity]:
+        return []
+
     @staticmethod
     def __fid(overlaps: List) -> np.ndarray:
         """
@@ -65,7 +69,7 @@ class UnitaryFidelity(Measurement):
         if fid > self.__bestFid:
             self.__bestFid = fid
             self._bestState = self.__basis_states.T @ states[-1]
-        return self.__fid(overlaps)
+        return fid
 
     def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -105,5 +109,5 @@ class UnitaryFidelity(Measurement):
         if self.__basis_states is None:
             self.__target_costates = gate
         else:
-            self.__target_costates = self._UnitaryFidelity__basis_states @ gate
+            self.__target_costates = self.__basis_states @ gate
         self.__bestFid = 0
