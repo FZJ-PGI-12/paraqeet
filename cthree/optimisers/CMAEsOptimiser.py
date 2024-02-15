@@ -33,13 +33,14 @@ class CMAEsOptimiser(Optimiser):
     """
 
     _options: Dict
+    callback: Callable | None
 
     def __init__(
         self,
         measure: Measurement,
         optimisables: OptimisationMap,
-        logger: Logger = None,
-        callback: Callable = None,
+        logger: Logger | None = None,
+        callback=None,
     ):
         super().__init__(measure, optimisables, logger)
         self._options = {

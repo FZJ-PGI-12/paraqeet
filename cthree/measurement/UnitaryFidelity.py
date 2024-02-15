@@ -24,6 +24,8 @@ class UnitaryFidelity(Measurement):
     __target_costates: np.ndarray
     __propagation: Propagation
     _times: np.ndarray
+    _bestFid: np.ndarray
+    _bestState: np.ndarray
 
     def __init__(
         self,
@@ -40,7 +42,8 @@ class UnitaryFidelity(Measurement):
             basis_states = np.eye(gate.shape[0])
         self.__basis_states = basis_states
         self._times = times
-        self.__bestFid = 0
+        self.__bestFid = np.array(0.0)
+        self._bestState = np.zeros_like(basis_states)
         self.setIdealGate(gate)
 
     @staticmethod

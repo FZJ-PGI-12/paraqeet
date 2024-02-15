@@ -17,7 +17,7 @@ class ScipyOptimiser(Optimiser):
     _opt_idxs: List[int]
     _options: Dict
     _method: str
-    _callback: Callable
+    _callback: Callable | None
 
     def __init__(self, measure: Measurement, optimisables: OptimisationMap):
         super().__init__(measure, optimisables)
