@@ -11,7 +11,7 @@ class EmptyHamiltonian(Hamiltonian):
     dimension: int
 
     def __init__(self, dimension: int):
-        super().__init__([], [], [], None)
+        super().__init__([])
 
         self.dimension = dimension
 

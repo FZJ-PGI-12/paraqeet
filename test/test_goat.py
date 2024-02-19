@@ -2,8 +2,11 @@ import pytest
 import numpy as np
 
 from cthree.OptimisationMap import OptimisationMap
+from cthree.Quantity import Quantity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
+from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.Qubit import Qubit
 
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 
@@ -11,7 +14,6 @@ from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
 
 from cthree.model.ClosedModel import ClosedModel
-from cthree.model.Hamiltonian import Hamiltonian
 
 from cthree.signal.SimpleGenerator import CosGenerator
 
@@ -38,10 +40,8 @@ def gen(tone):
 
 @pytest.fixture
 def prop(gen):
-    sigmaZ = np.array([[1.0, 0], [0, -1]])
-    sigmaX = np.array([[0.0, 1], [1, 0]])
-    drift = FREQ / 2 * sigmaZ
-    controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=gen)
+    drive = GeneratorDrive(gen, isLongitudinal=False)
+    controlled_qubit = Qubit(Quantity(FREQ, 0.5 * FREQ, 1.5 * FREQ), drives=[drive])
     model = ClosedModel(controlled_qubit)
     return ScipyExpmGOAT(model=model, res=RES)
 
@@ -131,10 +131,11 @@ def genAD(toneAD):
 
 @pytest.fixture
 def propAD(genAD):
-    sigmaZ = np.array([[1.0, 0], [0, -1]])
-    sigmaX = np.array([[0.0, 1], [1, 0]])
-    drift = FREQ / 2 * sigmaZ
-    controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=genAD)
+    drive = GeneratorDrive(genAD, isLongitudinal=False)
+    controlled_qubit = Qubit(
+        frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
+        drives=[drive]
+    )
     model = ClosedModel(controlled_qubit)
     return ScipyExpmGOAT(model=model, res=RES)
 
