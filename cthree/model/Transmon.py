@@ -1,6 +1,6 @@
 from typing import List
 
-import numpy as np
+import jax.numpy as jnp
 
 from cthree.Quantity import Quantity
 from cthree.model.Drive import Drive
@@ -14,15 +14,15 @@ class Transmon(Hamiltonian):
     __dimension: int
     __frequency: Quantity
     __anharmonicity: Quantity
-    __annihilationOp: np.ndarray
-    __numOp: np.ndarray
+    __annihilationOp: jnp.ndarray
+    __numOp: jnp.ndarray
 
     def __init__(self, dimension: int, frequency: Quantity, anharmonicity: Quantity, drives: List[Drive] = None):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
         self.__anharmonicity = anharmonicity
-        self.__annihilationOp = np.sqrt(np.diag(np.arange(1, dimension, dtype=np.float64), k=1))
+        self.__annihilationOp = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
         self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
 
     def dimension(self) -> int:
@@ -43,14 +43,26 @@ class Transmon(Hamiltonian):
     def getParameters(self) -> List[Quantity]:
         return [self.__frequency, self.__anharmonicity] + self._getDriveParameters()
 
-    def getMatrix(self, t: np.ndarray) -> np.ndarray:
-        H = (self.__frequency.getValue() * self.__numOp +
-             0.5 * self.__anharmonicity.getValue() * self.__numOp @ (self.__numOp - np.eye(self.__dimension)))
+    def __constructOperators(self) -> List[jnp.ndarray]:
+        """
+        Returns the operators for the two terms of the matrix or gradient without coefficients.
+        """
+        return [
+            self.__numOp,
+            0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
+        ]
+
+    def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
+        ops = self.__constructOperators()
+        H = self.__frequency.getValue() * ops[0] + self.__anharmonicity.getValue() * ops[1]
         return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
-    def gradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
         # Derivatives wrt to the frequency and the anharmonicity
-        gradFreq = self.__numOp
-        gradAnharm = 0.5 * self.__numOp @ (self.__numOp - np.eye(self.__dimension))
+        grads = jnp.stack(self.__constructOperators(), axis=0)
+        grads = self._repeat(grads, t.shape[0])
+
+        # Combine with the derivatives of the drives
         driveGradients = self._getDriveGradients(self.__annihilationOp, t)
-        return [self._repeat(gradFreq, t.shape[0]), self._repeat(gradAnharm, t.shape[0])] + driveGradients
+        allGrads = jnp.append(driveGradients, grads, axis=1)
+        return allGrads

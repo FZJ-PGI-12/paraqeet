@@ -1,6 +1,6 @@
 from typing import List
 
-import numpy as np
+import jax.numpy as jnp
 
 from cthree.Quantity import Quantity
 from cthree.model.Drive import Drive
@@ -13,14 +13,14 @@ class Resonator(Hamiltonian):
     """
     __dimension: int
     __frequency: Quantity
-    __annihilationOp: np.ndarray
-    __numOp: np.ndarray
+    __annihilationOp: jnp.ndarray
+    __numOp: jnp.ndarray
 
     def __init__(self, dimension: int, frequency: Quantity, drives: List[Drive] = None):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
-        self.__annihilationOp = np.sqrt(np.diag(np.arange(1, dimension, dtype=np.float64), k=1))
+        self.__annihilationOp = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
         self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
 
     def dimension(self):
@@ -35,11 +35,16 @@ class Resonator(Hamiltonian):
     def getParameters(self) -> List[Quantity]:
         return [self.__frequency] + self._getDriveParameters()
 
-    def getMatrix(self, t: np.ndarray) -> np.ndarray:
+    def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
         H = self.__frequency * self.__numOp
         return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
-    def gradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
         # Derivative wrt to the frequency
-        grad = self.__numOp.reshape(self.__numOp.shape + (1,))
-        return [self._repeat(grad, t.shape[0])] + self._getDriveGradients(self.__annihilationOp, t)
+        grad = self.__numOp.reshape((1,) + self.__numOp.shape)
+        grad = self._repeat(grad, t.shape[0])
+
+        # Combine with the derivatives of the drives
+        derivatives = self._getDriveGradients(self.__annihilationOp, t)
+        derivatives = jnp.append(derivatives, grad, axis=1)
+        return derivatives
