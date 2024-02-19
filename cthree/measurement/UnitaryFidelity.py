@@ -25,6 +25,8 @@ class UnitaryFidelity(Measurement):
     __target_costates: np.ndarray
     __propagation: Propagation
     _times: np.ndarray
+    _bestFid: np.ndarray
+    _bestState: np.ndarray
 
     def __init__(
         self,
@@ -41,6 +43,8 @@ class UnitaryFidelity(Measurement):
             basis_states = np.eye(gate.shape[0])
         self.__basis_states = basis_states
         self._times = times
+        self.__bestFid = np.array(0.0)
+        self._bestState = np.zeros_like(basis_states)
         self.setIdealGate(gate)
 
     def getParameters(self) -> List[Quantity]:
@@ -61,7 +65,11 @@ class UnitaryFidelity(Measurement):
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(np.vdot(s, states[-1][:, ii]))
-        return self.__fid(overlaps)
+        fid = self.__fid(overlaps)
+        if fid > self.__bestFid:
+            self.__bestFid = fid
+            self._bestState = self.__basis_states.T @ states[-1]
+        return fid
 
     def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -89,6 +97,9 @@ class UnitaryFidelity(Measurement):
             dF_dp.append(np.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
         fid = self.__fid(overlaps)
+        if fid > self.__bestFid:
+            self.__bestFid = fid
+            self._bestState = self.__basis_states.T @ states[-1]
         return fid, np.array(dF_dp)  # shape scalar, (n_parameters,)
 
     def setIdealGate(self, gate):
@@ -99,3 +110,4 @@ class UnitaryFidelity(Measurement):
             self.__target_costates = gate
         else:
             self.__target_costates = self.__basis_states @ gate
+        self.__bestFid = 0

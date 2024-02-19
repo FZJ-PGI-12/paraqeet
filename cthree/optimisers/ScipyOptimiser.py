@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
@@ -17,11 +17,13 @@ class ScipyOptimiser(Optimiser):
     _opt_idxs: List[int]
     _options: Dict
     _method: str
+    _callback: Callable | None
 
     def __init__(self, measure: Measurement, optimisables: OptimisationMap):
         super().__init__(measure, optimisables)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
+        self._callback = None
 
     def setMethod(self, method: str):
         """Select method from scipy.optimize.minimize.
@@ -38,6 +40,9 @@ class ScipyOptimiser(Optimiser):
 
     def updateOption(self, key, val):
         self._options.update(key, val)
+
+    def setCallback(self, cbfun: Callable) -> None:
+        self._callback = cbfun
 
     def optimise(self) -> OptimizeResult:
         if self._logger:
@@ -57,6 +62,7 @@ class ScipyOptimiser(Optimiser):
             bounds=[(-1, 1)] * self._opt_idxs[-1],
             method=self._method,
             options=self._options,
+            callback=self._callback,
         )
 
         if self._logger:
