@@ -76,13 +76,22 @@ class CosTone(Device):
         return amp * jnp.cos(freq * t)
 
     def computeOutput(self, t: np.ndarray) -> Array:
+        """
+        Returns the scalar output for each step in the time array t.
+
+        Returns:
+            np.ndarray: array of shape [t] with t: time
+        """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """
-        Returns the gradient wrt dimensionless parameters.
+        Returns the gradient wrt dimensionless parameters for each step in the time array t.
+
+        Returns:
+            np.ndarray: array of shape [t, p] with t: time, p: number of parameter
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
