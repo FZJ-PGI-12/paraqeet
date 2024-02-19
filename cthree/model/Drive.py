@@ -1,6 +1,4 @@
-from typing import List
-
-import numpy as np
+import jax.numpy as jnp
 
 from cthree.Optimisable import Optimisable
 
@@ -10,7 +8,7 @@ class Drive(Optimisable):
     Represents a time-dependent drive on a subsystem. This can for example be a microwave or flux drive.
     """
 
-    def getMatrix(self, annihilationOperator: np.ndarray, t: np.ndarray) -> np.ndarray:
+    def getMatrix(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
         """
         Return the matrix representation of the drive. The dimension is given by the Hamiltonian to which this drive
         is attached.
@@ -24,7 +22,7 @@ class Drive(Optimisable):
         """
         raise NotImplementedError()
 
-    def gradient(self, annihilationOperator: np.ndarray, t: np.ndarray) -> np.ndarray:
+    def gradient(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
         """
         Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter as a list.
 
@@ -38,7 +36,7 @@ class Drive(Optimisable):
         raise NotImplementedError()
 
     @staticmethod
-    def _repeat(M: np.ndarray, num: int) -> np.ndarray:
+    def _repeat(M: jnp.ndarray, num: int) -> jnp.ndarray:
         """
         Utility function that repeats the matrix M for each timestep in the times array. Returns an array with shape
         [t, n, m] where t is the number of time steps and M is a n times m matrix.
