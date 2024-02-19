@@ -24,7 +24,7 @@ class Drive(Optimisable):
         """
         raise NotImplementedError()
 
-    def gradient(self, annihilationOperator: np.ndarray, t: np.ndarray) -> List[np.ndarray]:
+    def gradient(self, annihilationOperator: np.ndarray, t: np.ndarray) -> np.ndarray:
         """
         Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter as a list.
 
@@ -33,7 +33,7 @@ class Drive(Optimisable):
             t (np.ndarray): Vector of time samples
 
         Returns:
-            List[np.ndarray]: List of matrices of shape [t, n, n]  with t: time, n: hilbert space dimension
+            np.ndarray: array of shape [t, p, n, n] with t: time, p: number of parameters, n: hilbert space dimension
         """
         raise NotImplementedError()
 
