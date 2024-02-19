@@ -38,10 +38,10 @@ class Drive(Optimisable):
         raise NotImplementedError()
 
     @staticmethod
-    def _repeatInTime(M: np.ndarray, times: np.ndarray) -> np.ndarray:
+    def _repeat(M: np.ndarray, num: int) -> np.ndarray:
         """
         Utility function that repeats the matrix M for each timestep in the times array. Returns an array with shape
         [t, n, m] where t is the number of time steps and M is a n times m matrix.
         """
-        return M.reshape((1,) + M.shape).repeat(len(times), axis=0)
+        return M.reshape((1,) + M.shape).repeat(num, axis=0)
 

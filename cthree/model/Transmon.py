@@ -46,11 +46,11 @@ class Transmon(Hamiltonian):
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         H = (self.__frequency.getValue() * self.__numOp +
              0.5 * self.__anharmonicity.getValue() * self.__numOp @ (self.__numOp - np.eye(self.__dimension)))
-        return self._repeatInTime(H, t) + self._getDriveMatrix(self.__annihilationOp, t)
+        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: np.ndarray) -> List[np.ndarray]:
         # Derivatives wrt to the frequency and the anharmonicity
         gradFreq = self.__numOp
         gradAnharm = 0.5 * self.__numOp @ (self.__numOp - np.eye(self.__dimension))
         driveGradients = self._getDriveGradients(self.__annihilationOp, t)
-        return [self._repeatInTime(gradFreq, t), self._repeatInTime(gradAnharm, t)] + driveGradients
+        return [self._repeat(gradFreq, t.shape[0]), self._repeat(gradAnharm, t.shape[0])] + driveGradients

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -37,9 +37,9 @@ class Resonator(Hamiltonian):
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         H = self.__frequency * self.__numOp
-        return self._repeatInTime(H, t) + self._getDriveMatrix(self.__annihilationOp, t)
+        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: np.ndarray) -> List[np.ndarray]:
         # Derivative wrt to the frequency
         grad = self.__numOp.reshape(self.__numOp.shape + (1,))
-        return [self._repeatInTime(grad, t)] + self._getDriveGradients(self.__annihilationOp, t)
+        return [self._repeat(grad, t.shape[0])] + self._getDriveGradients(self.__annihilationOp, t)

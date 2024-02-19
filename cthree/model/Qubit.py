@@ -40,9 +40,9 @@ class Qubit(Hamiltonian):
 
     def getMatrix(self, t: np.ndarray) -> np.ndarray:
         H = 0.5 * self.__frequency.getValue() * np.diag([1.0, -1.0])
-        return self._repeatInTime(H, t) + self._getDriveMatrix(self.__annihilationOp, t)
+        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: np.ndarray) -> List[np.ndarray]:
         # derivative wrt the frequency
         H = 0.5 * np.diag([1.0, -1.0])
-        return [self._repeatInTime(H, t)] + self._getDriveGradients(self.__annihilationOp, t)
+        return [self._repeat(H, t.shape[0])] + self._getDriveGradients(self.__annihilationOp, t)
