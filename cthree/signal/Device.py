@@ -29,7 +29,10 @@ class Device(Optimisable):
         raise NotImplementedError()
 
     def _computeGradientFunction(
-        self, signalFunction: Callable, argnums: tuple[int, ...], vmap_axes: tuple
+        self,
+        signalFunction: Callable,
+        argnums: Tuple[int, ...],
+        vmap_axes: Tuple[int, ...],
     ) -> Callable:
         grads = grad(signalFunction, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
@@ -95,16 +98,16 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-
-        if jnp.shape(t) == ():
-            t = jnp.array([t])
+        t = jnp.array(t, ndmin=1)
 
         grads = []
         if self._isOptimised(self.__amplitude):
             grads.append(jnp.cos(freq * t) * self.__amplitude.getScale())
         if self._isOptimised(self.__frequency):
             grads.append(-amp * t * jnp.sin(freq * t) * self.__frequency.getScale())
-        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+        return (
+            jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+        )
 
 
 class CosToneErf(Device):
@@ -171,9 +174,7 @@ class CosToneErf(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-
-        if jnp.shape(t) == ():
-            t = jnp.array([t])
+        t = jnp.array(t, ndmin=1)
 
         grads = []
         if self._isOptimised(self.__amplitude):
@@ -183,7 +184,9 @@ class CosToneErf(Device):
             dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
             grads.append(self.__frequency.getScale() * dc_dFreq)
 
-        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+        return (
+            jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+        )
 
 
 class ZeroTone(Device):
@@ -204,15 +207,14 @@ class CosToneAD(CosTone):
     __gradientFunction: Callable | None
     __gradArgNums: Tuple[int, ...]
 
-
     def __init__(self) -> None:
         super().__init__()
         self.__gradientFunction = None
         self.__gradArgNums = ()
-    
+
     def setOptimisableParameters(self, params: List[Quantity]) -> None:
         super().setOptimisableParameters(params)
-        
+
         Optimisable_params = self.getParameters()
         if self._isOptimised(Optimisable_params[0]):
             self.__gradArgNums += (0,)
@@ -240,20 +242,22 @@ class CosToneAD(CosTone):
         params = self.getParameters()
         amp = params[0].getValue()
         freq = params[1].getValue()
-
-        if jnp.shape(t) == ():
-            t = jnp.array([t])
+        t = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
 
         if len(self.__gradArgNums) > 0:
             if self.__gradientFunction is None:
                 self.__gradientFunction = self._computeGradientFunction(
-                    self._evaluate, argnums=self.__gradArgNums, vmap_axes=(None, None, 0)
+                    self._evaluate,
+                    argnums=self.__gradArgNums,
+                    vmap_axes=(None, None, 0),
                 )
 
             parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
-            parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
+            parameter_scales = jnp.reshape(
+                parameter_scales, (1,) + parameter_scales.shape
+            )
 
             grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
             grads = jnp.squeeze(grads) * parameter_scales
@@ -275,10 +279,9 @@ class CosToneErfAD(CosToneErf):
         self.__gradientFunction = None
         self.__gradArgNums = ()
 
-
     def setOptimisableParameters(self, params: List[Quantity]) -> None:
         super().setOptimisableParameters(params)
-        
+
         Optimisable_params = self.getParameters()
         if self._isOptimised(Optimisable_params[0]):
             self.__gradArgNums += (0,)
@@ -320,21 +323,23 @@ class CosToneErfAD(CosToneErf):
         params = self.getParameters()
         amp = params[0].getValue()
         freq = params[1].getValue()
-
-        if jnp.shape(t) == ():
-            t = jnp.array([t])
+        t = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
 
         if len(self.__gradArgNums) > 0:
             if self.__gradientFunction is None:
                 self.__gradientFunction = self._computeGradientFunction(
-                    self._evaluate, argnums=self.__gradArgNums, vmap_axes=(None, None, 0)
+                    self._evaluate,
+                    argnums=self.__gradArgNums,
+                    vmap_axes=(None, None, 0),
                 )
-            
+
             parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
-            parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
+            parameter_scales = jnp.reshape(
+                parameter_scales, (1,) + parameter_scales.shape
+            )
 
             grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
             grads = jnp.squeeze(grads) * parameter_scales
-        return grads  
+        return grads
