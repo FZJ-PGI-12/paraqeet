@@ -34,6 +34,9 @@ class GeneratorDrive(Drive):
         return signal.reshape((signal.shape[0], 1, 1)) * self._repeat(matrix, t.shape[0])
 
     def gradient(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
+        """
+        Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
+        """
         signalGrad = self.__generator.generateSignalGradient(t) # (t, p)
         matrix = self._computeMatrix(a)
         matrix = self._repeat(self._repeat(matrix, signalGrad.shape[1]), t.shape[0])

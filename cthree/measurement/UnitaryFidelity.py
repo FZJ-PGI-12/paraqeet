@@ -100,6 +100,7 @@ class UnitaryFidelity(Measurement):
         if fid > self.__bestFid:
             self.__bestFid = fid
             self._bestState = self.__basis_states.T @ states[-1]
+        print("Unitary return: ", fid.shape, np.array(dF_dp).shape)
         return fid, np.array(dF_dp)  # shape scalar, (n_parameters,)
 
     def setIdealGate(self, gate):

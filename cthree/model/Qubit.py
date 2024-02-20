@@ -46,11 +46,13 @@ class Qubit(Hamiltonian):
         return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
-        # derivative wrt the frequency
-        H = 0.5 * self.__sigmaZ.reshape((1, 2, 2))
-        derivative = self._repeat(H, t.shape[0])
-
-        # Combine with the derivatives of the drives
+        # Fetch the gradient of the drive
         derivatives = self._getDriveGradients(self.__annihilationOp, t)
-        derivatives = jnp.append(derivatives, derivative, axis=1)
+
+        # Combine with the derivative wrt the frequency
+        if self._isOptimised(self.__frequency):
+            H = 0.5 * self.__sigmaZ.reshape((1, 2, 2))
+            derivative = self._repeat(H, t.shape[0])
+            derivatives = jnp.append(derivatives, derivative, axis=1)
+
         return derivatives
