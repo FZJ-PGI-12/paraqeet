@@ -39,7 +39,8 @@ class Hamiltonian(Optimisable):
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
         """
         Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter for each time
-        step in t.
+        step in t. Implementations must make sure that only derivatives with respect to those parameters are included
+        in the gradient that were registered in the Optimisable parent class.
 
         Args:
             t (np.ndarray): Vector of time samples
