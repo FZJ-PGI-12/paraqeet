@@ -42,6 +42,7 @@ def test_getMatrix(ham, time_samples):
 # The Hamiltonian should have all derivatives of the drive plus the derivative w.r.t. the qubit frequency
 def test_gradient(gen, ham, time_samples):
     grads = gen.generateSignalGradient(time_samples)
+    ham.setOptimisableParameters(ham.getParameters())
     hamGrads = ham.gradient(time_samples)
 
     assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 1, 2, 2)

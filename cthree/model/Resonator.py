@@ -36,7 +36,7 @@ class Resonator(Hamiltonian):
         return [self.__frequency] + self._getDriveParameters()
 
     def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
-        H = self.__frequency * self.__numOp
+        H = self.__frequency.getValue() * self.__numOp
         return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:

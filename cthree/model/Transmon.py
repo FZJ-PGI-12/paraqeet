@@ -68,7 +68,8 @@ class Transmon(Hamiltonian):
             usedOps.append(ops[0])
         if self._isOptimised(self.__anharmonicity):
             usedOps.append(ops[1])
-        grads = self._repeat(jnp.stack(ops, axis=0), t.shape[0])
+        grads = jnp.stack(usedOps, axis=1) if len(usedOps) > 0 else jnp.empty((t.shape[0], 0))
+        grads = self._repeat(grads, t.shape[0])
         gradients = jnp.append(gradients, grads, axis=1)
 
         return gradients

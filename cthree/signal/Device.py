@@ -95,13 +95,13 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return jnp.stack(
-            [
-                jnp.cos(freq * t) * self.__amplitude.getScale(),
-                -amp * t * jnp.sin(freq * t) * self.__frequency.getScale(),
-            ],
-            axis=1,
-        )
+
+        grads = []
+        if self._isOptimised(self.__amplitude):
+            grads.append(jnp.cos(freq * t) * self.__amplitude.getScale())
+        if self._isOptimised(self.__frequency):
+            grads.append(-amp * t * jnp.sin(freq * t) * self.__frequency.getScale())
+        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
 
 
 class CosToneErf(Device):
@@ -168,15 +168,19 @@ class CosToneErf(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        dc_dAmp = jnp.cos(freq * t) * self._envelope(t)
-        dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
-        return jnp.stack(
-            [
-                self.__amplitude.getScale() * dc_dAmp,
-                self.__frequency.getScale() * dc_dFreq,
-            ],
-            axis=1,
-        )
+
+        grads = []
+        if self._isOptimised(self.__amplitude):
+            dc_dAmp = jnp.cos(freq * t) * self._envelope(t)
+            grads.append(self.__amplitude.getScale() * dc_dAmp)
+        if self._isOptimised(self.__frequency):
+            dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
+            grads.append(self.__frequency.getScale() * dc_dFreq)
+
+        if len(grads) > 0:
+            return jnp.stack(grads, axis=1)
+        else:
+            return jnp.empty((t.shape[0], 0))
 
 
 class ZeroTone(Device):
