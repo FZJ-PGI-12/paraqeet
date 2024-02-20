@@ -177,10 +177,7 @@ class CosToneErf(Device):
             dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
             grads.append(self.__frequency.getScale() * dc_dFreq)
 
-        if len(grads) > 0:
-            return jnp.stack(grads, axis=1)
-        else:
-            return jnp.empty((t.shape[0], 0))
+        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
 
 
 class ZeroTone(Device):
