@@ -1,5 +1,6 @@
 from typing import List
-import jax.numpy as np
+import numpy as np
+import jax.numpy as jnp
 
 from numpy import ndarray
 from cthree.measurement.Measurement import Measurement
@@ -26,8 +27,8 @@ class MultiGoal:
 
     def measureWithGradient(self):
         measurements = [m.measureWithGradient() for m in self.__measurements]
-        sumMeas = np.array(0)
-        sumGrads = np.zeros_like(measurements[0][1])
+        sumMeas = jnp.array(0)
+        sumGrads = jnp.zeros_like(measurements[0][1])
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii][0]
             sumGrads += w * measurements[ii][1]
