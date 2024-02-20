@@ -26,6 +26,9 @@ def test_gradients(tone, toneAD):
     grad_toneAD = []
 
     for t in time:
+        tone.setOptimisableParameters(tone.getParameters())
+        toneAD.setOptimisableParameters(toneAD.getParameters())
+
         grad_toneAD.append(toneAD.computeGradient(t))
         grad_tone.append(tone.computeGradient(t))
 
@@ -36,12 +39,15 @@ def test_gradients_vectorized(tone, toneAD):
     """
     Test vectorized generation of analytic and AD signal gradients
     """
+    toneAD.setOptimisableParameters(toneAD.getParameters())
     grad_toneAD = toneAD.computeGradient(time)
+    tone.setOptimisableParameters(tone.getParameters())
     grad_tone = tone.computeGradient(time)
     assert np.array(grad_toneAD) == pytest.approx(np.array(grad_tone), rel=1e-6)
 
 @pytest.mark.parametrize("tone", [costone, costoneAD, costoneerf, costoneerfAD])
 def test_gradients_shape(tone):
+    tone.setOptimisableParameters(tone.getParameters())
     grads = tone.computeGradient(time)
     params = tone.getParameters()
     assert grads.shape[0] == time.shape[0]

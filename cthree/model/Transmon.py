@@ -43,18 +43,9 @@ class Transmon(Hamiltonian):
     def getParameters(self) -> List[Quantity]:
         return [self.__frequency, self.__anharmonicity] + self._getDriveParameters()
 
-    def __constructOperators(self) -> List[jnp.ndarray]:
-        """
-        Returns the operators for the two terms of the matrix or gradient without coefficients.
-        """
-        return [
-            self.__numOp,
-            0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
-        ]
-
     def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
-        ops = self.__constructOperators()
-        H = self.__frequency.getValue() * ops[0] + self.__anharmonicity.getValue() * ops[1]
+        H = (self.__frequency.getValue() * self.__numOp +
+             self.__anharmonicity.getValue() * 0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension)))
         return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
@@ -62,13 +53,12 @@ class Transmon(Hamiltonian):
         gradients = self._getDriveGradients(self.__annihilationOp, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
-        ops = self.__constructOperators()
-        usedOps = []
+        grads = []
         if self._isOptimised(self.__frequency):
-            usedOps.append(ops[0])
+            grads.append(self.__numOp)
         if self._isOptimised(self.__anharmonicity):
-            usedOps.append(ops[1])
-        grads = jnp.stack(usedOps, axis=1) if len(usedOps) > 0 else jnp.empty((t.shape[0], 0))
+            grads.append(0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension)))
+        grads = jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
         grads = self._repeat(grads, t.shape[0])
         gradients = jnp.append(gradients, grads, axis=1)
 

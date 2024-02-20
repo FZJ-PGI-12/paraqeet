@@ -33,6 +33,7 @@ def gen(tone):
 def hamiltonian(gen):
     def _method(dimension):
         drive = GeneratorDrive(gen, isLongitudinal=False)
+        drive.setOptimisableParameters(drive.getParameters())
         return Transmon(
             dimension=dimension,
             frequency=Quantity(FREQ, 0.8*FREQ, 1.2*FREQ),
