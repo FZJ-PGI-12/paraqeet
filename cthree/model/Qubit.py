@@ -18,7 +18,7 @@ class Qubit(Hamiltonian):
     """
     __frequency: Quantity
     __annihilationOp: jnp.ndarray
-    __sigmaZ: np.array
+    __drift: np.array
 
     def __init__(self, frequency: Quantity, drives: List[Drive] = None):
         super().__init__(drives)
@@ -27,7 +27,7 @@ class Qubit(Hamiltonian):
             [0.0, 0.0],
             [1.0, 0.0],
         ])
-        self.__sigmaZ = np.diag([1.0, -1.0])
+        self.__drift = 0.5 * np.diag([1.0, -1.0])
 
     def getFrequency(self) -> Quantity:
         return self.__frequency
@@ -42,7 +42,7 @@ class Qubit(Hamiltonian):
         return 2
 
     def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
-        H = 0.5 * self.__frequency.getValue() * self.__sigmaZ
+        H = self.__frequency.getValue() * self.__drift
         return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
 
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
@@ -51,7 +51,7 @@ class Qubit(Hamiltonian):
 
         # Combine with the derivative wrt the frequency
         if self._isOptimised(self.__frequency):
-            H = 0.5 * self.__sigmaZ.reshape((1, 2, 2))
+            H = self.__drift.reshape((1, 2, 2))
             derivative = self._repeat(H, t.shape[0])
             derivatives = jnp.append(derivatives, derivative, axis=1)
 
