@@ -37,7 +37,7 @@ class GeneratorDrive(Drive):
         """
         Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
         """
-        signalGrad = self.__generator.generateSignalGradient(t) # (t, p)
+        signalGrad = self.__generator.generateSignalGradient(t)
         matrix = self._computeMatrix(a)
         matrix = self._repeat(self._repeat(matrix, signalGrad.shape[1]), t.shape[0])
         return signalGrad.reshape(signalGrad.shape + (1, 1)) * matrix

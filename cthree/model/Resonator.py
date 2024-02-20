@@ -33,7 +33,7 @@ class Resonator(Hamiltonian):
         self.__frequency = frequency
 
     def getParameters(self) -> List[Quantity]:
-        return [self.__frequency] + self._getDriveParameters()
+        return self._getDriveParameters() + [self.__frequency]
 
     def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
         H = self.__frequency.getValue() * self.__numOp

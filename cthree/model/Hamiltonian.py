@@ -40,7 +40,8 @@ class Hamiltonian(Optimisable):
         """
         Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter for each time
         step in t. Implementations must make sure that only derivatives with respect to those parameters are included
-        in the gradient that were registered in the Optimisable parent class.
+        in the gradient that were registered in the Optimisable parent class. The order of the gradients should match
+        the order of the parameters returned by getParameters.
 
         Args:
             t (np.ndarray): Vector of time samples

@@ -36,7 +36,7 @@ class Qubit(Hamiltonian):
         self.__frequency = frequency
 
     def getParameters(self) -> List[Quantity]:
-        return [self.__frequency] + self._getDriveParameters()
+        return self._getDriveParameters() + [self.__frequency]
 
     def dimension(self) -> int:
         return 2
