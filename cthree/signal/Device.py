@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Callable
+from typing import List, Callable, Tuple
 import numpy as np
 
 from cthree.Quantity import Quantity
@@ -24,8 +24,15 @@ class Device(Optimisable):
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
+    @abstractmethod
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+        raise NotImplementedError()
+
     def _computeGradientFunction(
-        self, signalFunction: Callable, argnums: tuple[int, ...], vmap_axes: tuple
+        self,
+        signalFunction: Callable,
+        argnums: Tuple[int, ...],
+        vmap_axes: Tuple[int, ...],
     ) -> Callable:
         grads = grad(signalFunction, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
@@ -60,7 +67,7 @@ class CosTone(Device):
         return [self.__amplitude, self.__frequency]
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp, freq, t):
+    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray) -> Array:
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
@@ -72,22 +79,34 @@ class CosTone(Device):
         return amp * jnp.cos(freq * t)
 
     def computeOutput(self, t: np.ndarray) -> Array:
+        """
+        Returns the scalar output for each step in the time array t.
+
+        Returns:
+            np.ndarray: array of shape [t] with t: time
+        """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """
-        Returns the gradient wrt dimensionless parameters.
+        Returns the gradient wrt dimensionless parameters for each step in the time array t.
+
+        Returns:
+            np.ndarray: array of shape [t, p] with t: time, p: number of parameter
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return jnp.stack(
-            [
-                jnp.cos(freq * t) * self.__amplitude.getScale(),
-                -amp * t * jnp.sin(freq * t) * self.__frequency.getScale(),
-            ],
-            axis=1,
+        t = jnp.array(t, ndmin=1)
+
+        grads = []
+        if self._isOptimised(self.__amplitude):
+            grads.append(jnp.cos(freq * t) * self.__amplitude.getScale())
+        if self._isOptimised(self.__frequency):
+            grads.append(-amp * t * jnp.sin(freq * t) * self.__frequency.getScale())
+        return (
+            jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
         )
 
 
@@ -133,7 +152,7 @@ class CosToneErf(Device):
         return rampUp * rampDown / 4
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp, freq, t):
+    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray):
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
@@ -155,14 +174,18 @@ class CosToneErf(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        dc_dAmp = jnp.cos(freq * t) * self._envelope(t)
-        dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
-        return jnp.stack(
-            [
-                self.__amplitude.getScale() * dc_dAmp,
-                self.__frequency.getScale() * dc_dFreq,
-            ],
-            axis=1,
+        t = jnp.array(t, ndmin=1)
+
+        grads = []
+        if self._isOptimised(self.__amplitude):
+            dc_dAmp = jnp.cos(freq * t) * self._envelope(t)
+            grads.append(self.__amplitude.getScale() * dc_dAmp)
+        if self._isOptimised(self.__frequency):
+            dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
+            grads.append(self.__frequency.getScale() * dc_dFreq)
+
+        return (
+            jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
         )
 
 
@@ -182,10 +205,21 @@ class CosToneAD(CosTone):
     """
 
     __gradientFunction: Callable | None
+    __gradArgNums: Tuple[int, ...]
 
     def __init__(self) -> None:
         super().__init__()
         self.__gradientFunction = None
+        self.__gradArgNums = ()
+
+    def setOptimisableParameters(self, params: List[Quantity]) -> None:
+        super().setOptimisableParameters(params)
+
+        Optimisable_params = self.getParameters()
+        if self._isOptimised(Optimisable_params[0]):
+            self.__gradArgNums += (0,)
+        if self._isOptimised(Optimisable_params[1]):
+            self.__gradArgNums += (1,)
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, amp, freq, t):
@@ -208,19 +242,25 @@ class CosToneAD(CosTone):
         params = self.getParameters()
         amp = params[0].getValue()
         freq = params[1].getValue()
+        t = jnp.array(t, ndmin=1)
 
-        if self.__gradientFunction is None:
-            self.__gradientFunction = self._computeGradientFunction(
-                self._evaluate, argnums=(0, 1), vmap_axes=(None, None, 0)
+        grads = jnp.empty((t.shape[0], 0))
+
+        if len(self.__gradArgNums) > 0:
+            if self.__gradientFunction is None:
+                self.__gradientFunction = self._computeGradientFunction(
+                    self._evaluate,
+                    argnums=self.__gradArgNums,
+                    vmap_axes=(None, None, 0),
+                )
+
+            parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
+            parameter_scales = jnp.reshape(
+                parameter_scales, (1,) + parameter_scales.shape
             )
-        if jnp.shape(t) == ():
-            t = jnp.array([t])
 
-        parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
-        parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
-
-        grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
-        grads = jnp.squeeze(grads) * parameter_scales
+            grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
+            grads = jnp.squeeze(grads) * parameter_scales
         return grads
 
 
@@ -232,10 +272,21 @@ class CosToneErfAD(CosToneErf):
     """
 
     __gradientFunction: Callable | None
+    __gradArgNums: Tuple[int, ...]
 
     def __init__(self) -> None:
         super().__init__()
         self.__gradientFunction = None
+        self.__gradArgNums = ()
+
+    def setOptimisableParameters(self, params: List[Quantity]) -> None:
+        super().setOptimisableParameters(params)
+
+        Optimisable_params = self.getParameters()
+        if self._isOptimised(Optimisable_params[0]):
+            self.__gradArgNums += (0,)
+        if self._isOptimised(Optimisable_params[1]):
+            self.__gradArgNums += (1,)
 
     def _envelope(self, t):
         """
@@ -272,17 +323,23 @@ class CosToneErfAD(CosToneErf):
         params = self.getParameters()
         amp = params[0].getValue()
         freq = params[1].getValue()
+        t = jnp.array(t, ndmin=1)
 
-        if self.__gradientFunction is None:
-            self.__gradientFunction = self._computeGradientFunction(
-                self._evaluate, argnums=(0, 1), vmap_axes=(None, None, 0)
+        grads = jnp.empty((t.shape[0], 0))
+
+        if len(self.__gradArgNums) > 0:
+            if self.__gradientFunction is None:
+                self.__gradientFunction = self._computeGradientFunction(
+                    self._evaluate,
+                    argnums=self.__gradArgNums,
+                    vmap_axes=(None, None, 0),
+                )
+
+            parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
+            parameter_scales = jnp.reshape(
+                parameter_scales, (1,) + parameter_scales.shape
             )
-        if jnp.shape(t) == ():
-            t = jnp.array([t])
 
-        parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
-        parameter_scales = jnp.reshape(parameter_scales, (1,) + parameter_scales.shape)
-
-        grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
-        grads = jnp.squeeze(grads) * parameter_scales
+            grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
+            grads = jnp.squeeze(grads) * parameter_scales
         return grads

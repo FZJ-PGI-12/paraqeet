@@ -2,7 +2,10 @@ import pytest
 import numpy as np
 
 from cthree.OptimisationMap import OptimisationMap
+from cthree.Quantity import Quantity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
+from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.Qubit import Qubit
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.CMAEsOptimiser import CMAEsOptimiser
@@ -25,12 +28,11 @@ t_final = 10e-9
 params[0].setValue(0.8 * np.pi / t_final)
 params[1].setValue(1.01 * FREQ)
 
-sigmaZ = np.array([[1.0, 0], [0, -1]])
-sigmaX = np.array([[0.0, 1], [1, 0]])
-
-drift = FREQ / 2 * sigmaZ
-
-controlled_qubit = Hamiltonian(subsystems=[drift], drives=[sigmaX], generator=gen)
+drive = GeneratorDrive(gen, isLongitudinal=False)
+controlled_qubit = Qubit(
+    frequency=Quantity(FREQ, 0.8*FREQ, 1.2*FREQ),
+    drives=[drive]
+)
 model = ClosedModel(controlled_qubit)
 
 prop = ScipyExpmGOAT(model, res=100e9)

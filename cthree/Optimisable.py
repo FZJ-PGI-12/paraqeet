@@ -27,3 +27,10 @@ class Optimisable:
         """
         allParams = self.getParameters()
         self._optimisableParameters = [p for p in params if any([p is q for q in allParams])]
+
+    def _isOptimised(self, param: Quantity) -> bool:
+        """
+        Utility function for implementations to check if a parameter is being optimised and should therefore be included
+        in gradients.
+        """
+        return param in self._optimisableParameters

@@ -1,40 +1,30 @@
 from typing import List
 
-import numpy as np
-from cthree.Quantity import Quantity
+import jax.numpy as jnp
 
-from cthree.signal.Generator import Generator
 from cthree.Optimisable import Optimisable
+from cthree.Quantity import Quantity
+from cthree.model.Drive import Drive
 
 
 class Hamiltonian(Optimisable):
     """
-    Matrix representation of a Hamiltonian.
-    Contains subsystems, couplings, and drive lines.
-    Takes care of frame transformations.
+    Matrix representation of a Hamiltonian. Implementations can contain subsystems, couplings, and drive lines and have
+    to take care of frame transformations. Derived classes need to implement the functions getMatrix, gradient, and
+    dimension.
     """
+    _drives: List[Drive]
 
-    __subsystems: List
-    __couplings: List
-    __drives: List
-    __generator: Generator | None
+    def __init__(self, drives=None):
+        self._drives = [d for d in drives if d is not None] or []
 
-    def __init__(
-        self,
-        subsystems: List,
-        couplings: List = [],
-        drives: List = [],
-        generator: Generator | None = None,
-    ):
-        self.__subsystems = subsystems
-        self.__couplings = couplings
-        self.__drives = drives
-        self.__generator = generator
+    def dimension(self) -> int:
+        """
+        Returns the dimension of the Hilbert space of this Hamiltonian.
+        """
+        raise NotImplementedError()
 
-    def getDrives(self) -> List[np.ndarray]:
-        return self.__drives
-
-    def getMatrix(self, t: np.ndarray) -> np.ndarray:
+    def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
         """
         Return the matrix representation of the Hamiltonian.
 
@@ -42,31 +32,65 @@ class Hamiltonian(Optimisable):
             t (np.ndarray): Vector of time samples
 
         Returns:
-            np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
+            np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space dimension
         """
-        if self.__generator:
-            sig = self.__generator.generateSignal(t).reshape((t.shape[0], 1, 1))
-        drive = self.__drives[0].reshape((1,) + self.__drives[0].shape)
-        return self._repeatInTime(self.__subsystems[0], t) + sig * drive
+        raise NotImplementedError()
 
-    def getParameters(self) -> List[Quantity]:
-        return []
+    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
+        """
+        Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter for each time
+        step in t. Implementations must make sure that only derivatives with respect to those parameters are included
+        in the gradient that were registered in the Optimisable parent class. The order of the gradients should match
+        the order of the parameters returned by getParameters.
 
-    def gradient(self, t: np.ndarray) -> np.ndarray:
+        Args:
+            t (np.ndarray): Vector of time samples
+
+        Returns:
+            np.ndarray: Hamiltonian of shape [t, p, n, n]  with t: time, p: number of parameters, n: hilbert space
+                        dimension
         """
-        Return the gradient of each parameter as a list.
+        raise NotImplementedError()
+
+    def getDrives(self) -> List[Drive]:
+        return self._drives
+
+    def _getDriveParameters(self) -> List[Quantity]:
         """
-        grads = self.__generator.generateSignalGradient(t)
-        grads = grads.reshape((t.shape[0], grads.shape[1], 1, 1))
-        drive = self.__drives[0].reshape(
-            (1, 1,) + self.__drives[0].shape
-        )
-        return grads * drive
+        Returns the combined list of parameters from all drives.
+        """
+        params = []
+        for d in self._drives:
+            params += d.getParameters()
+        return params
+
+    def _getDriveMatrix(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+        """
+        Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
+        including the drive.
+        """
+        dim = self.dimension()
+        M = jnp.zeros((t.shape[0], dim, dim))
+        for drive in self._drives:
+            M += drive.getMatrix(annihilationOperator, t)
+        return M
+
+    def _getDriveGradients(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+        """
+        Returns the gradients of all drives. This function can be used be Hamiltonian implementations for including
+        the drive gradients.
+        """
+        dim = self.dimension()
+        allGrads = jnp.zeros((t.shape[0], 0, dim, dim))
+        for drive in self._drives:
+            grads = drive.gradient(annihilationOperator, t)
+            allGrads = jnp.append(allGrads, grads, axis=1)
+        return allGrads
 
     @staticmethod
-    def _repeatInTime(M: np.ndarray, times: np.ndarray) -> np.ndarray:
+    def _repeat(M: jnp.ndarray, num: int) -> jnp.ndarray:
         """
         Utility function that repeats the matrix M for each timestep in the times array. Returns an array with shape
         [t, n, m] where t is the number of time steps and M is a n times m matrix.
         """
-        return M.reshape((1,) + M.shape).repeat(times.shape[0], axis=0)
+        return M.reshape((1,) + M.shape).repeat(num, axis=0)
