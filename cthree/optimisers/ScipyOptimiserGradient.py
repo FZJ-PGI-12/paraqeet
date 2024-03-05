@@ -3,6 +3,7 @@ from typing import Dict, List
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult
 
+from cthree.optimisers.Optimiser import OptimisationResult
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.measurement.Measurement import Measurement
 
@@ -18,7 +19,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
     _method: str
     __gradCache: np.ndarray  # of shape (n_parameters,)
 
-    def optimise(self) -> OptimizeResult:
+    def optimise(self) -> OptimisationResult:
         if self._logger:
             self._logger.start()
 
@@ -40,7 +41,13 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         if self._logger:
             self._logger.stop(str(result))
-        return result
+
+        self._rawResult = result
+        return OptimisationResult(
+            status=OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED,
+            value=result.fun,
+            message=result.message,
+        )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:
         """
