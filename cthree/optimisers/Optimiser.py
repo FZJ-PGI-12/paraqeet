@@ -6,6 +6,41 @@ from cthree.measurement.Measurement import Measurement
 from cthree.FileLogger import Logger
 
 
+class OptimisationResult:
+
+    STATUS_FINISHED = 'finished'
+    """
+    The optimisation finished without a clear success or failure. This is used by algorithms that do not necessarily
+    converge towards a solution.
+    """
+    STATUS_SUCCESS = 'success'
+    """ The optimisation successfully found an optimum. """
+    STATUS_FAILED = 'failed'
+    """ The optimisation failed to converge. """
+
+    status: int
+    """ Indicates if the optimisation was successful. Should have one of the status constants as value. """
+    value: float
+    """ The value at the best point of the optimised function. """
+    message: str | None
+    """ Any additional message from the optimisation algorithm. This can be an error message in case of failure. """
+
+    def __init__(self, status: int, value: float, message: str | None = None) -> None:
+        self.status = status
+        self.value = value
+        self.message = message
+
+    def __repr__(self):
+        asDict = {
+            'status': self.status,
+            'value': self.value,
+        }
+        if self.message:
+            asDict['message'] = self.message
+
+        return str(asDict)
+
+
 class Optimiser:
     """
     Base class for all classes that implement an optimisation algorithm. The class accepts a list of optimisable
@@ -20,6 +55,7 @@ class Optimiser:
 
     _measure: Measurement
     _optimisables: OptimisationMap
+    _rawResult = None
     __opt_idxs: List[int]
     __logger: Logger
 
@@ -47,12 +83,21 @@ class Optimiser:
         self._optimisables = opt
 
     @abstractmethod
-    def optimise(self):
+    def optimise(self) -> OptimisationResult:
         """
         Performs the actual optimisation. Depending on the implementation, this function might take a long time and
-        might need several calls to the underlying layers.
+        might need several calls to the underlying layers. The returned object contains some information about the
+        result. The raw result of the underlying algorithm can be retrieved from the getRawResult method once the
+        optimisation is complete.
         """
         raise NotImplementedError()
+
+    def getRawResult(self):
+        """
+        Returns the raw response of the underlying algorithm from the last optimisation. The format depends on the
+        implementation.
+        """
+        return self._rawResult
 
     def _buildOptimisableIndexList(self):
         """
