@@ -46,6 +46,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         return OptimisationResult(
             status=OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED,
             value=result.fun,
+            iterations=opt_res.nfev,
             message=result.message,
         )
 

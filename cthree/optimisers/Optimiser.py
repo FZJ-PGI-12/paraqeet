@@ -22,18 +22,22 @@ class OptimisationResult:
     """ Indicates if the optimisation was successful. Should have one of the status constants as value. """
     value: float
     """ The value at the best point of the optimised function. """
+    iterations: int
+    """ The number of iterations during the optimisation. """
     message: str | None
     """ Any additional message from the optimisation algorithm. This can be an error message in case of failure. """
 
-    def __init__(self, status: int, value: float, message: str | None = None) -> None:
+    def __init__(self, status: int, value: float, iterations: int, message: str | None = None) -> None:
         self.status = status
         self.value = value
+        self.iterations = iterations
         self.message = message
 
     def __repr__(self):
         asDict = {
             'status': self.status,
             'value': self.value,
+            'iterations': self.iterations,
         }
         if self.message:
             asDict['message'] = self.message

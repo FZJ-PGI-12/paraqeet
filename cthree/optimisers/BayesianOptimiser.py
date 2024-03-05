@@ -81,6 +81,7 @@ class BayesianOptimiser(Optimiser):
         return OptimisationResult(
             status=OptimisationResult.STATUS_FINISHED,
             value=result["fun"],
+            iterations=self.__iterations + self.__initialSamples
         )
 
     def _setParametersAndMeasure(self, **kwargs) -> np.ndarray:

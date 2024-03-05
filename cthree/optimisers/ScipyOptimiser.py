@@ -72,6 +72,7 @@ class ScipyOptimiser(Optimiser):
         return OptimisationResult(
             status=OptimisationResult.STATUS_SUCCESS if opt_res.success else OptimisationResult.STATUS_FAILED,
             value=opt_res.fun,
+            iterations=opt_res.nfev,
             message=opt_res.message,
         )
 

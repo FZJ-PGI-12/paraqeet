@@ -2,7 +2,7 @@ from typing import Callable, Dict
 from cthree.FileLogger import Logger
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.Measurement import Measurement
-from cthree.optimisers.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser, OptimisationResult
 import numpy as np
 import cma.evolution_strategy as cma
 
@@ -61,7 +61,7 @@ class CMAEsOptimiser(Optimiser):
     def setCallback(self, cbfun: Callable) -> None:
         self._callback = cbfun
 
-    def optimise(self) -> cma.CMAEvolutionStrategyResult:
+    def optimise(self) -> OptimisationResult:
         options = {}
         options.update(self._options)
         options = self._options
@@ -147,7 +147,12 @@ class CMAEsOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(es.result_pretty())
 
-        return es.result
+        self._rawResult = es.result
+        return OptimisationResult(
+            status=0,
+            value=es.result.fbest,
+            iterations=es.result.iterations,
+        )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:
         """
