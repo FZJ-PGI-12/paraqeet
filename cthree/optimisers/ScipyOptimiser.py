@@ -68,8 +68,8 @@ class ScipyOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(str(opt_res))
 
-        self._rawResult = opt_res
         return OptimisationResult(
+            rawResult=opt_res,
             status=OptimisationResult.STATUS_SUCCESS if opt_res.success else OptimisationResult.STATUS_FAILED,
             value=opt_res.fun,
             iterations=opt_res.nfev,

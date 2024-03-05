@@ -18,6 +18,8 @@ class OptimisationResult:
     STATUS_FAILED = 'failed'
     """ The optimisation failed to converge. """
 
+    rawResult = None
+    """ The raw result from the underlying algorithm. """
     status: int
     """ Indicates if the optimisation was successful. Should have one of the status constants as value. """
     value: float
@@ -27,7 +29,8 @@ class OptimisationResult:
     message: str | None
     """ Any additional message from the optimisation algorithm. This can be an error message in case of failure. """
 
-    def __init__(self, status: int, value: float, iterations: int, message: str | None = None) -> None:
+    def __init__(self, rawResult, status: int, value: float, iterations: int, message: str | None = None) -> None:
+        self.rawResult = rawResult
         self.status = status
         self.value = value
         self.iterations = iterations
@@ -59,7 +62,6 @@ class Optimiser:
 
     _measure: Measurement
     _optimisables: OptimisationMap
-    _rawResult = None
     __opt_idxs: List[int]
     __logger: Logger
 
@@ -91,17 +93,9 @@ class Optimiser:
         """
         Performs the actual optimisation. Depending on the implementation, this function might take a long time and
         might need several calls to the underlying layers. The returned object contains some information about the
-        result. The raw result of the underlying algorithm can be retrieved from the getRawResult method once the
-        optimisation is complete.
+        result. The result will include the raw result of the underlying algorithm for more information.
         """
         raise NotImplementedError()
-
-    def getRawResult(self):
-        """
-        Returns the raw response of the underlying algorithm from the last optimisation. The format depends on the
-        implementation.
-        """
-        return self._rawResult
 
     def _buildOptimisableIndexList(self):
         """

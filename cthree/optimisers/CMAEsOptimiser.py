@@ -147,8 +147,8 @@ class CMAEsOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(es.result_pretty())
 
-        self._rawResult = es.result
         return OptimisationResult(
+            rawResult=es.result,
             status=0,
             value=es.result.fbest,
             iterations=es.result.iterations,

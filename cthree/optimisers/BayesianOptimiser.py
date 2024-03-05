@@ -77,8 +77,8 @@ class BayesianOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(str(result))
 
-        self._rawResult = result
         return OptimisationResult(
+            rawResult=result,
             status=OptimisationResult.STATUS_FINISHED,
             value=result["fun"],
             iterations=self.__iterations + self.__initialSamples
