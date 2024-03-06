@@ -149,7 +149,7 @@ class CMAEsOptimiser(Optimiser):
 
         return OptimisationResult(
             rawResult=es.result,
-            status=0,
+            status=OptimisationResult.STATUS_SUCCESS,
             value=es.result.fbest,
             iterations=es.result.iterations,
         )
