@@ -6,7 +6,7 @@ from numpy import ndarray
 from cthree.measurement.Measurement import Measurement
 
 
-class MultiGoal:
+class WeightedSumGoal(Measurement):
     """
     Combine multiple measurements into a single goal function.
     """
@@ -14,9 +14,15 @@ class MultiGoal:
     __measurements: List[Measurement]
     __weights: np.ndarray
 
-    def __init__(self, meas: List[Measurement], weights: np.ndarray):
-        self.__measurements = meas
+    def __init__(self, measurements: List[Measurement], weights: np.ndarray):
+        self.__measurements = measurements
         self.__weights = weights
+        if len(measurements) != len(weights):
+            raise ValueError(
+                f"Incompatible number of measurements {len(measurements)} and weights {len(weights)}"
+            )
+        if not np.isclose(sum(weights), 1.0):
+            raise UserWarning("Supplied weights are not normalized.")
 
     def measure(self) -> ndarray:
         measurements = [m.measure() for m in self.__measurements]
@@ -24,6 +30,13 @@ class MultiGoal:
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii]
         return sumMeas
+
+    def measureNormalised(self) -> ndarray:
+        measurements = [m.measureNormalised() for m in self.__measurements]
+        sumMeas = 0
+        for ii, w in enumerate(self.__weights):
+            sumMeas += w * measurements[ii]
+        return float(sumMeas)
 
     def measureWithGradient(self):
         measurements = [m.measureWithGradient() for m in self.__measurements]
