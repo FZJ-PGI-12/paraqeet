@@ -4,6 +4,7 @@ import jax.numpy as jnp
 
 from numpy import ndarray
 from cthree.measurement.Measurement import Measurement
+from cthree.Exceptions import ConfigurationException
 
 
 class WeightedSumGoal(Measurement):
@@ -18,7 +19,7 @@ class WeightedSumGoal(Measurement):
         self.__measurements = measurements
         self.__weights = weights
         if len(measurements) != len(weights):
-            raise ValueError(
+            raise ConfigurationException(
                 f"Incompatible number of measurements {len(measurements)} and weights {len(weights)}"
             )
         if not np.isclose(sum(weights), 1.0):

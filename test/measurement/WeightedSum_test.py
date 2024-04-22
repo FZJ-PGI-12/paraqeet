@@ -1,9 +1,10 @@
+from test.propagation.IdentityPropagation import IdentityPropagation
+
 import numpy as np
 import pytest
-from test.propagation.IdentityPropagation import IdentityPropagation
-from cthree.measurement.WeightedSumGoal import WeightedSumGoal
-
+from cthree.Exceptions import ConfigurationException
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
+from cthree.measurement.WeightedSumGoal import WeightedSumGoal
 
 
 def test_WeightedSumGoal(randomUnitaryMatrix):
@@ -20,7 +21,7 @@ def test_WeightedSumGoal(randomUnitaryMatrix):
 
 
 def test_WeightedSumGoalMismatchedWeights():
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigurationException):
         WeightedSumGoal(measurements=[], weights=[0.2, 0.3, 0.5])
 
 
