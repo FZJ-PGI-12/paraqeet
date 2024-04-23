@@ -10,6 +10,7 @@ class Optimisable:
     all parameters (by reference) and update their values.
     """
 
+    _name: str = ""
     _optimisableParameters: List[Quantity] = []
 
     @abstractmethod
@@ -19,6 +20,12 @@ class Optimisable:
         """
         raise NotImplementedError()
 
+    def getName(self) -> str:
+        return self._name
+
+    def setName(self, name: str) -> None:
+        self._name = name
+
     def setOptimisableParameters(self, params: List[Quantity]) -> None:
         """
         Sets which parameters shall be considered during optimisation. All quantities that are not in the response of
@@ -26,7 +33,9 @@ class Optimisable:
         to tell the layers which gradients to compute.
         """
         allParams = self.getParameters()
-        self._optimisableParameters = [p for p in params if any([p is q for q in allParams])]
+        self._optimisableParameters = [
+            p for p in params if any([p is q for q in allParams])
+        ]
 
     def _isOptimised(self, param: Quantity) -> bool:
         """
