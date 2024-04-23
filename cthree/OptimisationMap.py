@@ -25,7 +25,7 @@ class OptimisationMap:
         """
         om_str = ""
         for key, val in self.__optimisableToParameterMap.items():
-            om_str += f"==== {key} ====\n"
+            om_str += f"==== {key.getName() or key} ====\n"
             om_str += str(val)
             om_str += "\n\n"
         return om_str
@@ -97,7 +97,9 @@ class OptimisationMap:
         for key in self.__optimisableToParameterMap.keys():
             filtered = filter(filterFunction, self.__optimisableToParameterMap[key])
             self.__optimisableToParameterMap[key] = list(filtered)
-        self.__optimisableToParameterMap = dict((k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0)
+        self.__optimisableToParameterMap = dict(
+            (k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0
+        )
 
     def filterByName(self, name: str):
         return self.filterParameters(lambda quantity: quantity.getName() == name)
