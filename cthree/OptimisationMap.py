@@ -25,7 +25,7 @@ class OptimisationMap:
         """
         om_str = ""
         for key, val in self.__optimisableToParameterMap.items():
-            om_str += f"==== {key.getName() or key} ====\n"
+            om_str += f"==== {key} ====\n"
             om_str += str(val)
             om_str += "\n\n"
         return om_str

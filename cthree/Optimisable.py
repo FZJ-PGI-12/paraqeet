@@ -26,6 +26,12 @@ class Optimisable:
     def setName(self, name: str) -> None:
         self._name = name
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self._name or self
+
     def setOptimisableParameters(self, params: List[Quantity]) -> None:
         """
         Sets which parameters shall be considered during optimisation. All quantities that are not in the response of
