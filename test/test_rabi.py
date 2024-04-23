@@ -7,6 +7,7 @@ from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 
 
 FREQ = 4.8e9
+RABI_NAME = "Analytic Rabi Model"
 
 
 @pytest.fixture
@@ -18,7 +19,13 @@ def opt(rabi):
 
 @pytest.fixture
 def rabi():
-    return RabiExperiment(FREQ)
+    exp = RabiExperiment(FREQ)
+    exp.setName(RABI_NAME)
+    return exp
+
+
+def test_name(rabi):
+    assert rabi.getName() == RABI_NAME
 
 
 def test_rabi(opt) -> None:
