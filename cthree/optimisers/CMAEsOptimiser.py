@@ -149,7 +149,7 @@ class CMAEsOptimiser(Optimiser):
 
         return OptimisationResult(
             rawResult=es.result,
-            status=OptimisationResult.STATUS_SUCCESS,
+            status=self.__determineTerminationStatus(es.result.stop()),
             value=es.result.fbest,
             iterations=es.result.iterations,
         )
@@ -168,3 +168,18 @@ class CMAEsOptimiser(Optimiser):
         if self._logger:
             self._logger.log(log, infid)
         return infid
+
+    def __determineTerminationStatus(self, conditions: dict) -> int:
+        """
+        Determines the success or failure of the optimisation depending on the termination conditions dict of the
+        CMAEvolutionStrategy.
+        :param conditions: the dictionary from the CMAEvolutionStrategy.stop()
+        :return: one of the constants in OptimisationResult
+        """
+        if any((key in conditions) for key in ['ftarget', 'tolfun', 'tolfunhist', 'tolfunrel','tolfacupx', 'tolx']):
+            return OptimisationResult.STATUS_SUCCESS
+        elif any((key in conditions) for key in ['maxfevals', 'maxiter', 'timeout']):
+            return OptimisationResult.STATUS_FAILED
+        else:
+            # not decidable
+            return OptimisationResult.STATUS_FINISHED

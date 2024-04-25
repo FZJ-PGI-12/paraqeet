@@ -8,14 +8,14 @@ from cthree.FileLogger import Logger
 
 class OptimisationResult:
 
-    STATUS_FINISHED = 'finished'
+    STATUS_FINISHED = 0
     """
     The optimisation finished without a clear success or failure. This is used by algorithms that do not necessarily
     converge towards a solution.
     """
-    STATUS_SUCCESS = 'success'
+    STATUS_SUCCESS = 1
     """ The optimisation successfully found an optimum. """
-    STATUS_FAILED = 'failed'
+    STATUS_FAILED = 2
     """ The optimisation failed to converge. """
 
     rawResult = None
