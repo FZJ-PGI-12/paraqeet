@@ -30,7 +30,7 @@ class Optimisable:
         return self.__str__()
 
     def __str__(self):
-        return self._name or self
+        return self._name or str(self.__class__)
 
     def setOptimisableParameters(self, params: List[Quantity]) -> None:
         """
