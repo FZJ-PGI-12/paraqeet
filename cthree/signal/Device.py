@@ -235,20 +235,8 @@ class CosToneAD(CosTone):
             self.__gradArgNums += (0,)
         if self._isOptimised(Optimisable_params[1]):
             self.__gradArgNums += (1,)
-
-    @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp, freq, t):
-        """
-        Overwrite the `_evaluate` function to compute the output of the device that explicitly depends on the
-        optimisable parameters.
-        This uses JAX based Numpy to make it compatible to AD.
-
-        Args:
-            amp (Quantity): Cosine pulse amplitude
-            freq (Quantity): Cosine pulse frequency
-            t (np.ndarray): Time array
-        """
-        return jnp.squeeze(amp * jnp.cos(freq * t))
+        if self._isOptimised(Optimisable_params[2]):
+            self.__gradArgNums += (2,)
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """
@@ -257,6 +245,7 @@ class CosToneAD(CosTone):
         params = self.getParameters()
         amp = params[0].getValue()
         freq = params[1].getValue()
+        phase = params[2].getValue()
         t = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
@@ -266,7 +255,7 @@ class CosToneAD(CosTone):
                 self.__gradientFunction = self._computeGradientFunction(
                     self._evaluate,
                     argnums=self.__gradArgNums,
-                    vmap_axes=(None, None, 0),
+                    vmap_axes=(None, None, None, 0),
                 )
 
             parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
@@ -274,7 +263,7 @@ class CosToneAD(CosTone):
                 parameter_scales, (1,) + parameter_scales.shape
             )
 
-            grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
+            grads = jnp.stack(self.__gradientFunction(amp, freq, phase, t), axis=1)
             grads = jnp.squeeze(grads) * parameter_scales
         return grads
 
