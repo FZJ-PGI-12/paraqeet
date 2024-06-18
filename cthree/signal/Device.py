@@ -20,12 +20,15 @@ class Device(Optimisable):
     Classical electronics.
     """
 
+    _gradientFunction: Callable | None
+    _gradArgNums: Tuple[int, ...]
+
     @abstractmethod
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
     @abstractmethod
-    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+    def _evaluate(self):
         raise NotImplementedError()
 
     def _computeGradientFunction(
@@ -37,6 +40,56 @@ class Device(Optimisable):
         grads = grad(signalFunction, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
         return jit(partial_grads)
+
+    def setOptimisableParameters(self, params: List[Quantity]) -> None:
+        super().setOptimisableParameters(params)
+
+        Optimisable_params = self.getParameters()
+        for i, param in enumerate(Optimisable_params):
+            if self._isOptimised(param):
+                self._gradArgNums += (i,)
+
+    def computeGradient(self, t: np.ndarray) -> Array:
+        """
+        Compute the gradient of the `_evaluate` method using Automatic differentiation.
+        The `_evaluate` method should be a `pure` function (should take the
+        optimisable parameters as function arguments and doesn't depend on global variables).
+
+        Refer to https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
+        for functionally `pure` functions.
+
+        To implement analytical gradients / other methods for gradient computation
+        overwrite this method in the inherited class.
+        """
+
+        params = self.getParameters()
+        param_values = [param.getValue() for param in params]
+        num_params = len(params)
+        t = jnp.array(t, ndmin=1)
+
+        # vmap over time axis only, set everything else to None
+        vmap_axes = (None,) * num_params
+        vmap_axes += (0,)  # type: ignore
+
+        grads = jnp.empty((t.shape[0], 0))
+
+        if len(self._gradArgNums) > 0:
+            if self._gradientFunction is None:
+                self._gradientFunction = self._computeGradientFunction(
+                    self._evaluate,
+                    argnums=self._gradArgNums,
+                    vmap_axes=vmap_axes,
+                )
+
+            parameter_scales = jnp.array([param.getScale() for param in params])
+            parameter_scales = jnp.reshape(
+                parameter_scales, (1,) + parameter_scales.shape
+            )
+
+            grads = jnp.stack(self._gradientFunction(*param_values, t), axis=1)
+            grads = jnp.squeeze(grads) * parameter_scales
+
+        return grads
 
 
 class CosTone(Device):
@@ -85,7 +138,7 @@ class CosTone(Device):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return amp * jnp.cos(freq * t + phase)
+        return jnp.squeeze(amp * jnp.cos(freq * t + phase))
 
     def computeOutput(self, t: np.ndarray) -> Array:
         """
@@ -154,7 +207,7 @@ class CosToneErf(Device):
         )
 
     def getParameters(self) -> List[Quantity]:
-        return [self.__amplitude, self.__frequency, self.__t_final]
+        return [self.__amplitude, self.__frequency]
 
     def _envelope(self, t):
         """
@@ -176,7 +229,7 @@ class CosToneErf(Device):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return self._envelope(t) * amp * jnp.cos(freq * t)
+        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
 
     def computeOutput(self, t: np.ndarray) -> Array:
         amp = self.__amplitude.getValue()
