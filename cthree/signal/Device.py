@@ -51,7 +51,7 @@ class CosTone(Device):
         self.__amplitude = Quantity(
             2e5 * 2 * np.pi,
             min_value=1e5 * 2 * np.pi,
-            max_value=250e6 * 2 * np.pi,
+            max_value=50e6 * 2 * np.pi,
             unit="Hz",
             name="Amplitude",
         )
@@ -62,12 +62,21 @@ class CosTone(Device):
             unit="Hz",
             name="Frequency",
         )
+        self.__phase = Quantity(
+            0,
+            min_value=-np.pi,
+            max_value=np.pi,
+            unit="rad",
+            name="Phase",
+        )
 
     def getParameters(self) -> List[Quantity]:
-        return [self.__amplitude, self.__frequency]
+        return [self.__amplitude, self.__frequency, self.__phase]
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray) -> Array:
+    def _evaluate(
+        self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
+    ) -> Array:
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
@@ -76,7 +85,7 @@ class CosTone(Device):
             freq (Quantity): Cosine pulse frequency
             t (np.ndarray): Time array
         """
-        return amp * jnp.cos(freq * t)
+        return amp * jnp.cos(freq * t + phase)
 
     def computeOutput(self, t: np.ndarray) -> Array:
         """
@@ -87,7 +96,8 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return self._evaluate(amp, freq, t)
+        phase = self.__phase.getValue()
+        return self._evaluate(amp, freq, phase, t)
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """
@@ -98,13 +108,18 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
+        phase = self.__phase.getValue()
         t = jnp.array(t, ndmin=1)
 
         grads = []
         if self._isOptimised(self.__amplitude):
-            grads.append(jnp.cos(freq * t) * self.__amplitude.getScale())
+            grads.append(jnp.cos(freq * t + phase) * self.__amplitude.getScale())
         if self._isOptimised(self.__frequency):
-            grads.append(-amp * t * jnp.sin(freq * t) * self.__frequency.getScale())
+            grads.append(
+                -amp * t * jnp.sin(freq * t + phase) * self.__frequency.getScale()
+            )
+        if self._isOptimised(self.__phase):
+            grads.append(-amp * jnp.sin(freq * t + phase) * self.__phase.getScale())
         return (
             jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
         )
