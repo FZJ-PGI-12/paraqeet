@@ -20,8 +20,8 @@ class Device(Optimisable):
     Classical electronics.
     """
 
-    _gradientFunction: Callable | None
-    _gradArgNums: Tuple[int, ...]
+    _gradientFunction: Callable | None = None
+    _gradArgNums: Tuple[int, ...] = ()
 
     @abstractmethod
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
@@ -126,7 +126,7 @@ class CosTone(Device):
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency, self.__phase]
 
-    @partial(jax.jit, static_argnums=(0,))
+    @partial(jit, static_argnums=(0,))
     def _evaluate(
         self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
     ) -> Array:
@@ -219,7 +219,7 @@ class CosToneErf(Device):
         rampDown = 1 + erf((-t + 4 * t0 / 5) / ramp_time)
         return rampUp * rampDown / 4
 
-    @partial(jax.jit, static_argnums=(0,))
+    @partial(jit, static_argnums=(0,))
     def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray):
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
@@ -264,139 +264,3 @@ class ZeroTone(Device):
 
     def computeOutput(self, t: np.ndarray) -> Array:
         return jnp.zeros_like(t)
-
-
-class CosToneAD(CosTone):
-    """
-    Create a cos tone, but the gradients are calculated by Automatic Differentiation (AD).
-    This class is for testing purposes and hence runs slower than analytically calculated gradients.
-    """
-
-    __gradientFunction: Callable | None
-    __gradArgNums: Tuple[int, ...]
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.__gradientFunction = None
-        self.__gradArgNums = ()
-
-    def setOptimisableParameters(self, params: List[Quantity]) -> None:
-        super().setOptimisableParameters(params)
-
-        Optimisable_params = self.getParameters()
-        if self._isOptimised(Optimisable_params[0]):
-            self.__gradArgNums += (0,)
-        if self._isOptimised(Optimisable_params[1]):
-            self.__gradArgNums += (1,)
-        if self._isOptimised(Optimisable_params[2]):
-            self.__gradArgNums += (2,)
-
-    def computeGradient(self, t: np.ndarray) -> Array:
-        """
-        Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
-        """
-        params = self.getParameters()
-        amp = params[0].getValue()
-        freq = params[1].getValue()
-        phase = params[2].getValue()
-        t = jnp.array(t, ndmin=1)
-
-        grads = jnp.empty((t.shape[0], 0))
-
-        if len(self.__gradArgNums) > 0:
-            if self.__gradientFunction is None:
-                self.__gradientFunction = self._computeGradientFunction(
-                    self._evaluate,
-                    argnums=self.__gradArgNums,
-                    vmap_axes=(None, None, None, 0),
-                )
-
-            parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
-            parameter_scales = jnp.reshape(
-                parameter_scales, (1,) + parameter_scales.shape
-            )
-
-            grads = jnp.stack(self.__gradientFunction(amp, freq, phase, t), axis=1)
-            grads = jnp.squeeze(grads) * parameter_scales
-        return grads
-
-
-class CosToneErfAD(CosToneErf):
-    """
-    Create a cos tone with error-function shaped envelope, but the gradients are calculated
-    by Automatic Differentiation (AD).
-    This class is for testing purposes and hence runs slower than analytically calculated gradients.
-    """
-
-    __gradientFunction: Callable | None
-    __gradArgNums: Tuple[int, ...]
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.__gradientFunction = None
-        self.__gradArgNums = ()
-
-    def setOptimisableParameters(self, params: List[Quantity]) -> None:
-        super().setOptimisableParameters(params)
-
-        Optimisable_params = self.getParameters()
-        if self._isOptimised(Optimisable_params[0]):
-            self.__gradArgNums += (0,)
-        if self._isOptimised(Optimisable_params[1]):
-            self.__gradArgNums += (1,)
-
-    def _envelope(self, t):
-        """
-        Overwrite the inherited `_envelope` function to calaculate normalized, error function shaped envelope
-        with ramps centered at 1/5 and 4/5 of the final gate time.
-        This uses JAX based error function to make it compatible to AD.
-        """
-
-        t_final = self.getParameters()[2]
-        t0 = t_final.getValue()
-        ramp_time = t0 / 10
-        rampUp = 1 + erf((t - t0 / 5) / ramp_time)
-        rampDown = 1 + erf((-t + 4 * t0 / 5) / ramp_time)
-        return rampUp * rampDown / 4
-
-    @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp, freq, t):
-        """
-        Overwrite the inherited `_evaluate` function to compute the output of the device that explicitly
-        depends on the optimisable parameters.
-        This uses JAX based Numpy to make it compatible to AD.
-
-        Args:
-            amp (Quantity): Cosine pulse amplitude
-            freq (Quantity): Cosine pulse frequency
-            t (np.ndarray): Time array
-        """
-        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
-
-    def computeGradient(self, t: np.ndarray) -> Array:
-        """
-        Overwrite the inherited `computeGradient` method to calculate gradients uisng AD.
-        """
-        params = self.getParameters()
-        amp = params[0].getValue()
-        freq = params[1].getValue()
-        t = jnp.array(t, ndmin=1)
-
-        grads = jnp.empty((t.shape[0], 0))
-
-        if len(self.__gradArgNums) > 0:
-            if self.__gradientFunction is None:
-                self.__gradientFunction = self._computeGradientFunction(
-                    self._evaluate,
-                    argnums=self.__gradArgNums,
-                    vmap_axes=(None, None, 0),
-                )
-
-            parameter_scales = jnp.array([params[0].getScale(), params[1].getScale()])
-            parameter_scales = jnp.reshape(
-                parameter_scales, (1,) + parameter_scales.shape
-            )
-
-            grads = jnp.stack(self.__gradientFunction(amp, freq, t), axis=1)
-            grads = jnp.squeeze(grads) * parameter_scales
-        return grads

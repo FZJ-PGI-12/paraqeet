@@ -19,7 +19,7 @@ from cthree.signal.SimpleGenerator import CosGenerator
 
 from cthree.signal.Device import CosToneErf
 
-from cthree.signal.Device import CosToneErfAD
+from test.DummyDevice import CosToneErfAD
 from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 
 FREQ = 4.8e9 * 2 * np.pi
@@ -133,8 +133,7 @@ def genAD(toneAD):
 def propAD(genAD):
     drive = GeneratorDrive(genAD, isLongitudinal=False)
     controlled_qubit = Qubit(
-        frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-        drives=[drive]
+        frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive]
     )
     model = ClosedModel(controlled_qubit)
     return ScipyExpmGOAT(model=model, res=RES)
