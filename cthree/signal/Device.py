@@ -9,7 +9,7 @@ from jax.scipy.special import erf
 
 import jax
 import jax.numpy as jnp
-from jax import Array, grad, vmap, jit
+from jax import grad, vmap, jit
 from functools import partial
 
 jax.config.update("jax_enable_x64", True)
@@ -49,7 +49,7 @@ class Device(Optimisable):
             if self._isOptimised(param):
                 self._gradArgNums += (i,)
 
-    def computeGradient(self, t: np.ndarray) -> Array:
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """
         Compute the gradient of the `_evaluate` method using Automatic differentiation.
         The `_evaluate` method should be a `pure` function (should take the
@@ -129,7 +129,7 @@ class CosTone(Device):
     @partial(jit, static_argnums=(0,))
     def _evaluate(
         self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
-    ) -> Array:
+    ) -> np.ndarray:
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
@@ -140,7 +140,7 @@ class CosTone(Device):
         """
         return jnp.squeeze(amp * jnp.cos(freq * t + phase))
 
-    def computeOutput(self, t: np.ndarray) -> Array:
+    def computeOutput(self, t: np.ndarray) -> np.ndarray:
         """
         Returns the scalar output for each step in the time array t.
 
@@ -152,7 +152,7 @@ class CosTone(Device):
         phase = self.__phase.getValue()
         return self._evaluate(amp, freq, phase, t)
 
-    def computeGradient(self, t: np.ndarray) -> Array:
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """
         Returns the gradient wrt dimensionless parameters for each step in the time array t.
 
@@ -231,12 +231,12 @@ class CosToneErf(Device):
         """
         return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
 
-    def computeOutput(self, t: np.ndarray) -> Array:
+    def computeOutput(self, t: np.ndarray) -> np.ndarray:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         return self._evaluate(amp, freq, t)
 
-    def computeGradient(self, t: np.ndarray) -> Array:
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """
         Returns the gradient wrt dimensionless parameters.
         """
@@ -262,5 +262,5 @@ class ZeroTone(Device):
     Create a zero tone.
     """
 
-    def computeOutput(self, t: np.ndarray) -> Array:
+    def computeOutput(self, t: np.ndarray) -> np.ndarray:
         return jnp.zeros_like(t)
