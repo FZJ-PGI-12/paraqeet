@@ -1,5 +1,4 @@
 import pytest
-from typing import Tuple
 
 from cthree.Quantity import Quantity
 import numpy as np
@@ -188,9 +187,11 @@ def testArithmetic(five, three):
 
 def testStr(five):
     volts = Quantity(0.005, 0, 1, unit="V")
-    assert str(volts) == "5.0 mV "
+    assert str(volts) == "5 mV "
     resist = Quantity(2100, 0, 2500, unit="Ohm")
     assert str(resist) == "2.1 KOhm "
+    amps = Quantity(125e6 * 2 * np.pi, 100e6, 1e9, unit="Hz", twoPi=True)
+    assert str(amps) == "125 MHz x 2pi "
 
 
 def testIsScalarOrVector(randomQuantity):
