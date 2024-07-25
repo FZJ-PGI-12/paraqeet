@@ -32,6 +32,8 @@ class Quantity:
         physical unit
     name: str
         symbol or description of this quantity
+    twoPi: bool
+        divide by two pi for representation
     """
 
     __unit: str
@@ -42,6 +44,7 @@ class Quantity:
     __value: np.ndarray
     __offset: np.ndarray
     __scale: np.ndarray
+    __twoPi: bool
 
     def __init__(
         self,
@@ -50,6 +53,7 @@ class Quantity:
         max_value: np.ndarray,
         unit: str = "",
         name: str = "",
+        twoPi: bool = False,
     ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
@@ -57,6 +61,7 @@ class Quantity:
         self.__unit = unit
         self.__name = name
         self.__scale = 0
+        self.__twoPi = twoPi
 
         if np.shape(value) == ():
             value = np.array([value])
@@ -201,12 +206,16 @@ class Quantity:
 
     def __lt__(self, other) -> bool:
         if not self.isScalar():
-            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
+            raise IncompatibleQuantityException(
+                "Ordering operators are only usable with scalar quantities"
+            )
         return self.getValue() < other.getValue()
 
     def __le__(self, other) -> bool:
         if not self.isScalar():
-            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
+            raise IncompatibleQuantityException(
+                "Ordering operators are only usable with scalar quantities"
+            )
         return self.getValue() <= other
 
     def __eq__(self, other) -> bool:
@@ -221,12 +230,16 @@ class Quantity:
 
     def __ge__(self, other) -> bool:
         if not self.isScalar():
-            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
+            raise IncompatibleQuantityException(
+                "Ordering operators are only usable with scalar quantities"
+            )
         return self.getValue() >= other
 
     def __gt__(self, other) -> bool:
         if not self.isScalar():
-            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
+            raise IncompatibleQuantityException(
+                "Ordering operators are only usable with scalar quantities"
+            )
         return self.getValue() > other
 
     def __array__(self):
@@ -258,9 +271,22 @@ class Quantity:
         ret = ""
         for entry in np.nditer(val):
             if self.__unit != "":
-                ret += self.__makeHumanReadable(entry) + self.__unit + " "
+                if self.__twoPi:
+                    ret += (
+                        self.__makeHumanReadable(entry / np.pi / 2)
+                        + self.__unit
+                        + " x 2pi "
+                    )
+                else:
+                    ret += self.__makeHumanReadable(entry) + self.__unit + " "
             else:
-                ret += self.__makeHumanReadable(entry, use_prefix=False) + " "
+                if self.__twoPi:
+                    ret += (
+                        self.__makeHumanReadable(entry / np.pi / 2, use_prefix=False)
+                        + " x 2pi "
+                    )
+                else:
+                    ret += self.__makeHumanReadable(entry, use_prefix=False) + " "
         if self.__name:
             ret = self.__name + ": " + ret
         return ret
@@ -272,9 +298,9 @@ class Quantity:
         """
         if use_prefix:
             num, prefix = Quantity.__engineeringNumber(val)
-            formatted_string = f"{num:.3} " + prefix
+            formatted_string = f"{num:.3g} " + prefix
         else:
-            formatted_string = f"{val:.3} "
+            formatted_string = f"{val:.3g} "
         return formatted_string
 
     # Internal utility functions
