@@ -84,8 +84,8 @@ class Measurement(Optimisable):
 
     def _preprocess(self, U: np.ndarray) -> np.ndarray:
         """
-        Performs any preprocessing on the propagator that was registered in this class. Subclasses should call this
-        function before computing the measured value.
+        Performs any preprocessing on the propagator that was registered. Subclasses should call this function before
+        computing the measured value.
 
         Parameters
         ----------
