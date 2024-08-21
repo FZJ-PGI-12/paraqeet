@@ -62,6 +62,7 @@ class UnitaryFidelity(Measurement):
         Return the L2 norm of the last time step compared to the ideal gate.
         """
         states = self.__propagation.propagate(time=self._times)
+        states = self._preprocess(states)
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(np.vdot(s, states[-1][:, ii]))

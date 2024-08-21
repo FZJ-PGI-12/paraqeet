@@ -13,6 +13,11 @@ class Measurement(Optimisable):
     class has solved the equation of motion.
     """
 
+    # Fields for tracing and projecting before the measurement
+    __inputDimensions: List[int] | None = None
+    __outputDimensions: List[int] | None = None
+    __projector: np.ndarray | None = None
+
     def __init__(self, times: np.ndarray | None = None):
         self._times = times
 
@@ -44,3 +49,52 @@ class Measurement(Optimisable):
         NotImplementedError
         """
         raise NotImplementedError()
+
+    def restrictSubsystems(self, inputDimensions: List[int], outputDimensions: List[int] | None = None) -> None:
+        """
+        Notifies the measurement class that the computed propagator should be projected to a subspace before doing the
+        measurement. Dimensions of the subspaces are specified per subsystem.
+
+        Parameters
+        ----------
+        inputDimensions: Actual dimensions of all subsystems
+        outputDimensions: Desired dimensions of all subsystems. Individual values can be 0 to fully remove subsystems
+                          from the propagator. The list can be None to disable projection.
+        """
+        self.__inputDimensions = inputDimensions
+        self.__outputDimensions = outputDimensions
+        self.__projector = None
+
+        # Construct the projector matrix
+        if outputDimensions is not None:
+            if len(inputDimensions) != len(outputDimensions):
+                raise RuntimeError("The input and output dimensions must contain the same number of subsystems")
+            if np.any(np.array(self.__inputDimensions) < 0) or np.any(np.array(self.__outputDimensions) < 0):
+                raise RuntimeError("Dimensions must not be negative")
+            if np.any(np.array(self.__inputDimensions) < np.array(self.__outputDimensions)):
+                raise RuntimeError("Output dimensions can not be larger than input dimensions")
+            if np.sum(outputDimensions) == 0:
+                raise RuntimeError("Output dimensions must be all 0")
+
+            P = np.eye(1)
+            for i, (dimIn, dimOut) in enumerate(zip(inputDimensions, outputDimensions)):
+                dim2 = dimOut if dimOut > 0 else 1
+                P = np.kron(self.__projector, np.eye(dimIn, dim2))
+            self.__projector = P
+
+    def _preprocess(self, U: np.ndarray) -> np.ndarray:
+        """
+        Performs any preprocessing on the propagator that was registered in this class. Subclasses should call this
+        function before computing the measured value.
+
+        Parameters
+        ----------
+        U: the propagator
+
+        Returns
+        -------
+        The modified propagator
+        """
+        if self.__projector is not None:
+            U = self.__projector.T @ U @ self.__projector
+        return U
