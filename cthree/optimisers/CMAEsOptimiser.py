@@ -148,10 +148,10 @@ class CMAEsOptimiser(Optimiser):
             self._logger.stop(es.result_pretty())
 
         return OptimisationResult(
-            rawResult=es.result,
             status=self.__determineTerminationStatus(es.result.stop()),
             value=es.result.fbest,
             iterations=es.result.iterations,
+            rawResult=es.result,
         )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:

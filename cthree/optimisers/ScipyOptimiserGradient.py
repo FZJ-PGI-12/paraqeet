@@ -44,11 +44,11 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         self._rawResult = result
         return OptimisationResult(
-            rawResult=result,
             status=OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED,
             value=result.fun,
             iterations=result.nfev,
             message=result.message,
+            rawResult=result,
         )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:

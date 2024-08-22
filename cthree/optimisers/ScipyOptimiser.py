@@ -69,11 +69,11 @@ class ScipyOptimiser(Optimiser):
             self._logger.stop(str(opt_res))
 
         return OptimisationResult(
-            rawResult=opt_res,
             status=OptimisationResult.STATUS_SUCCESS if opt_res.success else OptimisationResult.STATUS_FAILED,
             value=opt_res.fun,
             iterations=opt_res.nfev,
             message=opt_res.message,
+            rawResult=opt_res,
         )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:

@@ -78,10 +78,10 @@ class BayesianOptimiser(Optimiser):
             self._logger.stop(str(result))
 
         return OptimisationResult(
-            rawResult=optimiser.max,
             status=OptimisationResult.STATUS_FINISHED,
             value=result["fun"],
-            iterations=self.__iterations + self.__initialSamples
+            iterations=self.__iterations + self.__initialSamples,
+            rawResult=optimiser.max,
         )
 
     def _setParametersAndMeasure(self, **kwargs) -> np.ndarray:
