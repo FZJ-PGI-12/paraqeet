@@ -35,18 +35,17 @@ class Resonator(Hamiltonian):
     def getParameters(self) -> List[Quantity]:
         return self._getDriveParameters() + [self.__frequency]
 
-    def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
+    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
         H = self.__frequency.getValue() * self.__numOp
-        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
+        return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
 
-    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
+    def gradientOneTime(self, t: float) -> jnp.ndarray:
         # Fetch the gradient of the drive
-        derivatives = self._getDriveGradients(self.__annihilationOp, t)
+        derivatives = self._getDriveGradientsOneTime(self.__annihilationOp, t)
 
         # Combine with the derivative wrt the frequency
         if self._isOptimised(self.__frequency):
             grad = self.__numOp.reshape((1,) + self.__numOp.shape)
-            grad = self._repeat(grad, t.shape[0])
             derivatives = jnp.append(derivatives, grad, axis=1)
 
         return derivatives

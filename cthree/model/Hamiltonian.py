@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 import jax.numpy as jnp
 import numpy as np
+from jax import vmap
 
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
@@ -28,7 +29,8 @@ class Hamiltonian(Optimisable):
 
     def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
         """
-        Return the matrix representation of the Hamiltonian.
+        Return the matrix representation of the Hamiltonian. The default implementation calls getMatrixOneTime for each
+        time step. Subclasses can override this function for a more efficient implementation.
 
         Args:
             t (np.ndarray): Vector of time samples
@@ -36,7 +38,7 @@ class Hamiltonian(Optimisable):
         Returns:
             jnp.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space dimension
         """
-        raise NotImplementedError()
+        return vmap(self.getMatrixOneTime)(t)
 
     def getMatrixOneTime(self, t: float) -> jnp.ndarray:
         """
@@ -57,6 +59,9 @@ class Hamiltonian(Optimisable):
         in the gradient that were registered in the Optimisable parent class. The order of the gradients should match
         the order of the parameters returned by getParameters.
 
+        The default implementation calls gradientOneTime for each time step. Subclasses can override this function for a
+        more efficient implementation.
+
         Args:
             t (np.ndarray): Vector of time samples
 
@@ -64,7 +69,7 @@ class Hamiltonian(Optimisable):
             jnp.ndarray: Hamiltonian of shape [t, p, n, n]  with t: time, p: number of parameters, n: hilbert space
                         dimension
         """
-        raise NotImplementedError()
+        return vmap(self.gradientOneTime)(t)
 
     def gradientOneTime(self, t: float) -> jnp.ndarray:
         """
@@ -94,6 +99,18 @@ class Hamiltonian(Optimisable):
             params += d.getParameters()
         return params
 
+    def _getDriveMatrix(
+        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
+    ) -> jnp.ndarray:
+        """
+        Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
+        including the drive.
+
+        The default implementation calls _getDriveMatrixOneTime for each time step. Subclasses can override this
+        function for a more efficient implementation.
+        """
+        return vmap(self._getDriveMatrixOneTime)(annihilationOperator, t)
+
     def _getDriveMatrixOneTime(
         self, annihilationOperator: jnp.ndarray, t: float
     ) -> jnp.ndarray:
@@ -105,19 +122,6 @@ class Hamiltonian(Optimisable):
         M = jnp.zeros((dim, dim))
         for drive in self._drives:
             M += drive.getMatrixOneTime(annihilationOperator, t)
-        return M
-
-    def _getDriveMatrix(
-        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
-    ) -> jnp.ndarray:
-        """
-        Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
-        including the drive.
-        """
-        dim = self.dimension()
-        M = jnp.zeros((t.shape[0], dim, dim))
-        for drive in self._drives:
-            M += drive.getMatrix(annihilationOperator, t)
         return M
 
     def _getDriveGradients(

@@ -72,35 +72,6 @@ class Transmon(Hamiltonian):
         )
         return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
 
-    def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
-        H = (
-            self.__frequency.getValue() * self.__numOp
-            + self.__anharmonicity.getValue() * self.__anharmonicTerm
-        )
-        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(
-            self.__annihilationOp, t
-        )
-
-    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
-        # Fetch the gradient of the drive
-        gradients = self._getDriveGradients(self.__annihilationOp, t)
-
-        # Combine with the derivatives wrt the frequency and anharmonicity
-        grads = []
-        if self._isOptimised(self.__frequency):
-            grads.append(self.__numOp)
-        if self._isOptimised(self.__anharmonicity):
-            grads.append(self.__anharmonicTerm)
-        grads = (
-            jnp.stack(grads, axis=0)
-            if len(grads) > 0
-            else jnp.empty((0,) + self.__numOp.shape)
-        )
-        grads = self._repeat(grads, t.shape[0])
-        gradients = jnp.append(gradients, grads, axis=1)
-
-        return gradients
-
     def gradientOneTime(self, t: float) -> jnp.ndarray:
         # Fetch the gradient of the drive
         gradients = self._getDriveGradientsOneTime(self.__annihilationOp, t)

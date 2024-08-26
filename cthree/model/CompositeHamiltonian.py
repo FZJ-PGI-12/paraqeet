@@ -21,12 +21,8 @@ class CompositeHamiltonian(Hamiltonian):
     __totalDimension: int
     __vmap: bool
 
-    def __init__(
-        self,
-        subsystems: List[Hamiltonian],
-        couplings: List[Coupling] | None = None,
-        vmap: bool = True,
-    ):
+    def __init__(self, subsystems: List[Hamiltonian], couplings: List[Coupling] | None = None, vmap: bool = True):
+        super().__init__()
         if couplings is None:
             couplings = []
         self.__subsystems = subsystems
@@ -57,14 +53,7 @@ class CompositeHamiltonian(Hamiltonian):
     def setVmap(self, vmap: bool) -> None:
         self.__vmap = vmap
 
-    def getMatrix(self, t: np.ndarray) -> np.ndarray:
-        if self.__vmap:
-            matrix = vmap(self._getMatrixOneTime)(t)
-        else:
-            matrix = self._getMatrixRepeat(t)
-        return matrix
-
-    def _getMatrixOneTime(self, t: float) -> jnp.ndarray:
+    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
         """
         Return the matrix representation of the Hamiltonian for a single time point.
 
@@ -75,7 +64,7 @@ class CompositeHamiltonian(Hamiltonian):
             np.ndarray: Hamiltonian of shape [n, n] with n: hilbert space
         """
         # Calculate the tensor product of all subsystem matrices
-        matrix = np.zeros((self.__totalDimension, self.__totalDimension))
+        matrix = jnp.zeros((self.__totalDimension, self.__totalDimension))
         for n, subsystem in enumerate(self.__subsystems):
             subMatrix = subsystem.getMatrixOneTime(t)
             matrix += self.__tensorProductWithIdentity([subMatrix], [n])
@@ -83,75 +72,20 @@ class CompositeHamiltonian(Hamiltonian):
         for coupling in self.__couplings:
             # Create a tensor product where all subsystems except the coupled ones are identity
             indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
-            subMatrices_terms = coupling.getMatricesOneTime(t)
-            for subMatrices in subMatrices_terms:
-                matrix += self.__tensorProductWithIdentity(subMatrices, indices)
+            subMatrices = coupling.getMatricesOneTime(t)
+            matrix += self.__tensorProductWithIdentity(subMatrices, indices)
 
         return matrix
 
-    def _getMatrixRepeat(self, t: np.ndarray) -> jnp.ndarray:
-        """
-        Return the matrix representation of the Hamiltonian.
-
-        Args:
-            t (np.ndarray): Vector of time samples
-
-        Returns:
-            np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
-        """
-        # Calculate the tensor product of all subsystem matrices
-        matrix = np.zeros((len(t), self.__totalDimension, self.__totalDimension))
-        for n, subsystem in enumerate(self.__subsystems):
-            subMatrix = subsystem.getMatrix(t)
-            for j in range(len(t)):
-                matrix[j] += self.__tensorProductWithIdentity([subMatrix[j]], [n])
-
-        for coupling in self.__couplings:
-            # Create a tensor product where all subsystems except the coupled ones are identity
-            indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
-            subMatrices = coupling.getMatrices(t)
-            for j in range(len(t)):
-                subMatricesInTime = [s[j, :, :] for s in subMatrices]
-                matrix[j] += self.__tensorProductWithIdentity(
-                    subMatricesInTime, indices
-                )
-
-        return matrix
-
-    def gradient(self, t: np.ndarray) -> List[np.ndarray]:
+    def gradient(self, t: np.ndarray) -> jnp.ndarray:
         """
         Return the gradient of each parameter as a list.
         """
-        if self.__vmap:
-            grads = vmap(self._gradientOneTime)(t)
-        else:
-            grads = self._gradientRepeat(t)
-        return grads
+        return vmap(self._gradientOneTime)(t)
 
-    def _gradientRepeat(self, t: np.ndarray) -> List[np.ndarray]:
+    def _gradientOneTime(self, t: float) -> jnp.ndarray:
         """
-        Return the gradient of each parameter as a list.
-        """
-        gradients = []
-
-        # Take the gradients from all subsystems and plug them into the tensor product with identities
-        for i, subsystem in enumerate(self.__subsystems):
-            subGradients = subsystem.gradient(t)
-            for g in subGradients:
-                gradients.append(self.__tensorProductWithIdentity([g], [i]))
-
-        # Do the same for couplings, except that the tensor product has more than one non-identity component.
-        for coupling in self.__couplings:
-            indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
-            couplingGradient = coupling.gradient(t)
-            for g in couplingGradient:
-                gradients.append(self.__tensorProductWithIdentity(g, indices))
-
-        return jnp.array(gradients)
-
-    def _gradientOneTime(self, t: float) -> List[np.ndarray]:
-        """
-        Return the gradient of each parameter as a list.
+        Return the gradient of each parameter as a list for one timestamp.
         """
         gradients = []
 
@@ -171,8 +105,8 @@ class CompositeHamiltonian(Hamiltonian):
         return jnp.array(gradients)
 
     def __tensorProductWithIdentity(
-        self, M: List[np.ndarray], n: List[int]
-    ) -> np.ndarray:
+        self, M: List[jnp.ndarray], n: List[int]
+    ) -> jnp.ndarray:
         """
         Puts the matrices M into a tensor product at positions n where all other positions are identity matrices:
 
@@ -182,18 +116,18 @@ class CompositeHamiltonian(Hamiltonian):
         The dimensions are assumed to be the same as the subsystems.
         """
         # Create identity matrices for all subsystems and fill in M at the corresponding indices
-        subMatrices = [np.eye(s.dimension()) for s in self.__subsystems]
+        subMatrices = [jnp.eye(s.dimension()) for s in self.__subsystems]
         for i, k in enumerate(n):
             subMatrices[k] = M[i]
 
         # Tensor product everything in subMatrices
-        product = np.eye(1)
+        product = jnp.eye(1)
         for m in subMatrices:
             product = jnp.kron(product, m)
 
         return product
 
-    def getCollapseOps(self) -> List[Tuple[float, np.ndarray]]:
+    def getCollapseOps(self) -> List[Tuple[float, jnp.ndarray]]:
         """
         Gather collapse operators from the subsystems and then tensor product them
         with identity to create the collapse operators of the right dimension.

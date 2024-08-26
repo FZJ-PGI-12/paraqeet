@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+from jax import vmap
 
 from cthree.Optimisable import Optimisable
 
@@ -15,6 +16,9 @@ class Drive(Optimisable):
         Return the matrix representation of the drive. The dimension is given by the Hamiltonian to which this drive
         is attached.
 
+        The default implementation calls getMatrixOneTime for each time step. Subclasses can override this function for
+        a more efficient implementation.
+
         Args:
             annihilationOperator: operator of the subsystem to which this drive is attached
             t (np.ndarray): Vector of time samples
@@ -22,7 +26,7 @@ class Drive(Optimisable):
         Returns:
             np.ndarray: matrix of shape [t, n, n]  with t: time, n: hilbert space dimension
         """
-        raise NotImplementedError()
+        return vmap(self.getMatrixOneTime)(annihilationOperator, t)
 
     def getMatrixOneTime(
         self, annihilationOperator: jnp.ndarray, t: float
@@ -53,7 +57,7 @@ class Drive(Optimisable):
         Returns:
             np.ndarray: array of shape [t, p, n, n] with t: time, p: number of parameters, n: hilbert space dimension
         """
-        raise NotImplementedError()
+        return vmap(self.gradientOneTime)(annihilationOperator, t)
 
     def gradientOneTime(
         self, annihilationOperator: jnp.ndarray, t: float
