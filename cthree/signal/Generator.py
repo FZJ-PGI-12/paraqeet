@@ -18,6 +18,7 @@ class Generator(Optimisable):
     Example: A local oscillator and arbitrary waveform generator signal
     are put through via a mixer device to produce an effective modulated signal.
     """
+
     __chains: Dict[str, Dict[str, List[str]]] = {}
     __devices: List[Device]
 
@@ -33,5 +34,13 @@ class Generator(Optimisable):
         """
         Returns an array with the gradient of the signal value for each time step. The result has the shape (t,p) where
         t is the time and p is the parameter index.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def generateSignalGradientOneTime(self, time: float) -> np.ndarray:
+        """
+        Returns an array with the gradient of the signal value for one time step. The result has the shape (p,) where
+        p is the parameter index.
         """
         raise NotImplementedError()
