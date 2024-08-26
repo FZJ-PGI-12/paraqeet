@@ -34,7 +34,7 @@ class Hamiltonian(Optimisable):
             t (np.ndarray): Vector of time samples
 
         Returns:
-            np.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space dimension
+            jnp.ndarray: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space dimension
         """
         raise NotImplementedError()
 
@@ -46,7 +46,7 @@ class Hamiltonian(Optimisable):
             t (float): One time point
 
         Returns:
-            np.ndarray: Hamiltonian of shape [n, n]  with n: hilbert space dimension
+            jnp.ndarray: Hamiltonian of shape [n, n]  with n: hilbert space dimension
         """
         raise NotImplementedError()
 
@@ -61,7 +61,7 @@ class Hamiltonian(Optimisable):
             t (np.ndarray): Vector of time samples
 
         Returns:
-            np.ndarray: Hamiltonian of shape [t, p, n, n]  with t: time, p: number of parameters, n: hilbert space
+            jnp.ndarray: Hamiltonian of shape [t, p, n, n]  with t: time, p: number of parameters, n: hilbert space
                         dimension
         """
         raise NotImplementedError()
@@ -77,7 +77,7 @@ class Hamiltonian(Optimisable):
             t (float): one time step
 
         Returns:
-            np.ndarray: Hamiltonian of shape [p, n, n]  with p: number of parameters, n: hilbert space
+            jnp.ndarray: Hamiltonian of shape [p, n, n]  with p: number of parameters, n: hilbert space
                         dimension
         """
         raise NotImplementedError()
@@ -156,11 +156,11 @@ class Hamiltonian(Optimisable):
         """
         return M.reshape((1,) + M.shape).repeat(num, axis=0)
 
-    def getCollapseOps(self) -> List[Tuple[float, np.ndarray]]:
+    def getCollapseOps(self) -> List[Tuple[float, jnp.ndarray]]:
         """
         Return a list tuples of decay rates and collapse operators for each subsystem.
 
         Returns:
-            List[Tuple[float, np.ndarray]]: List of collapse operators
+            List[Tuple[float, jnp.ndarray]]: List of collapse operators
         """
         raise NotImplementedError()

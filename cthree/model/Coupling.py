@@ -1,6 +1,5 @@
 from typing import List, Set
 
-import numpy as np
 import jax.numpy as jnp
 
 from cthree.Optimisable import Optimisable
@@ -50,7 +49,7 @@ class Coupling(Optimisable):
         """
         return self._subsystems
 
-    def getMatricesOneTime(self, t: float) -> List[np.ndarray]:
+    def getMatricesOneTime(self, t: float) -> List[jnp.ndarray]:
         """
         Returns the matrix representation of the coupling for all subsystems. This assumes that the coupling factorises
         into terms for the subsystems, each of which is one element in the list. A composite Hamiltonian should take
@@ -60,7 +59,7 @@ class Coupling(Optimisable):
         matrices[0] *= self._coefficient.getValue()
         return [matrices]
 
-    def getMatrices(self, t) -> List[np.ndarray]:
+    def getMatrices(self, t) -> List[jnp.ndarray]:
         """
         Returns the matrix representation of the coupling for all subsystems. This assumes that the coupling factorises
         into terms for the subsystems, each of which is one element in the list. A composite Hamiltonian should take
@@ -75,7 +74,7 @@ class Coupling(Optimisable):
 
         return [matrices]
 
-    def gradient(self, t) -> List[List[np.ndarray]]:
+    def gradient(self, t) -> List[List[jnp.ndarray]]:
         """
         Returns the gradient of the matrix representation of the coupling for all subsystems. Each entry in the list
         is the gradient with respect to one parameter, factorised into subsystems.
@@ -86,28 +85,28 @@ class Coupling(Optimisable):
             grads = jnp.empty((0, self._totalDims, self._totalDims))
         return grads
 
-    def gradientOneTime(self, t) -> List[List[np.ndarray]]:
+    def gradientOneTime(self, t) -> List[List[jnp.ndarray]]:
         """
         Returns the gradient of the matrix representation of the coupling for all subsystems. Each entry in the list
         is the gradient with respect to one parameter, factorised into subsystems.
         """
         return self.gradient(t)
 
-    def __couplingOperators(self) -> List[np.ndarray]:
+    def __couplingOperators(self) -> List[jnp.ndarray]:
         """
         Returns the operators of the longitudinal or transversal coupling without coefficients.
         """
         if self.__isLongitudinal:
             # Number operator (a^\dagger a) for each subsystem
             return [
-                np.diag(np.arange(0, s.dimension(), dtype=np.float64))
+                jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64))
                 for s in self._subsystems
             ]
         else:
             # (a + a^\dagger) for each subsystem
             dimensions = [s.dimension() for s in self.getSubsystems()]
             annihilationOp = [
-                np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+                jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1))
                 for dim in dimensions
             ]
             return [(a + a.T) for a in annihilationOp]

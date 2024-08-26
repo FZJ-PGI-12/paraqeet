@@ -1,6 +1,5 @@
 from typing import List
 
-import numpy as np
 import jax.numpy as jnp
 
 from cthree.Quantity import Quantity
@@ -19,7 +18,7 @@ class Qubit(Hamiltonian):
 
     __frequency: Quantity
     __annihilationOp: jnp.ndarray
-    __drift: np.array
+    __drift: jnp.array
 
     def __init__(self, frequency: Quantity, drives: List[Drive] = None):
         super().__init__(drives)
@@ -30,7 +29,7 @@ class Qubit(Hamiltonian):
                 [1.0, 0.0],
             ]
         )
-        self.__drift = 0.5 * np.diag([1.0, -1.0])
+        self.__drift = 0.5 * jnp.diag(jnp.array([1.0, -1.0]))
 
     def getFrequency(self) -> Quantity:
         return self.__frequency

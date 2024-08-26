@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+import jax.numpy as jnp
 
 from cthree.Quantity import Quantity
 from cthree.model.Drive import Drive
@@ -26,17 +27,17 @@ class GeneratorDrive(Drive):
     def getParameters(self) -> List[Quantity]:
         return self.__generator.getParameters()
 
-    def _computeMatrix(self, a: np.ndarray) -> np.ndarray:
+    def _computeMatrix(self, a: jnp.ndarray) -> jnp.ndarray:
         """
         Returns the operator for the longitudinal or transverse drive.
         """
         return (
-            (np.conjugate(a.T) @ a)
+            (jnp.conjugate(a.T) @ a)
             if self.__isLongitudinal
-            else (np.conjugate(a.T) + a)
+            else (jnp.conjugate(a.T) + a)
         )
 
-    def getMatrixOneTime(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
+    def getMatrixOneTime(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
         """
         Fetches the coefficient from the drive drive and transforms it into the correct shape for the Hamiltonian.
         """
@@ -45,7 +46,7 @@ class GeneratorDrive(Drive):
         matrix = self._computeMatrix(a)
         return signal * matrix
 
-    def getMatrix(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
+    def getMatrix(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
         """
         Fetches the coefficient from the drive drive and transforms it into the correct shape for the Hamiltonian.
         """
@@ -56,7 +57,7 @@ class GeneratorDrive(Drive):
             matrix, t.shape[0]
         )
 
-    def gradient(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
+    def gradient(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
         """
         Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
         """
@@ -65,7 +66,7 @@ class GeneratorDrive(Drive):
         matrix = self._repeat(self._repeat(matrix, signalGrad.shape[1]), t.shape[0])
         return signalGrad.reshape(signalGrad.shape + (1, 1)) * matrix
 
-    def gradientOneTime(self, a: np.ndarray, t: float) -> np.ndarray:
+    def gradientOneTime(self, a: jnp.ndarray, t: float) -> jnp.ndarray:
         """
         Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
         """
