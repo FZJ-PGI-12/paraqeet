@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import jax.numpy as jnp
 
@@ -137,7 +137,7 @@ class Transmon(Hamiltonian):
         gammaT1 = gamma * (nbar + 1)  # TODO - Check this part
         return [gammaT1, gammaTemp, gammaT2star]
 
-    def getCollapseOps(self) -> List[jnp.ndarray]:
+    def getCollapseOps(self) -> List[Tuple[float, jnp.ndarray]]:
         """
         Return a list tuples of decay rates and collapse operators for each subsystem.
 

@@ -57,7 +57,7 @@ class Coupling(Optimisable):
         """
         matrices = self.__couplingOperators()
         matrices[0] *= self._coefficient.getValue()
-        return [matrices]
+        return matrices
 
     def getMatrices(self, t) -> List[jnp.ndarray]:
         """
@@ -72,7 +72,7 @@ class Coupling(Optimisable):
         for i, m in enumerate(matrices):
             matrices[i] = m.reshape((1,) + m.shape).repeat(len(t), axis=0)
 
-        return [matrices]
+        return matrices
 
     def gradient(self, t) -> List[List[jnp.ndarray]]:
         """
