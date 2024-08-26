@@ -12,6 +12,7 @@ class GeneratorDrive(Drive):
     Transversal (a^\\dagger a) or longitudinal (a^\\dagger a) drive with a time-dependent scalar coefficient that is
     generator by a Generator object.
     """
+
     __generator: Generator
     __isLongitudinal: bool
 
@@ -29,7 +30,20 @@ class GeneratorDrive(Drive):
         """
         Returns the operator for the longitudinal or transverse drive.
         """
-        return (np.conjugate(a.T) @ a) if self.__isLongitudinal else (np.conjugate(a.T) + a)
+        return (
+            (np.conjugate(a.T) @ a)
+            if self.__isLongitudinal
+            else (np.conjugate(a.T) + a)
+        )
+
+    def getMatrixOneTime(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
+        """
+        Fetches the coefficient from the drive drive and transforms it into the correct shape for the Hamiltonian.
+        """
+
+        signal = self.__generator.generateSignal(t)
+        matrix = self._computeMatrix(a)
+        return signal * matrix
 
     def getMatrix(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
         """
@@ -38,7 +52,9 @@ class GeneratorDrive(Drive):
 
         signal = self.__generator.generateSignal(t)
         matrix = self._computeMatrix(a)
-        return signal.reshape((signal.shape[0], 1, 1)) * self._repeat(matrix, t.shape[0])
+        return signal.reshape((signal.shape[0], 1, 1)) * self._repeat(
+            matrix, t.shape[0]
+        )
 
     def gradient(self, a: np.ndarray, t: np.ndarray) -> np.ndarray:
         """
@@ -48,3 +64,13 @@ class GeneratorDrive(Drive):
         matrix = self._computeMatrix(a)
         matrix = self._repeat(self._repeat(matrix, signalGrad.shape[1]), t.shape[0])
         return signalGrad.reshape(signalGrad.shape + (1, 1)) * matrix
+
+    def gradientOneTime(self, a: np.ndarray, t: float) -> np.ndarray:
+        """
+        Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
+        """
+        signalGrad = self.__generator.generateSignalGradientOneTime(t).reshape(
+            (-1, 1, 1)
+        )
+        matrix = self._repeat(self._computeMatrix(a), signalGrad.shape[0])
+        return signalGrad * matrix

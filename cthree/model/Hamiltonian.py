@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Tuple
 
 import jax.numpy as jnp
+import numpy as np
 
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
@@ -13,6 +14,7 @@ class Hamiltonian(Optimisable):
     to take care of frame transformations. Derived classes need to implement the functions getMatrix, gradient, and
     dimension.
     """
+
     _drives: List[Drive]
 
     def __init__(self, drives=None):
@@ -36,6 +38,18 @@ class Hamiltonian(Optimisable):
         """
         raise NotImplementedError()
 
+    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
+        """
+        Return the matrix representation of the Hamiltonian.
+
+        Args:
+            t (float): One time point
+
+        Returns:
+            np.ndarray: Hamiltonian of shape [n, n]  with n: hilbert space dimension
+        """
+        raise NotImplementedError()
+
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
         """
         Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter for each time
@@ -52,6 +66,22 @@ class Hamiltonian(Optimisable):
         """
         raise NotImplementedError()
 
+    def gradientOneTime(self, t: float) -> jnp.ndarray:
+        """
+        Return the gradient of the matrix representation of the Hamiltonian with respect to each parameter for one time
+        step t. Implementations must make sure that only derivatives with respect to those parameters are included
+        in the gradient that were registered in the Optimisable parent class. The order of the gradients should match
+        the order of the parameters returned by getParameters.
+
+        Args:
+            t (float): one time step
+
+        Returns:
+            np.ndarray: Hamiltonian of shape [p, n, n]  with p: number of parameters, n: hilbert space
+                        dimension
+        """
+        raise NotImplementedError()
+
     def getDrives(self) -> List[Drive]:
         return self._drives
 
@@ -64,7 +94,22 @@ class Hamiltonian(Optimisable):
             params += d.getParameters()
         return params
 
-    def _getDriveMatrix(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+    def _getDriveMatrixOneTime(
+        self, annihilationOperator: jnp.ndarray, t: float
+    ) -> jnp.ndarray:
+        """
+        Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
+        including the drive.
+        """
+        dim = self.dimension()
+        M = jnp.zeros((dim, dim))
+        for drive in self._drives:
+            M += drive.getMatrixOneTime(annihilationOperator, t)
+        return M
+
+    def _getDriveMatrix(
+        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
+    ) -> jnp.ndarray:
         """
         Returns the sum of all drives in matrix form. This function can be used be Hamiltonian implementations for
         including the drive.
@@ -75,7 +120,9 @@ class Hamiltonian(Optimisable):
             M += drive.getMatrix(annihilationOperator, t)
         return M
 
-    def _getDriveGradients(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+    def _getDriveGradients(
+        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
+    ) -> jnp.ndarray:
         """
         Returns the gradients of all drives. This function can be used be Hamiltonian implementations for including
         the drive gradients.
@@ -87,6 +134,20 @@ class Hamiltonian(Optimisable):
             allGrads = jnp.append(allGrads, grads, axis=1)
         return allGrads
 
+    def _getDriveGradientsOneTime(
+        self, annihilationOperator: jnp.ndarray, t: float
+    ) -> jnp.ndarray:
+        """
+        Returns the gradients of all drives. This function can be used by Hamiltonian implementations for including
+        the drive gradients.
+        """
+        dim = self.dimension()
+        allGrads = jnp.zeros((0, dim, dim))
+        for drive in self._drives:
+            grads = drive.gradientOneTime(annihilationOperator, t)
+            allGrads = jnp.append(allGrads, grads, axis=0)
+        return allGrads
+
     @staticmethod
     def _repeat(M: jnp.ndarray, num: int) -> jnp.ndarray:
         """
@@ -94,3 +155,12 @@ class Hamiltonian(Optimisable):
         [t, n, m] where t is the number of time steps and M is a n times m matrix.
         """
         return M.reshape((1,) + M.shape).repeat(num, axis=0)
+
+    def getCollapseOps(self) -> List[Tuple[float, np.ndarray]]:
+        """
+        Return a list tuples of decay rates and collapse operators for each subsystem.
+
+        Returns:
+            List[Tuple[float, np.ndarray]]: List of collapse operators
+        """
+        raise NotImplementedError()

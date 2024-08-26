@@ -16,6 +16,7 @@ class Qubit(Hamiltonian):
     you need a two-level system that is compatible with the projection of a higher-dimensional system (ground state as
     first entry), use a resonator and restrict its dimension to 2.
     """
+
     __frequency: Quantity
     __annihilationOp: jnp.ndarray
     __drift: np.array
@@ -23,10 +24,12 @@ class Qubit(Hamiltonian):
     def __init__(self, frequency: Quantity, drives: List[Drive] = None):
         super().__init__(drives)
         self.__frequency = frequency
-        self.__annihilationOp = jnp.array([
-            [0.0, 0.0],
-            [1.0, 0.0],
-        ])
+        self.__annihilationOp = jnp.array(
+            [
+                [0.0, 0.0],
+                [1.0, 0.0],
+            ]
+        )
         self.__drift = 0.5 * np.diag([1.0, -1.0])
 
     def getFrequency(self) -> Quantity:
@@ -43,7 +46,13 @@ class Qubit(Hamiltonian):
 
     def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
         H = self.__frequency.getValue() * self.__drift
-        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(self.__annihilationOp, t)
+        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(
+            self.__annihilationOp, t
+        )
+
+    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
+        H = self.__frequency.getValue() * self.__drift
+        return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
 
     def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
         # Fetch the gradient of the drive
@@ -54,5 +63,16 @@ class Qubit(Hamiltonian):
             H = self.__drift.reshape((1, 2, 2))
             derivative = self._repeat(H, t.shape[0])
             derivatives = jnp.append(derivatives, derivative, axis=1)
+
+        return derivatives
+
+    def gradientOneTime(self, t: float) -> jnp.ndarray:
+        # Fetch the gradient of the drive
+        derivatives = self._getDriveGradientsOneTime(self.__annihilationOp, t)
+
+        # Combine with the derivative wrt the frequency
+        if self._isOptimised(self.__frequency):
+            H = self.__drift.reshape((1, 2, 2))
+            derivatives = jnp.append(derivatives, H, axis=0)
 
         return derivatives
