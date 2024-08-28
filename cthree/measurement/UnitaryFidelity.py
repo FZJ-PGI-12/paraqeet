@@ -85,7 +85,7 @@ class UnitaryFidelity(Measurement):
             time=self._times
         )  # gradient of states wrt parameters
         states = self._preprocess(states)
-        # TODO: project the gradient
+        dg_dp_list = self._preprocess(dg_dp_list)
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(np.vdot(s, states[-1][:, ii]))

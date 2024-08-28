@@ -67,7 +67,6 @@ class StateTransferFidelity(Measurement):
         """
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
         states = self._preprocess(states)
-        # TODO: project the gradient
         final_state = states[-1]
         dF_dp = []
         f = jnp.vdot(self.__targetState, final_state)
