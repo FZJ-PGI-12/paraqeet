@@ -4,7 +4,6 @@ from typing import List, Tuple
 import numpy as np
 
 from cthree.Optimisable import Optimisable
-from cthree.Quantity import Quantity
 
 
 class Measurement(Optimisable):
@@ -50,7 +49,9 @@ class Measurement(Optimisable):
         """
         raise NotImplementedError()
 
-    def restrictSubsystems(self, inputDimensions: List[int], outputDimensions: List[int] | None = None) -> None:
+    def restrictSubsystems(
+        self, inputDimensions: List[int], outputDimensions: List[int] | None = None
+    ) -> None:
         """
         Notifies the measurement class that the computed propagator should be projected to a subspace before doing the
         measurement. Dimensions of the subspaces are specified per subsystem.
@@ -68,33 +69,47 @@ class Measurement(Optimisable):
         # Construct the projector matrix
         if outputDimensions is not None:
             if len(inputDimensions) != len(outputDimensions):
-                raise RuntimeError("The input and output dimensions must contain the same number of subsystems")
-            if np.any(np.array(self.__inputDimensions) < 0) or np.any(np.array(self.__outputDimensions) < 0):
+                raise RuntimeError(
+                    "The input and output dimensions must contain the same number of subsystems"
+                )
+            if np.any(np.array(self.__inputDimensions) < 0) or np.any(
+                np.array(self.__outputDimensions) < 0
+            ):
                 raise RuntimeError("Dimensions must not be negative")
-            if np.any(np.array(self.__inputDimensions) < np.array(self.__outputDimensions)):
-                raise RuntimeError("Output dimensions can not be larger than input dimensions")
+            if np.any(
+                np.array(self.__inputDimensions) < np.array(self.__outputDimensions)
+            ):
+                raise RuntimeError(
+                    "Output dimensions can not be larger than input dimensions"
+                )
             if np.sum(outputDimensions) == 0:
-                raise RuntimeError("Output dimensions must be all 0")
+                raise RuntimeError("All output dimensions can not be 0")
 
             P = np.eye(1)
-            for i, (dimIn, dimOut) in enumerate(zip(inputDimensions, outputDimensions)):
+            for dimIn, dimOut in zip(inputDimensions, outputDimensions):
                 dim2 = dimOut if dimOut > 0 else 1
-                P = np.kron(self.__projector, np.eye(dimIn, dim2))
+                P = np.kron(P, np.eye(dimIn, dim2))
             self.__projector = P
 
-    def _preprocess(self, U: np.ndarray) -> np.ndarray:
+    def _preprocess(self, operator: np.ndarray) -> np.ndarray:
         """
-        Performs any preprocessing on the propagator that was registered. Subclasses should call this function before
-        computing the measured value.
+        Performs any preprocessing on the "operator" that was registered.
+        Operator could be unitary matrices, density matrices or a single or batch of state vectors.
+        Subclasses should call this function before computing the measured value.
 
         Parameters
         ----------
-        U: the propagator
+        operator: the Propagator/ States
 
         Returns
         -------
         The modified propagator
         """
         if self.__projector is not None:
-            U = self.__projector.T @ U @ self.__projector
-        return U
+            if (
+                operator.shape[-1] == operator.shape[-2]
+            ):  # For Unitary operator or Matrices
+                operator = self.__projector.T @ operator @ self.__projector
+            else:  # For states
+                operator = self.__projector.T @ operator
+        return operator

@@ -10,6 +10,8 @@ import jax.numpy as jnp
 from jax import Array, grad, jit
 from jax.typing import ArrayLike
 
+import warnings
+
 jax.config.update("jax_enable_x64", True)
 
 
@@ -35,8 +37,11 @@ class StateTransferFidelity(Measurement):
         self.__initialState = initialState
         self.__targetState = targetState
         if targetState.shape != initialState.shape:
-            raise IncompatibleLayersException(
-                f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
+            warnings.warn(
+                f"""
+                Different shapes for targetState({targetState.shape}) and initialState({initialState.shape}) detected.
+                Use restrictSubsystems to project states to the same shape before measuring.
+                """
             )
         self.__propagation.setInitialState(self.__initialState)
 
