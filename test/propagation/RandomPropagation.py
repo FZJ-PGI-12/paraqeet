@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 from scipy.stats import unitary_group
 
@@ -51,7 +49,7 @@ class RandomPropagation(Propagation):
             self.__state = np.conjugate(U.T) @ rho @ U
         else:
             # generate a random state vector
-            state = np.random.random(self.__dimension) + 1j * np.random.random(
-                self.__dimension
+            state = np.random.random((self.__dimension, 1)) + 1j * np.random.random(
+                (self.__dimension, 1)
             )
             self.__state = state / np.sqrt(np.vdot(state, state))
