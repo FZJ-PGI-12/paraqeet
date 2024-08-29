@@ -1,7 +1,6 @@
 from typing import List, Tuple
 
 import jax.numpy as jnp
-import numpy as np
 from jax import vmap
 
 from cthree.Optimisable import Optimisable
@@ -109,7 +108,9 @@ class Hamiltonian(Optimisable):
         The default implementation calls _getDriveMatrixOneTime for each time step. Subclasses can override this
         function for a more efficient implementation.
         """
-        return vmap(self._getDriveMatrixOneTime)(annihilationOperator, t)
+        return vmap(self._getDriveMatrixOneTime, in_axes=(None, 0))(
+            annihilationOperator, t
+        )
 
     def _getDriveMatrixOneTime(
         self, annihilationOperator: jnp.ndarray, t: float

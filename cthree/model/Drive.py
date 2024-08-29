@@ -26,7 +26,7 @@ class Drive(Optimisable):
         Returns:
             np.ndarray: matrix of shape [t, n, n]  with t: time, n: hilbert space dimension
         """
-        return vmap(self.getMatrixOneTime)(annihilationOperator, t)
+        return vmap(self.getMatrixOneTime, in_axes=(None, 0))(annihilationOperator, t)
 
     def getMatrixOneTime(
         self, annihilationOperator: jnp.ndarray, t: float
@@ -57,7 +57,7 @@ class Drive(Optimisable):
         Returns:
             np.ndarray: array of shape [t, p, n, n] with t: time, p: number of parameters, n: hilbert space dimension
         """
-        return vmap(self.gradientOneTime)(annihilationOperator, t)
+        return vmap(self.gradientOneTime, in_axes=(None, 0))(annihilationOperator, t)
 
     def gradientOneTime(
         self, annihilationOperator: jnp.ndarray, t: float
