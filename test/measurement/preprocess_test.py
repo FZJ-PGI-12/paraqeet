@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
@@ -10,6 +11,7 @@ def randomState(dimension):
     return state / np.sqrt(np.vdot(state, state))
 
 
+@pytest.mark.filterwarnings("ignore:Different shapes for")
 def test_state_shape():
     for size in range(3, 30):
         inital_state = randomState(size)
