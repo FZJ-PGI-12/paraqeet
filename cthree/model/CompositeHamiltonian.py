@@ -19,9 +19,8 @@ class CompositeHamiltonian(Hamiltonian):
     __couplings: List[Coupling]
     __dimensions: List[int]
     __totalDimension: int
-    __vmap: bool
 
-    def __init__(self, subsystems: List[Hamiltonian], couplings: List[Coupling] | None = None, vmap: bool = True):
+    def __init__(self, subsystems: List[Hamiltonian], couplings: List[Coupling] | None = None):
         super().__init__()
         if couplings is None:
             couplings = []
@@ -29,7 +28,6 @@ class CompositeHamiltonian(Hamiltonian):
         self.__couplings = couplings
         self.__dimensions = [s.dimension() for s in subsystems]
         self.__totalDimension = np.prod(self.__dimensions)
-        self.__vmap = vmap
 
     def getParameters(self) -> List[Quantity]:
         # Collect parameters from all subsystems and couplings
@@ -49,9 +47,6 @@ class CompositeHamiltonian(Hamiltonian):
 
     def dimension(self) -> int:
         return self.__totalDimension
-
-    def setVmap(self, vmap: bool) -> None:
-        self.__vmap = vmap
 
     def getMatrixOneTime(self, t: float) -> jnp.ndarray:
         """
