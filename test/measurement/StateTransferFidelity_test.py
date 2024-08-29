@@ -47,6 +47,7 @@ def test_vector_equality(identityPropagation, randomState):
 
 
 # Test that a set of initial and target state with different dimensions raise an exception
+@pytest.mark.filterwarnings("ignore:Different shapes for")
 def test_incompatible_shape(identityPropagation, randomState):
     allDims = np.arange(2, 30)
     for dim in allDims:
