@@ -50,9 +50,9 @@ class StateTransferFidelity(Measurement):
 
     def measure(self) -> ArrayLike:
         states = self.__propagation.propagate(time=self._times)
-        states = self._preprocess(states)
+        states = self._preprocessVector(states)
         final_state = states[-1]
-        f = jnp.vdot(self.__targetState, final_state)
+        f = jnp.vecdot(self.__targetState, final_state, axis=0)
         return self._fid(f)
 
     def measureWithGradient(self) -> Tuple[Array, Array]:
@@ -65,8 +65,8 @@ class StateTransferFidelity(Measurement):
             Tuple of function value and gradient of shape (n_parameters,)
         """
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
-        states = self._preprocess(states)
-        dg_dp_list = self._preprocess(dg_dp_list)
+        states = self._preprocessVector(states)
+        dg_dp_list = self._preprocessVector(dg_dp_list)
         final_state = states[-1]
         dF_dp = []
         f = jnp.vdot(self.__targetState, final_state)
@@ -112,8 +112,8 @@ class StateTransferFidelityAD(StateTransferFidelity):
             self.__gradientFunction = jit(grad(self._fid, argnums=0))
 
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
-        states = self._preprocess(states)
-        dg_dp_list = self._preprocess(dg_dp_list)
+        states = self._preprocessVector(states)
+        dg_dp_list = self._preprocessVector(dg_dp_list)
         final_state = states[-1]
         dF_dp = []
         f = jnp.vdot(self.__targetState, final_state)

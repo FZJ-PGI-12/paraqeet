@@ -91,25 +91,43 @@ class Measurement(Optimisable):
                 P = np.kron(P, np.eye(dimIn, dim2))
             self.__projector = P
 
-    def _preprocess(self, operator: np.ndarray) -> np.ndarray:
+    def _preprocessMatrix(self, operator: np.ndarray) -> np.ndarray:
         """
         Performs any preprocessing on the "operator" that was registered.
-        Operator could be unitary matrices, density matrices or a single or batch of state vectors.
+        Operator could be unitary matrices, density matrices.
         Subclasses should call this function before computing the measured value.
 
         Parameters
         ----------
-        operator: the Propagator/ States
+        operator: the Propagator/ density matrices
 
         Returns
         -------
         The modified propagator
         """
         if self.__projector is not None:
-            if (
-                operator.shape[-1] == operator.shape[-2]
-            ):  # For Unitary operator or Matrices
-                operator = self.__projector.T @ operator @ self.__projector
-            else:  # For states
-                operator = self.__projector.T @ operator
+            operator = self.__projector.T @ operator @ self.__projector
         return operator
+
+    def _preprocessVector(self, states: np.ndarray) -> np.ndarray:
+        """
+        Performs any preprocessing on the "states" that were registered.
+        States could be a single state or batch of state vectors.
+        Subclasses should call this function before computing the measured value.
+
+        Parameters
+        ----------
+        states: single state or batch of state vectors
+
+        Returns
+        -------
+        The modified propagator
+        """
+        if self.__projector is not None:
+            if states.shape[-1] == 1:
+                states = self.__projector.T @ states
+            else:
+                states = np.reshape(states, states.shape + (1,))
+                states = self.__projector.T @ states
+                states = np.squeeze(states)
+        return states
