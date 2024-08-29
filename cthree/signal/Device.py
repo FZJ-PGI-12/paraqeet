@@ -123,6 +123,22 @@ class CosTone(Device):
             name="Phase",
         )
 
+    @property
+    def amplitude(self) -> Quantity:
+        return self.__amplitude
+
+    @amplitude.setter
+    def amplitude(self, amplitude: Quantity) -> None:
+        self.__amplitude = amplitude
+
+    @property
+    def frequency(self) -> Quantity:
+        return self.__frequency
+
+    @frequency.setter
+    def frequency(self, frequency: Quantity) -> None:
+        self.__frequency = frequency
+
     def getParameters(self) -> List[Quantity]:
         return [self.__amplitude, self.__frequency, self.__phase]
 

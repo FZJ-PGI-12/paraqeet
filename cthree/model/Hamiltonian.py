@@ -19,7 +19,7 @@ class Hamiltonian(Optimisable):
     _drives: List[Drive]
 
     def __init__(self, drives=None):
-        self._drives = [d for d in drives if d is not None] or []
+        self._drives = [d for d in drives if d is not None] if drives else []
 
     def dimension(self) -> int:
         """
