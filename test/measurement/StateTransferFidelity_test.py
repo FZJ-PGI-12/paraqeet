@@ -81,3 +81,22 @@ def test_no_parameters(identityPropagation, randomState):
         identityPropagation, state, state, np.array([1.0])
     )
     assert measurement.getParameters() == []
+
+# Test that the projection to a subspace is working
+def test_projection_state(identityPropagation, randomState):
+    for dim in np.arange(2, 30):
+        for dimProjected in np.arange(2, dim):
+            for version in [StateTransferFidelity]: #StateTransferFidelityAD
+                initialState = randomState(dim)
+                targetState = initialState[0:dimProjected]
+                times = np.linspace(0, 1.0, 100)
+                measurement = version(identityPropagation, initialState, targetState, times)
+
+                # Test the shape of the output of the preprocess function
+                measurement.restrictSubsystems([dim], [dimProjected])
+                #projectedState = measurement._preprocess(initialState)
+                #assert projectedState.shape == targetState.shape
+
+                # Test the result of the measurement after projection
+                result = measurement.measure()
+                np.testing.assert_almost_equal(result, 1.0)
