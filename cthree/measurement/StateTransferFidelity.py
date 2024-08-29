@@ -37,10 +37,11 @@ class StateTransferFidelity(Measurement):
         self.__targetState = targetState
         if targetState.shape != initialState.shape:
             warnings.warn(
-                f"""
-                Different shapes for targetState({targetState.shape}) and initialState({initialState.shape}) detected.
-                Use restrictSubsystems to project states to the same shape before measuring.
-                """
+                UserWarning(
+                    f"Different shapes for targetState({targetState.shape})"
+                    f"and initialState({initialState.shape}) detected."
+                    " Use restrictSubsystems to project states to the same shape before measuring."
+                )
             )
         self.__propagation.setInitialState(self.__initialState)
 
@@ -52,7 +53,7 @@ class StateTransferFidelity(Measurement):
         states = self.__propagation.propagate(time=self._times)
         states = self._preprocessVector(states)
         final_state = states[-1]
-        f = jnp.vecdot(self.__targetState, final_state, axis=0)
+        f = jnp.vdot(self.__targetState, final_state)
         return self._fid(f)
 
     def measureWithGradient(self) -> Tuple[Array, Array]:
@@ -95,10 +96,11 @@ class StateTransferFidelityAD(StateTransferFidelity):
         self.__targetState = targetState
         if targetState.shape != initialState.shape:
             warnings.warn(
-                f"""
-                Different shapes for targetState({targetState.shape}) and initialState({initialState.shape}) detected.
-                Use restrictSubsystems to project states to the same shape before measuring.
-                """
+                UserWarning(
+                    f"Different shapes for targetState({targetState.shape})"
+                    f"and initialState({initialState.shape}) detected."
+                    " Use restrictSubsystems to project states to the same shape before measuring."
+                )
             )
         self.__propagation.setInitialState(self.__initialState)
         self.__gradientFunction = None

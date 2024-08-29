@@ -129,5 +129,5 @@ class Measurement(Optimisable):
             else:
                 states = np.reshape(states, states.shape + (1,))
                 states = self.__projector.T @ states
-                states = np.squeeze(states)
+                states = np.squeeze(states, axis=-1)
         return states
