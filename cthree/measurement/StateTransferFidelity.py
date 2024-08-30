@@ -3,12 +3,13 @@ from cthree.Quantity import Quantity
 
 from cthree.measurement.Measurement import Measurement
 from cthree.propagation.Propagation import Propagation
-from cthree.Exceptions import IncompatibleLayersException
 
 import jax
 import jax.numpy as jnp
 from jax import Array, grad, jit
 from jax.typing import ArrayLike
+
+import warnings
 
 jax.config.update("jax_enable_x64", True)
 
@@ -35,8 +36,12 @@ class StateTransferFidelity(Measurement):
         self.__initialState = initialState
         self.__targetState = targetState
         if targetState.shape != initialState.shape:
-            raise IncompatibleLayersException(
-                f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
+            warnings.warn(
+                UserWarning(
+                    f"Different shapes for targetState({targetState.shape})"
+                    f"and initialState({initialState.shape}) detected."
+                    " Use restrictSubsystems to project states to the same shape before measuring."
+                )
             )
         self.__propagation.setInitialState(self.__initialState)
 
@@ -46,6 +51,7 @@ class StateTransferFidelity(Measurement):
 
     def measure(self) -> ArrayLike:
         states = self.__propagation.propagate(time=self._times)
+        states = self._preprocessVector(states)
         final_state = states[-1]
         f = jnp.vdot(self.__targetState, final_state)
         return self._fid(f)
@@ -60,6 +66,8 @@ class StateTransferFidelity(Measurement):
             Tuple of function value and gradient of shape (n_parameters,)
         """
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
+        states = self._preprocessVector(states)
+        dg_dp_list = self._preprocessVector(dg_dp_list)
         final_state = states[-1]
         dF_dp = []
         f = jnp.vdot(self.__targetState, final_state)
@@ -87,8 +95,12 @@ class StateTransferFidelityAD(StateTransferFidelity):
         self.__initialState = initialState
         self.__targetState = targetState
         if targetState.shape != initialState.shape:
-            raise IncompatibleLayersException(
-                f"state vector of shape {self.__initialState.shape} needed for unitary fidelity"
+            warnings.warn(
+                UserWarning(
+                    f"Different shapes for targetState({targetState.shape})"
+                    f"and initialState({initialState.shape}) detected."
+                    " Use restrictSubsystems to project states to the same shape before measuring."
+                )
             )
         self.__propagation.setInitialState(self.__initialState)
         self.__gradientFunction = None
@@ -102,6 +114,8 @@ class StateTransferFidelityAD(StateTransferFidelity):
             self.__gradientFunction = jit(grad(self._fid, argnums=0))
 
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
+        states = self._preprocessVector(states)
+        dg_dp_list = self._preprocessVector(dg_dp_list)
         final_state = states[-1]
         dF_dp = []
         f = jnp.vdot(self.__targetState, final_state)

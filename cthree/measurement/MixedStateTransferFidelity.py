@@ -31,6 +31,7 @@ class MixedStateTransferFidelity(Measurement):
 
     def measure(self) -> np.ndarray:
         state = self.__propagation.propagate(self.__times)[-1]
+        state = self._preprocessMatrix(state)
         if state.shape != self.__targetState.shape:
             raise IncompatibleLayersException(
                 f"Need a state vector of size {self.__targetState.shape} for the state transfer fidelity, "
