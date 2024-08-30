@@ -31,6 +31,20 @@ def test_positivity(randomUnitaryMatrix, randomBasisVectors):
             assert 0.0 <= m
 
 
+def test_positivity_projected(randomUnitaryMatrix):
+    times = np.array([1.0])
+    for size in range(5, 30):
+        for projectedSize in range(2, size):
+            gate = randomUnitaryMatrix(projectedSize)
+            propagation = RandomPropagation(size, True)
+            measurement = UnitaryFidelity(propagation=propagation, gate=gate, times=times)
+
+            measurement.restrictSubsystems([size], [projectedSize])
+            for _ in range(20):
+                m = measurement.measure()
+                assert 0.0 <= m <= 1.0
+
+
 # test that F(U,U) = 1
 def test_equality(identityPropagation, randomUnitaryMatrix):
     for dim in range(2, 30):

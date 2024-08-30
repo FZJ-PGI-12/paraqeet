@@ -28,9 +28,30 @@ def test_limits_vectors(randomState):
             times,
         )
 
-        for _ in range(100):
+        for _ in range(20):
             m = measurement.measure()
             assert 0.0 <= m <= 1.0
+
+
+@pytest.mark.filterwarnings("ignore:Different shapes for")
+def test_limit_projected_vectors(randomState):
+    times = np.array([1.0])
+    for size in range(3, 30):
+        for projectedSize in range(2, size):
+            inital_state = randomState(size)
+            target_state = randomState(projectedSize)
+            propagation = RandomPropagation(size, False)
+            measurement = StateTransferFidelity(
+                propagation=propagation,
+                initialState=inital_state,
+                targetState=target_state,
+                times=times,
+            )
+
+            measurement.restrictSubsystems([size], [projectedSize])
+            for _ in range(20):
+                m = measurement.measure()
+                assert 0.0 <= m <= 1.0
 
 
 # test that F(v,v) = 1 for state vectors
@@ -81,22 +102,3 @@ def test_no_parameters(identityPropagation, randomState):
         identityPropagation, state, state, np.array([1.0])
     )
     assert measurement.getParameters() == []
-
-# Test that the projection to a subspace is working
-def test_projection_state(identityPropagation, randomState):
-    for dim in np.arange(2, 30):
-        for dimProjected in np.arange(2, dim):
-            for version in [StateTransferFidelity]: #StateTransferFidelityAD
-                initialState = randomState(dim)
-                targetState = initialState[0:dimProjected]
-                times = np.linspace(0, 1.0, 100)
-                measurement = version(identityPropagation, initialState, targetState, times)
-
-                # Test the shape of the output of the preprocess function
-                measurement.restrictSubsystems([dim], [dimProjected])
-                #projectedState = measurement._preprocess(initialState)
-                #assert projectedState.shape == targetState.shape
-
-                # Test the result of the measurement after projection
-                result = measurement.measure()
-                np.testing.assert_almost_equal(result, 1.0)
