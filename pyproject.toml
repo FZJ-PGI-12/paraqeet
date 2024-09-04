@@ -80,7 +80,7 @@ branch = true
 exclude_also = [
   # Exclude abstract methods
   "raise NotImplementedError",
-  "@(abc\.)?abstractmethod",
+  "@(abc\\.)?abstractmethod",
 ]
 
 ignore_errors = true
