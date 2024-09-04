@@ -118,9 +118,15 @@ dependencies = [
 # Optional dependencies the project provides. These are commonly 
 # referred to as "extras". For a more extensive definition see:
 # https://packaging.python.org/en/latest/specifications/dependency-specifiers/#extras
-# [project.optional-dependencies]
-# dev = ["check-manifest"]
-# test = ["coverage"]
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.2.0",
+  "pre-commit>=3.3.1"
+]
+
+test = [
+  "pytest>=7.2.0",
+]
 
 # List URLs that are relevant to your project
 #
