@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import List, Any
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.Measurement import Measurement
@@ -28,7 +28,7 @@ class OptimisationResult:
     """ The number of iterations during the optimisation. """
     message: str | None = None
     """ Any additional message from the optimisation algorithm. This can be an error message in case of failure. """
-    rawResult: any = None
+    rawResult: Any | None = None
     """ The raw result from the underlying algorithm. """
 
     def __repr__(self):
@@ -58,10 +58,10 @@ class Optimiser:
     _measure: Measurement
     _optimisables: OptimisationMap
     __opt_idxs: List[int]
-    __logger: Logger
+    __logger: Logger | None
 
     def __init__(
-        self, measure: Measurement, optimisables: OptimisationMap, logger: Logger = None
+        self, measure: Measurement, optimisables: OptimisationMap, logger: Logger | None = None
     ):
         self._measure = measure
         self._logger = logger
