@@ -11,6 +11,7 @@ class Resonator(Hamiltonian):
     """
     Hamiltonian of a harmonic oscillator. The only optimisable parameter is the frequency.
     """
+
     __dimension: int
     __frequency: Quantity
     __annihilationOp: jnp.ndarray
@@ -20,7 +21,9 @@ class Resonator(Hamiltonian):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
-        self.__annihilationOp = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
+        self.__annihilationOp = jnp.sqrt(
+            jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1)
+        )
         self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
 
     def dimension(self):
@@ -46,6 +49,6 @@ class Resonator(Hamiltonian):
         # Combine with the derivative wrt the frequency
         if self._isOptimised(self.__frequency):
             grad = self.__numOp.reshape((1,) + self.__numOp.shape)
-            derivatives = jnp.append(derivatives, grad, axis=1)
+            derivatives = jnp.append(derivatives, grad, axis=0)
 
         return derivatives
