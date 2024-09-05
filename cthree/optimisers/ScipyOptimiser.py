@@ -1,10 +1,10 @@
 from typing import Callable, Dict, List
 
 import numpy as np
-from scipy.optimize import minimize, OptimizeResult
+from scipy.optimize import minimize
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.optimisers.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser, OptimisationResult
 from cthree.measurement.Measurement import Measurement
 
 
@@ -44,7 +44,7 @@ class ScipyOptimiser(Optimiser):
     def setCallback(self, cbfun: Callable) -> None:
         self._callback = cbfun
 
-    def optimise(self) -> OptimizeResult:
+    def optimise(self) -> OptimisationResult:
         if self._logger:
             self._logger.start()
 
@@ -68,7 +68,13 @@ class ScipyOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(str(opt_res))
 
-        return opt_res
+        return OptimisationResult(
+            status=OptimisationResult.STATUS_SUCCESS if opt_res.success else OptimisationResult.STATUS_FAILED,
+            value=opt_res.fun,
+            iterations=opt_res.nfev,
+            message=opt_res.message,
+            rawResult=opt_res,
+        )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:
         """

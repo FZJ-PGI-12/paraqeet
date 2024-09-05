@@ -33,7 +33,7 @@ def test_rabi(opt) -> None:
     Check that the rabi optimization goes below threshold.
     """
     res = opt.optimise()
-    assert res.fun < 1e-8
+    assert res.value < 1e-8
 
 
 def test_find_resonance(rabi, opt) -> None:
