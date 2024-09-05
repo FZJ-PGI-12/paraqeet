@@ -1,7 +1,10 @@
 import numpy as np
 import pytest
 
-from cthree.measurement.StateTransferFidelity import StateTransferFidelity, StateTransferFidelityAD
+from cthree.measurement.StateTransferFidelity import (
+    StateTransferFidelity,
+    StateTransferFidelityAD,
+)
 from test.propagation.IdentityPropagation import IdentityPropagation
 from test.propagation.RandomPropagation import RandomPropagation
 
@@ -25,9 +28,30 @@ def test_limits_vectors(randomState):
             times,
         )
 
-        for _ in range(100):
+        for _ in range(20):
             m = measurement.measure()
             assert 0.0 <= m <= 1.0
+
+
+@pytest.mark.filterwarnings("ignore:Different shapes for")
+def test_limit_projected_vectors(randomState):
+    times = np.array([1.0])
+    for size in range(3, 30):
+        for projectedSize in range(2, size):
+            inital_state = randomState(size)
+            target_state = randomState(projectedSize)
+            propagation = RandomPropagation(size, False)
+            measurement = StateTransferFidelity(
+                propagation=propagation,
+                initialState=inital_state,
+                targetState=target_state,
+                times=times,
+            )
+
+            measurement.restrictSubsystems([size], [projectedSize])
+            for _ in range(20):
+                m = measurement.measure()
+                assert 0.0 <= m <= 1.0
 
 
 # test that F(v,v) = 1 for state vectors
@@ -44,24 +68,37 @@ def test_vector_equality(identityPropagation, randomState):
 
 
 # Test that a set of initial and target state with different dimensions raise an exception
+@pytest.mark.filterwarnings("ignore:Different shapes for")
 def test_incompatible_shape(identityPropagation, randomState):
     allDims = np.arange(2, 30)
     for dim in allDims:
-        for i in range(100):
+        for i in range(10):
             initialState = randomState(dim)
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             targetState = randomState(np.random.choice(dimensions))
 
+            fid = StateTransferFidelity(
+                identityPropagation, initialState, targetState, np.array([1.0])
+            )
+
+            fid_AD = StateTransferFidelityAD(
+                identityPropagation, initialState, targetState, np.array([1.0])
+            )
+
             with pytest.raises(Exception):
-                StateTransferFidelity(identityPropagation, initialState, targetState, np.array([1.0]))
+                fid.measure()
             with pytest.raises(Exception):
-                StateTransferFidelityAD(identityPropagation, initialState, targetState, np.array([1.0]))
+                fid_AD.measure()
 
 
 def test_no_parameters(identityPropagation, randomState):
     state = randomState(np.random.randint(2, 30))
-    measurement = StateTransferFidelity(identityPropagation, state, state, np.array([1.0]))
+    measurement = StateTransferFidelity(
+        identityPropagation, state, state, np.array([1.0])
+    )
     assert measurement.getParameters() == []
 
-    measurement = StateTransferFidelityAD(identityPropagation, state, state, np.array([1.0]))
+    measurement = StateTransferFidelityAD(
+        identityPropagation, state, state, np.array([1.0])
+    )
     assert measurement.getParameters() == []

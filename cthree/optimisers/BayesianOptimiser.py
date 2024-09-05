@@ -2,7 +2,7 @@ import numpy as np
 from bayes_opt import BayesianOptimization
 
 from cthree.OptimisationMap import OptimisationMap
-from cthree.optimisers.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser, OptimisationResult
 from cthree.measurement.Measurement import Measurement
 
 
@@ -46,7 +46,7 @@ class BayesianOptimiser(Optimiser):
     def setIterations(self, iterations: int):
         self.__iterations = iterations
 
-    def optimise(self) -> dict:
+    def optimise(self) -> OptimisationResult:
         if self._logger:
             self._logger.start()
 
@@ -77,7 +77,12 @@ class BayesianOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(str(result))
 
-        return result
+        return OptimisationResult(
+            status=OptimisationResult.STATUS_FINISHED,
+            value=result["fun"],
+            iterations=self.__iterations + self.__initialSamples,
+            rawResult=optimiser.max,
+        )
 
     def _setParametersAndMeasure(self, **kwargs) -> np.ndarray:
         """

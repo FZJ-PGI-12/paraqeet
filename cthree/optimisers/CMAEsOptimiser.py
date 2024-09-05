@@ -2,7 +2,7 @@ from typing import Callable, Dict
 from cthree.FileLogger import Logger
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.Measurement import Measurement
-from cthree.optimisers.Optimiser import Optimiser
+from cthree.optimisers.Optimiser import Optimiser, OptimisationResult
 import numpy as np
 import cma.evolution_strategy as cma
 
@@ -61,7 +61,7 @@ class CMAEsOptimiser(Optimiser):
     def setCallback(self, cbfun: Callable) -> None:
         self._callback = cbfun
 
-    def optimise(self) -> cma.CMAEvolutionStrategyResult:
+    def optimise(self) -> OptimisationResult:
         options = {}
         options.update(self._options)
         options = self._options
@@ -147,7 +147,12 @@ class CMAEsOptimiser(Optimiser):
         if self._logger:
             self._logger.stop(es.result_pretty())
 
-        return es.result
+        return OptimisationResult(
+            status=self.__determineTerminationStatus(es.result.stop()),
+            value=es.result.fbest,
+            iterations=es.result.iterations,
+            rawResult=es.result,
+        )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:
         """
@@ -163,3 +168,18 @@ class CMAEsOptimiser(Optimiser):
         if self._logger:
             self._logger.log(log, infid)
         return infid
+
+    def __determineTerminationStatus(self, conditions: dict) -> int:
+        """
+        Determines the success or failure of the optimisation depending on the termination conditions dict of the
+        CMAEvolutionStrategy.
+        :param conditions: the dictionary from the CMAEvolutionStrategy.stop()
+        :return: one of the constants in OptimisationResult
+        """
+        if any((key in conditions) for key in ['ftarget', 'tolfun', 'tolfunhist', 'tolfunrel','tolfacupx', 'tolx']):
+            return OptimisationResult.STATUS_SUCCESS
+        elif any((key in conditions) for key in ['maxfevals', 'maxiter', 'timeout']):
+            return OptimisationResult.STATUS_FAILED
+        else:
+            # not decidable
+            return OptimisationResult.STATUS_FINISHED

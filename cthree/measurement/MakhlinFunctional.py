@@ -33,6 +33,7 @@ class MakhlinFunctional(Measurement):
 
     def measure(self) -> np.ndarray:
         U = self.__propagation.propagate(self._times)[-1]
+        U = self._preprocessMatrix(U)
         if U.shape != (4, 4):
             raise IncompatibleLayersException(
                 "quadratic unitary 4x4 propagator needed for Makhlin invariants"

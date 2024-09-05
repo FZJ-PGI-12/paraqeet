@@ -99,7 +99,7 @@ def test_optim_finite_diff(opt) -> None:
     Check that the optimization goes below threshold.
     """
     res = opt.optimise()
-    assert res.fun < 1e-4
+    assert res.value < 1e-4
 
 
 def test_optim_GOAT(gradOpt) -> None:
@@ -107,7 +107,7 @@ def test_optim_GOAT(gradOpt) -> None:
     Check that the optimization goes below threshold.
     """
     res = gradOpt.optimise()
-    assert res.fun < 1e-4
+    assert res.value < 1e-4
 
 
 def test_optim_GOAT_gates(gradGatesOpt) -> None:
@@ -115,7 +115,7 @@ def test_optim_GOAT_gates(gradGatesOpt) -> None:
     Check that the optimization goes below threshold.
     """
     res = gradGatesOpt.optimise()
-    assert res.fun < 1e-4
+    assert res.value < 1e-4
 
 
 @pytest.fixture
@@ -171,4 +171,4 @@ def test_optim_GOAT_AD(gradOptAD) -> None:
     Check that the optimization goes below threshold.
     """
     res = gradOptAD.optimise()
-    assert res.fun < 1e-4
+    assert res.value < 1e-4
