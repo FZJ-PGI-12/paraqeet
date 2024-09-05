@@ -99,6 +99,7 @@ class CosTone(Device):
 
     __amplitude: Quantity
     __frequency: Quantity
+    __phase: Quantity
 
     def __init__(self) -> None:
         self.__amplitude = Quantity(
@@ -201,6 +202,7 @@ class CosToneErf(Device):
 
     __amplitude: Quantity
     __frequency: Quantity
+    __phase: Quantity
     __t_final: Quantity
 
     def __init__(self) -> None:
@@ -218,12 +220,51 @@ class CosToneErf(Device):
             unit="Hz",
             name="Frequency",
         )
+        self.__phase = Quantity(
+            0,
+            min_value=-np.pi,
+            max_value=np.pi,
+            unit="rad",
+            name="Phase",
+        )
         self.__t_final = Quantity(
             10e-9, min_value=0e-9, max_value=100e-9, unit="s", name="Gate time"
         )
 
+    @property
+    def amplitude(self) -> Quantity:
+        return self.__amplitude
+
+    @amplitude.setter
+    def amplitude(self, amplitude: Quantity) -> None:
+        self.__amplitude = amplitude
+
+    @property
+    def frequency(self) -> Quantity:
+        return self.__frequency
+
+    @frequency.setter
+    def frequency(self, frequency: Quantity) -> None:
+        self.__frequency = frequency
+
+    @property
+    def phase(self) -> Quantity:
+        return self.__phase
+
+    @phase.setter
+    def phase(self, phase: Quantity) -> None:
+        self.__phase = phase
+
+    @property
+    def t_final(self) -> Quantity:
+        return self.__t_final
+
+    @t_final.setter
+    def t_final(self, t_final: Quantity) -> None:
+        self.__t_final = t_final
+
     def getParameters(self) -> List[Quantity]:
-        return [self.__amplitude, self.__frequency]
+        return [self.__amplitude, self.__frequency, self.__phase]
 
     def _envelope(self, t):
         """
@@ -236,21 +277,23 @@ class CosToneErf(Device):
         return rampUp * rampDown / 4
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray):
+    def _evaluate(self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray):
         """
         Function to compute the output of the device that explicitly depends on the optimisable parameters.
 
         Args:
             amp (Quantity): Cosine pulse amplitude
             freq (Quantity): Cosine pulse frequency
+            phase (Quantity): Phase of the pulse between (-pi, pi)
             t (np.ndarray): Time array
         """
-        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
+        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t + phase))
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        return self._evaluate(amp, freq, t)
+        phase = self.__phase.getValue()
+        return self._evaluate(amp, freq, phase, t)
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """
@@ -258,6 +301,7 @@ class CosToneErf(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
+        phase = self.__phase.getValue()
         t = jnp.array(t, ndmin=1)
 
         grads = []
@@ -267,6 +311,13 @@ class CosToneErf(Device):
         if self._isOptimised(self.__frequency):
             dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
             grads.append(self.__frequency.getScale() * dc_dFreq)
+        if self._isOptimised(self.__phase):
+            grads.append(
+                -amp
+                * self._envelope(t)
+                * jnp.sin(freq * t + phase)
+                * self.__phase.getScale()
+            )
 
         return (
             jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
