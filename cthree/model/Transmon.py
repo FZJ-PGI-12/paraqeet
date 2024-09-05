@@ -18,9 +18,6 @@ class Transmon(Hamiltonian):
     __annihilationOp: jnp.ndarray
     __numOp: jnp.ndarray
     __anharmonicTerm: jnp.ndarray
-    __t1: Quantity
-    __temp: Quantity
-    __t2star: Quantity
 
     def __init__(
         self,
