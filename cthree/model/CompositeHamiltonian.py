@@ -70,7 +70,11 @@ class CompositeHamiltonian(Hamiltonian):
             # Create a tensor product where all subsystems except the coupled ones are identity
             indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
             subMatrices = coupling.getMatricesOneTime(t)
-            matrix += self.__tensorProductWithIdentity(subMatrices, indices)
+            if coupling.useRWA:
+                for term in subMatrices:
+                    matrix += self.__tensorProductWithIdentity(term, indices)
+            else:
+                matrix += self.__tensorProductWithIdentity(subMatrices, indices)
 
         return matrix
 

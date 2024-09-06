@@ -1,10 +1,15 @@
 from typing import List
 
+from jax import vmap
 import jax.numpy as jnp
 
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
 from cthree.model.Hamiltonian import Hamiltonian
+
+import jax
+
+jax.config.update("jax_enable_x64", True)
 
 
 class Coupling(Optimisable):
@@ -35,7 +40,7 @@ class Coupling(Optimisable):
         self._subsystems = subsystems
         self._coefficient = coefficient
         self.__isLongitudinal = isLongitudinal
-        self.__useRAW = useRWA
+        self.useRWA = useRWA
         self._totalDims = jnp.prod(
             jnp.array([s.dimension() for s in self.getSubsystems()])
         )
@@ -55,8 +60,13 @@ class Coupling(Optimisable):
         into terms for the subsystems, each of which is one element in the list. A composite Hamiltonian should take
         care of putting these terms into the correct position in the tensor space.
         """
-        matrices = self.__couplingOperators()
-        matrices[0] *= self._coefficient.getValue()
+        if self.useRWA:
+            matrices = self.__couplingOperators()
+            for i in range(len(matrices)):
+                matrices[i][0] *= self._coefficient.getValue()
+        else:
+            matrices = self.__couplingOperators()
+            matrices[0] *= self._coefficient.getValue()
         return matrices
 
     def getMatrices(self, t) -> List[jnp.ndarray]:
@@ -65,14 +75,7 @@ class Coupling(Optimisable):
         into terms for the subsystems, each of which is one element in the list. A composite Hamiltonian should take
         care of putting these terms into the correct position in the tensor space.
         """
-        matrices = self.__couplingOperators()
-
-        # Multiply the first entry with the coefficient and repeat all entries for all time steps
-        matrices[0] *= self._coefficient.getValue()
-        for i, m in enumerate(matrices):
-            matrices[i] = m.reshape((1,) + m.shape).repeat(len(t), axis=0)
-
-        return matrices
+        return vmap(self.getMatricesOneTime)(t)
 
     def gradient(self, t) -> List[List[jnp.ndarray]]:
         """
@@ -102,6 +105,23 @@ class Coupling(Optimisable):
                 jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64))
                 for s in self._subsystems
             ]
+
+        elif self.useRWA:
+            # TODO - How to use RWA for more than 2 subsystems?
+
+            if len(self.getSubsystems()) > 2:
+                raise NotImplementedError("RWA is defined for 2 subsystems only")
+
+            dimensions = [s.dimension() for s in self.getSubsystems()]
+            annihilationOp = [
+                jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1))
+                for dim in dimensions
+            ]
+            return [
+                [annihilationOp[0], annihilationOp[1].T],
+                [annihilationOp[0].T, annihilationOp[1]],
+            ]
+
         else:
             # (a + a^\dagger) for each subsystem
             dimensions = [s.dimension() for s in self.getSubsystems()]

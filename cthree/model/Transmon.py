@@ -6,6 +6,10 @@ from cthree.Quantity import Quantity
 from cthree.model.Drive import Drive
 from cthree.model.Hamiltonian import Hamiltonian
 
+import jax
+
+jax.config.update("jax_enable_x64", True)
+
 
 class Transmon(Hamiltonian):
     """
