@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import List
 
 import jax.numpy as jnp
 
@@ -21,13 +21,13 @@ class Coupling(Optimisable):
                    double excitation terms
     """
 
-    _subsystems: Set[Hamiltonian]
+    _subsystems: List[Hamiltonian]
     _coefficient: Quantity
     __isLongitudinal: bool
 
     def __init__(
         self,
-        subsystems: Set[Hamiltonian],
+        subsystems: List[Hamiltonian],
         coefficient: Quantity,
         isLongitudinal: bool,
         useRWA: bool = False,
@@ -43,7 +43,7 @@ class Coupling(Optimisable):
     def getParameters(self) -> List[Quantity]:
         return [self._coefficient]
 
-    def getSubsystems(self) -> Set[Hamiltonian]:
+    def getSubsystems(self) -> List[Hamiltonian]:
         """
         Returns all subsystems that are coupled by this term.
         """

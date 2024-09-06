@@ -10,8 +10,6 @@ from cthree.model.Transmon import Transmon
 from cthree.model.CompositeHamiltonian import CompositeHamiltonian
 
 
-COUPLINGSTR = 25e6 * 2 * np.pi
-
 LEN_SIG = 101
 
 
@@ -67,6 +65,17 @@ def transmon(transmonParameters, drive):
 
 
 @pytest.fixture
+def uncoupledTransmons(transmon):
+    def _method(dim1, dim2):
+        transmon1 = transmon.get(dim1)
+        transmon2 = transmon.get(dim2)
+        compositeHams = CompositeHamiltonian([transmon1, transmon2])
+        return compositeHams
+
+    return _method
+
+
+@pytest.fixture
 def coupledTransmons(transmon):
     def _method(dim1, dim2):
         transmon1 = transmon.get(dim1)
@@ -80,7 +89,7 @@ def coupledTransmons(transmon):
             * 0.05
         )
         coupling = Coupling(
-            {transmon1, transmon2},
+            [transmon1, transmon2],
             isLongitudinal=False,
             coefficient=Quantity(
                 couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"
@@ -91,6 +100,18 @@ def coupledTransmons(transmon):
         return compositeHams
 
     return _method
+
+
+def test_getMatrixOneTime(uncoupledTransmons, time_samples):
+    """
+    Test shape of Matrix produced by compositeHamiltonian.
+    """
+    for _ in np.arange(1, 10):
+        dim1 = np.random.randint(2, 6)
+        dim2 = np.random.randint(2, 7)
+        H = uncoupledTransmons(dim1, dim2)
+        hams = H.getMatrix(time_samples)
+        assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 
 def test_getMatrix(coupledTransmons, time_samples):
