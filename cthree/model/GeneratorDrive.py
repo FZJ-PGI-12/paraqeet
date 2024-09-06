@@ -46,21 +46,12 @@ class GeneratorDrive(Drive):
         matrix = self._computeMatrix(a)
         return signal * matrix
 
-    def gradient(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
-        """
-        Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
-        """
-        signalGrad = self.__generator.generateSignalGradient(t)
-        matrix = self._computeMatrix(a)
-        matrix = self._repeat(self._repeat(matrix, signalGrad.shape[1]), t.shape[0])
-        return signalGrad.reshape(signalGrad.shape + (1, 1)) * matrix
-
     def gradientOneTime(self, a: jnp.ndarray, t: float) -> jnp.ndarray:
         """
         Fetches the gradient from the drive and transforms it into the correct shape for the Hamiltonian.
         """
-        signalGrad = self.__generator.generateSignalGradient(jnp.array(t, ndmin=1)).reshape(
-            (-1, 1, 1)
-        )
+        signalGrad = self.__generator.generateSignalGradient(
+            jnp.array(t, ndmin=1)
+        ).reshape((-1, 1, 1))
         matrix = self._repeat(self._computeMatrix(a), signalGrad.shape[0])
         return signalGrad * matrix

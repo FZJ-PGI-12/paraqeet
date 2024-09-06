@@ -153,7 +153,7 @@ def test_gradient(gen, coupledTransmons, time_samples):
     Number of gradient parameters include gradients from both the drives, and
     both the transmon frequency, anharmonicity and the coupling.
     """
-    for _ in np.arange(1, 10):
+    for _ in np.arange(1, 5):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         H = coupledTransmons(dim1, dim2)

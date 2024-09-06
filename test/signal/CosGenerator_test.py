@@ -15,6 +15,7 @@ def time_samples():
 @pytest.fixture
 def gen():
     tone = CosTone()
+    tone.setOptimisableParameters(tone.getParameters())
     return CosGenerator(devices=[tone])
 
 
@@ -38,7 +39,7 @@ def test_gen(gen, time_samples) -> None:
     """
     Computes a sample signal and checks vectorized generation.
     """
-    sig= gen.generateSignal(time_samples)
+    sig = gen.generateSignal(time_samples)
     assert len(sig) == LEN_SIG
 
 
@@ -55,6 +56,11 @@ def test_getParamters(genMultipleTones):
     gen, all_params = genMultipleTones
     params = gen.getParameters()
     assert np.all(params == all_params)
+
+
+def test_gradientOneTime(gen):
+    grads = gen.generateSignalGradientOneTime(0)
+    assert grads.shape == (len(gen.getParameters()),)
 
 
 def test_gradient_shape(gen, time_samples):
