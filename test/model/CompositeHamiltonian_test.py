@@ -77,7 +77,7 @@ def uncoupledTransmons(transmon):
 
 @pytest.fixture
 def coupledTransmons(transmon):
-    def _method(dim1, dim2):
+    def _method(dim1: int, dim2: int, useRWA: bool = False):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
 
@@ -94,6 +94,7 @@ def coupledTransmons(transmon):
             coefficient=Quantity(
                 couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"
             ),
+            useRWA=useRWA,
         )
 
         compositeHams = CompositeHamiltonian([transmon1, transmon2], [coupling])
@@ -102,7 +103,15 @@ def coupledTransmons(transmon):
     return _method
 
 
-def test_getMatrixOneTime(uncoupledTransmons, time_samples):
+def test_dimension(coupledTransmons):
+    for _ in np.arange(1, 10):
+        dim1 = np.random.randint(2, 6)
+        dim2 = np.random.randint(2, 7)
+        H = coupledTransmons(dim1, dim2)
+        assert H.dimension() == dim1 * dim2
+
+
+def test_getMatrixOneTime(uncoupledTransmons):
     """
     Test shape of Matrix produced by compositeHamiltonian.
     """
@@ -110,8 +119,20 @@ def test_getMatrixOneTime(uncoupledTransmons, time_samples):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         H = uncoupledTransmons(dim1, dim2)
-        hams = H.getMatrix(time_samples)
-        assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
+        hams = H.getMatrixOneTime(0)
+        assert hams.shape == (dim1 * dim2, dim1 * dim2)
+
+
+def test_getMatrixOneTime_RWA(coupledTransmons):
+    """
+    Test shape of Matrix produced by compositeHamiltonian.
+    """
+    for _ in np.arange(1, 10):
+        dim1 = np.random.randint(2, 6)
+        dim2 = np.random.randint(2, 7)
+        H = coupledTransmons(dim1, dim2, useRWA=True)
+        hams = H.getMatrixOneTime(0)
+        assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
 def test_getMatrix(coupledTransmons, time_samples):

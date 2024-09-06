@@ -117,3 +117,23 @@ def test_getMatrices(coupling, time_samples):
         coup_hams = coup.getMatrices(time_samples)
         for i, ops in enumerate(coup_hams):
             assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
+
+
+def test_gradient_shape(coupling, time_samples):
+    # Test if the coupling is not optimized
+    dim1 = np.random.randint(2, 7)
+    dim2 = np.random.randint(2, 7)
+    coup = coupling(dim1, dim2, isLongitudinal=False)
+    grads = coup.gradient(time_samples)
+    assert grads.shape == (0, dim1 * dim2, dim1 * dim2)
+
+    # Test with couping optimized
+    dim1 = np.random.randint(2, 7)
+    dim2 = np.random.randint(2, 7)
+    dims = [dim1, dim2]
+    coup = coupling(dim1, dim2, isLongitudinal=False)
+    coup.setOptimisableParameters(coup.getParameters())
+    grads = coup.gradient(time_samples)
+    for grad in grads:
+        for i, ops in enumerate(grad):
+            assert np.shape(ops) == (dims[i], dims[i])
