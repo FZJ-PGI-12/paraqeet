@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import jax.numpy as jnp
 from jax import vmap
@@ -160,12 +160,3 @@ class Hamiltonian(Optimisable):
         [t, n, m] where t is the number of time steps and M is a n times m matrix.
         """
         return M.reshape((1,) + M.shape).repeat(num, axis=0)
-
-    def getCollapseOps(self) -> List[Tuple[float, jnp.ndarray]]:
-        """
-        Return a list tuples of decay rates and collapse operators for each subsystem.
-
-        Returns:
-            List[Tuple[float, jnp.ndarray]]: List of collapse operators
-        """
-        raise NotImplementedError()
