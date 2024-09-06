@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 import jax.numpy as jnp
@@ -20,7 +20,9 @@ class CompositeHamiltonian(Hamiltonian):
     __dimensions: List[int]
     __totalDimension: int
 
-    def __init__(self, subsystems: List[Hamiltonian], couplings: List[Coupling] | None = None):
+    def __init__(
+        self, subsystems: List[Hamiltonian], couplings: List[Coupling] | None = None
+    ):
         super().__init__()
         if couplings is None:
             couplings = []
@@ -121,17 +123,3 @@ class CompositeHamiltonian(Hamiltonian):
             product = jnp.kron(product, m)
 
         return product
-
-    def getCollapseOps(self) -> List[Tuple[float, jnp.ndarray]]:
-        """
-        Gather collapse operators from the subsystems and then tensor product them
-        with identity to create the collapse operators of the right dimension.
-        """
-        allCollapseOps = []
-        for n, subsystem in enumerate(self.__subsystems):
-            rates_and_cols = subsystem.getCollapseOps()
-            for rate, colOp in rates_and_cols:
-                allCollapseOps.append(
-                    (rate, self.__tensorProductWithIdentity([colOp], [n]))
-                )
-        return allCollapseOps
