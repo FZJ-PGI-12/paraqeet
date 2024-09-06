@@ -13,6 +13,13 @@ class CompositeHamiltonian(Hamiltonian):
     """
     A hamiltonian that consists of subsystems and couplings. This class takes care of the tensor products. The list
     of parameters will contain the parameters of all subsystems and couplings in the order they were added.
+
+    Parameters
+    ----------
+    subsystems : List[Hamiltonian]
+        List of Hamiltonains forming the subsystems of a composite system.
+    couplings: List[Coupling], optional
+        List of couplings between the various subsystems
     """
 
     __subsystems: List[Hamiltonian]
@@ -54,11 +61,15 @@ class CompositeHamiltonian(Hamiltonian):
         """
         Return the matrix representation of the Hamiltonian for a single time point.
 
-        Args:
-            t (float): One time step
+        Parameters
+        ----------
+        t : float
+            One time step
 
-        Returns:
-            np.ndarray: Hamiltonian of shape [n, n] with n: hilbert space
+        Returns
+        -------
+        jnp.ndarray
+            Hamiltonian of shape [n, n] with n: hilbert space
         """
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self.__totalDimension, self.__totalDimension))
@@ -80,13 +91,36 @@ class CompositeHamiltonian(Hamiltonian):
 
     def gradient(self, t: np.ndarray) -> jnp.ndarray:
         """
-        Return the gradient of each parameter as a list.
+        Return the gradient of each parameter as an array for an array of input times.
+        Uses `vmap` to iterate over time array to generate the gradients.
+
+        Parameters
+        ----------
+        t: jnp.ndarray
+            Array of time samples.
+
+        Returns
+        -------
+        jnp.ndarray
+            Gradient for each time point in the input array of times.
         """
         return vmap(self._gradientOneTime)(t)
 
     def _gradientOneTime(self, t: float) -> jnp.ndarray:
         """
-        Return the gradient of each parameter as a list for one timestamp.
+        Return the gradient of each parameter as an array for one timestamp.
+        Collects the gradients from every subsytem and coupling and constructs
+        the matrix in the dimension of the composite system.
+
+        Parameters
+        ----------
+        t: float
+            One time point.
+
+        Returns
+        -------
+        jnp.ndarray
+            Gradient at time t.
         """
         gradients = []
 
@@ -110,11 +144,21 @@ class CompositeHamiltonian(Hamiltonian):
     ) -> jnp.ndarray:
         """
         Puts the matrices M into a tensor product at positions n where all other positions are identity matrices:
-
         .. math::
             1 \\otimes \\dots \\otimes 1 \\otimes M_1 \\otimes 1 \\otimes \\dots \\otimes 1 \\otimes M_2 \\dots
-
         The dimensions are assumed to be the same as the subsystems.
+
+        Parameters
+        ----------
+        M : List[jnp.ndarray]
+            List of Matrices for tensor product
+        n : List[int]
+            List of indices for the each M_i
+
+        Returns
+        -------
+        jnp.ndarray
+            Tensor product of M_i's with I's.
         """
         # Create identity matrices for all subsystems and fill in M at the corresponding indices
         subMatrices = [jnp.eye(s.dimension()) for s in self.__subsystems]

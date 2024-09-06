@@ -125,7 +125,7 @@ def test_gradient_shape(coupling, time_samples):
     dim2 = np.random.randint(2, 7)
     coup = coupling(dim1, dim2, isLongitudinal=False)
     grads = coup.gradient(time_samples)
-    assert grads.shape == (0, dim1 * dim2, dim1 * dim2)
+    assert grads.shape == time_samples.shape + (0, dim1 * dim2, dim1 * dim2)
 
     # Test with couping optimized
     dim1 = np.random.randint(2, 7)
@@ -136,4 +136,4 @@ def test_gradient_shape(coupling, time_samples):
     grads = coup.gradient(time_samples)
     for grad in grads:
         for i, ops in enumerate(grad):
-            assert np.shape(ops) == (dims[i], dims[i])
+            assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
