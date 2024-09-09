@@ -1,7 +1,7 @@
 from __future__ import annotations  # necessary for type hints
 
 import copy
-from typing import Tuple
+from typing import Tuple, List, Callable, Self
 
 import numpy as np
 
@@ -45,22 +45,26 @@ class Quantity:
     __offset: np.ndarray
     __scale: np.ndarray
     __twoPi: bool
+    __dependent: bool
+    __dependencies: List
+    __relation: Callable
+    __dependents: List
 
     def __init__(
-        self,
-        value: np.array,
-        min_value: np.ndarray,
-        max_value: np.ndarray,
-        unit: str = "",
-        name: str = "",
-        twoPi: bool = False,
+            self,
+            value: np.array,
+            min_value: np.ndarray,
+            max_value: np.ndarray,
+            unit: str = "",
+            name: str = "",
+            twoPi: bool = False,
     ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
 
         self.__unit = unit
         self.__name = name
-        self.__scale = 0
+        self.__scale = np.array(0)
         self.__twoPi = twoPi
 
         if np.shape(value) == ():
@@ -73,9 +77,151 @@ class Quantity:
 
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+
+        # if this quantity is dependent on/calculated from other quantities
+        self.__dependent = False
+        # all Quantities that this quantity calculates from
+        self.__dependencies = list()
+        # the relation function that calculated value from dependencies
+        self.__relation = None
+
+        # all Quantities that use this quantity to calculate value
+        self.__dependents = list()
+
         self.setValue(value)
 
-    # Getter and setter functions
+    @classmethod
+    def relational(cls,
+                   quantities: Quantity | List[Quantity],
+                   relation: Callable,
+                   unit: str | None = None,
+                   name: str | None = None,
+                   twoPi: bool = False) -> Self:
+        """ Create a Quantity object that represents a Quantity that is calculated
+        from other quantities using the relation function.
+
+        Parameters
+        ----------
+        quantities: Quantity | List[Quantity]
+            The quantities from which to calculate the value of self.
+        relation: Callable
+            Function describing how to calculate the value of self from other Quantities.
+        unit: str | None
+            The unit of the resulting Quantity. If 'None', then the units of all
+            quantities are assumed the same.
+        name: str | None
+            A string identifier name of the resulting Quantity. If 'None', then
+            a name is generated from the names of the related Quantities.
+        twoPi: bool
+            Divide by two pi for representation.
+
+        Returns
+        -------
+        Quantity
+            The Quantity with a relation set up, which recalculates the value of
+            self from all dependencies.
+
+        Raises
+        ------
+            ValueError:
+                If any quantities do not have the same unit and no special unit is specified.
+        """
+        quantities = quantities if isinstance(quantities, List) else [quantities]
+        min_val = np.min([qty.getMinValue() for qty in quantities])
+        max_val = np.max([qty.getMaxValue() for qty in quantities])
+
+        if name is None:
+            name = 'relation_of'
+            for qty in quantities:
+                name += ('_' + qty.getName())
+
+        if unit is None:
+            if not all(qty.getUnit() == quantities[0].getUnit() for qty in quantities):
+                raise ValueError(f"All quantities in creation on {name} "
+                                 f"must have the same unit if no unit is specified.")
+            unit = quantities[0].getUnit()
+
+        qty = cls(value=min_val,
+                  min_value=min_val,
+                  max_value=max_val,
+                  unit=unit,
+                  name=name,
+                  twoPi=twoPi)
+        qty.addRelation(quantities, relation)
+        return qty
+
+    @classmethod
+    def relationalCopy(cls, quantity: Quantity) -> Self:
+        """ Create a Quantity object that is a one to one copy of a Quantity.
+        If the quantity is updated, so is this relational copy.
+
+        Parameters
+        ----------
+        quantity: Quantity | List[Quantity]
+            The quantities from which the relational copy should be created.
+
+        Returns
+        -------
+        Quantity
+            The Quantity with a relation set up, which recalculates the value of
+            self from all dependencies.
+        """
+
+        qty = cls(value=quantity.getValue(),
+                  min_value=quantity.getMinValue(),
+                  max_value=quantity.getMaxValue(),
+                  unit=quantity.getUnit(),
+                  name=quantity.getName(),
+                  twoPi=quantity.__twoPi)
+        qty.addRelation(quantity, lambda x: x)
+        return qty
+
+    @property
+    def dependent(self):
+        """ The dependency status of the quantity
+        if True:
+            The value of this quantity is calculated from other quantities
+        if False:
+            The value of this quantity is independent of any other quantity
+        """
+        return self.__dependent
+
+    def addRelation(self,
+                    other: Quantity | List[Quantity],
+                    relation: Callable,
+                    checkUnits: bool = True) -> None:
+        """ Adds a relation of self to one or more other quantities.
+
+        Parameters
+        ----------
+        other: Quantity | List[Quantity]
+            The quantities from which to calculate the value of self.
+        relation: Callable
+            Function describing how to calculate the value of self from other Quantities.
+        checkUnits: bool
+            If False, the check for equal units is not performed and unequal
+            units are allowed.
+
+        """
+        other = other if isinstance(other, List) else [other]
+
+        if not all(qty.getUnit() == self.getUnit() for qty in other) and checkUnits:
+            raise ValueError(f"Not all Quantities in the relation have the same units. "
+                             f"This may lead to unintentional physical errors. "
+                             f"Set 'checkUnits=False' if this behavior is wanted.")
+
+        self.__dependent = True
+        self.__dependencies = other
+        self.__relation = relation
+        self.update()
+
+        for qty in self.__dependencies:
+            qty.__dependents.append(self)
+
+    def update(self):
+        """ Update function that is called if a value that this quantity is dependent on is changed."""
+        self.__setValue(self.__relation(*[qty.getValue() for qty in self.__dependencies]))
+
     def getValue(self) -> np.array:
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
@@ -89,10 +235,16 @@ class Quantity:
         """
         Sets the value of this quantity. Value needs to be within the range of min_value and max_value.
         """
+        if self.__dependent:
+            raise ValueError("Cannot set value on dependent quantities, as it is calculated from other quantities.")
+
+        self.__setValue(value)
+
+    def __setValue(self, value) -> None:
         if isinstance(value, np.ndarray):
             val = value.astype(np.float64)
         else:
-            val = np.array(value, np.float64)
+            val = np.array(value).astype(np.float64)
         tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
         if np.any(np.abs(tmp) > 1.0):
@@ -103,6 +255,10 @@ class Quantity:
                 f"max_val: {self.__toString(self.getMaxValue())}{self.__unit}",
             )
         self.__value = tmp
+
+        # update all Quantities that depend on self
+        for qty in self.__dependents:
+            qty.update()
 
     def setReducedValue(self, value) -> None:
         if np.shape(value) == ():
@@ -273,17 +429,17 @@ class Quantity:
             if self.__unit != "":
                 if self.__twoPi:
                     ret += (
-                        self.__makeHumanReadable(entry / np.pi / 2)
-                        + self.__unit
-                        + " x 2pi "
+                            self.__makeHumanReadable(entry / np.pi / 2)
+                            + self.__unit
+                            + " x 2pi "
                     )
                 else:
                     ret += self.__makeHumanReadable(entry) + self.__unit + " "
             else:
                 if self.__twoPi:
                     ret += (
-                        self.__makeHumanReadable(entry / np.pi / 2, use_prefix=False)
-                        + " x 2pi "
+                            self.__makeHumanReadable(entry / np.pi / 2, use_prefix=False)
+                            + " x 2pi "
                     )
                 else:
                     ret += self.__makeHumanReadable(entry, use_prefix=False) + " "

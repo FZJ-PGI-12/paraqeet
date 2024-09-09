@@ -1,8 +1,8 @@
+import numpy as np
+import numpy.testing as testing
 import pytest
 
 from cthree.Quantity import Quantity
-import numpy as np
-import numpy.testing as testing
 
 
 @pytest.fixture
@@ -181,8 +181,8 @@ def testArithmetic(five, three):
     testing.assert_almost_equal(five % 3, 5.0 % 3)
     testing.assert_almost_equal(five * 3, 15)
     testing.assert_almost_equal(5 * three, 15)
-    testing.assert_almost_equal(five**1, 5)
-    testing.assert_almost_equal(1**three, 1)
+    testing.assert_almost_equal(five ** 1, 5)
+    testing.assert_almost_equal(1 ** three, 1)
 
 
 def testStr(five):
@@ -215,3 +215,33 @@ def testIsScalarOrVector(randomQuantity):
 def __generateRandomMatrix(N: int) -> np.ndarray:
     magnitude = np.power(10.0, np.random.randint(-10, 10))
     return (2 * np.random.random((N, N)) - 1) * magnitude
+
+
+def testRelations(three):
+    relation = Quantity.relational(three, lambda x: 2 * x)
+    assert relation.dependent
+    assert relation.getValue() == 6
+    assert relation.getMinValue() == 0
+    assert relation.getMaxValue() == 15
+    assert relation.getUnit() == ''
+    assert relation.getName() == 'relation_of_'
+
+    three.setValue(4)
+    assert relation.getValue() == 8
+    with pytest.raises(ValueError):
+        relation.setValue(7)
+
+    copy = Quantity.relationalCopy(relation)
+    assert copy.dependent
+    assert copy.getValue() == 8
+    assert copy.getMinValue() == 0
+    assert copy.getMaxValue() == 15
+    assert copy.getUnit() == ''
+    assert copy.getName() == 'relation_of_'
+
+    unit1 = Quantity(1, np.array(0), np.array(10), "Hz", 'one')
+    unit2 = Quantity(1, np.array(0), np.array(10), "s", 'two')
+    with pytest.raises(ValueError):
+        res_unit = Quantity.relational([unit1, unit2], lambda x, y: x + y)
+    with pytest.raises(ValueError):
+        unit1.addRelation(unit2, lambda x: x)
