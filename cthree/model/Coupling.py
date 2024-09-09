@@ -80,7 +80,9 @@ class Coupling(Optimisable):
         Returns
         -------
         List[List[jnp.ndarray]]
-            List of matrices for coupling operator for each subsystem.
+            The outer list are the coupling terms. The inner list contains matrices for each subsystem. The matrices
+            (ndarray) have the same shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n) with n the subsystem
+            dimension.
         """
         matrices = self.__couplingOperators()
         for i in range(len(matrices)):  # iterating over terms
@@ -91,7 +93,7 @@ class Coupling(Optimisable):
         """Returns the matrices for an array of time.
         vmaps over the method for one time step.
 
-        Paramters
+        Parameters
         ---------
         t : jnp.ndarray
             Array of times
@@ -99,7 +101,9 @@ class Coupling(Optimisable):
         Returns
         -------
         List[List[jnp.ndarray]]
-            List of List of Matrices of each subsytem for each time point.
+            The outer list are the coupling terms. The inner list represents the subsystems. The matrices
+            (ndarray) have the same shape as the subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
+            the subsystem dimension.
         """
         return vmap(self.getMatricesOneTime)(t)
 
@@ -116,7 +120,8 @@ class Coupling(Optimisable):
         Returns
         -------
         List[List[List[jnp.ndarray]]]
-            Gradient wrt each parameter.
+            The outer list represents the gradients with respect to all optimised parameters. The rest is in the same
+            shape as the result of getMatricesOneTime.
         """
         if self._isOptimised(self._coefficient):
             grads = [self.__couplingOperators()]
@@ -124,9 +129,15 @@ class Coupling(Optimisable):
             grads = jnp.empty((0, self._totalDims, self._totalDims))
         return grads
 
-    def gradient(self, t: jnp.ndarray) -> List[List[jnp.ndarray]]:
+    def gradient(self, t: jnp.ndarray) -> List[List[List[jnp.ndarray]]]:
         """
         Returns the gradients for an array of times.
+
+        Returns
+        -------
+        List[List[jnp.ndarray]]
+            The outer list represents the gradients with respect to all optimised parameters. The rest is in the same
+            shape as the result of getMatrices.
         """
         return vmap(self.gradientOneTime)(t)
 
@@ -135,6 +146,11 @@ class Coupling(Optimisable):
         A list of terms is returned which have to be summed over to produce the coupling Hamiltonian.
 
         In case of RWA, right now only 2 subsytems are supported.
+
+        Returns
+        -------
+        List[List[jnp.ndarray]]
+            A list of operators for each subsystem. The subsystems are the outer list.
         """
         if self.__isLongitudinal:
             # Number operator (a^\dagger a) for each subsystem
