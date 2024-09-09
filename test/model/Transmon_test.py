@@ -36,10 +36,13 @@ def hamiltonian(gen):
         drive.setOptimisableParameters(drive.getParameters())
         return Transmon(
             dimension=dimension,
-            frequency=Quantity(FREQ, 0.8*FREQ, 1.2*FREQ),
-            anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
+            frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
+            anharmonicity=Quantity(
+                ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY
+            ),
             drives=[drive],
         )
+
     return _method
 
 
@@ -58,3 +61,20 @@ def test_gradient(gen, hamiltonian, time_samples):
         grads = gen.generateSignalGradient(time_samples)
         hamGrads = H.gradient(time_samples)
         assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
+
+
+def test_getDriveMatrix(hamiltonian, time_samples):
+    dim = np.random.randint(2, 10)
+    annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    H = hamiltonian(dim)
+    driveMatrix = H._getDriveMatrix(annihilationOp, time_samples)
+    assert driveMatrix.shape == time_samples.shape + (dim, dim)
+
+
+def test_getDriveGradients(gen, hamiltonian, time_samples):
+    dim = np.random.randint(2, 10)
+    annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    H = hamiltonian(dim)
+    grads = gen.generateSignalGradient(time_samples)
+    driveGradients = H._getDriveGradients(annihilationOp, time_samples)
+    assert driveGradients.shape == (grads.shape[0], grads.shape[1], dim, dim)

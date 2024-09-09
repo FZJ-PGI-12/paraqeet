@@ -1,0 +1,187 @@
+from typing import List
+
+from jax import vmap
+import jax.numpy as jnp
+
+from cthree.Optimisable import Optimisable
+from cthree.Quantity import Quantity
+from cthree.model.Hamiltonian import Hamiltonian
+
+import jax
+
+jax.config.update("jax_enable_x64", True)
+
+
+class Coupling(Optimisable):
+    """Represents the coupling of two or more subsystems in a composite Hamiltonian.
+    This class implements longitudinal and transversal coupling with a constant scalar
+    coefficient. The coefficient is the only optimisable parameter.
+
+    Subclasses can alter the behavior by overriding the getMatrix function.
+
+    Parameters
+    ----------
+    subsystems : List[Hamiltonian]
+        the coupled subsystems
+    coefficient : Quantity
+        either a constant coefficient as float or a callable that returns the
+        coefficient for a given time
+    isLongitudinal : bool
+        whether the coupling is longitudinal or transversal
+    useRWA : bool, optional
+        if the transversal coupling should use the rotating-wave approximation
+        or should include double excitation terms
+    """
+
+    _subsystems: List[Hamiltonian]
+    _coefficient: Quantity
+    __isLongitudinal: bool
+    __useRWA: bool
+
+    def __init__(
+        self,
+        subsystems: List[Hamiltonian],
+        coefficient: Quantity,
+        isLongitudinal: bool,
+        useRWA: bool = False,
+    ):
+        self._subsystems = subsystems
+        self._coefficient = coefficient
+        self.__isLongitudinal = isLongitudinal
+        self.__useRWA = useRWA
+        self._totalDims = jnp.prod(
+            jnp.array([s.dimension() for s in self.getSubsystems()])
+        )
+
+    def getParameters(self) -> List[Quantity]:
+        return [self._coefficient]
+
+    def getSubsystems(self) -> List[Hamiltonian]:
+        """Returns all subsystems that are coupled by this term.
+
+        Returns
+        -------
+        List[Hamiltonian]
+            List of susystems.
+        """
+        return self._subsystems
+
+    def getMatricesOneTime(self, t: float) -> List[List[jnp.ndarray]]:
+        """Returns the matrix representation of the coupling for all subsystems.
+        A list of terms in the coupling is returned, where each of the term contains
+        operators for each subsystem. A composite Hamiltonian puts these operators in the
+        correct position in the tensor space to create the operators and then sum over the terms.
+
+        Parameters
+        ----------
+        t : float
+            One time step
+
+        Returns
+        -------
+        List[List[jnp.ndarray]]
+            The outer list are the coupling terms. The inner list contains matrices for each subsystem. The matrices
+            (ndarray) have the same shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n) with n the subsystem
+            dimension.
+        """
+        matrices = self.__couplingOperators()
+        for i in range(len(matrices)):  # iterating over terms
+            matrices[i][0] *= self._coefficient.getValue()
+        return matrices
+
+    def getMatrices(self, t: jnp.ndarray) -> List[List[jnp.ndarray]]:
+        """Returns the matrices for an array of time.
+        vmaps over the method for one time step.
+
+        Parameters
+        ---------
+        t : jnp.ndarray
+            Array of times
+
+        Returns
+        -------
+        List[List[jnp.ndarray]]
+            The outer list are the coupling terms. The inner list represents the subsystems. The matrices
+            (ndarray) have the same shape as the subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
+            the subsystem dimension.
+        """
+        return vmap(self.getMatricesOneTime)(t)
+
+    def gradientOneTime(self, t: float) -> List[List[List[jnp.ndarray]]]:
+        """Returns the gradient of the matrix representation of the coupling for all subsystems.
+        Each entry in the list is the gradient with respect to one parameter,
+        factorised into subsystems (representing a list of term in the coupling).
+
+        Parameters
+        ----------
+        t : float
+            One time point
+
+        Returns
+        -------
+        List[List[List[jnp.ndarray]]]
+            The outer list represents the gradients with respect to all optimised parameters. The rest is in the same
+            shape as the result of getMatricesOneTime.
+        """
+        if self._isOptimised(self._coefficient):
+            grads = [self.__couplingOperators()]
+        else:
+            grads = jnp.empty((0, self._totalDims, self._totalDims))
+        return grads
+
+    def gradient(self, t: jnp.ndarray) -> List[List[List[jnp.ndarray]]]:
+        """
+        Returns the gradients for an array of times.
+
+        Returns
+        -------
+        List[List[jnp.ndarray]]
+            The outer list represents the gradients with respect to all optimised parameters. The rest is in the same
+            shape as the result of getMatrices.
+        """
+        return vmap(self.gradientOneTime)(t)
+
+    def __couplingOperators(self) -> List[List[jnp.ndarray]]:
+        """Returns the operators of the longitudinal or transversal coupling without coefficients.
+        A list of terms is returned which have to be summed over to produce the coupling Hamiltonian.
+
+        In case of RWA, right now only 2 subsytems are supported.
+
+        Returns
+        -------
+        List[List[jnp.ndarray]]
+            A list of operators for each subsystem. The subsystems are the outer list.
+        """
+        if self.__isLongitudinal:
+            # Number operator (a^\dagger a) for each subsystem
+            return [
+                [
+                    jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64))
+                    for s in self._subsystems
+                ]
+            ]
+
+        elif self.__useRWA:
+            # TODO - How to use RWA for more than 2 subsystems?
+
+            if len(self.getSubsystems()) > 2:
+                raise NotImplementedError("RWA is defined for 2 subsystems only")
+
+            dimensions = [s.dimension() for s in self.getSubsystems()]
+            annihilationOp = [
+                jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1))
+                for dim in dimensions
+            ]
+            return [
+                [annihilationOp[0], annihilationOp[1].T],
+                [annihilationOp[0].T, annihilationOp[1]],
+            ]
+
+        else:
+            # (a + a^\dagger) for each subsystem
+            dimensions = [s.dimension() for s in self.getSubsystems()]
+            annihilationOp = [
+                jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1))
+                for dim in dimensions
+            ]
+            return [[(a + a.T) for a in annihilationOp]]

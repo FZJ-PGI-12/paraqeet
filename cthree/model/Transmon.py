@@ -6,6 +6,10 @@ from cthree.Quantity import Quantity
 from cthree.model.Drive import Drive
 from cthree.model.Hamiltonian import Hamiltonian
 
+import jax
+
+jax.config.update("jax_enable_x64", True)
+
 
 class Transmon(Hamiltonian):
     """
@@ -56,18 +60,16 @@ class Transmon(Hamiltonian):
     def getParameters(self) -> List[Quantity]:
         return self._getDriveParameters() + [self.__frequency, self.__anharmonicity]
 
-    def getMatrix(self, t: jnp.ndarray) -> jnp.ndarray:
+    def getMatrixOneTime(self, t: jnp.ndarray) -> jnp.ndarray:
         H = (
             self.__frequency.getValue() * self.__numOp
             + self.__anharmonicity.getValue() * self.__anharmonicTerm
         )
-        return self._repeat(H, t.shape[0]) + self._getDriveMatrix(
-            self.__annihilationOp, t
-        )
+        return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
 
-    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
+    def gradientOneTime(self, t: float) -> jnp.ndarray:
         # Fetch the gradient of the drive
-        gradients = self._getDriveGradients(self.__annihilationOp, t)
+        gradients = self._getDriveGradientsOneTime(self.__annihilationOp, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads = []
@@ -80,7 +82,6 @@ class Transmon(Hamiltonian):
             if len(grads) > 0
             else jnp.empty((0,) + self.__numOp.shape)
         )
-        grads = self._repeat(grads, t.shape[0])
-        gradients = jnp.append(gradients, grads, axis=1)
+        gradients = jnp.append(gradients, grads, axis=0)
 
         return gradients

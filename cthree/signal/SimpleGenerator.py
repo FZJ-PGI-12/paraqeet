@@ -38,6 +38,16 @@ class CosGenerator(Generator):
             gradients = jnp.append(gradients, grad, axis=1)
         return gradients
 
+    def generateSignalGradientOneTime(self, t) -> Array:
+        """
+        Collects and returns the gradients from all devices.
+        """
+        gradients = jnp.zeros(shape=(0,))
+        for dev in self.__devices:
+            grad = jnp.squeeze(dev.computeGradient(t), axis=0)
+            gradients = jnp.append(gradients, grad, axis=0)
+        return jnp.array(gradients)
+
     def getParameters(self) -> List[Quantity]:
         """
         Collects and returns the parameters of all devices.
