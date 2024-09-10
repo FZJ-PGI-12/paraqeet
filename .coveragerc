@@ -1,9 +1,0 @@
-# Configuration of pytest's code coverage
-
-[report]
-exclude_also =
-    # Exclude abstract methods
-    raise NotImplementedError
-    @(abc\.)?abstractmethod
-
-ignore_errors = True
