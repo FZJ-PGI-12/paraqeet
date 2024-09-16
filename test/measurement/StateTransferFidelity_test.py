@@ -1,3 +1,5 @@
+"""Test the state transfer fidelity model."""
+
 import numpy as np
 import pytest
 
@@ -11,11 +13,12 @@ from test.propagation.RandomPropagation import RandomPropagation
 
 @pytest.fixture
 def identityPropagation():
+    """Return a mock identity propagation object."""
     return IdentityPropagation()
 
 
-# test that the fidelity for state vectors is always in the interval [0, 1)
 def test_limits_vectors(randomState):
+    """Test fidelity for state vectors is always in the interval [0, 1)."""
     for size in range(2, 30):
         initialState = randomState(size)
         targetState = randomState(size)
@@ -35,6 +38,12 @@ def test_limits_vectors(randomState):
 
 @pytest.mark.filterwarnings("ignore:Different shapes for")
 def test_limit_projected_vectors(randomState):
+    """Test the projection to a subspace.
+
+    The projection to a subspace should not increase the
+    range of possible measurement outcomes for state vectors.
+
+    """
     times = np.array([1.0])
     for size in range(3, 30):
         for projectedSize in range(2, size):
@@ -54,8 +63,8 @@ def test_limit_projected_vectors(randomState):
                 assert 0.0 <= m <= 1.0
 
 
-# test that F(v,v) = 1 for state vectors
 def test_vector_equality(identityPropagation, randomState):
+    """Test that F(v,v) = 1 for state vectors."""
     for size in range(2, 30):
         for _ in range(100):
             state = randomState(size)
@@ -67,9 +76,20 @@ def test_vector_equality(identityPropagation, randomState):
             np.testing.assert_almost_equal(m, 1.0)
 
 
-# Test that a set of initial and target state with different dimensions raise an exception
 @pytest.mark.filterwarnings("ignore:Different shapes for")
 def test_incompatible_shape(identityPropagation, randomState):
+    """Test incompatible shapes for initial and target states.
+
+    A set of initial and target states with different dimensions
+    should raise an exception.
+
+    Raises
+    ------
+    Exception
+        Different dimensions for the initial and target states
+        raise an exception.
+
+    """
     allDims = np.arange(2, 30)
     for dim in allDims:
         for i in range(10):
@@ -92,6 +112,7 @@ def test_incompatible_shape(identityPropagation, randomState):
 
 
 def test_no_parameters(identityPropagation, randomState):
+    """Test the no parameter case."""
     state = randomState(np.random.randint(2, 30))
     measurement = StateTransferFidelity(
         identityPropagation, state, state, np.array([1.0])

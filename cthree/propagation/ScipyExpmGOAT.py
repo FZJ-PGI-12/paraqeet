@@ -1,3 +1,9 @@
+"""Class definition of the Scipy piecewise exponential propagation model.
+
+Uses the GOAT optimisation method.
+
+"""
+
 from functools import partial
 from jax import Array, jit
 from jax.lax import scan
@@ -5,22 +11,31 @@ from jax.lax import scan
 import numpy as np
 import jax.numpy as jnp
 
-from typing import Tuple
 
 from cthree.propagation.ScipyExpm import ScipyExpm
 
 
 class ScipyExpmGOAT(ScipyExpm):
-    """
-    Solve the equation of motion by piecewise exponentation with the scipy package.
-    """
+    """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
     _res: float
     _initialState: np.ndarray = None
 
     def _createSuperState(self, psi, dpsis):
-        """
-        Create a state with `psi` for the system state and dpsis for gradient vectors.
+        """Create a state for the system state and also for gradient vectors.
+
+        Parameters
+        ----------
+        psi : jax.numpy.ndarray
+            State of the system.
+        dpsis : jax.numpy.ndarray
+            Differential of state.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns a super state created from the state and the differential.
+
         """
         superState = [psi]
         superState.extend(dpsis)
@@ -28,6 +43,23 @@ class ScipyExpmGOAT(ScipyExpm):
         return psi_t
 
     def _createGOATHam(self, n_params, eom, grads):
+        """Create a Hamiltonian for the GOAT optimisation method.
+
+        Parameters
+        ----------
+        n_params : int
+            Number of parameters.
+        eom : jax.numpy.ndarray
+            Equations of motion in matrix form.
+        grads : jax.numpy.ndarray
+            Gradients of the system at a particular step.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Hamiltonian for the GOAT optimisation method.
+
+        """
         line = [eom]
         zeros_like_eom = jnp.zeros_like(eom)
         line.extend([zeros_like_eom] * n_params)
@@ -51,23 +83,27 @@ class ScipyExpmGOAT(ScipyExpm):
         psis_t, _ = scan(propagateBody, psis_t, steps_arr)
         return psis_t
 
-    def gradient(self, time: np.ndarray) -> Tuple[Array, Array]:
+    def gradient(self, time: np.ndarray) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
         ----------
-        time : np.ndarray
-            array of timesteps
+        time : numpy.ndarray
+            Array of timesteps.
 
         Returns
         -------
-        np.ndarray
-            first dimension is time, second dimension is the parameter
+        Tuple[jax.Array, jax.Array]
+            First dimension is time, second dimension is the parameter.
+
         """
         n_params = self._model.gradient(jnp.array([0])).shape[1]
         dim = self._initialState.shape[0]
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
-        dpsis = [[jnp.zeros_like(self._initialState, dtype=jnp.complex128)] * n_params]
+        dpsis = [
+            [jnp.zeros_like(self._initialState, dtype=jnp.complex128)]
+            * n_params
+        ]
 
         eom_func = self._model.getMatrixEOM
         grad_func = self._model.gradient
@@ -85,7 +121,10 @@ class ScipyExpmGOAT(ScipyExpm):
             psi.append(psis_t[0:dim])
             dpsis.append(
                 jnp.array(
-                    [psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]
+                    [
+                        psis_t[dim * ii : dim * (ii + 1)]
+                        for ii in range(1, n_params + 1)
+                    ]
                 )
             )
         return jnp.array(psi), jnp.array(dpsis)

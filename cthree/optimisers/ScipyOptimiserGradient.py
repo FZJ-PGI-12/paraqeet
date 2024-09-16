@@ -1,7 +1,7 @@
-from typing import Dict, List
+"""Class definition for the Scipy optimiser gradient model."""
 
 import numpy as np
-from scipy.optimize import minimize, OptimizeResult
+from scipy.optimize import minimize
 
 from cthree.optimisers.Optimiser import OptimisationResult
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
@@ -9,17 +9,30 @@ from cthree.measurement.Measurement import Measurement
 
 
 class ScipyOptimiserGradient(ScipyOptimiser):
-    """
-    Minimize the outcome of a measurement with the scipy optimisation package.
+    """The Scipy Optimiser gradient model.
+
+    Minimize the outcome of a measurement with the
+    Scipy optimisation package.
+
     """
 
     _measure: Measurement
-    _opt_idxs: List[int]
-    _options: Dict
+    _opt_idxs: list[int]
+    _options: dict
     _method: str
     __gradCache: np.ndarray  # of shape (n_parameters,)
 
     def optimise(self) -> OptimisationResult:
+        """Optimise via the Scipy optimizer gradient model.
+
+        Performs the actual optimisation.
+
+        Returns
+        -------
+        cthree.optimisers.Optimiser.OptimisationResult
+            The result of the optimisation.
+
+        """
         if self._logger:
             self._logger.start()
 
@@ -44,7 +57,9 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         self._rawResult = result
         return OptimisationResult(
-            status=OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED,
+            status=OptimisationResult.STATUS_SUCCESS
+            if result.success
+            else OptimisationResult.STATUS_FAILED,
             value=result.fun,
             iterations=result.nfev,
             message=result.message,
@@ -52,11 +67,24 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:
-        """
-        Update the parameter values and return the measurement result including gradient.
-        The gradient is stored in a local cache for lookup. This tailored for L-BFGS-B or
-        similar algorithms that alternate between function and gradient calls.
+        """Update the parameter values and return measurement result.
+
+        Returns the measurement result including gradient.
+        The gradient is stored in a local cache for lookup.
+        This tailored for L-BFGS-B or similar algorithms that alternate
+        between function and gradient calls.
         Internal callback.
+
+        Parameters
+        ----------
+        values : numpy.ndarray
+            Parameter values for the update.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the inverse of the fidelity.
+
         """
         log = []
         params = self._optimisables.getAllParameters()
@@ -72,7 +100,20 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         return 1 - fun
 
     def _lookupJac(self, values) -> np.ndarray:
-        """
-        Update the parameter values and return the gradient of a measurement result. Internal callback.
+        """Update the parameter values.
+
+        Return the gradient of a measurement result.
+        Internal callback.
+
+        Parameters
+        ----------
+        values : numpy.ndarray
+            Parameter values for the update.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the gradient of a measurement result.
+
         """
         return -1 * self.__gradCache

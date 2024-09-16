@@ -1,28 +1,33 @@
-from typing import Dict, List, Set
+"""Class definition for the Optimisable Map model."""
+
+from collections.abc import Callable
 
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
 
 
 class OptimisationMap:
-    """
-    Utility class that collects all parameters that shall be considered during optimisation and associates them with
-    the corresponding Optimisable interface. With this class, Quantities can be traced back to the Optimisable to which
-    they belong. Before optimisation, an instance of this class needs to be filled and passed to the optimiser.
+    """Optimisation parameter map utility class.
+
+    Utility class that collects all parameters that shall be considered during
+    optimisation and associates them with the corresponding Optimisable
+    interface. With this class, Quantities can be traced back to the
+    Optimisable to which they belong. Before optimisation, an instance of this
+    class needs to be filled and passed to the optimiser.
+
     """
 
-    __optimisableToParameterMap: Dict[Optimisable, List[Quantity]]
+    __optimisableToParameterMap: dict[Optimisable, list[Quantity]]
 
     def __init__(self):
         self.__optimisableToParameterMap = {}
 
     def __repr__(self):
+        """Magic method for human readable representation."""
         return self.__str__()
 
     def __str__(self):
-        """
-        Human readable representation of the parameters set to optimise.
-        """
+        """Human readable representation of the parameters set to optimise."""
         om_str = ""
         for key, val in self.__optimisableToParameterMap.items():
             om_str += f"==== {key} ====\n"
@@ -31,46 +36,82 @@ class OptimisationMap:
         return om_str
 
     def add(
-        self, optimisable: Optimisable, optimisableQuantites: List[Quantity] = None
+        self,
+        optimisable: Optimisable,
+        optimisableQuantities: list[Quantity] = None,
     ):
-        """
-        Adds an optimisable object and a list of its quantities to the map. The list contains all parameters
-        of the optimisable object that shall be considered during the optimisation. If the list is empty, all parameters
-        of the class will be used. If the object was already added, the list of quantities will be overwritten.
+        """Add an optimisable object and a list of its quantities to the map.
 
-        :param optimisable:
-        :param optimisableQuantites:
-        :return:
+        The list contains all parameters of the optimisable object that shall
+        be considered during the optimisation. If the list is empty, all
+        parameters of the class will be used. If the object was already added,
+        the list of quantities will be overwritten.
+
+        Parameters
+        ----------
+        optimisable : cthree.Optimisable
+            Input Optimisable object for adding to the map.
+        optimisableQuantities : List[cthree.Quantity], optional
+            List of all parameters of the optimisable object considered for
+            optimisation.
+
         """
-        params = optimisableQuantites or optimisable.getParameters()
+        params = optimisableQuantities or optimisable.getParameters()
         self.__optimisableToParameterMap[optimisable] = params
         if len(self.__optimisableToParameterMap[optimisable]) < 1:
             self.__optimisableToParameterMap.pop(optimisable)
 
     def remove(self, optimisable: Optimisable):
+        """Remove the given parameter from the sytem.
+
+        Parameters
+        ----------
+        optimisable : cthree.Optimisable.Optimisable
+            Parameter to be removed.
+
+        """
         try:
             self.__optimisableToParameterMap.pop(optimisable)
-        except:
+        # removed the bare except catch.
+        except Exception as _:
             pass
 
-    def getOptimisables(self) -> Set[Optimisable]:
-        """
-        Returns all optimisable objects that were added to this map.
+    def getOptimisables(self) -> set[Optimisable]:
+        """Return all optimisable objects that were added to this map.
+
+        Returns
+        -------
+        Set[cthree.Optimisable]
+            Set of all optimisable objects from the map.
+
         """
         return set(self.__optimisableToParameterMap.keys())
 
-    def getParameters(self, optimisable: Optimisable) -> List[Quantity] | None:
-        """
-        Returns all quantities associated with the optimisable object that were added to this map.
+    def getParameters(self, optimisable: Optimisable) -> list[Quantity] | None:
+        """Return all quantities associated with the given parameter.
 
-        :param optimisable:
-        :return: the list of parameters or None if the optimisable has not been added yet
+        Parameters
+        ----------
+        optimisable : cthree.Optimisable
+            Input optimisable object.
+
+        Returns
+        -------
+        List[cthree.Quantity] | None
+            List of parameters or None (if the optimisable has not been
+            added yet).
+
         """
         return self.__optimisableToParameterMap[optimisable]
 
-    def getAllParameters(self) -> List[Quantity]:
-        """
-        Returns all parameters that were added to this map for any optimisable object.
+    def getAllParameters(self) -> list[Quantity]:
+        """Return all parameters that were added to the system map.
+
+        Returns
+        -------
+        List[cthree.Quantity]
+            All parameters that were added to the map.
+
         """
         quantities = []
         for params in self.__optimisableToParameterMap.values():
@@ -78,28 +119,50 @@ class OptimisationMap:
         return quantities
 
     def registerParamsWithOptimisables(self) -> None:
-        """
-        Utility function that synchronises the list of parameters with each optimisable class. This needs to be called
-        by the optimiser before gradient based optimisation to tell the layers which gradients to compute.
-        :return:
+        """Register optimisable parameters with the system.
+
+        Utility function that synchronises the list of parameters with
+        each optimisable class. This needs to be called by the optimiser
+        before gradient based optimisation to tell the layers which gradients
+        to compute.
+
         """
         for optimisable, params in self.__optimisableToParameterMap.items():
             optimisable.setOptimisableParameters(params)
 
-    def filterParameters(self, filterFunction) -> None:
-        """
-        Updates the list of parameters for all Optimisables in this map using a filter function. Only parameters for
-        which the filter function returns true will remain in this map.
+    def filterParameters(self, filterFunction: Callable) -> None:
+        """Filter parameters using filter function.
 
-        :param filterFunction: any function that maps quantities to boolean values
-        :return:
+        Updates the list of parameters for all Optimisables in this map using
+        a filter function. Only parameters for which the filter function returns
+        true will remain in this map.
+
+        Parameters
+        ----------
+        filterFunction : Callable
+            Filter function that maps quantities to boolean values.
+
         """
         for key in self.__optimisableToParameterMap.keys():
-            filtered = filter(filterFunction, self.__optimisableToParameterMap[key])
+            filtered = filter(
+                filterFunction, self.__optimisableToParameterMap[key]
+            )
             self.__optimisableToParameterMap[key] = list(filtered)
         self.__optimisableToParameterMap = dict(
-            (k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0
+            (k, v)
+            for k, v in self.__optimisableToParameterMap.items()
+            if len(v) > 0
         )
 
     def filterByName(self, name: str):
-        return self.filterParameters(lambda quantity: quantity.getName() == name)
+        """Filter parameters by name of parameter.
+
+        Parameters
+        ----------
+        name : str
+            Name of parameter to be filtered with.
+
+        """
+        return self.filterParameters(
+            lambda quantity: quantity.getName() == name
+        )

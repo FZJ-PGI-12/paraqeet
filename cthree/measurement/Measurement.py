@@ -1,5 +1,6 @@
+"""Class definition of the Measurement model."""
+
 from abc import abstractmethod
-from typing import List, Tuple
 
 import numpy as np
 
@@ -7,14 +8,21 @@ from cthree.Optimisable import Optimisable
 
 
 class Measurement(Optimisable):
-    """
-    Represents any observable and the process of measurement itself. The observable is measured after the propagation
-    class has solved the equation of motion.
+    """Represents any observable and the process of measurement itself.
+
+    The observable is measured after the propagation class
+    has solved the equation of motion.
+
+    Parameters
+    ----------
+    times: numpy.ndarray | None, optional
+        One-dimensional vector of timestamps.
+
     """
 
     # Fields for tracing and projecting before the measurement
-    __inputDimensions: List[int] | None = None
-    __outputDimensions: List[int] | None = None
+    __inputDimensions: list[int] | None = None
+    __outputDimensions: list[int] | None = None
     __projector: np.ndarray | None = None
 
     def __init__(self, times: np.ndarray | None = None):
@@ -22,45 +30,91 @@ class Measurement(Optimisable):
 
     @abstractmethod
     def measure(self) -> np.ndarray:
-        """
-        Measures the observable and returns the value. This function must be implemented by subclasses.
+        """Measure the observable and returns the value.
+
+        Abstract Method. This function must be implemented by subclasses.
+
+        Returns
+        -------
+        numpy.ndarray
+            This abstract method must return a Numpy ndarray when
+            implemented by subclasses.
+
+        Raises
+        ------
+        NotImplementedError
+            If a subclass does not implement the measure method, raise an error.
+
         """
         raise NotImplementedError()
 
     def measureNormalised(self) -> np.ndarray:
-        """
-        Measures the observable and returns the value between 0 and 1, 1 representing the perfect result.
-        This function must be implemented by subclasses, unless identical to self.measure().
-        """
-        return self.measure()
+        """Measure the normalised observable.
 
-    def measureWithGradient(self) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Compute the measurement value as in measureNormalised() but with the gradient wrt to parameters.
+        Returns the value between 0 and 1, 1 representing the perfect result.
+        This function must be implemented by subclasses,
+        unless identical to self.measure().
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        numpy.ndarray
+            Returns a Numpy ndarray if implemented by a subclass.
+
+        """
+        return self.measure()
+
+    def measureWithGradient(self) -> tuple[np.ndarray, np.ndarray]:
+        """Measure with gradient.
+
+        Compute the measurement value as in measureNormalised()
+        but with the gradient wrt to parameters.
+
+        Returns
+        -------
+        Tuple[numpy.ndarray, numpy.ndarray]
             Tuple of function value and gradient of shape (n_parameters,)
 
         Raises
         ------
         NotImplementedError
+            If a subclass does not implement the measureWithGradient method,
+            raise an error.
+
         """
         raise NotImplementedError()
 
     def restrictSubsystems(
-        self, inputDimensions: List[int], outputDimensions: List[int] | None = None
+        self,
+        inputDimensions: list[int],
+        outputDimensions: list[int] | None = None,
     ) -> None:
-        """
-        Notifies the measurement class that the computed propagator should be projected to a subspace before doing the
-        measurement. Dimensions of the subspaces are specified per subsystem.
+        """Restrict subsystem by projecting to a subspace.
+
+        Notifies the measurement class that the computed propagator should be
+        projected to a subspace before doing the measurement.
+        Dimensions of the subspaces are specified per subsystem.
 
         Parameters
         ----------
-        inputDimensions: Actual dimensions of all subsystems
-        outputDimensions: Desired dimensions of all subsystems. Individual values can be 0 to fully remove subsystems
-                          from the propagator. The list can be None to disable projection.
+        inputDimensions : List[int]
+            Actual dimensions of all subsystems.
+        outputDimensions : List[int] | None, optional
+            Desired dimensions of all subsystems.
+            Individual values can be 0 to fully remove subsystems
+            from the propagator. The list can be None to disable projection.
+
+        Raises
+        ------
+        RuntimeError
+            If the input and output dimensions don't have the same
+            number of subsystems.
+        RuntimeError
+            If the dimensions are negative.
+        RuntimeError
+            If the output dimensions are larger than the input dimensions.
+        RuntimeError
+            If all output dimensions are zero.
+
         """
         self.__inputDimensions = inputDimensions
         self.__outputDimensions = outputDimensions
@@ -70,14 +124,16 @@ class Measurement(Optimisable):
         if outputDimensions is not None:
             if len(inputDimensions) != len(outputDimensions):
                 raise RuntimeError(
-                    "The input and output dimensions must contain the same number of subsystems"
+                    "The input and output dimensions must \
+                        contain the same number of subsystems"
                 )
             if np.any(np.array(self.__inputDimensions) < 0) or np.any(
                 np.array(self.__outputDimensions) < 0
             ):
                 raise RuntimeError("Dimensions must not be negative")
             if np.any(
-                np.array(self.__inputDimensions) < np.array(self.__outputDimensions)
+                np.array(self.__inputDimensions)
+                < np.array(self.__outputDimensions)
             ):
                 raise RuntimeError(
                     "Output dimensions can not be larger than input dimensions"
@@ -92,36 +148,44 @@ class Measurement(Optimisable):
             self.__projector = P
 
     def _preprocessMatrix(self, operator: np.ndarray) -> np.ndarray:
-        """
-        Performs any preprocessing on the "operator" that was registered.
+        """Perform any preprocessing on the "operator" that was registered.
+
         Operator could be unitary matrices, density matrices.
-        Subclasses should call this function before computing the measured value.
+        Subclasses should call this function before computing
+        the measured value.
 
         Parameters
         ----------
-        operator: the Propagator/ density matrices
+        operator : numpy.ndarray
+            Takes an array of Propagator/ density matrices as input.
 
         Returns
         -------
-        The modified propagator
+        numpy.ndarray
+            The modified propagator.
+
         """
         if self.__projector is not None:
             operator = self.__projector.T @ operator @ self.__projector
         return operator
 
     def _preprocessVector(self, states: np.ndarray) -> np.ndarray:
-        """
-        Performs any preprocessing on the "states" that were registered.
+        """Perform any preprocessing on the "states" that were registered.
+
         States could be a single state or batch of state vectors.
-        Subclasses should call this function before computing the measured value.
+        Subclasses should call this function before computing the
+        measured value.
 
         Parameters
         ----------
-        states: single state or batch of state vectors
+        states : numpy.ndarray
+            Single state or batch of state vectors.
 
         Returns
         -------
-        The modified propagator
+        numpy.ndarray
+            The modified propagator.
+
         """
         if self.__projector is not None:
             if states.shape[-1] == 1:

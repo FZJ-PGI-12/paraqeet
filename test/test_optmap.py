@@ -1,3 +1,5 @@
+"""Testing the optimisation map."""
+
 from cthree.OptimisationMap import OptimisationMap
 
 from cthree.signal.SimpleGenerator import CosGenerator
@@ -10,16 +12,19 @@ optmap = OptimisationMap()
 
 
 def testGetParameters() -> None:
+    """Get the test parameters from the optimisation map."""
     optmap.add(tone, params)
     assert len(optmap.getAllParameters()) == 3
 
 
 def testParametersOverwrite() -> None:
+    """Override parameters from the optimisation map."""
     optmap.add(tone, [params[1]])
     assert optmap.getAllParameters() == [params[1]]
 
 
 def testFilter() -> None:
+    """Test for filtered parameters."""
     tone2 = CosToneErf()
     optmap.add(tone2)
 

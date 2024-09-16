@@ -1,3 +1,5 @@
+"""Test the signal gradient functions."""
+
 import pytest
 import numpy as np
 import jax.numpy as jnp
@@ -13,6 +15,21 @@ time = jnp.linspace(0, 10e-6, 100)
 
 
 def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
+    """Get random entries from an array of elements.
+
+    Parameters
+    ----------
+    elements : jax.numpy.array
+        Array of elements to choose from.
+    num : int
+        Number of random entries asked for.
+
+    Returns
+    -------
+    jax.numpy.array
+        Returns random entries selected from a list of elements.
+
+    """
     if num is None:
         num = np.random.randint(0, len(elements))
     indices = np.random.choice(len(elements), num, replace=False)
@@ -23,6 +40,7 @@ def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
     "tone, toneAD", [(costone, costoneAD), (costoneerf, costoneerfAD)]
 )
 def test_values(tone, toneAD):
+    """Test values from the AD signal."""
     assert toneAD.computeOutput(time) == pytest.approx(
         tone.computeOutput(time), rel=1e-6
     )
@@ -32,9 +50,7 @@ def test_values(tone, toneAD):
     "tone, toneAD", [(costone, costoneAD), (costoneerf, costoneerfAD)]
 )
 def test_gradients(tone, toneAD):
-    """
-    Test generation of analytic and AD signal gradients one at a time
-    """
+    """Test generation of analytic and AD signal gradients one at a time."""
     grad_tone = []
     grad_toneAD = []
 
@@ -51,16 +67,16 @@ def test_gradients(tone, toneAD):
         grad_toneAD.append(toneAD.computeGradient(t))
         grad_tone.append(tone.computeGradient(t))
 
-    assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
+    assert jnp.array(grad_toneAD) == pytest.approx(
+        jnp.array(grad_tone), rel=1e-6
+    )
 
 
 @pytest.mark.parametrize(
     "tone, toneAD", [(costone, costoneAD), (costoneerf, costoneerfAD)]
 )
 def test_gradients_vectorized(tone, toneAD):
-    """
-    Test vectorized generation of analytic and AD signal gradients
-    """
+    """Test vectorized generation of analytic and AD signal gradients."""
     numParams = np.random.randint(0, len(tone.getParameters()))
 
     toneAD.setOptimisableParameters(
@@ -71,11 +87,14 @@ def test_gradients_vectorized(tone, toneAD):
         randomEntriesFromList(tone.getParameters(), numParams)
     )
     grad_tone = tone.computeGradient(time)
-    assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
+    assert jnp.array(grad_toneAD) == pytest.approx(
+        jnp.array(grad_tone), rel=1e-6
+    )
 
 
 @pytest.mark.parametrize("tone", [costone, costoneAD, costoneerf, costoneerfAD])
 def test_gradients_shape(tone):
+    """Test the signal gradient shape."""
     tone.setOptimisableParameters(randomEntriesFromList(tone.getParameters()))
     grads = tone.computeGradient(time)
     assert grads.shape[0] == time.shape[0]

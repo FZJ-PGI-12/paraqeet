@@ -1,4 +1,4 @@
-from typing import List
+"""Class definition of a closed model."""
 
 from cthree.Quantity import Quantity
 from cthree.model.Hamiltonian import Hamiltonian
@@ -8,37 +8,64 @@ import numpy as np
 
 
 class ClosedModel(Model):
-    """
-    Model of a closed physical system, defined by a Hamiltonian. Its dynamics given by the Schrödinger equation.
+    """Model of a closed physical system, defined by a Hamiltonian.
+
+    Its dynamics is given by the Schrödinger equation.
+
+    Parameters
+    ----------
+    hamiltonian : Hamiltonian
+        Matrix representation of a Hamiltonian.
+
     """
 
     def __init__(self, hamiltonian: Hamiltonian):
         super().__init__(hamiltonian)
 
-    def getParameters(self) -> List[Quantity]:
-        """
-        Optimizable parameters.
+    def getParameters(self) -> list[Quantity]:
+        """Get a list of optimisable parameters.
 
-        Returns:
-            List[Quantity]: List of optimizable parameters.
+        Returns
+        -------
+        List[Quantity]
+            List of optimisable parameters of the system.
+
         """
         return self._hamiltonian.getParameters()
 
     def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
-        """
-        Computes the right hand side of the Schrödinger equation without multiplying the state. Used for unitary
-        solvers.
+        """Get the matrix equations of motion.
 
-        Args:
-            time (np.ndarray): Vector of time samples
+        Computes the right hand side of the Schrödinger equation
+        without multiplying the state.
+        Used for unitary solvers.
 
-        Returns:
-            np.ndarray: RHS with dimension [t, n, n]  with t: time, n: hilbert space
+        Parameters
+        ----------
+        time : numpy.ndarray
+            Vector of time samples.
+
+        Returns
+        -------
+        numpy.ndarray
+            RHS with dimension [t, n, n]  with 't' as time
+            and 'n' as Hilbert space dimension.
+
         """
         return -1.0j * self._hamiltonian.getMatrix(time)
 
     def gradient(self, t) -> np.ndarray:
-        """
-        Compute the gradient of getMatrixEOM.
+        """Compute the gradient of getMatrixEOM.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            Vector of time samples.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the gradient of getMatrixEOM.
+
         """
         return -1.0j * self._hamiltonian.gradient(t)

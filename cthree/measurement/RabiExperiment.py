@@ -1,3 +1,5 @@
+"""Class definition of a Rabi experiment model."""
+
 import numpy as np
 
 from cthree.Quantity import Quantity
@@ -5,11 +7,13 @@ from cthree.measurement.Measurement import Measurement
 
 
 class RabiExperiment(Measurement):
-    """
-    Analytic model of the general Rabi formula.
+    """Analytic model of the general Rabi formula.
 
-    Args:
-        qubit_freq(float): Resonance of the single qubit.
+    Parameters
+    ----------
+    qubit_freq : float
+        Resonance of the single qubit.
+
     """
 
     __qubit_freq: Quantity
@@ -25,14 +29,27 @@ class RabiExperiment(Measurement):
         self.__time = Quantity(0.6e-9, 0, 10e-9)
 
     def getParameters(self):
-        """
-        Return a list of parameters accessible in this measurement.
+        """Return a list of parameters accessible in this measurement.
+
+        Returns
+        -------
+        List[cthree.Quantity, cthree.Quantity, cthree.Quantity]
+            List of parameters accessible in this measurement.
+
         """
         return [self.__amp, self.__freq, self.__time]
 
     def measure(self):
-        """
-        Gives the result of a general Rabi oscillation, depending of drive frequency, amplitude and time.
+        """Carry out a measurement operation.
+
+        Gives the result of a general Rabi oscillation,
+        depending of drive frequency, amplitude and time.
+
+        Returns
+        -------
+        numpy.ndarray
+            Result of a general Rabi oscillation.
+
         """
         q_freq = self.__qubit_freq.getValue()
         amp = self.__amp.getValue() * 2 * np.pi

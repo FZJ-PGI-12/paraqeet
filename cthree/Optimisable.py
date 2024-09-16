@@ -1,42 +1,77 @@
+"""Class definition for the Optimisable model."""
+
 from abc import abstractmethod
-from typing import List
 
 from cthree.Quantity import Quantity
 
 
 class Optimisable:
-    """
-    This interface must be implemented by any class that provides optimisable parameters. The optimiser will collect
-    all parameters (by reference) and update their values.
+    """Optimisable parameter model.
+
+    This interface must be implemented by any class that provides optimisable
+    parameters. The optimiser will collect all parameters (by reference) and
+    update their values.
+
     """
 
     _name: str = ""
-    _optimisableParameters: List[Quantity] = []
+    _optimisableParameters: list[Quantity] = []
 
     @abstractmethod
-    def getParameters(self) -> List[Quantity]:
-        """
-        Returns all parameters of this class that can be optimised.
+    def getParameters(self) -> list[Quantity]:
+        """Return all parameters of this class that can be optimised.
+
+        Raises
+        ------
+        NotImplementedError
+            Subclasses derived from this class must implement this method.
+
         """
         raise NotImplementedError()
 
     def getName(self) -> str:
+        """Get the name of the parameter.
+
+        Returns
+        -------
+        str
+            Name of the parameter.
+
+        """
         return self._name
 
     def setName(self, name: str) -> None:
+        """Set the name of the parameter.
+
+        Parameters
+        ----------
+        name : str
+            Value of the name to be set.
+
+        """
         self._name = name
 
     def __repr__(self):
+        """Magic method for human readable representation."""
         return self.__str__()
 
     def __str__(self):
+        """Magic method for human readable string representation."""
         return self._name or str(self.__class__)
 
-    def setOptimisableParameters(self, params: List[Quantity]) -> None:
-        """
-        Sets which parameters shall be considered during optimisation. All quantities that are not in the response of
-        getParameters will be filtered out. This function is called by the optimiser before gradient based optimisation
-        to tell the layers which gradients to compute.
+    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+        """Set which parameters shall be considered during optimisation.
+
+        All quantities that are not in the response of getParameters will
+        be filtered out. This function is called by the optimiser before
+        gradient based optimisation to tell the layers which gradients to
+        compute.
+
+        Parameters
+        ----------
+        params : List[cthree.Quantity]
+            List of optimisable parameters to be set.
+
         """
         allParams = self.getParameters()
         self._optimisableParameters = [
@@ -44,8 +79,19 @@ class Optimisable:
         ]
 
     def _isOptimised(self, param: Quantity) -> bool:
-        """
-        Utility function for implementations to check if a parameter is being optimised and should therefore be included
-        in gradients.
+        """Check if a parameter is being optimised.
+
+        Should therefore be included in gradients.
+
+        Parameters
+        ----------
+        param : cthree.Quantity
+            Input parameter to be checked for whether it is optimised.
+
+        Returns
+        -------
+        bool
+            True if parameter is optimised.
+
         """
         return param in self._optimisableParameters

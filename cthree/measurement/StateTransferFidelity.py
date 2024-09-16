@@ -1,4 +1,6 @@
-from typing import List, Tuple, Callable
+"""The class definition of state transfer fidelity model."""
+
+from collections.abc import Callable
 from cthree.Quantity import Quantity
 
 from cthree.measurement.Measurement import Measurement
@@ -15,8 +17,20 @@ jax.config.update("jax_enable_x64", True)
 
 
 class StateTransferFidelity(Measurement):
-    """
-    Fidelity measure that compares the overlap of the initial and final state.
+    """Fidelity measure that compares overlap of the initial and final state.
+
+    Parameters
+    ----------
+    propagation : cthree.measurement.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    initialState : jax.typing.ArrayLike
+        Initial state.
+    targetState : jax.typing.ArrayLike
+        Target state.
+    times : jax.typing.ArrayLike
+        One-dimensional vector of timestamps.
+
     """
 
     __initialState: ArrayLike
@@ -40,7 +54,8 @@ class StateTransferFidelity(Measurement):
                 UserWarning(
                     f"Different shapes for targetState({targetState.shape})"
                     f"and initialState({initialState.shape}) detected."
-                    " Use restrictSubsystems to project states to the same shape before measuring."
+                    " Use restrictSubsystems to project states to "
+                    "the same shape before measuring."
                 )
             )
         self.__propagation.setInitialState(self.__initialState)
@@ -50,20 +65,28 @@ class StateTransferFidelity(Measurement):
         return jnp.abs(overlap) ** 2
 
     def measure(self) -> ArrayLike:
+        """Measure overlap between initial and target state.
+
+        Returns
+        -------
+        jax.typing.ArrayLike
+            Overlap between initial and target state in a JAX ArrayLike format.
+
+        """
         states = self.__propagation.propagate(time=self._times)
         states = self._preprocessVector(states)
         final_state = states[-1]
         f = jnp.vdot(self.__targetState, final_state)
         return self._fid(f)
 
-    def measureWithGradient(self) -> Tuple[Array, Array]:
-        """
-        Compute function value and corresponding gradient.
+    def measureWithGradient(self) -> tuple[Array, Array]:
+        """Compute function value and corresponding gradient.
 
         Returns
         -------
-        Tuple[ArrayLike, ArrayLike]
-            Tuple of function value and gradient of shape (n_parameters,)
+        Tuple[jax.Array, jax.Array]
+            Tuple of function value and gradient of shape (n_parameters,).
+
         """
         states, dg_dp_list = self.__propagation.gradient(time=self._times)
         states = self._preprocessVector(states)
@@ -73,14 +96,39 @@ class StateTransferFidelity(Measurement):
         f = jnp.vdot(self.__targetState, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = jnp.vdot(self.__targetState, dg_dp)
-            dF_dp.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
+            dF_dp.append(
+                jnp.real(f.conj() * g + f * g.conj())
+            )  # chain rule for abs^2
         return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Get the parameters of the system.
+
+        Returns
+        -------
+        list[cthree.Quantity]
+            List of parameters of the system.
+        """
         return []
 
 
 class StateTransferFidelityAD(StateTransferFidelity):
+    """Fidelity measure that compares overlap of the initial and final state.
+
+    Parameters
+    ----------
+    propagation : cthree.propagation.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    initialState : jax.typing.ArrayLike
+        Initial state.
+    targetState : jax.typing.ArrayLike
+        Target state.
+    times : jax.typing.ArrayLike
+        One-dimensional vector of timestamps.
+
+    """
+
     __gradientFunction: Callable | None
 
     def __init__(
@@ -99,17 +147,25 @@ class StateTransferFidelityAD(StateTransferFidelity):
                 UserWarning(
                     f"Different shapes for targetState({targetState.shape})"
                     f"and initialState({initialState.shape}) detected."
-                    " Use restrictSubsystems to project states to the same shape before measuring."
+                    " Use restrictSubsystems to project states to the"
+                    " same shape before measuring."
                 )
             )
         self.__propagation.setInitialState(self.__initialState)
         self.__gradientFunction = None
 
-    def measureWithGradient(self) -> Tuple[Array, Array]:
-        """
-        Overwrite inherited `measureWithGradient` to calculate gradients using AD.
-        """
+    def measureWithGradient(self) -> tuple[Array, Array]:
+        """Measure with gradient.
 
+        Overwrite inherited `measureWithGradient` to calculate
+        gradients using AD.
+
+        Returns
+        -------
+        Tuple[jax.Array, jax.Array]
+            Tuple of function value and gradient of shape (n_parameters,).
+
+        """
         if self.__gradientFunction is None:
             self.__gradientFunction = jit(grad(self._fid, argnums=0))
 

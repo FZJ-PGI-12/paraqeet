@@ -1,4 +1,4 @@
-from typing import List
+"""Class definition for a mock system that always returns the same value."""
 
 import numpy as np
 
@@ -8,8 +8,17 @@ from cthree.propagation.Propagation import Propagation
 
 
 class ConstantMeasurement(Measurement):
-    """
-    Mock implementation that always returns the same value.
+    """Mock implementation that always returns the same value.
+
+    Parameters
+    ----------
+    propagation : cthree.propagation.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    value : float, default=1.0
+        Value of the measurement.
+    times : float | None, optional
+        Time variable value.
     """
 
     __propagation: Propagation
@@ -25,8 +34,24 @@ class ConstantMeasurement(Measurement):
         self.__propagation = propagation
         self.__value = value
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Get the system parameters.
+
+        Parameters
+        ----------
+        list[cthree.Quantity]
+            List of parameters of the system.
+
+        """
         return []
 
     def measure(self) -> np.ndarray:
+        """Get the measurement value.
+
+        Returns
+        -------
+        numpy.ndarray
+            The value of the measurement.
+
+        """
         return self.__value

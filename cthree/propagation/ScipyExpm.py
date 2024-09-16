@@ -1,5 +1,6 @@
+"""Class definition of the Scipy piecewise exponential propagation model."""
+
 from functools import partial
-from typing import List
 
 import numpy as np
 import jax.numpy as jnp
@@ -15,39 +16,68 @@ from jax.lax import scan
 
 
 class ScipyExpm(StatePropagation):
-    """
-    Solve the equation of motion by piecewise exponentation with the scipy package.
+    """Piecewise matrix exponential propagation system.
+
+    Solve the equation of motion by piecewise exponentation with the
+    Scipy package.
+
+    Parameters
+    ----------
+    model : cthree.model.Model
+        Represents the equation of motion for a given Hamiltonian.
+    res : float
+        Resolution at which to sample the EOM.
+
     """
 
     _res: float
     _initialState: np.ndarray = None
 
     def __init__(self, model: Model, res: float):
-        """Setup propagation method.
-
-        Args:
-            model (Model): Provides equation of motion
-            res (float): Resolution at which to sample the EOM
-        """
         super().__init__(model)
         self.setResolution(res)
 
     def setResolution(self, res: float):
+        """Set the resolution of the propagation."""
         self._res = res
 
     def getResolution(self) -> float:
+        """Get the resolution of the system."""
         return self._res
 
-    def getParameters(self) -> List[Quantity]:
-        """
-        Method has no optimizable parameters.
+    def getParameters(self) -> list[Quantity]:
+        """Get a list of optimisable parameters of the system.
 
-        Returns:
-            Empty list
+        Note: Method has no optimisable parameters.
+
+        Returns
+        -------
+        List[cthree.Quantity]
+            Returns an empty list.
+
         """
         return []
 
     def _constructTimes(self, time, ti):
+        """Construct one-dimensional vector of time.
+
+        In specified resolution at a snapshot.
+
+        Parameters
+        ----------
+        time : numpy.ndarray
+            Array of timesteps.
+        ti : int
+            Snapshot of the time at a current step
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of timestamps in specified resolution.
+        int
+            Difference in time step.
+
+        """
         t0 = time[ti - 1]
         t1 = time[ti]
         steps = int(np.ceil((t1 - t0) * self._res))
@@ -60,9 +90,28 @@ class ScipyExpm(StatePropagation):
 
     @partial(jit, static_argnums=(0,))
     def _propagateInTime(self, psis_t, eom, steps_arr):
-        """
-        Propagate from `time[ti] to time[ti+1]`.
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        """Propagate the system in time.
+
+        Iteratively propagate state/states (psis_t) according
+        to the equation of motion (eom). The eom is exponentiated using
+        `jax.scipy.linalg.expm` to compute the propagators.
+        The iterations use `jax.lax.scan` to avoid compilation overhead.
+
+        Parameters
+        ----------
+        psis_t : jax.numpy.ndarray
+            State/states at time 't'.
+        eom : jax.numpy.ndarray
+            Equation of motion for a list of times.
+        steps_arr : jax.numpy.ndarray
+            Array from 0 to the length of the List of time, in steps of 1
+            representing the iteration index.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the evolved state.
+
         """
 
         def propagateBody(psis_t, index):
@@ -76,11 +125,43 @@ class ScipyExpm(StatePropagation):
     @staticmethod
     @jit
     def _propagatePsi(eom_matrix, psis_t):
+        """Propagate the state/states (psis_t).
+
+        Parameters
+        ----------
+        eom_matrix : jax.numpy.ndarray
+            The equations of motion matrix.
+        psis_t : jax.numpy.ndarray
+            State/states at time 't'.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the evolved state.
+
+        """
         return expm(eom_matrix) @ psis_t
 
     def propagate(self, time: np.ndarray) -> Array:
-        """
+        """Return the solution of the equations of motion.
+
         Loop over all desired times in time at set resolution.
+
+        Parameters
+        ----------
+        time : numpy.ndarray
+            Any one-dimensional vector of timestamps.
+
+        Returns
+        -------
+        jax.Array
+            Returns the solution of the equations of motion.
+
+        Raises
+        ------
+        cthree.Exceptions.ConfigurationException
+            If the initial state is not set.
+
         """
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
@@ -91,6 +172,8 @@ class ScipyExpm(StatePropagation):
             times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
             eom = eom_func(times + dt / 2) * dt
-            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
+            psis_t = self._propagateInTime(
+                psis_t, eom, jnp.arange(0, len(times), 1)
+            )
             psi.append(psis_t)
         return jnp.array(psi)
