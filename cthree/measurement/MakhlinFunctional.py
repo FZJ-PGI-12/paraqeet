@@ -14,13 +14,13 @@ class MakhlinFunctional(Measurement):
     Measures the distance of a propagator to a perfect entangler
     using Makhlin invariants.
     If a list of ideal Makhlin invariants is given,
-    the distance is measured as the  Euclidean distance between
+    the distance is measured as the Euclidean distance between
     the actual and ideal invariants.
     Else, the Makhlin distance is used.
 
     Parameters
     ----------
-    propogation : cthree.propagation.Propagation
+    propagation : cthree.propagation.Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     times : numpy.ndarray
