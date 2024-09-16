@@ -1,3 +1,5 @@
+"""Testing the configuration functions."""
+
 import pytest
 
 import numpy as np
@@ -12,11 +14,18 @@ LEN_SIG = 20
 
 @pytest.fixture
 def ts():
+    """Return evenly spaced numbers according to the given signal length.
+
+    The given signal length `LEN_SIG` is a module level global variable.
+
+    """
     return np.linspace(0, 1e-9, LEN_SIG)
 
 
 @pytest.fixture
 def identity():
+    """Return an identity array generation function."""
+
     def _method(dimension):
         return np.identity(dimension)
 
@@ -25,6 +34,8 @@ def identity():
 
 @pytest.fixture
 def model():
+    """Return a dummy model generation function."""
+
     def _method(dimension):
         return DummyModel(EmptyHamiltonian(dimension))
 
@@ -33,8 +44,10 @@ def model():
 
 @pytest.fixture
 def randomState():
-    """
-    Returns a method that generates random normalised states for a given dimension.
+    """Return a random state generating method.
+
+    Generates random normalised states for a given dimension.
+
     """
 
     def _method(dimension):
@@ -46,13 +59,16 @@ def randomState():
 
 @pytest.fixture
 def randomMatrix():
-    """
-    Returns a method that generates random matrix for given dimensions n and m. The matrix is normalised to have
-    trace 1.
+    """Return a random matrix generating method.
+
+    Generates random matrix for given dimensions n and m.
+    The matrix is normalised to have trace 1.
+
     """
 
     def _method(n, m):
-        state = np.random.random(size=(n, m)) + 1j * np.random.random(size=(n, m))
+        state = np.random.random(size=(n, m))
+        +1j * np.random.random(size=(n, m))
         return state / np.trace(state)
 
     return _method
@@ -60,8 +76,10 @@ def randomMatrix():
 
 @pytest.fixture
 def randomUnitaryMatrix():
-    """
-    Returns a method that generates random unitary matrices for a given dimension.
+    """Return a random unitary matrix generating method.
+
+    Generates random unitary matrices for a given dimension.
+
     """
 
     def _method(dim):
@@ -72,9 +90,11 @@ def randomUnitaryMatrix():
 
 @pytest.fixture
 def randomBasisVectors():
-    """
-    Returns a method that generates N vectors, each with 0 everywhere except a 1 at a random index. All vectors will
-    be orthogonal.
+    """Return a random basis vector generating method.
+
+    Generates N vectors, each with 0 everywhere except a 1 at a random index.
+    All vectors will be orthogonal.
+
     """
 
     def _method(dim, N):
@@ -90,9 +110,11 @@ def randomBasisVectors():
 @pytest.fixture
 # helper functions
 def randomQuantity(randomQuantityForValues):
-    """
-    Generates a quantity with N positive and negative numbers, each with the same order of magnitude which is chosen
-    randomly between 1e-10 and 1e10.
+    """Generate a quantity with N positive and negative numbers.
+
+    Each quantity is with the same order of magnitude
+    which is chosen randomly between 1e-10 and 1e10.
+
     """
 
     def _method(N: int):
@@ -105,22 +127,28 @@ def randomQuantity(randomQuantityForValues):
 
 @pytest.fixture
 def randomQuantityForValues(randomLimitsForQuantity):
-    """
-    Generates a quantity from the given array of values, making sure that the limits are set correctly.
+    """Generate a quantity from the given array of values.
+
+    Generates while making sure that the limits are set correctly.
+
     """
 
     def _method(values: np.array):
         limits = randomLimitsForQuantity(values)
-        return Quantity(values, min_value=limits[0], max_value=limits[1], unit="")
+        return Quantity(
+            values, min_value=limits[0], max_value=limits[1], unit=""
+        )
 
     return _method
 
 
 @pytest.fixture
 def randomLimitsForQuantity():
-    """
-    Returns random but valid minimum and maximum values for the given value array while taking acount for negative
-    values.
+    """Return random limits for quantities.
+
+    Returns random but valid minimum and maximum values
+    for the given value array while taking acount for negative values.
+
     """
 
     def _method(values: np.array):
@@ -138,7 +166,10 @@ def randomLimitsForQuantity():
             return min_value, max_value
         else:
             # list quantity
-            min_values, max_values = np.zeros_like(values), np.zeros_like(values)
+            min_values, max_values = (
+                np.zeros_like(values),
+                np.zeros_like(values),
+            )
             for i, v in enumerate(values):
                 if v == 0.0:
                     min_values[i] = -1

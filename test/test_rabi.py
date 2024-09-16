@@ -1,3 +1,5 @@
+"""Testing the Rabi Analytic Model."""
+
 import pytest
 from numpy.testing import assert_almost_equal
 
@@ -12,6 +14,7 @@ RABI_NAME = "Analytic Rabi Model"
 
 @pytest.fixture
 def opt(rabi):
+    """Create optimisation map with Rabi model."""
     optmap = OptimisationMap()
     optmap.add(rabi, rabi.getParameters())
     return ScipyOptimiser(rabi, optmap)
@@ -19,24 +22,25 @@ def opt(rabi):
 
 @pytest.fixture
 def rabi():
+    """Create Rabi test object."""
     exp = RabiExperiment(FREQ)
     exp.setName(RABI_NAME)
     return exp
 
 
 def test_name(rabi):
+    """Check that the name is 'RABI_NAME'."""
     assert rabi.getName() == RABI_NAME
 
 
 def test_rabi(opt) -> None:
-    """
-    Check that the rabi optimization goes below threshold.
-    """
+    """Check that the rabi optimization goes below threshold."""
     res = opt.optimise()
     assert res.value < 1e-8
 
 
 def test_find_resonance(rabi, opt) -> None:
+    """Check for resonance."""
     opt.optimise()
     params = rabi.getParameters()
     assert_almost_equal(FREQ / 1e9, params[1].getValue() / 1e9, decimal=4)

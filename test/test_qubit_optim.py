@@ -1,3 +1,5 @@
+"""Testing the qubit optimisations."""
+
 import pytest
 import numpy as np
 
@@ -47,6 +49,7 @@ zeroone = StateTransferFidelity(
 
 @pytest.fixture
 def opt():
+    """Create ScipyOptimiser optimiser."""
     optmap = OptimisationMap()
     optmap.add(tone, [params[0], params[1]])
     return ScipyOptimiser(zeroone, optimisables=optmap)
@@ -54,6 +57,7 @@ def opt():
 
 @pytest.fixture
 def cma_opt():
+    """Create CMAEs optimiser."""
     optmap = OptimisationMap()
     optmap.add(tone, [params[0], params[1]])
     return CMAEsOptimiser(zeroone, optimisables=optmap)
@@ -61,31 +65,26 @@ def cma_opt():
 
 @pytest.fixture
 def bay_opt():
+    """Create Bayesian optimiser."""
     optmap = OptimisationMap()
     optmap.add(tone, [params[0], params[1]])
     return BayesianOptimiser(zeroone, optimisables=optmap)
 
 
 def test_optim(opt) -> None:
-    """
-    Check that the optimization goes below threshold.
-    """
+    """Check that the optimization goes below threshold."""
     res = opt.optimise()
     assert res.value < 1e-4
 
 
 def test_cma(cma_opt: CMAEsOptimiser) -> None:
-    """
-    Check that the optimization goes below threshold.
-    """
+    """Check that the optimization goes below threshold."""
     res = cma_opt.optimise()
     assert res.value < 1e-4
 
 
 def test_baysian(bay_opt: BayesianOptimiser) -> None:
-    """
-    Check that the optimization goes below threshold.
-    """
+    """Check that the optimization goes below threshold."""
     bay_opt.setIterations(200)
     res = bay_opt.optimise()
     assert res.value < 1e-3

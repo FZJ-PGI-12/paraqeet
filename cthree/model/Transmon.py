@@ -1,4 +1,4 @@
-from typing import List
+"""Class definition of the Transmon Hamiltonian model."""
 
 import jax.numpy as jnp
 
@@ -12,8 +12,21 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Transmon(Hamiltonian):
-    """
-    Hamiltonian of an anharmonic oscillator. Optimisable parameters are the ground frequency and the anharmonicity.
+    """Hamiltonian of an anharmonic oscillator.
+
+    Optimisable parameters are the ground frequency and the anharmonicity.
+
+    Parameters
+    ----------
+    dimension : int
+        Dimension of the anharmonic oscillator.
+    frequency : cthree.model.Quantity
+        Frequency of the anharmonic oscillator.
+    anharmonicity : cthree.model.Quantity
+        Anharmonicity of the oscillator.
+    drives : List[cthree.model.Drive], optional
+        List of time-dependent drives of the subsystem.
+
     """
 
     __dimension: int
@@ -28,7 +41,7 @@ class Transmon(Hamiltonian):
         dimension: int,
         frequency: Quantity,
         anharmonicity: Quantity,
-        drives: List[Drive] = None,
+        drives: list[Drive] = None,
     ):
         super().__init__(drives=drives)
         self.__dimension = dimension
@@ -43,24 +56,53 @@ class Transmon(Hamiltonian):
         )
 
     def dimension(self) -> int:
+        """Get the dimension of the Transmon system."""
         return self.__dimension
 
     def getFrequency(self) -> Quantity:
+        """Get the frequency of the Transmon system."""
         return self.__frequency
 
     def setFrequency(self, frequency: Quantity) -> None:
+        """Set the frequency of the Transmon system."""
         self.__frequency = frequency
 
     def getAnharmonicity(self) -> Quantity:
+        """Get the anharmonicity of the Transmon system."""
         return self.__anharmonicity
 
     def setAnharmonicity(self, anharmonicity: Quantity) -> None:
+        """Set the anharmonicity of the Transmon system."""
         self.__anharmonicity = anharmonicity
 
-    def getParameters(self) -> List[Quantity]:
-        return self._getDriveParameters() + [self.__frequency, self.__anharmonicity]
+    def getParameters(self) -> list[Quantity]:
+        """Get parameters of the model.
+
+        Returns
+        -------
+        List[cthree.Quantity]
+            Returns the list of parameters of the system.
+
+        """
+        return self._getDriveParameters() + [
+            self.__frequency,
+            self.__anharmonicity,
+        ]
 
     def getMatrixOneTime(self, t: jnp.ndarray) -> jnp.ndarray:
+        """Get the drive matrix.
+
+        Parameters
+        ----------
+        t : jax.numpy.ndarray
+            Vector of time samples.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            The repeated drive matrix.
+
+        """
         H = (
             self.__frequency.getValue() * self.__numOp
             + self.__anharmonicity.getValue() * self.__anharmonicTerm
@@ -68,6 +110,19 @@ class Transmon(Hamiltonian):
         return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
 
     def gradientOneTime(self, t: float) -> jnp.ndarray:
+        """Get the gradient of the drive.
+
+        Parameters
+        ----------
+        t : float
+            Single time stamp.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the gradients of the drive.
+
+        """
         # Fetch the gradient of the drive
         gradients = self._getDriveGradientsOneTime(self.__annihilationOp, t)
 

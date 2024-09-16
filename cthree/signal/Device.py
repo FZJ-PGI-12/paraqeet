@@ -1,5 +1,7 @@
+"""Class definition for the Device model."""
+
 from abc import abstractmethod
-from typing import List, Callable, Tuple
+from collections.abc import Callable
 import numpy as np
 
 from cthree.Quantity import Quantity
@@ -16,32 +18,83 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Device(Optimisable):
-    """
-    Classical electronics.
-    """
+    """Classical electronics."""
 
     _gradientFunction: Callable | None = None
-    _gradArgNums: Tuple[int, ...] = ()
+    _gradArgNums: tuple[int, ...] = ()
 
     @abstractmethod
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
+        """Compute the output.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Output of the computation.
+
+        Raises
+        ------
+        NotImplementedError
+            Subclasses derived from this class must implement this method.
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def _evaluate(self):
+        """Evaluate the output of the system.
+
+        Abstract method.
+
+        Raises
+        ------
+        NotImplementedError
+            Subclasses derived from this class must implement this method.
+
+        """
         raise NotImplementedError()
 
     def _computeGradientFunction(
         self,
         signalFunction: Callable,
-        argnums: Tuple[int, ...],
-        vmap_axes: Tuple[int, ...],
+        argnums: tuple[int, ...],
+        vmap_axes: tuple[int, ...],
     ) -> Callable:
+        """Return a compute gradient function from the signal function.
+
+        Parameters
+        ----------
+        signalFunction : Callable
+            A function that generated signals.
+        argnums : Tuple[int, ...]
+            A tuple of ints containing a variable number of argument numbers.
+        vmap_axes : Tuple[int, ...]
+            A tuple of ints.
+
+        Returns
+        -------
+        Callable
+            Returns a function that can be used to compute the gradient.
+
+        """
         grads = grad(signalFunction, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
         return jit(partial_grads)
 
-    def setOptimisableParameters(self, params: List[Quantity]) -> None:
+    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+        """Set optimisable parameters for optimisation.
+
+        Parameters
+        ----------
+        params : List[cthree.Quantity]
+            Input list of parameters to be set.
+
+        """
         super().setOptimisableParameters(params)
 
         Optimisable_params = self.getParameters()
@@ -50,18 +103,28 @@ class Device(Optimisable):
                 self._gradArgNums += (i,)
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
-        """
-        Compute the gradient of the `_evaluate` method using Automatic differentiation.
-        The `_evaluate` method should be a `pure` function (should take the
-        optimisable parameters as function arguments and doesn't depend on global variables).
+        """Compute the gradient of the `_evaluate` method.
 
+        Uses Automatic differentiation.
+        The `_evaluate` method should be a `pure` function (should take the
+        optimisable parameters as function arguments and doesn't depend on
+        global variables).
         Refer to https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
         for functionally `pure` functions.
+        To implement analytical gradients / other methods for gradient
+        computation overwrite this method in the inherited class.
 
-        To implement analytical gradients / other methods for gradient computation
-        overwrite this method in the inherited class.
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the gradient array of the `_evaluate` method.
+
         """
-
         params = self.getParameters()
         param_values = [param.getValue() for param in params]
         num_params = len(params)
@@ -93,9 +156,7 @@ class Device(Optimisable):
 
 
 class CosTone(Device):
-    """
-    Create a simple cosine tone.
-    """
+    """Create a simple cosine tone."""
 
     __amplitude: Quantity
     __frequency: Quantity
@@ -126,43 +187,103 @@ class CosTone(Device):
 
     @property
     def amplitude(self) -> Quantity:
+        """Get the amplitude of the system.
+
+        Returns
+        -------
+        cthree.Quantity
+            Amplitude of the system.
+
+        """
         return self.__amplitude
 
     @amplitude.setter
     def amplitude(self, amplitude: Quantity) -> None:
+        """Set the amplitude of the system.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Amplitude value of the system to be set.
+
+        """
         self.__amplitude = amplitude
 
     @property
     def frequency(self) -> Quantity:
+        """Get the frequency of the system.
+
+        Returns
+        -------
+        cthree.Quantity
+            Frequency of the system.
+
+        """
         return self.__frequency
 
     @frequency.setter
     def frequency(self, frequency: Quantity) -> None:
+        """Set the frequency of the system.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Frequency value of the system to be set.
+
+        """
         self.__frequency = frequency
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Get a list of parameters of the system.
+
+        Returns
+        -------
+        List[Quantity]
+            List of parameters of the system.
+
+        """
         return [self.__amplitude, self.__frequency, self.__phase]
 
     @partial(jit, static_argnums=(0,))
     def _evaluate(
         self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
     ) -> np.ndarray:
-        """
-        Function to compute the output of the device that explicitly depends on the optimisable parameters.
+        """Compute the output of device.
 
-        Args:
-            amp (Quantity): Cosine pulse amplitude
-            freq (Quantity): Cosine pulse frequency
-            t (np.ndarray): Time array
+        Output explicitly depends on the optimisable parameters.
+
+        Parameters
+        ----------
+        amp : cthree.Quantity
+            Cosine pulse amplitude.
+        freq : cthree.Quantity
+            Cosine pulse frequency.
+        phase : cthree.Quantity
+            Cosine pulse phase.
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the output from the device.
+
         """
         return jnp.squeeze(amp * jnp.cos(freq * t + phase))
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
-        """
-        Returns the scalar output for each step in the time array t.
+        """Return the scalar output for each step in the time array t.
 
-        Returns:
-            np.ndarray: array of shape [t] with t: time
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of shape [t] with 't' as time.
+
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
@@ -170,11 +291,22 @@ class CosTone(Device):
         return self._evaluate(amp, freq, phase, t)
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
-        """
-        Returns the gradient wrt dimensionless parameters for each step in the time array t.
+        """Compute the gradient of the system.
 
-        Returns:
-            np.ndarray: array of shape [t, p] with t: time, p: number of parameter
+        Returns the gradient wrt dimensionless parameters for each step
+        in the time array `t`.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of shape [t, p] with 't' as time and 'p' as the number of
+            parameters.
+
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
@@ -183,22 +315,29 @@ class CosTone(Device):
 
         grads = []
         if self._isOptimised(self.__amplitude):
-            grads.append(jnp.cos(freq * t + phase) * self.__amplitude.getScale())
+            grads.append(
+                jnp.cos(freq * t + phase) * self.__amplitude.getScale()
+            )
         if self._isOptimised(self.__frequency):
             grads.append(
-                -amp * t * jnp.sin(freq * t + phase) * self.__frequency.getScale()
+                -amp
+                * t
+                * jnp.sin(freq * t + phase)
+                * self.__frequency.getScale()
             )
         if self._isOptimised(self.__phase):
-            grads.append(-amp * jnp.sin(freq * t + phase) * self.__phase.getScale())
+            grads.append(
+                -amp * jnp.sin(freq * t + phase) * self.__phase.getScale()
+            )
         return (
-            jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+            jnp.stack(grads, axis=1)
+            if len(grads) > 0
+            else jnp.empty((t.shape[0], 0))
         )
 
 
 class CosToneErf(Device):
-    """
-    Create a simple cosine tone with a fixed, error-function shaped envelope.
-    """
+    """Create a cosine tone with a fixed error-function shaped envelope."""
 
     __amplitude: Quantity
     __frequency: Quantity
@@ -233,42 +372,127 @@ class CosToneErf(Device):
 
     @property
     def amplitude(self) -> Quantity:
+        """Get the amplitude of the system.
+
+        Returns
+        -------
+        cthree.Quantity
+            Amplitude of the system.
+
+        """
         return self.__amplitude
 
     @amplitude.setter
     def amplitude(self, amplitude: Quantity) -> None:
+        """Set the amplitude of the system.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Amplitude value of the system to be set.
+
+        """
         self.__amplitude = amplitude
 
     @property
     def frequency(self) -> Quantity:
+        """Get the frequency of the system.
+
+        Returns
+        -------
+        cthree.Quantity
+            Frequency of the system.
+
+        """
         return self.__frequency
 
     @frequency.setter
     def frequency(self, frequency: Quantity) -> None:
+        """Set the frequency of the system.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Frequency value of the system to be set.
+
+        """
         self.__frequency = frequency
 
     @property
     def phase(self) -> Quantity:
+        """Get the phase of the system.
+
+        Returns
+        -------
+        cthree.Quantity
+            Phase of the system.
+
+        """
         return self.__phase
 
     @phase.setter
     def phase(self, phase: Quantity) -> None:
+        """Set the phase of the system.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Phase value of the system to be set.
+
+        """
         self.__phase = phase
 
     @property
     def t_final(self) -> Quantity:
+        """Get the final time value of the system.
+
+        Returns
+        -------
+        cthree.Quantity
+            Final time value of the system.
+
+        """
         return self.__t_final
 
     @t_final.setter
     def t_final(self, t_final: Quantity) -> None:
+        """Set the final time value of the system.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Final time value of the system to be set.
+
+        """
         self.__t_final = t_final
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Get a list of parameters of the system.
+
+        Returns
+        -------
+        List[Quantity]
+            List of parameters of the system.
+
+        """
         return [self.__amplitude, self.__frequency, self.__phase]
 
-    def _envelope(self, t):
-        """
-        Normalized, error function shaped envelope with ramps centered at 1/5 and 4/5 of the final gate time.
+    def _envelope(self, t: np.ndarray) -> jnp.ndarray:
+        """Create a normalised error function shaped envelope.
+
+        Normalized, error function shaped envelope with ramps centered
+        at 1/5 and 4/5 of the final gate time.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns a envelop vector.
+
         """
         t0 = self.__t_final.getValue()
         ramp_time = t0 / 10
@@ -277,27 +501,65 @@ class CosToneErf(Device):
         return rampUp * rampDown / 4
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray):
-        """
-        Function to compute the output of the device that explicitly depends on the optimisable parameters.
+    def _evaluate(
+        self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
+    ):
+        """Compute the output of the device.
 
-        Args:
-            amp (Quantity): Cosine pulse amplitude
-            freq (Quantity): Cosine pulse frequency
-            phase (Quantity): Phase of the pulse between (-pi, pi)
-            t (np.ndarray): Time array
+        Explicitly depends on the optimisable parameters.
+
+        Parameters
+        ----------
+        amp : cthree.Quantity
+            Cosine pulse amplitude.
+        freq : cthree.Quantity
+            Cosine pulse frequency.
+        phase : cthree.Quantity
+            Phase of the pulse between (-pi, pi).
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the output of the device that explicitly depends
+            on the optimisable parameters.
+
         """
         return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t + phase))
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
+        """Get the output of the device on time stamps.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the output of the device.
+
+        """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
         phase = self.__phase.getValue()
         return self._evaluate(amp, freq, phase, t)
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
-        """
-        Returns the gradient wrt dimensionless parameters.
+        """Return the gradient wrt dimensionless parameters.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the gradient wrt dimensionless parameters.
+
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
@@ -320,14 +582,27 @@ class CosToneErf(Device):
             )
 
         return (
-            jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+            jnp.stack(grads, axis=1)
+            if len(grads) > 0
+            else jnp.empty((t.shape[0], 0))
         )
 
 
 class ZeroTone(Device):
-    """
-    Create a zero tone.
-    """
+    """Create a zero tone."""
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
+        """Create a zero tone signal from an input time vector.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns a zero vector signal.
+
+        """
         return jnp.zeros_like(t)

@@ -1,4 +1,4 @@
-from typing import Tuple, List
+"""Class definition of the Makhlin functional."""
 
 import numpy as np
 
@@ -9,10 +9,25 @@ from cthree.Exceptions import IncompatibleLayersException
 
 
 class MakhlinFunctional(Measurement):
-    """
-    Measures the distance of a propagator to a perfect entangler using Makhlin invariants. If a list of ideal Makhlin
-    invariants is given, the distance is measured as the Euclidean distance between the actual and ideal invariants.
+    """Class definition of the Makhlin Functional invariants.
+
+    Measures the distance of a propagator to a perfect entangler
+    using Makhlin invariants.
+    If a list of ideal Makhlin invariants is given,
+    the distance is measured as the  Euclidean distance between
+    the actual and ideal invariants.
     Else, the Makhlin distance is used.
+
+    Parameters
+    ----------
+    propogation : cthree.propagation.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    times : numpy.ndarray
+        One-dimensional vector of timestamps.
+    idealInvariants : numpy.ndarray, optional
+        One-dimensional vector of ideal Makhlin invariants.
+
     """
 
     __propagation: Propagation
@@ -28,10 +43,32 @@ class MakhlinFunctional(Measurement):
         self.__propagation = propagation
         self.__idealInvariants = idealInvariants
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Get the parameters of the system.
+
+        Returns
+        -------
+        list[cthree.Quantity]
+            Returns the list of parameters of the system.
+
+        """
         return []
 
     def measure(self) -> np.ndarray:
+        """Measure distance of the propagator to a perfect entangler.
+
+        Returns
+        -------
+        numpy.ndarray
+            Distance of propagator.
+
+        Raises
+        ------
+        cthree.Exceptions.IncompatibleLayersException
+            Raises an exception if a quadratic unitary
+            4x4 operator is not received.
+
+        """
         U = self.__propagation.propagate(self._times)[-1]
         U = self._preprocessMatrix(U)
         if U.shape != (4, 4):
@@ -46,9 +83,21 @@ class MakhlinFunctional(Measurement):
 
     def __makhlinInvariants(
         self, U: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Computes the Makhlin invariants for a matrix U. Returns a tuple with the three invariants g1,g2,g3.
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Compute the Makhlin invariants for a matrix U.
+
+        Returns a tuple with the three invariants g1, g2 and g3.
+
+        Parameters
+        ----------
+        U: numpy.ndarray
+            Input matrix for computing the Makhlin invariants of.
+
+        Returns
+        -------
+        Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+            Returns a tuple of 3 Numpy ndarrays as invariants g1, g2 and g3.
+
         """
         # transform to bell basis
         Q = np.matrix(

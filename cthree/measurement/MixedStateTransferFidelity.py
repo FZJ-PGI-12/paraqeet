@@ -1,3 +1,5 @@
+"""Class definition for a mixed state transfer fidelity model."""
+
 import numpy as np
 import scipy.linalg as sclin
 
@@ -7,10 +9,22 @@ from cthree.Exceptions import IncompatibleLayersException
 
 
 class MixedStateTransferFidelity(Measurement):
-    """
-    Fidelity measure that compares the overlap of the initial and final state of density matrices.
+    """Mixed state transfer fidelity measurement model.
 
-    Note: this implementation is still very inaccurate
+    Fidelity measure that compares the overlap of the initial
+    and final state of density matrices.
+    Note: this implementation is still very inaccurate.
+
+    Parameters
+    ----------
+    propagation : cthree.propagation.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    targetState : numpy.ndarray
+        Final state of the density matrices.
+    times : numpy.ndarray
+        One-dimensional vector of timestamps.
+
     """
 
     __targetState: np.ndarray
@@ -19,7 +33,10 @@ class MixedStateTransferFidelity(Measurement):
     __times: np.ndarray
 
     def __init__(
-        self, propagation: Propagation, targetState: np.ndarray, times: np.ndarray
+        self,
+        propagation: Propagation,
+        targetState: np.ndarray,
+        times: np.ndarray,
     ):
         super().__init__()
         self.__propagation = propagation
@@ -30,11 +47,25 @@ class MixedStateTransferFidelity(Measurement):
         self.__targetStateSqrt = sclin.sqrtm(self.__targetState)
 
     def measure(self) -> np.ndarray:
+        """Measure overlap between initial and final state of density matrices.
+
+        Returns
+        -------
+        numpy.ndarray
+            Overlap between initial and final state of density matrices.
+
+        Raises
+        ------
+        cthree.Exceptions.IncompatibleLayersException
+            Raises an exception if required vector shape is not received.
+
+        """
         state = self.__propagation.propagate(self.__times)[-1]
         state = self._preprocessMatrix(state)
         if state.shape != self.__targetState.shape:
             raise IncompatibleLayersException(
-                f"Need a state vector of size {self.__targetState.shape} for the state transfer fidelity, "
+                f"Need a state vector of size {self.__targetState.shape}"
+                "for the state transfer fidelity, "
                 "but got shape {state.shape}"
             )
 

@@ -1,3 +1,5 @@
+"""Test the coupling model."""
+
 import pytest
 import numpy as np
 
@@ -11,11 +13,18 @@ LEN_SIG = 101
 
 @pytest.fixture
 def time_samples():
+    """Generate time samples from the given signal length.
+
+    The given signal length `LEN_SIG` is a module level global variable.
+
+    """
     return np.linspace(0, 10e-9, LEN_SIG)
 
 
 @pytest.fixture
 def transmonParameters():
+    """Return a random parameter object for transmons."""
+
     class RandomParameters:
         def get(self):
             freq = np.random.uniform(5.5, 6.0) * 1e9 * 2 * np.pi
@@ -27,6 +36,8 @@ def transmonParameters():
 
 @pytest.fixture
 def transmon(transmonParameters):
+    """Return a transmon created from the given parameters."""
+
     class createTransmon:
         def get(self, dimension):
             freq, anharm = transmonParameters.get()
@@ -42,7 +53,11 @@ def transmon(transmonParameters):
 
 @pytest.fixture
 def coupling(transmon):
-    def _method(dim1: int, dim2: int, isLongitudinal: bool, useRWA: bool = False):
+    """Return a coupling generator method."""
+
+    def _method(
+        dim1: int, dim2: int, isLongitudinal: bool, useRWA: bool = False
+    ):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
         coupling = Coupling(
@@ -60,9 +75,7 @@ def coupling(transmon):
 
 
 def test_getMatricesOneTime(coupling):
-    """
-    Test shape of Matrix produced by the coupling Hamiltonian.
-    """
+    """Test shape of Matrix produced by the coupling Hamiltonian."""
     for _ in range(10):
         dim1 = np.random.randint(2, 7)
         dim2 = np.random.randint(2, 7)
@@ -97,6 +110,7 @@ def test_getMatricesOneTime(coupling):
 
 
 def test_getMatrices(coupling, time_samples):
+    """Test the get matrice method workings."""
     for _ in range(10):
         dim1 = np.random.randint(2, 7)
         dim2 = np.random.randint(2, 7)
@@ -125,6 +139,7 @@ def test_getMatrices(coupling, time_samples):
 
 
 def test_gradient_shape(coupling, time_samples):
+    """Test the shape of the gradient."""
     # Test if the coupling is not optimized
     dim1 = np.random.randint(2, 7)
     dim2 = np.random.randint(2, 7)

@@ -1,3 +1,5 @@
+"""Test composite optimisation."""
+
 import pytest
 import numpy as np
 
@@ -31,6 +33,8 @@ RES = 100e9
 
 @pytest.fixture
 def tone():
+    """Create a signal tone."""
+
     def _method(amp, freq, phase, t_final):
         tone = CosToneErf()
         tone.amplitude = Quantity(
@@ -45,7 +49,9 @@ def tone():
             max_value=1.2 * freq * 2 * np.pi,
             unit="Hz",
         )
-        tone.phase = Quantity(phase, min_value=-np.pi, max_value=np.pi, unit="Hz")
+        tone.phase = Quantity(
+            phase, min_value=-np.pi, max_value=np.pi, unit="Hz"
+        )
         tone.t_final = Quantity(
             t_final, min_value=0.8 * t_final, max_value=1.2 * t_final, unit="Hz"
         )
@@ -56,6 +62,7 @@ def tone():
 
 @pytest.fixture
 def coupledTransmons(tone):
+    """Create a coupled Transmon system."""
     tone1 = tone(1.91e8, 6.0e9, 0.01, T_FINAL)
     tone2 = tone(9.18e6, 6.0002e9, -0.39720756, T_FINAL)
 
@@ -80,7 +87,9 @@ def coupledTransmons(tone):
     coupling = Coupling(
         [transmon1, transmon2],
         isLongitudinal=False,
-        coefficient=Quantity(COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"),
+        coefficient=Quantity(
+            COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"
+        ),
     )
     hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
     model = ClosedModel(hamiltonian)
@@ -89,7 +98,9 @@ def coupledTransmons(tone):
     X = np.array([[0.0, 1], [1, 0.0]])
     Z = np.array([[1, 0], [0.0, -1]])
     ZX = np.exp(1j * np.pi / 4) * np.kron(Z, X)
-    CRGate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
+    CRGate = np.array(
+        [[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]]
+    )
 
     CRGate = ZX @ CRGate
     prop.setInitialState(np.identity(9))
@@ -107,6 +118,7 @@ def coupledTransmons(tone):
 
 @pytest.fixture
 def opt(coupledTransmons):
+    """Return Scipy optimiser from coupled transmons."""
     measure, optmap = coupledTransmons
     opt = ScipyOptimiser(measure, optimisables=optmap)
     opt.setOptions({"ftol": 0.1})
@@ -115,6 +127,7 @@ def opt(coupledTransmons):
 
 @pytest.fixture
 def gradOpt(coupledTransmons):
+    """Return Scipy optimiser gradient."""
     measure, optmap = coupledTransmons
     opt = ScipyOptimiserGradient(measure, optimisables=optmap)
     opt.setOptions({"ftol": 0.1})
@@ -122,10 +135,12 @@ def gradOpt(coupledTransmons):
 
 
 def test_optim_finite_diff(opt):
+    """Test optimisation via finite differences."""
     res = opt.optimise()
     assert res.value < 0.1
 
 
 def test_optim_GOAT(gradOpt):
+    """Test GOAT optimisation."""
     res = gradOpt.optimise()
     assert res.value < 0.1

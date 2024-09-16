@@ -1,4 +1,6 @@
-from typing import Callable, Dict
+"""Class definition of the CMA-Es Optimiser model."""
+
+from collections.abc import Callable
 from cthree.FileLogger import Logger
 from cthree.OptimisationMap import OptimisationMap
 from cthree.measurement.Measurement import Measurement
@@ -8,31 +10,38 @@ import cma.evolution_strategy as cma
 
 
 class CMAEsOptimiser(Optimiser):
-    """
-    Wrapper for the pycma implementation of CMA-Es. See also:
+    """Wrapper for the pycma implementation of CMA-Es.
 
-    http://cma.gforge.inria.fr/apidocs-pycma/
+    The pycmi implementation has the following custom options for optimisation:
+    noise : float
+        Artificial noise added to a function evaluation.
+    init_point : boolean
+        Force the use of the initial point in the first generation.
+    spread : float
+        Adjust the parameter spread of the first generation cloud.
+    stop_at_convergence : int
+        Custom stopping condition. Stop if the cloud shrunk for this number of
+        generations.
+    stop_at_sigma : float
+        Custom stopping condition. Stop if the cloud shrunk to this standard
+        deviation.
+
+    See also: http://cma.gforge.inria.fr/apidocs-pycma/
 
     Parameters
     ----------
-    _options : dict
-        Options of pycma and the following custom options.
+    measure : cthree.measurement.Measurement
+        Represents any observable and the process of measurement itself.
+    optimisables : cthree.OptimisationMap
+        Optimisable interface for all parameters considered in optimisation.
+    logger : cthree.FileLogger | None, default=None
+        The file logger object.
+    callback
+        Callback function for optimisation.
 
-        noise : float
-            Artificial noise added to a function evaluation.
-        init_point : boolean
-            Force the use of the initial point in the first generation.
-        spread : float
-            Adjust the parameter spread of the first generation cloud.
-        stop_at_convergence : int
-            Custom stopping condition. Stop if the cloud shrunk for this number of
-            generations.
-        stop_at_sigma : float
-            Custom stopping condition. Stop if the cloud shrunk to this standard
-            deviation.
     """
 
-    _options: Dict
+    _options: dict
     callback: Callable | None
 
     def __init__(
@@ -52,16 +61,49 @@ class CMAEsOptimiser(Optimiser):
         }
         self.setCallback(callback)
 
-    def getOptions(self) -> Dict:
+    def getOptions(self) -> dict:
+        """Get options from the system."""
         return self._options
 
     def setOptions(self, opts):
+        """Set options for the system."""
         self._options.update(opts)
 
     def setCallback(self, cbfun: Callable) -> None:
+        """Set the callback function for the optimiser.
+
+        Parameters
+        ----------
+        collections.abc.Callable
+            The function to be set as the callback.
+
+        """
         self._callback = cbfun
 
     def optimise(self) -> OptimisationResult:
+        """Optimise the system via the CMA-Es optimiser.
+
+        Performs the actual optimisation via the following custom options:
+        noise : float
+            Artificial noise added to a function evaluation.
+        init_point : boolean
+            Force the use of the initial point in the first generation.
+        spread : float
+            Adjust the parameter spread of the first generation cloud.
+        stop_at_convergence : int
+            Custom stopping condition. Stop if the cloud shrunk for this number
+            of generations.
+        stop_at_sigma : float
+            Custom stopping condition. Stop if the cloud shrunk to this
+            standard deviation.
+
+        Returns
+        -------
+        cthree.optimisers.Optimiser.OptimisationResult
+            Result of optimization via the OptimisationResult object.
+            (status, value, iterations and the raw result)
+
+        """
         options = {}
         options.update(self._options)
         options = self._options
@@ -155,8 +197,20 @@ class CMAEsOptimiser(Optimiser):
         )
 
     def _setParametersAndMeasure(self, values) -> np.ndarray:
-        """
-        Update the parameter values and return the measurement result. Internal callback.
+        """Update the parameter values and return the measurement result.
+
+        Internal callback.
+
+        Parameters
+        ----------
+        values : numpy.ndarray
+            Values for the update of the parameters.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the inverse of the fidelity.
+
         """
         log = []
         params = self._optimisables.getAllParameters()
@@ -170,15 +224,37 @@ class CMAEsOptimiser(Optimiser):
         return infid
 
     def __determineTerminationStatus(self, conditions: dict) -> int:
+        """Determine the optimisation termination status.
+
+        Determines the success or failure of the optimisation depending on the
+        termination conditions dict of the CMAEvolutionStrategy.
+
+        Parameters
+        ----------
+        conditions : dict
+            The dictionary from the CMAEvolutionStrategy.stop().
+
+        Returns
+        -------
+        int
+            One of the constants in OptimisationResult.
+
         """
-        Determines the success or failure of the optimisation depending on the termination conditions dict of the
-        CMAEvolutionStrategy.
-        :param conditions: the dictionary from the CMAEvolutionStrategy.stop()
-        :return: one of the constants in OptimisationResult
-        """
-        if any((key in conditions) for key in ['ftarget', 'tolfun', 'tolfunhist', 'tolfunrel','tolfacupx', 'tolx']):
+        if any(
+            (key in conditions)
+            for key in [
+                "ftarget",
+                "tolfun",
+                "tolfunhist",
+                "tolfunrel",
+                "tolfacupx",
+                "tolx",
+            ]
+        ):
             return OptimisationResult.STATUS_SUCCESS
-        elif any((key in conditions) for key in ['maxfevals', 'maxiter', 'timeout']):
+        elif any(
+            (key in conditions) for key in ["maxfevals", "maxiter", "timeout"]
+        ):
             return OptimisationResult.STATUS_FAILED
         else:
             # not decidable

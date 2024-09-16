@@ -1,16 +1,22 @@
+"""Class definition of the file logger object."""
+
 import os
 import json
 import numpy as np
 
-from typing import List
 
 from cthree.Logger import Logger
 from cthree.Quantity import Quantity
 
 
 class FileLogger(Logger):
-    """
-    Logger that writes messages to a file.
+    """Logger that writes messages to a file.
+
+    Parameters
+    ----------
+    logdir : str, default="."
+        Destination directory to store the logs.
+
     """
 
     __logdir: str
@@ -20,7 +26,17 @@ class FileLogger(Logger):
     def __init__(self, logdir: str = ".") -> None:
         self.setLogDir(logdir)
 
-    def setLogDir(self, logdir):
+    def setLogDir(self, logdir: str):
+        """Set the destination log directory.
+
+        Stores both the log and the result files.
+
+        Parameters
+        ----------
+        logdir : str
+            Destination directory to store the logs.
+
+        """
         self.__logdir = logdir
         self.__logfile = os.path.join(self.__logdir, "opt.log")
         self.__resultFile = os.path.join(self.__logdir, "opt.result")
@@ -28,9 +44,20 @@ class FileLogger(Logger):
             os.makedirs(self.__logdir)
 
     def start(self):
+        """Start logging."""
         super().start()
 
-    def log(self, params: List[Quantity], infidelity: np.ndarray):
+    def log(self, params: list[Quantity], infidelity: np.ndarray):
+        """Write the formatted parameters and the goal to the log file.
+
+        Parameters
+        ----------
+        params : List[cthree.Logger]
+            List of parameters to be written to the log file.
+        infidelity : numpy.ndarray
+            Goal value to be written to the log file.
+
+        """
         super().log(params, infidelity)
         formattedParams = [param.getValue().tolist() for param in params]
         status = {
@@ -44,6 +71,14 @@ class FileLogger(Logger):
             log.flush()
 
     def stop(self, resultMessage: str = None):
+        """Stop logging and end the log file with the run information.
+
+        Parameters
+        ----------
+        resultMessage : str, optional
+            The message that the user wants to write at the end of the log file.
+
+        """
         super().stop()
         with open(self.__resultFile, "a") as log:
             if resultMessage:

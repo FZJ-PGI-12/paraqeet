@@ -1,4 +1,4 @@
-from typing import List
+"""Class definition for the Runge-Kutta Scipy propagation model."""
 
 import numpy as np
 from scipy.integrate import RK45
@@ -10,45 +10,88 @@ from cthree.propagation.StatePropagation import StatePropagation
 
 
 class RungeKutta(StatePropagation):
-    """
-    Uses scipy's Runge Kutta implementation for propagating a state vector or density matrix.
+    """Propagation via the Runge-Kutta Scipy implementation.
+
+    Uses scipy's Runge-Kutta implementation for propagating
+    a state vector or density matrix.
+
+    Parameters
+    ----------
+    model : cthree.model.Model
+        Represents the equation of motion for a given Hamiltonian.
+    initialTimeStep : float | None, optional
+        The initial time step for the adaptive time steps in RK45.
+
     """
 
     __initialTimeStep: float
 
     def __init__(self, model: Model, initialTimeStep: float | None = None):
-        """
-        :param initialTimeStep: Optional initial time step for the adaptive time steps in RK45.
-        """
         super().__init__(model)
         self.__initialTimeStep = initialTimeStep
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Get a list of parameters of the system.
+
+        Returns
+        -------
+        List[Quantity]
+            List of optimisable parameters of the system.
+
+        """
         return []
 
     def setInitialState(self, state: np.ndarray):
-        """
-        Sets the initial state for the propagation. Subclasses can access the state in the _initialState field.
+        """Set the initial state for the propagation.
 
-        :param state:
-        :return:
+        Subclasses can access the state in the _initialState field.
+
+        Parameters
+        ----------
+        state : numpy.ndarray
+            Parameter value to be set as the initial state for the propagation.
+
         """
         self._initialState = np.reshape(state, (-1,))
 
     def propagate(self, time: np.ndarray) -> np.ndarray:
+        """Return the solution of the equations of motion.
+
+        Parameters
+        ----------
+        time : numpy.ndarray
+            Any one-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the solution of the equations of motion.
+
+        Raises
+        ------
+        cthree.Exceptions.ConfigurationException
+            If the initial state is not set.
+        ValueError
+            If the propagation needs at least two time steps.
+
+        """
         if self._initialState is None:
             raise ConfigurationException("Initial state is not set")
 
         if len(time) < 2:
-            raise ValueError("Runge-Kutta propagation needs at least two time steps")
+            raise ValueError(
+                "Runge-Kutta propagation needs at least two time steps"
+            )
 
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._model.getEquationOfMotion(np.array([time]), column_state), (-1,)
+                self._model.getEquationOfMotion(np.array([time]), column_state),
+                (-1,),
             )
 
-        # Since RK45 uses adaptive time steps and does not guarantee to return a state for each time stamp, this
+        # Since RK45 uses adaptive time steps and does not guarantee
+        # to return a state for each time stamp, this
         # function has to iterate over the time steps itself.
         states = np.array([self._initialState] * len(time))
         for ti in range(1, len(time)):

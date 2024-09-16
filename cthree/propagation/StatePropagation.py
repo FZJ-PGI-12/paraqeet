@@ -1,3 +1,5 @@
+"""Class definition of the State propagation model."""
+
 from cthree.model.Model import Model
 
 import numpy as np
@@ -6,9 +8,15 @@ from cthree.propagation.Propagation import Propagation
 
 
 class StatePropagation(Propagation):
-    """
-    Abstract base class for all propagation implementation that need an initial state. This implements the
-    setInitialState function.
+    """Propagation implementation that need an initial state.
+
+    This implements the setInitialState function.
+
+    Parameters
+    ----------
+    model : cthree.model.Model
+        Represents the equation of motion for a given Hamiltonian.
+
     """
 
     _initialState: np.ndarray | None = None
@@ -17,10 +25,14 @@ class StatePropagation(Propagation):
         super().__init__(model)
 
     def setInitialState(self, state: np.ndarray):
-        """
-        Sets the initial state for the propagation. Subclasses can access the state in the _initialState field.
+        """Set the initial state for the propagation.
 
-        :param state:
-        :return:
+        Subclasses can access the state in the _initialState field.
+
+        Parameters
+        ----------
+        state : numpy.ndarray
+            Parameter value to be set as the initial state for the propagation.
+
         """
         self._initialState = state

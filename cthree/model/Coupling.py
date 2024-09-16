@@ -1,4 +1,4 @@
-from typing import List
+"""Class definition of a coupling optimisable model."""
 
 from jax import vmap
 import jax.numpy as jnp
@@ -13,34 +13,36 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Coupling(Optimisable):
-    """Represents the coupling of two or more subsystems in a composite Hamiltonian.
-    This class implements longitudinal and transversal coupling with a constant scalar
-    coefficient. The coefficient is the only optimisable parameter.
+    """Create a coupling optimisable model.
 
+    Represents the coupling of two or more subsystems in a composite
+    Hamiltonian. This class implements longitudinal and transversal
+    coupling with a constant scalar coefficient.
+    The coefficient is the only optimisable parameter.
     Subclasses can alter the behavior by overriding the getMatrix function.
 
     Parameters
     ----------
     subsystems : List[Hamiltonian]
-        the coupled subsystems
+        The coupled subsystems.
     coefficient : Quantity
-        either a constant coefficient as float or a callable that returns the
-        coefficient for a given time
+        Either a constant coefficient as float or a callable that returns the
+        coefficient for a given time.
     isLongitudinal : bool
-        whether the coupling is longitudinal or transversal
+        Whether the coupling is longitudinal or transversal.
     useRWA : bool, optional
-        if the transversal coupling should use the rotating-wave approximation
-        or should include double excitation terms
+        If the transversal coupling should use the rotating-wave approximation
+        or should include double excitation terms.
     """
 
-    _subsystems: List[Hamiltonian]
+    _subsystems: list[Hamiltonian]
     _coefficient: Quantity
     __isLongitudinal: bool
     __useRWA: bool
 
     def __init__(
         self,
-        subsystems: List[Hamiltonian],
+        subsystems: list[Hamiltonian],
         coefficient: Quantity,
         isLongitudinal: bool,
         useRWA: bool = False,
@@ -53,75 +55,96 @@ class Coupling(Optimisable):
             jnp.array([s.dimension() for s in self.getSubsystems()])
         )
 
-    def getParameters(self) -> List[Quantity]:
+    def getParameters(self) -> list[Quantity]:
+        """Collect parameters from all subsystems and couplings.
+
+        Parameters
+        ----------
+        list[cthree.Quantity]
+            Returns the list of parameters of the system.
+
+        """
         return [self._coefficient]
 
-    def getSubsystems(self) -> List[Hamiltonian]:
-        """Returns all subsystems that are coupled by this term.
+    def getSubsystems(self) -> list[Hamiltonian]:
+        """Return all subsystems that are coupled by this term.
 
         Returns
         -------
         List[Hamiltonian]
-            List of susystems.
+            List of subystems.
+
         """
         return self._subsystems
 
-    def getMatricesOneTime(self, t: float) -> List[List[jnp.ndarray]]:
-        """Returns the matrix representation of the coupling for all subsystems.
-        A list of terms in the coupling is returned, where each of the term contains
-        operators for each subsystem. A composite Hamiltonian puts these operators in the
-        correct position in the tensor space to create the operators and then sum over the terms.
+    def getMatricesOneTime(self, t: float) -> list[list[jnp.ndarray]]:
+        """Return the matrix representation of the coupling for all subsystems.
+
+        A list of terms in the coupling is returned, where each of the term
+        contains operators for each subsystem. A composite Hamiltonian puts
+        these operators in the correct position in the tensor space to create
+        the operators and then sum over the terms.
 
         Parameters
         ----------
         t : float
-            One time step
+            One time step.
 
         Returns
         -------
-        List[List[jnp.ndarray]]
-            The outer list are the coupling terms. The inner list contains matrices for each subsystem. The matrices
-            (ndarray) have the same shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n) with n the subsystem
-            dimension.
+        List[List[jax.numpy.ndarray]]
+            The outer list are the coupling terms. The inner list contains
+            matrices for each subsystem. The matrices (ndarray) have the same
+            shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
+            with n the subsystem dimension.
+
         """
         matrices = self.__couplingOperators()
         for i in range(len(matrices)):  # iterating over terms
             matrices[i][0] *= self._coefficient.getValue()
         return matrices
 
-    def getMatrices(self, t: jnp.ndarray) -> List[List[jnp.ndarray]]:
-        """Returns the matrices for an array of time.
+    def getMatrices(self, t: jnp.ndarray) -> list[list[jnp.ndarray]]:
+        """Return the matrices for an array of time.
+
         vmaps over the method for one time step.
 
         Parameters
-        ---------
-        t : jnp.ndarray
+        ----------
+        t : jax.numpy.ndarray
             Array of times
 
         Returns
         -------
-        List[List[jnp.ndarray]]
-            The outer list are the coupling terms. The inner list represents the subsystems. The matrices
-            (ndarray) have the same shape as the subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
+        List[List[jax.numpy.ndarray]]
+            The outer list are the coupling terms. The inner list represents
+            the subsystems. The matrices (ndarray) have the same shape as the
+            subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
             the subsystem dimension.
+
         """
         return vmap(self.getMatricesOneTime)(t)
 
-    def gradientOneTime(self, t: float) -> List[List[List[jnp.ndarray]]]:
-        """Returns the gradient of the matrix representation of the coupling for all subsystems.
-        Each entry in the list is the gradient with respect to one parameter,
-        factorised into subsystems (representing a list of term in the coupling).
+    def gradientOneTime(self, t: float) -> list[list[list[jnp.ndarray]]]:
+        """Get the one-time gradient of the matrix.
+
+        Returns the gradient of the matrix representation of the coupling
+        for all subsystems. Each entry in the list is the gradient with
+        respect to one parameter, factorised into subsystems
+        (representing a list of term in the coupling).
 
         Parameters
         ----------
         t : float
-            One time point
+            One time point.
 
         Returns
         -------
-        List[List[List[jnp.ndarray]]]
-            The outer list represents the gradients with respect to all optimised parameters. The rest is in the same
-            shape as the result of getMatricesOneTime.
+        List[List[List[jax.numpy.ndarray]]]
+            The outer list represents the gradients with respect to
+            all optimised parameters. The rest is in the same shape as the
+            result of getMatricesOneTime.
+
         """
         if self._isOptimised(self._coefficient):
             grads = [self.__couplingOperators()]
@@ -129,28 +152,38 @@ class Coupling(Optimisable):
             grads = jnp.empty((0, self._totalDims, self._totalDims))
         return grads
 
-    def gradient(self, t: jnp.ndarray) -> List[List[List[jnp.ndarray]]]:
-        """
-        Returns the gradients for an array of times.
+    def gradient(self, t: jnp.ndarray) -> list[list[list[jnp.ndarray]]]:
+        """Return the gradients for an array of times.
+
+        Parameters
+        ----------
+        t : jax.numpy.ndarray
+            One-dimensional vector of timestamps.
 
         Returns
         -------
-        List[List[jnp.ndarray]]
-            The outer list represents the gradients with respect to all optimised parameters. The rest is in the same
-            shape as the result of getMatrices.
+        List[List[jax.numpy.ndarray]]
+            The outer list represents the gradients with respect to all
+            optimised parameters.
+            The rest is in the same shape as the result of getMatrices.
+
         """
         return vmap(self.gradientOneTime)(t)
 
-    def __couplingOperators(self) -> List[List[jnp.ndarray]]:
-        """Returns the operators of the longitudinal or transversal coupling without coefficients.
-        A list of terms is returned which have to be summed over to produce the coupling Hamiltonian.
+    def __couplingOperators(self) -> list[list[jnp.ndarray]]:
+        """Return coupling operators.
 
+        Returns the operators of the longitudinal or transversal coupling
+        without coefficients. A list of terms is returned which have to be
+        summed over to produce the coupling Hamiltonian.
         In case of RWA, right now only 2 subsytems are supported.
 
         Returns
         -------
         List[List[jnp.ndarray]]
-            A list of operators for each subsystem. The subsystems are the outer list.
+            A list of operators for each subsystem.
+            The subsystems are the outer list.
+
         """
         if self.__isLongitudinal:
             # Number operator (a^\dagger a) for each subsystem
@@ -165,7 +198,9 @@ class Coupling(Optimisable):
             # TODO - How to use RWA for more than 2 subsystems?
 
             if len(self.getSubsystems()) > 2:
-                raise NotImplementedError("RWA is defined for 2 subsystems only")
+                raise NotImplementedError(
+                    "RWA is defined for 2 subsystems only"
+                )
 
             dimensions = [s.dimension() for s in self.getSubsystems()]
             annihilationOp = [

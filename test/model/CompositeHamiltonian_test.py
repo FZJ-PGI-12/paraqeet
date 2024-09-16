@@ -1,3 +1,5 @@
+"""Test the composite Hamiltonian model."""
+
 import pytest
 import numpy as np
 
@@ -15,11 +17,17 @@ LEN_SIG = 101
 
 @pytest.fixture
 def time_samples():
+    """Generate time samples according to the given signal length.
+
+    The given signal length `LEN_SIG` is a module level global variable.
+
+    """
     return np.linspace(0, 10e-9, LEN_SIG)
 
 
 @pytest.fixture
 def tone():
+    """Return a cosine tone."""
     tone = CosToneErf()
     tone.setOptimisableParameters(tone.getParameters())
     return tone
@@ -27,18 +35,22 @@ def tone():
 
 @pytest.fixture
 def gen(tone):
+    """Return a sinusoidal generator object."""
     gen = CosGenerator(devices=[tone])
     return gen
 
 
 @pytest.fixture
 def drive(gen):
+    """Return a generator drive object."""
     drive = GeneratorDrive(gen, isLongitudinal=False)
     return drive
 
 
 @pytest.fixture
 def transmonParameters():
+    """Return a random parameter generating function for transmons."""
+
     class RandomParameters:
         def get(self):
             freq = np.random.uniform(5.5, 6.0) * 1e9 * 2 * np.pi
@@ -50,6 +62,8 @@ def transmonParameters():
 
 @pytest.fixture
 def transmon(transmonParameters, drive):
+    """Return a transmon generating function."""
+
     class createTransmon:
         def get(self, dimension):
             freq, anharm = transmonParameters.get()
@@ -66,6 +80,8 @@ def transmon(transmonParameters, drive):
 
 @pytest.fixture
 def uncoupledTransmons(transmon):
+    """Return a composite Hamiltonian generating function."""
+
     def _method(dim1, dim2):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
@@ -77,6 +93,8 @@ def uncoupledTransmons(transmon):
 
 @pytest.fixture
 def coupledTransmons(transmon):
+    """Return a coupled transmon generating function."""
+
     def _method(dim1: int, dim2: int, useRWA: bool = False):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
@@ -104,6 +122,7 @@ def coupledTransmons(transmon):
 
 
 def test_dimension(coupledTransmons):
+    """Test dimension of matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -112,9 +131,7 @@ def test_dimension(coupledTransmons):
 
 
 def test_getMatrixOneTime(uncoupledTransmons):
-    """
-    Test shape of Matrix produced by compositeHamiltonian.
-    """
+    """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -124,9 +141,7 @@ def test_getMatrixOneTime(uncoupledTransmons):
 
 
 def test_getMatrixOneTime_RWA(coupledTransmons):
-    """
-    Test shape of Matrix produced by compositeHamiltonian.
-    """
+    """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -136,9 +151,7 @@ def test_getMatrixOneTime_RWA(coupledTransmons):
 
 
 def test_getMatrix(coupledTransmons, time_samples):
-    """
-    Test shape of Matrix produced by compositeHamiltonian.
-    """
+    """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -148,8 +161,8 @@ def test_getMatrix(coupledTransmons, time_samples):
 
 
 def test_gradient(gen, coupledTransmons, time_samples):
-    """
-    Test shape of gradients by compositeHamiltonian.
+    """Test shape of gradients by compositeHamiltonian.
+
     Number of gradient parameters include gradients from both the drives, and
     both the transmon frequency, anharmonicity and the coupling.
     """
