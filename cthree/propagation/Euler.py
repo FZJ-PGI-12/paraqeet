@@ -37,7 +37,7 @@ class Euler(StatePropagation):
         return []
 
     def propagate(self, time: np.ndarray) -> np.ndarray:
-        """Calulate the first order Euler propogation.
+        """Calulate the first order Euler propagation.
 
         Performs the actual propagation calculation.
 
