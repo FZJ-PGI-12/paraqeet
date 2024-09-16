@@ -56,6 +56,10 @@ codequality:
       codequality: codequality.json
   allow_failure: true
 
+formatting-and-linting:
+  script:
+    - ruff check --output-format=gitlab .
+
 # pages:
 #   script:
 #     - pip install sphinx sphinx-rtd-theme
