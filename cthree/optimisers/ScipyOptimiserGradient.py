@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.optimize import minimize
 
+from cthree.Exceptions import IncompatibleOptimisationMap
 from cthree.optimisers.Optimiser import OptimisationResult
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.measurement.Measurement import Measurement
@@ -42,24 +43,40 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         init = []
         for qty in self._optimisables.getAllParameters():
             init.append(qty.getReducedValue())
-        result = minimize(
-            fun=self._setParametersAndMeasure,
-            jac=self._lookupJac,
-            x0=np.concatenate(init).flatten(),
-            bounds=[(-1, 1)] * self._opt_idxs[-1],
-            method=self._method,
-            options=self._options,
-            callback=self._callback,
-        )
+
+        try:
+            result = minimize(
+                fun=self._setParametersAndMeasure,
+                jac=self._lookupJac,
+                x0=np.concatenate(init).flatten(),
+                bounds=[(-1, 1)] * self._opt_idxs[-1],
+                method=self._method,
+                options=self._options,
+                callback=self._callback,
+            )
+        except Exception as e:
+            if (
+                "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th"
+                + " argument `g`"
+                in str(e)
+            ):
+                raise IncompatibleOptimisationMap(
+                    "Number of quantities in optMap differ from number of"
+                    + f" gradients computed. \n {e}"
+                )
+            else:
+                raise e
 
         if self._logger:
             self._logger.stop(str(result))
 
         self._rawResult = result
         return OptimisationResult(
-            status=OptimisationResult.STATUS_SUCCESS
-            if result.success
-            else OptimisationResult.STATUS_FAILED,
+            status=(
+                OptimisationResult.STATUS_SUCCESS
+                if result.success
+                else OptimisationResult.STATUS_FAILED
+            ),
             value=result.fun,
             iterations=result.nfev,
             message=result.message,

@@ -35,7 +35,7 @@ RES = 100e9
 def tone():
     """Create a signal tone."""
 
-    def _method(amp, freq, phase, t_final):
+    def _method(amp, freq, t_final):
         tone = CosToneErf()
         tone.amplitude = Quantity(
             amp * 2 * np.pi,
@@ -49,9 +49,6 @@ def tone():
             max_value=1.2 * freq * 2 * np.pi,
             unit="Hz",
         )
-        tone.phase = Quantity(
-            phase, min_value=-np.pi, max_value=np.pi, unit="Hz"
-        )
         tone.t_final = Quantity(
             t_final, min_value=0.8 * t_final, max_value=1.2 * t_final, unit="Hz"
         )
@@ -63,32 +60,59 @@ def tone():
 @pytest.fixture
 def coupledTransmons(tone):
     """Create a coupled Transmon system."""
-    tone1 = tone(1.91e8, 6.0e9, 0.01, T_FINAL)
-    tone2 = tone(9.18e6, 6.0002e9, -0.39720756, T_FINAL)
+    tone1 = tone(191e6, 6.0e9, T_FINAL)
+    tone2 = tone(9.18e6, 6.0002e9, T_FINAL)
 
-    generator1 = CosGenerator(devices=[tone1])
+    generator1 = CosGenerator(
+        devices=[tone1],
+        phase=Quantity(
+            0.01,
+            min_value=np.array(-np.pi),
+            max_value=np.array(np.pi),
+            unit="rad",
+        ),
+    )
     drive1 = GeneratorDrive(generator1, isLongitudinal=False)
 
-    generator2 = CosGenerator(devices=[tone2])
+    generator2 = CosGenerator(
+        devices=[tone2],
+        phase=Quantity(
+            -0.39720756,
+            min_value=np.array(-np.pi),
+            max_value=np.array(np.pi),
+            unit="rad",
+        ),
+    )
     drive2 = GeneratorDrive(generator2, isLongitudinal=False)
 
     transmon1 = Transmon(
         dimension=3,
-        frequency=Quantity(FREQ1, 0.8 * FREQ1, 1.2 * FREQ1, "Hz"),
-        anharmonicity=Quantity(ANHARM1, 1.2 * ANHARM1, 0.8 * ANHARM1, "Hz"),
+        frequency=Quantity(
+            FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"
+        ),
+        anharmonicity=Quantity(
+            ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"
+        ),
         drives=[drive1],
     )
     transmon2 = Transmon(
         dimension=3,
-        frequency=Quantity(FREQ2, 0.8 * FREQ2, 1.2 * FREQ2, "Hz"),
-        anharmonicity=Quantity(ANHARM2, 1.2 * ANHARM2, 0.8 * ANHARM2, "Hz"),
+        frequency=Quantity(
+            FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"
+        ),
+        anharmonicity=Quantity(
+            ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"
+        ),
         drives=[drive2],
     )
     coupling = Coupling(
         [transmon1, transmon2],
         isLongitudinal=False,
         coefficient=Quantity(
-            COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"
+            COUPLINGSTR,
+            np.array(0.8 * COUPLINGSTR),
+            np.array(1.2 * COUPLINGSTR),
+            "Hz",
         ),
     )
     hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
@@ -111,8 +135,10 @@ def coupledTransmons(tone):
     )
     gateFid.restrictSubsystems([3, 3], [2, 2])
 
+    tone1Amp = tone1.getParameters()[0]
+
     optmap = OptimisationMap()
-    optmap.add(tone1)
+    optmap.add(tone1, [tone1Amp])
     return gateFid, optmap
 
 
@@ -121,7 +147,7 @@ def opt(coupledTransmons):
     """Return Scipy optimiser from coupled transmons."""
     measure, optmap = coupledTransmons
     opt = ScipyOptimiser(measure, optimisables=optmap)
-    opt.setOptions({"ftol": 0.1})
+    opt.setOptions({"maxiter": 5})
     return opt
 
 
@@ -130,7 +156,7 @@ def gradOpt(coupledTransmons):
     """Return Scipy optimiser gradient."""
     measure, optmap = coupledTransmons
     opt = ScipyOptimiserGradient(measure, optimisables=optmap)
-    opt.setOptions({"ftol": 0.1})
+    opt.setOptions({"maxiter": 2})
     return opt
 
 

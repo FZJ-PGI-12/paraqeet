@@ -97,7 +97,7 @@ class ScipyExpmGOAT(ScipyExpm):
             First dimension is time, second dimension is the parameter.
 
         """
-        n_params = self._model.gradient(jnp.array([0])).shape[1]
+        n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initialState.shape[0]
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
         dpsis = [

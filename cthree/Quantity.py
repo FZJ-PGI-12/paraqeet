@@ -104,6 +104,38 @@ class Quantity:
 
         self.setValue(value)
 
+    @property
+    def dependencies(self) -> list[Quantity]:
+        """If dependent, get a list of parameter dependencies.
+
+        If calculated from other quantities by a relation, this method returns
+        the list of parameters that this quantity is calculated from,
+        otherwise an empty list is returned.
+
+        Returns
+        -------
+        List[Quantity]
+            List of parameter dependencies.
+        """
+        if self.__dependent:
+            return self.__dependencies
+        return []
+
+    @property
+    def dependents(self) -> list[Quantity]:
+        """Get a list of parameter dependents.
+
+        This method returns the list of parameters that use this Quantity to
+        calculate its value from. If no other Quantities calculate their value
+        using this quantity, returns an empty list.
+
+        Returns
+        -------
+        List[Quantity]
+            List of parameter dependencies.
+        """
+        return self.__dependents
+
     @classmethod
     def relational(
         cls,

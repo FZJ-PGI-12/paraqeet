@@ -33,3 +33,14 @@ class IncompatibleQuantityException(Exception):
     """
 
     pass
+
+
+class IncompatibleOptimisationMap(Exception):
+    """Raise when incorrect number of quantities are specified.
+
+    Raised when the number of quantities specified in optimisation map
+    doesnt match the number of gradients computed.
+
+    """
+
+    pass

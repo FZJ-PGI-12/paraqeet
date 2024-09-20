@@ -261,6 +261,9 @@ def testRelations(three):
     assert relation.getUnit() == ""
     assert relation.getName() == "relation_of_"
 
+    assert three.dependents == [relation]
+    assert relation.dependencies == [three]
+
     three.setValue(4)
     assert relation.getValue() == 8
     with pytest.raises(ValueError):
