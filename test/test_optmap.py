@@ -14,7 +14,7 @@ optmap = OptimisationMap()
 def testGetParameters() -> None:
     """Get the test parameters from the optimisation map."""
     optmap.add(tone, params)
-    assert len(optmap.getAllParameters()) == 3
+    assert len(optmap.getAllParameters()) == len(params)
 
 
 def testParametersOverwrite() -> None:

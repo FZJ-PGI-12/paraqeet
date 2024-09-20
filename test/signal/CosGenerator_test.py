@@ -1,10 +1,11 @@
 """Testing the cosine signal generator functions."""
 
-import pytest
 import numpy as np
-from cthree.signal.SimpleGenerator import CosGenerator
+import pytest
+
 from cthree.signal.Device import CosTone
 from cthree.signal.Device import ZeroTone
+from cthree.signal.SimpleGenerator import CosGenerator
 
 LEN_SIG = 1001
 
@@ -63,17 +64,19 @@ def test_zeroTone(zeroGen, time_samples) -> None:
 def test_getParamters(genMultipleTones):
     """Test the get parameters function."""
     gen, all_params = genMultipleTones
-    params = gen.getParameters()
+    params = gen.getParameters()[:4]
     assert np.all(params == all_params)
 
 
 def test_gradientOneTime(gen):
     """Test the generate signal gradient one time function."""
+    gen.setOptimisableParameters(gen.getParameters())
     grads = gen.generateSignalGradientOneTime(0)
     assert grads.shape == (len(gen.getParameters()),)
 
 
 def test_gradient_shape(gen, time_samples):
     """Test the generate signal gradient function."""
+    gen.setOptimisableParameters(gen.getParameters())
     grads = gen.generateSignalGradient(time_samples)
-    assert grads.shape[0] == time_samples.shape[0]
+    assert grads.shape == (time_samples.shape[0], len(gen.getParameters()))

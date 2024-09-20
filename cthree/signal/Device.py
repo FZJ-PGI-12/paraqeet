@@ -2,17 +2,17 @@
 
 from abc import abstractmethod
 from collections.abc import Callable
+from functools import partial
 import numpy as np
-
-from cthree.Quantity import Quantity
-from cthree.Optimisable import Optimisable
-
-from jax.scipy.special import erf
 
 import jax
 import jax.numpy as jnp
 from jax import grad, vmap, jit
-from functools import partial
+from jax.scipy.special import erf
+from jax.typing import ArrayLike as Array
+
+from cthree.Optimisable import Optimisable
+from cthree.Quantity import Quantity
 
 jax.config.update("jax_enable_x64", True)
 
@@ -64,7 +64,7 @@ class Device(Optimisable):
         signalFunction: Callable,
         argnums: tuple[int, ...],
         vmap_axes: tuple[int, ...],
-    ) -> Callable:
+    ):
         """Return a compute gradient function from the signal function.
 
         Parameters
@@ -76,15 +76,10 @@ class Device(Optimisable):
         vmap_axes : Tuple[int, ...]
             A tuple of ints.
 
-        Returns
-        -------
-        Callable
-            Returns a function that can be used to compute the gradient.
-
         """
         grads = grad(signalFunction, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
-        return jit(partial_grads)
+        self._gradientFunction = jit(partial_grads)
 
     def setOptimisableParameters(self, params: list[Quantity]) -> None:
         """Set optimisable parameters for optimisation.
@@ -97,10 +92,27 @@ class Device(Optimisable):
         """
         super().setOptimisableParameters(params)
 
-        Optimisable_params = self.getParameters()
-        for i, param in enumerate(Optimisable_params):
+        self._gradArgNums = ()
+        for i, param in enumerate(self.getParameters()):
             if self._isOptimised(param):
                 self._gradArgNums += (i,)
+
+        # Recompute gradient function
+        params = self.getParameters()
+        num_params = len(params)
+
+        # vmap over time axis only, set everything else to None
+        vmap_axes = (None,) * num_params
+        vmap_axes += (0,)  # type: ignore
+
+        if len(self._gradArgNums) > 0:
+            self._computeGradientFunction(
+                self._evaluate,
+                argnums=self._gradArgNums,
+                vmap_axes=vmap_axes,
+            )
+        else:
+            self._gradientFunction = None
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """Compute the gradient of the `_evaluate` method.
@@ -127,62 +139,107 @@ class Device(Optimisable):
         """
         params = self.getParameters()
         param_values = [param.getValue() for param in params]
-        num_params = len(params)
         t = jnp.array(t, ndmin=1)
-
-        # vmap over time axis only, set everything else to None
-        vmap_axes = (None,) * num_params
-        vmap_axes += (0,)  # type: ignore
 
         grads = jnp.empty((t.shape[0], 0))
 
-        if len(self._gradArgNums) > 0:
-            if self._gradientFunction is None:
-                self._gradientFunction = self._computeGradientFunction(
-                    self._evaluate,
-                    argnums=self._gradArgNums,
-                    vmap_axes=vmap_axes,
-                )
+        if self._gradientFunction is not None:
+            grads = jnp.stack(self._gradientFunction(*param_values, t), axis=1)
 
-            parameter_scales = jnp.array([param.getScale() for param in params])
-            parameter_scales = jnp.reshape(
-                parameter_scales, (1,) + parameter_scales.shape
+            parameter_scales = jnp.array(
+                [param.getScale() for param in self._optimisableParameters]
             )
 
-            grads = jnp.stack(self._gradientFunction(*param_values, t), axis=1)
-            grads = jnp.squeeze(grads) * parameter_scales
+            if len(self._gradArgNums) > 1:
+                parameter_scales = jnp.reshape(
+                    parameter_scales, (1,) + parameter_scales.shape
+                )
+                grads = jnp.squeeze(grads) * parameter_scales
+            else:
+                grads = jnp.squeeze(grads) * parameter_scales
+                grads = jnp.reshape(grads, (-1, 1))
 
         return grads
 
+    @abstractmethod
+    def computeEnvelope(self, t: np.ndarray) -> Array:
+        """Compute a signal envelope.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector signal.
+        """
+        raise NotImplementedError(
+            "This tone does not have an envelope defined!"
+        )
+
+    def computeEnvelopeTimeGradient(self, t: np.ndarray) -> Array:
+        """Compute a signal envelopes time derivative.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector gaussian signals time derivative.
+        """
+        t = jnp.array(t, ndmin=1)
+        envTimeGradFun = grad(self.computeEnvelope, argnums=0)
+        envTimeGrad = vmap(envTimeGradFun, in_axes=(0,))(t)
+        return jnp.squeeze(envTimeGrad)
+
 
 class CosTone(Device):
-    """Create a simple cosine tone."""
+    """
+    Create a simple cosine tone.
+
+    __amplitude:
+        The Amplitude of the Cosine.
+    __frequency:
+        The Frequency of the Cosine.
+    """
 
     __amplitude: Quantity
     __frequency: Quantity
-    __phase: Quantity
+    __t_final: Quantity
 
-    def __init__(self) -> None:
-        self.__amplitude = Quantity(
+    def __init__(
+        self,
+        amplitude: Quantity | None = None,
+        frequency: Quantity | None = None,
+        t_final: Quantity | None = None,
+    ) -> None:
+        self.__amplitude = amplitude or Quantity(
             2e5 * 2 * np.pi,
             min_value=1e5 * 2 * np.pi,
             max_value=50e6 * 2 * np.pi,
             unit="Hz",
             name="Amplitude",
         )
-        self.__frequency = Quantity(
+
+        self.__frequency = frequency or Quantity(
             5e9 * 2 * np.pi,
             min_value=4e9 * 2 * np.pi,
             max_value=6e9 * 2 * np.pi,
             unit="Hz",
             name="Frequency",
         )
-        self.__phase = Quantity(
-            0,
-            min_value=-np.pi,
-            max_value=np.pi,
-            unit="rad",
-            name="Phase",
+
+        self.__t_final = t_final or Quantity(
+            value=np.array(10e-9),
+            min_value=np.array(0.0),
+            max_value=np.array(100e-9),
+            unit="s",
+            name="t_final",
         )
 
     @property
@@ -233,6 +290,30 @@ class CosTone(Device):
         """
         self.__frequency = frequency
 
+    @property
+    def t_final(self) -> Quantity:
+        """Get the length of the tone.
+
+        Returns
+        -------
+        cthree.Quantity
+            Length in time of the tone.
+
+        """
+        return self.__t_final
+
+    @t_final.setter
+    def t_final(self, t_final: Quantity) -> None:
+        """Set the length of the tone.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Length in time of the tone to be set.
+
+        """
+        self.__t_final = t_final
+
     def getParameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
@@ -242,11 +323,11 @@ class CosTone(Device):
             List of parameters of the system.
 
         """
-        return [self.__amplitude, self.__frequency, self.__phase]
+        return [self.__amplitude, self.__frequency]
 
     @partial(jit, static_argnums=(0,))
     def _evaluate(
-        self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
+        self, amp: Quantity, freq: Quantity, t: np.ndarray
     ) -> np.ndarray:
         """Compute the output of device.
 
@@ -258,8 +339,6 @@ class CosTone(Device):
             Cosine pulse amplitude.
         freq : cthree.Quantity
             Cosine pulse frequency.
-        phase : cthree.Quantity
-            Cosine pulse phase.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
@@ -269,7 +348,7 @@ class CosTone(Device):
             Returns the output from the device.
 
         """
-        return jnp.squeeze(amp * jnp.cos(freq * t + phase))
+        return jnp.squeeze(amp * jnp.cos(freq * t))
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         """Return the scalar output for each step in the time array t.
@@ -287,8 +366,7 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        phase = self.__phase.getValue()
-        return self._evaluate(amp, freq, phase, t)
+        return self._evaluate(amp, freq, t)
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """Compute the gradient of the system.
@@ -310,24 +388,14 @@ class CosTone(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        phase = self.__phase.getValue()
         t = jnp.array(t, ndmin=1)
 
         grads = []
         if self._isOptimised(self.__amplitude):
-            grads.append(
-                jnp.cos(freq * t + phase) * self.__amplitude.getScale()
-            )
+            grads.append(jnp.cos(freq * t) * self.__amplitude.getScale())
         if self._isOptimised(self.__frequency):
             grads.append(
-                -amp
-                * t
-                * jnp.sin(freq * t + phase)
-                * self.__frequency.getScale()
-            )
-        if self._isOptimised(self.__phase):
-            grads.append(
-                -amp * jnp.sin(freq * t + phase) * self.__phase.getScale()
+                -amp * t * jnp.sin(freq * t) * self.__frequency.getScale()
             )
         return (
             jnp.stack(grads, axis=1)
@@ -335,38 +403,61 @@ class CosTone(Device):
             else jnp.empty((t.shape[0], 0))
         )
 
+    def computeEnvelope(self, t: np.ndarray) -> Array:
+        """Compute a signal envelope.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector signal.
+        """
+        amp = self.__amplitude.getValue()
+        return jnp.squeeze(amp * jnp.ones_like(t))
+
 
 class CosToneErf(Device):
-    """Create a cosine tone with a fixed error-function shaped envelope."""
+    """A simple cosine tone with a fixed, error-function shaped envelope.
+
+    __amplitude:
+        The Amplitude of the Cosine.
+    __frequency:
+        The Frequency of the Cosine.
+    __t_final:
+        The length of the entire pulse.
+    """
 
     __amplitude: Quantity
     __frequency: Quantity
-    __phase: Quantity
     __t_final: Quantity
 
-    def __init__(self) -> None:
-        self.__amplitude = Quantity(
+    def __init__(
+        self,
+        amplitude: Quantity | None = None,
+        frequency: Quantity | None = None,
+        t_final: Quantity | None = None,
+    ) -> None:
+        self.__amplitude = amplitude or Quantity(
             2e5 * 2 * np.pi,
             min_value=1e5 * 2 * np.pi,
             max_value=250e6 * 2 * np.pi,
             unit="Hz",
             name="Amplitude",
         )
-        self.__frequency = Quantity(
+
+        self.__frequency = frequency or Quantity(
             5e9 * 2 * np.pi,
             min_value=4e9 * 2 * np.pi,
             max_value=6e9 * 2 * np.pi,
             unit="Hz",
             name="Frequency",
         )
-        self.__phase = Quantity(
-            0,
-            min_value=-np.pi,
-            max_value=np.pi,
-            unit="rad",
-            name="Phase",
-        )
-        self.__t_final = Quantity(
+
+        self.__t_final = t_final or Quantity(
             10e-9, min_value=0e-9, max_value=100e-9, unit="s", name="Gate time"
         )
 
@@ -419,49 +510,25 @@ class CosToneErf(Device):
         self.__frequency = frequency
 
     @property
-    def phase(self) -> Quantity:
-        """Get the phase of the system.
-
-        Returns
-        -------
-        cthree.Quantity
-            Phase of the system.
-
-        """
-        return self.__phase
-
-    @phase.setter
-    def phase(self, phase: Quantity) -> None:
-        """Set the phase of the system.
-
-        Parameters
-        ----------
-        cthree.Quantity
-            Phase value of the system to be set.
-
-        """
-        self.__phase = phase
-
-    @property
     def t_final(self) -> Quantity:
-        """Get the final time value of the system.
+        """Get the length of the tone.
 
         Returns
         -------
         cthree.Quantity
-            Final time value of the system.
+            Length in time of the tone.
 
         """
         return self.__t_final
 
     @t_final.setter
     def t_final(self, t_final: Quantity) -> None:
-        """Set the final time value of the system.
+        """Set the length of the tone.
 
         Parameters
         ----------
         cthree.Quantity
-            Final time value of the system to be set.
+            Length in time of the tone to be set.
 
         """
         self.__t_final = t_final
@@ -469,13 +536,15 @@ class CosToneErf(Device):
     def getParameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
+        -------
+
         Returns
         -------
         List[Quantity]
             List of parameters of the system.
 
         """
-        return [self.__amplitude, self.__frequency, self.__phase]
+        return [self.__amplitude, self.__frequency]
 
     def _envelope(self, t: np.ndarray) -> jnp.ndarray:
         """Create a normalised error function shaped envelope.
@@ -501,9 +570,7 @@ class CosToneErf(Device):
         return rampUp * rampDown / 4
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate(
-        self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
-    ):
+    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -514,8 +581,6 @@ class CosToneErf(Device):
             Cosine pulse amplitude.
         freq : cthree.Quantity
             Cosine pulse frequency.
-        phase : cthree.Quantity
-            Phase of the pulse between (-pi, pi).
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
@@ -526,7 +591,7 @@ class CosToneErf(Device):
             on the optimisable parameters.
 
         """
-        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t + phase))
+        return self._envelope(t) * amp * jnp.cos(freq * t)
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         """Get the output of the device on time stamps.
@@ -544,8 +609,7 @@ class CosToneErf(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        phase = self.__phase.getValue()
-        return self._evaluate(amp, freq, phase, t)
+        return self._evaluate(amp, freq, t)
 
     def computeGradient(self, t: np.ndarray) -> np.ndarray:
         """Return the gradient wrt dimensionless parameters.
@@ -563,7 +627,6 @@ class CosToneErf(Device):
         """
         amp = self.__amplitude.getValue()
         freq = self.__frequency.getValue()
-        phase = self.__phase.getValue()
         t = jnp.array(t, ndmin=1)
 
         grads = []
@@ -573,23 +636,79 @@ class CosToneErf(Device):
         if self._isOptimised(self.__frequency):
             dc_dFreq = -amp * t * jnp.sin(freq * t) * self._envelope(t)
             grads.append(self.__frequency.getScale() * dc_dFreq)
-        if self._isOptimised(self.__phase):
-            grads.append(
-                -amp
-                * self._envelope(t)
-                * jnp.sin(freq * t + phase)
-                * self.__phase.getScale()
-            )
-
         return (
             jnp.stack(grads, axis=1)
             if len(grads) > 0
             else jnp.empty((t.shape[0], 0))
         )
 
+    def computeEnvelope(self, t: np.ndarray) -> Array:
+        """Compute a erf signal envelope.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector gaussian signal.
+        """
+        amp = self.__amplitude.getValue()
+        return jnp.squeeze(amp * self._envelope(t))
+
 
 class ZeroTone(Device):
-    """Create a zero tone."""
+    """Create a zero tone.
+
+    __t_final: Quantity
+        The length of the signal.
+    """
+
+    __t_final: Quantity
+
+    def __init__(self, t_final: Quantity | None = None):
+        self.__t_final = t_final or Quantity(
+            value=np.array(10e-9),
+            min_value=np.array(0.0),
+            max_value=np.array(100e-9),
+            unit="s",
+            name="t_final",
+        )
+
+    @property
+    def t_final(self) -> Quantity:
+        """Get the length of the tone.
+
+        Returns
+        -------
+        cthree.Quantity
+            Length in time of the tone.
+
+        """
+        return self.__t_final
+
+    @t_final.setter
+    def t_final(self, t_final: Quantity) -> None:
+        """Set the length of the tone.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Length in time of the tone to be set.
+
+        """
+        self.__t_final = t_final
+
+    def getParameters(self) -> list[Quantity]:
+        """Return device parameters.
+
+        Returns
+        -------
+        list[Quantity]
+        """
+        return [self.__t_final]
 
     def computeOutput(self, t: np.ndarray) -> np.ndarray:
         """Create a zero tone signal from an input time vector.
@@ -605,4 +724,323 @@ class ZeroTone(Device):
             Returns a zero vector signal.
 
         """
-        return jnp.zeros_like(t)
+        return jnp.zeros_like(t, dtype=np.complex128)
+
+    def computeEnvelope(self, t: np.ndarray) -> Array:
+        """Compute a signal envelope.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector signal.
+        """
+        return jnp.zeros_like(t, dtype=np.complex128)
+
+    def computeEnvelopeTimeGradient(self, t: np.ndarray) -> Array:
+        """Compute a signal envelopes time gradient.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector signal.
+        """
+        return jnp.zeros_like(t, dtype=np.complex128)
+
+
+class CarrierTone(Device):
+    """A LO carrier signal generator.
+
+    Parameters
+    ----------
+    __carrier_freq : Quantity
+        The frequency of the carrier signal
+    """
+
+    __carrier_freq: Quantity
+
+    def __init__(self, carrier_freq: Quantity | None = None) -> None:
+        self.__carrier_freq = carrier_freq or Quantity(
+            value=np.array(4.8e9 * 2 * np.pi),
+            min_value=np.array(0),
+            max_value=np.array(6e9 * 2 * np.pi),
+            unit="Hz",
+            name="carrier_freq",
+        )
+
+    @property
+    def frequency(self) -> Quantity:
+        """Get The frequency of the constant oscillating tone.
+
+        Returns
+        -------
+        Quantity
+            The frequency of the tone.
+
+        """
+        return self.__carrier_freq
+
+    @frequency.setter
+    def frequency(self, frequency: Quantity) -> None:
+        """Set The frequency of the constant oscillating tone.
+
+        Parameters
+        ----------
+        freq : Quantity
+            The frequency of the constant oscillating tone.
+
+        """
+        self.__carrier_freq = frequency
+
+    def getParameters(self) -> list[Quantity]:
+        """Return device parameters.
+
+        Returns
+        -------
+        list[Quantity]
+            Returns the carrier frequency.
+        """
+        return [self.__carrier_freq]
+
+    @partial(jax.jit, static_argnums=(0,))
+    def _evaluate(self, freq: np.ndarray, t: np.ndarray) -> jnp.ndarray:
+        """Calculate the unscaled carrier signal.
+
+        Parameters
+        ----------
+        freq : numpy.ndarray
+            The frequency of the carrier signal
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            The unscaled the carrier signal.
+        """
+        return jnp.exp(1j * freq * t)
+
+    def computeOutput(self, t: np.ndarray) -> jnp.ndarray:
+        """Evaluate a carrier signal from an input time vector.
+
+        Parameters
+        ----------
+        freq :
+            Frequency of the carrier signal
+        t : np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector carrier signal.
+        """
+        return self._evaluate(self.__carrier_freq.getValue(), t)
+
+    def computeGradient(self, t: np.ndarray) -> np.ndarray:
+        """Return the gradient wrt to frequency of carrier signal.
+
+        Parameters
+        ----------
+        t : np.ndarray
+            Array of time points to evaluate gradients at.
+
+        Returns
+        -------
+        np.ndarray
+            Gradient of tone wrt to frequency.
+        """
+        freq = self.__carrier_freq.getValue()
+        t = jnp.array(t, ndmin=1)
+
+        grads = jnp.empty((t.shape[0], 0))
+        if self._isOptimised(self.__carrier_freq):
+            dc_dFreq = 1j * t * self._evaluate(freq, t)
+            grads = self.__carrier_freq.getScale() * dc_dFreq
+            grads = jnp.reshape(grads, (-1, 1))
+
+        return grads
+
+    def computeEnvelope(self, t: np.ndarray) -> np.ndarray:
+        """Not a Tone. So no Envelope function.
+
+        Raises
+        ------
+        NotImplementedError
+        """
+        raise NotImplementedError()
+
+
+class GaussTone(Device):
+    """Create a simple Gauss tone.
+
+    Parameters
+    ----------
+    __amplitude:
+        Amplitude of the Gaussian
+    __t_final:
+        Length of the signal.
+    """
+
+    __amplitude: Quantity
+    __t_final: Quantity
+
+    def __init__(
+        self, amplitude: Quantity | None = None, t_final: Quantity | None = None
+    ) -> None:
+        self.__amplitude = amplitude or Quantity(
+            np.array(3.8e08),
+            min_value=np.array(0.0),
+            max_value=np.array(1.0e9),
+            unit="Hz",
+            name="Amplitude",
+        )
+
+        self.__t_final = t_final or Quantity(
+            value=np.array(10e-9),
+            min_value=np.array(0.0),
+            max_value=np.array(100e-9),
+            unit="s",
+            name="t_final",
+        )
+
+    def getParameters(self) -> list[Quantity]:
+        """Return the amplitude and t_final as parameters.
+
+        Returns
+        -------
+        list[Quantity]
+            Amplitude and t_final of the tone.
+        """
+        return [self.__amplitude, self.__t_final]
+
+    @property
+    def t_final(self):
+        """Length of the pulse.
+
+        Returns
+        -------
+        Quantity
+            Total duration of the pulse.
+        """
+        return self.__t_final
+
+    @t_final.setter
+    def t_final(self, t_final: Quantity) -> None:
+        """Set the length of the tone.
+
+        Parameters
+        ----------
+        cthree.Quantity
+            Length in time of the tone to be set.
+
+        """
+        self.__t_final = t_final
+
+    @partial(jax.jit, static_argnums=(0,))
+    def _evaluate(
+        self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray
+    ) -> Array:
+        """Calculate the unscaled gaussian signal.
+
+        Parameters
+        ----------
+        t_final : np.ndarray
+            Duration of the signal to calculate the center of the gaussian from.
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            The unscaled gaussian signal.
+        """
+        sigma = t_final / 6
+        env = amp * jnp.exp(-(1 / 2) * (t - t_final / 2) ** 2 / sigma**2)
+        return jnp.squeeze(env)
+
+    @partial(jax.jit, static_argnums=(0,))
+    def _evaluateTimeGradient(
+        self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray
+    ) -> Array:
+        """Calculate the unscaled gaussian signal.
+
+        Parameters
+        ----------
+        t_final : np.ndarray
+            Duration of the signal to calculate the center of the gaussian from.
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            The unscaled gaussian signals time derivative.
+        """
+        sigma = t_final / 6
+        timeGrad = (
+            self._evaluate(amp, t_final, t)
+            * -1.0
+            * (t - t_final / 2)
+            / sigma**2
+        )
+        return jnp.squeeze(timeGrad)
+
+    def computeOutput(self, t: np.ndarray) -> Array:
+        """Compute a Gaussian signal.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector gaussian signal.
+        """
+        return self.computeEnvelope(t)
+
+    def computeEnvelope(self, t: np.ndarray) -> Array:
+        """Compute a Gaussian signal envelope.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector gaussian signal.
+        """
+        t_final = self.__t_final.getValue()
+        amp = self.__amplitude.getValue()
+        return self._evaluate(amp, t_final, t)
+
+    def computeEnvelopeTimeGradient(self, t: np.ndarray) -> Array:
+        """Compute a Gaussian signals time derivative.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a vector gaussian signals time derivative.
+        """
+        t_final = self.__t_final.getValue()
+        amp = self.__amplitude.getValue()
+        envTimeDeriv = self._evaluateTimeGradient(amp, t_final, t)
+        return envTimeDeriv

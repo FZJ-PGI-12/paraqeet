@@ -75,7 +75,7 @@ class GeneratorDrive(Drive):
     def getMatrixOneTime(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
         """Get the one-time matrix of the system.
 
-        Fetches the coefficient from the drive drive and transforms it
+        Fetches the coefficient from the drive and transforms it
         into the correct shape for the Hamiltonian.
 
         Parameters
@@ -114,7 +114,7 @@ class GeneratorDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signalGrad = self.__generator.generateSignalGradient(
+        signalGrad = self.__generator.generateSignalGradientOneTime(
             jnp.array(t, ndmin=1)
         ).reshape((-1, 1, 1))
         matrix = self._repeat(self._computeMatrix(a), signalGrad.shape[0])
