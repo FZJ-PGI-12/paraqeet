@@ -283,3 +283,23 @@ def testRelations(three):
         _ = Quantity.relational([unit1, unit2], lambda x, y: x + y)
     with pytest.raises(ValueError):
         unit1.addRelation(unit2, lambda x: x)
+
+
+def testPersistence(randomQuantity):
+    for N in range(1, 10):
+        for i in range(20):
+            q = randomQuantity(N)
+            data = q.toDict()
+            q2 = Quantity(0, -1, 1)
+            q2.fromDict(data)
+
+            # assert q == q2
+            assert q.getName() == q2.getName()
+            assert q.getUnit() == q2.getUnit()
+            testing.assert_almost_equal(q.getMinValue(), q2.getMinValue())
+            testing.assert_almost_equal(q.getMaxValue(), q2.getMaxValue())
+            testing.assert_almost_equal(q.getReducedValue(), q2.getReducedValue())
+            if N == 1:
+                assert q2.isScalar()
+            else:
+                assert q2.isVector()

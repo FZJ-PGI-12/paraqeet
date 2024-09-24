@@ -406,6 +406,15 @@ class Quantity:
         # the value is based on offset and scale and needs to be updated
         self.__setValue(oldValue)
 
+    def setValueAndLimits(self, value, min_value, max_value) -> None:
+        """
+        This can be used to set the value and the limits to new values at the same time. This function does not raise
+        an exception if the new value is outside of the old limits.
+        """
+        self.__offset = np.array(min_value)
+        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        self.__setValue(value)
+
     def getName(self) -> str:
         """Return the symbol or description or this quantity.
 
@@ -745,3 +754,39 @@ class Quantity:
             prefix = units[idx]
 
         return sign * (10 ** (tmp % 3)), prefix
+
+    def toDict(self) -> dict:
+        """
+        Creates a dictionary representation of this quantity that can be stored. The returned dict is compatible with
+        the fromDict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
+        dimensional quantities (tensors) will be flattened into a list but their proper shape is stored as well.
+        """
+        if self.dependent:
+            raise UserWarning('Saving of dependent quantities is not supported yet')
+
+        return {
+            'name': self.__name,
+            'unit': self.__unit,
+            'shape': self.__shape,
+            'twoPi': self.__twoPi,
+            'value': self.getValue().flatten().tolist(),
+            'min': self.getMinValue().tolist(),
+            'max': self.getMaxValue().tolist(),
+        }
+
+    def fromDict(self, data: dict) -> None:
+        """
+        Loads the quantity from a dictionary. The dictionary must have the same form as the one created by the toDict
+        function. All properties of this quantity (value, name, etc.) will be overwritten.
+        """
+        self.__name = data['name']
+        self.__unit = data['unit']
+        self.__shape = data['shape']
+        self.__length = int(np.prod(self.__shape))
+        self.__twoPi = data['twoPi']
+
+        # The value and limits need to be set at the same time so that the new value is not out of range
+        value = np.array(data['value']).reshape(self.__shape)
+        minVal = np.array(data['min']).reshape(self.__shape)
+        maxVal = np.array(data['max']).reshape(self.__shape)
+        self.setValueAndLimits(value, minVal, maxVal)
