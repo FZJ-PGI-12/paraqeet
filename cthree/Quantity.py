@@ -341,7 +341,7 @@ class Quantity:
         self.__setValue(value)
 
     def __setValue(self, value) -> None:
-        """Set value for the paramter."""
+        """Set value for the parameter."""
         if isinstance(value, np.ndarray):
             val = value.astype(np.float64)
         else:
@@ -404,7 +404,7 @@ class Quantity:
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
         # the value is based on offset and scale and needs to be updated
-        self.setValue(oldValue)
+        self.__setValue(oldValue)
 
     def getName(self) -> str:
         """Return the symbol or description or this quantity.
