@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 
+from cthree.Exceptions import SerialisationException
 from cthree.Optimisable import Optimisable
 from cthree.Quantity import Quantity
 
@@ -166,3 +167,16 @@ class OptimisationMap:
         return self.filterParameters(
             lambda quantity: quantity.getName() == name
         )
+
+    def toDict(self) -> dict:
+        data = dict()
+        for optimisable, quantities in self.__optimisableToParameterMap.items():
+            if len(optimisable.getName().strip()) == 0:
+                raise SerialisationException(
+                    'Optimisable does not have a name. Serialisation is only possible if all optimisables have unique names.')
+            for q in quantities:
+                if len(q.getName().strip()) == 0:
+                    raise SerialisationException(
+                        'Quantity does not have a name. Serialisation is only possible if all quantities of an optimisable have unique names.')
+            data[optimisable.getName()] = [q.toDict() for q in quantities]
+        return data
