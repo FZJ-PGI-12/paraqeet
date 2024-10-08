@@ -178,5 +178,5 @@ class OptimisationMap:
                 if len((q.getName() or '').strip()) == 0:
                     raise SerialisationException(
                         'Quantity does not have a name. Serialisation is only possible if the name of a quantity is unique within the optimisable.')
-            data[optimisable.name] = [q.toDict() for q in quantities]
+            data[optimisable.name] = {q.getName(): q.toDict() for q in quantities}
         return data

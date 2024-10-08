@@ -9,10 +9,10 @@ class JSONFileSerialiser(Serialiser):
     def __init__(self, file: str):
         self.__file = file
 
-    def write(self, data: dict) -> None:
+    def save(self, data: dict) -> None:
         with open(self.__file, 'w', encoding='utf-8') as f:
             json.dump(data, f)
 
-    def read(self) -> dict:
+    def load(self) -> dict:
         with open(self.__file) as f:
             return json.load(f)

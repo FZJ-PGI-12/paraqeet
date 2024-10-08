@@ -765,7 +765,6 @@ class Quantity:
             raise UserWarning('Saving of dependent quantities is not supported yet')
 
         return {
-            'name': self.__name,
             'unit': self.__unit,
             'shape': self.__shape,
             'twoPi': self.__twoPi,
@@ -779,7 +778,6 @@ class Quantity:
         Loads the quantity from a dictionary. The dictionary must have the same form as the one created by the toDict
         function. All properties of this quantity (value, name, etc.) will be overwritten.
         """
-        self.__name = data['name']
         self.__unit = data['unit']
         self.__shape = data['shape']
         self.__length = int(np.prod(self.__shape))
