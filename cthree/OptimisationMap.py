@@ -171,12 +171,12 @@ class OptimisationMap:
     def toDict(self) -> dict:
         data = dict()
         for optimisable, quantities in self.__optimisableToParameterMap.items():
-            if len(optimisable.getName().strip()) == 0:
+            if len((optimisable.name or '').strip()) == 0:
                 raise SerialisationException(
-                    'Optimisable does not have a name. Serialisation is only possible if all optimisables have unique names.')
+                    'Optimisable does not have a name. Serialisation is only possible if the name of the optimisable is unique.')
             for q in quantities:
-                if len(q.getName().strip()) == 0:
+                if len((q.getName() or '').strip()) == 0:
                     raise SerialisationException(
-                        'Quantity does not have a name. Serialisation is only possible if all quantities of an optimisable have unique names.')
-            data[optimisable.getName()] = [q.toDict() for q in quantities]
+                        'Quantity does not have a name. Serialisation is only possible if the name of a quantity is unique within the optimisable.')
+            data[optimisable.name] = [q.toDict() for q in quantities]
         return data
