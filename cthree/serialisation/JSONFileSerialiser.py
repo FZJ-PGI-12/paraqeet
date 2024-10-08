@@ -1,9 +1,9 @@
 import json
 
-from cthree.serialisation.Serialiser import DictOutput
+from cthree.serialisation.Serialiser import Serialiser
 
 
-class JSONFileSerialiser(DictOutput):
+class JSONFileSerialiser(Serialiser):
     __file: str
 
     def __init__(self, file: str):
