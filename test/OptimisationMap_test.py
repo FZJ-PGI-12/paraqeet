@@ -152,3 +152,46 @@ def test_removing_parameters(optMapWithOptimisables) -> None:
         assert len(intersection) == 0
         with pytest.raises(Exception):
             optMapWithOptimisables.getParameters(optimisable)
+
+
+def test_exporting_fails(optMapWithOptimisables) -> None:
+    """ Tests if exporting fails if the optimisables or quantities do not have unique names. """
+    setValidNames(optMapWithOptimisables)
+    optimisables = list(optMapWithOptimisables.getOptimisables())
+
+    # Test bad names of optimisables
+    notAllowed = [None, "", optimisables[1].name]
+    for x in notAllowed:
+        optimisables[0].name = x
+        with pytest.raises(Exception):
+            optMapWithOptimisables.toDict()
+    optimisables[0].name = "optimisable 0"
+
+    # Test bad names of quantities
+    quantities = optimisables[0].getParameters()
+    print("Changing: ", optimisables[0].name)
+    notAllowed = [quantities[1].getName()]
+    for x in notAllowed:
+        quantities[0].setName(x)
+        with pytest.raises(Exception):
+            optMapWithOptimisables.toDict()
+
+
+def test_exporting(optMapWithOptimisables) -> None:
+    """ Tests if all optimisables and quantities are being exported. """
+    setValidNames(optMapWithOptimisables)
+    optimisables = list(optMapWithOptimisables.getOptimisables())
+
+    dictionary = optMapWithOptimisables.toDict()
+    assert len(dictionary) == len(optimisables)
+    for optimisable in optimisables:
+        assert optimisable.name in dictionary
+        assert len(optimisable.getParameters()) == len(dictionary[optimisable.name])
+
+def setValidNames(optMap: OptimisationMap) -> None:
+    """ Assigns valid and unique names to all optimisables and quantities in the opt map. """
+    optimisables = list(optMap.getOptimisables())
+    for i, optimisable in enumerate(optimisables):
+        optimisable.name = f"optimisable {i}"
+        for j, quantity in enumerate(optimisable.getParameters()):
+            quantity.setName(f"optimisable {i} - quantity {j}")
