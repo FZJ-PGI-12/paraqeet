@@ -429,6 +429,10 @@ class Quantity:
         """
         return self.__name
 
+    def setName(self, name: str) -> None:
+        """ Assigns a new name to this quantity. """
+        self.__name = name
+
     def getUnit(self) -> str:
         """Get unit of measurement from paramter."""
         return self.__unit
