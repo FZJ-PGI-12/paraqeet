@@ -5,7 +5,7 @@ from abc import abstractmethod
 import numpy as np
 
 from cthree.Optimisable import Optimisable
-from cthree.signal.Device import Device
+from cthree.signal.Waveform import Waveform
 
 
 class Generator(Optimisable):
@@ -21,7 +21,7 @@ class Generator(Optimisable):
     """
 
     __chains: dict[str, dict[str, list[str]]] = {}
-    __devices: list[Device]
+    __devices: list[Waveform]
 
     @abstractmethod
     def generateSignal(self, times: np.ndarray) -> np.ndarray:

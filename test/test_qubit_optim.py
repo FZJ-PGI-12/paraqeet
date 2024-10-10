@@ -16,18 +16,18 @@ from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
 from cthree.model.ClosedModel import ClosedModel
 
 from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.Device import CosTone
+from cthree.signal.Envelopes import ConstantEnvelope
 
 
-tone = CosTone()
-gen = CosGenerator(devices=[tone])
-params = tone.getParameters()
+tone = ConstantEnvelope()
+gen = CosGenerator(envelopes=[tone])
+params = gen.getParameters()
 
 FREQ = 4.8e9 * 2 * np.pi
 t_final = 10e-9
 
 params[0].setValue(0.8 * np.pi / t_final)
-params[1].setValue(1.01 * FREQ)
+params[2].setValue(1.01 * FREQ)
 
 drive = GeneratorDrive(gen, isLongitudinal=False)
 controlled_qubit = Qubit(
@@ -51,7 +51,7 @@ zeroone = StateTransferFidelity(
 def opt():
     """Create ScipyOptimiser optimiser."""
     optmap = OptimisationMap()
-    optmap.add(tone, [params[0], params[1]])
+    optmap.add(gen, [params[0], params[2]])
     return ScipyOptimiser(zeroone, optimisables=optmap)
 
 
@@ -59,7 +59,7 @@ def opt():
 def cma_opt():
     """Create CMAEs optimiser."""
     optmap = OptimisationMap()
-    optmap.add(tone, [params[0], params[1]])
+    optmap.add(gen, [params[0], params[2]])
     return CMAEsOptimiser(zeroone, optimisables=optmap)
 
 
@@ -67,7 +67,7 @@ def cma_opt():
 def bay_opt():
     """Create Bayesian optimiser."""
     optmap = OptimisationMap()
-    optmap.add(tone, [params[0], params[1]])
+    optmap.add(gen, [params[0], params[2]])
     return BayesianOptimiser(zeroone, optimisables=optmap)
 
 

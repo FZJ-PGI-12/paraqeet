@@ -5,7 +5,7 @@ import numpy as np
 
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
-from cthree.signal.Device import CosToneErf
+from cthree.signal.Envelopes import ErfEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 
 from cthree.OptimisationMap import OptimisationMap
@@ -35,22 +35,20 @@ RES = 100e9
 def tone():
     """Create a signal tone."""
 
-    def _method(amp, freq, t_final):
-        tone = CosToneErf()
-        tone.amplitude = Quantity(
-            amp * 2 * np.pi,
-            min_value=0.8 * amp * 2 * np.pi,
-            max_value=1.2 * amp * 2 * np.pi,
-            unit="Hz",
-        )
-        tone.frequency = Quantity(
-            freq * 2 * np.pi,
-            min_value=0.8 * freq * 2 * np.pi,
-            max_value=1.2 * freq * 2 * np.pi,
-            unit="Hz",
-        )
-        tone.t_final = Quantity(
-            t_final, min_value=0.8 * t_final, max_value=1.2 * t_final, unit="Hz"
+    def _method(amp, t_final):
+        tone = ErfEnvelope(
+            amplitude=Quantity(
+                amp * 2 * np.pi,
+                min_value=0.8 * amp * 2 * np.pi,
+                max_value=1.2 * amp * 2 * np.pi,
+                unit="Hz",
+            ),
+            t_final=Quantity(
+                t_final,
+                min_value=0.8 * t_final,
+                max_value=1.2 * t_final,
+                unit="Hz",
+            ),
         )
         return tone
 
@@ -60,11 +58,20 @@ def tone():
 @pytest.fixture
 def coupledTransmons(tone):
     """Create a coupled Transmon system."""
-    tone1 = tone(191e6, 6.0e9, T_FINAL)
-    tone2 = tone(9.18e6, 6.0002e9, T_FINAL)
+    freq1 = 6.0e9
+    freq2 = 6.0002e9
+
+    tone1 = tone(191e6, T_FINAL)
+    tone2 = tone(9.18e6, T_FINAL)
 
     generator1 = CosGenerator(
-        devices=[tone1],
+        envelopes=[tone1],
+        frequency=Quantity(
+            freq1 * 2 * np.pi,
+            min_value=np.array(0.8 * freq1 * 2 * np.pi),
+            max_value=np.array(1.2 * freq1 * 2 * np.pi),
+            unit="Hz",
+        ),
         phase=Quantity(
             0.01,
             min_value=np.array(-np.pi),
@@ -75,7 +82,13 @@ def coupledTransmons(tone):
     drive1 = GeneratorDrive(generator1, isLongitudinal=False)
 
     generator2 = CosGenerator(
-        devices=[tone2],
+        envelopes=[tone2],
+        frequency=Quantity(
+            freq2 * 2 * np.pi,
+            min_value=np.array(0.8 * freq2 * 2 * np.pi),
+            max_value=np.array(1.2 * freq2 * 2 * np.pi),
+            unit="Hz",
+        ),
         phase=Quantity(
             -0.39720756,
             min_value=np.array(-np.pi),

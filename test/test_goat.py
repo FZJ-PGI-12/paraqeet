@@ -1,28 +1,22 @@
 """Testing the GOAT optimisation model."""
 
-import pytest
 import numpy as np
+import pytest
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.Quantity import Quantity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
+from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
+from cthree.model.ClosedModel import ClosedModel
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.model.Qubit import Qubit
-
-from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
-
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
-
-from cthree.model.ClosedModel import ClosedModel
-
+from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
+from cthree.signal.Envelopes import ErfEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
-
-from cthree.signal.Device import CosToneErf
-
 from test.DummyDevice import CosToneErfAD
-from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 
 FREQ = 4.8e9 * 2 * np.pi
 T_FINAL = 10e-9
@@ -32,13 +26,13 @@ RES = 100e9
 @pytest.fixture
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
-    return CosToneErf()
+    return ErfEnvelope()
 
 
 @pytest.fixture
 def gen(tone):
     """Generate a cosine tone."""
-    gen = CosGenerator(devices=[tone])
+    gen = CosGenerator(envelopes=[tone])
     return gen
 
 
@@ -83,13 +77,13 @@ def gates(prop):
 
 
 @pytest.fixture
-def optMap(tone):
+def optMap(gen):
     """Create an optimisation map."""
-    params = tone.getParameters()[0:2]
+    params = gen.getParameters()
     params[0].setValue(0.8 * np.pi / T_FINAL)
-    params[1].setValue(0.95 * FREQ)
+    params[2].setValue(0.96 * FREQ)
     optmap = OptimisationMap()
-    optmap.add(tone, params)
+    optmap.add(gen, params)
     return optmap
 
 
@@ -142,7 +136,7 @@ def toneAD():
 @pytest.fixture
 def genAD(toneAD):
     """Generate a cosine tone."""
-    genAD = CosGenerator(devices=[toneAD])
+    genAD = CosGenerator(envelopes=[toneAD])
     return genAD
 
 
@@ -175,7 +169,7 @@ def optMapAD(toneAD):
     """Return the optimisation map."""
     params = toneAD.getParameters()[0:2]
     params[0].setValue(0.8 * np.pi / T_FINAL)
-    params[1].setValue(0.95 * FREQ)
+    params[2].setValue(0.95 * FREQ)
     optmap = OptimisationMap()
     optmap.add(toneAD, params)
     return optmap

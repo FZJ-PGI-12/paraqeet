@@ -4,11 +4,11 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.signal.Device import CosTone, CosToneErf
+from cthree.signal.Envelopes import ConstantEnvelope, ErfEnvelope
 from test.DummyDevice import CosToneAD, CosToneErfAD
 
-costone = CosTone()
-costoneerf = CosToneErf()
+costone = ConstantEnvelope()
+costoneerf = ErfEnvelope()
 costoneAD = CosToneAD()
 costoneerfAD = CosToneErfAD()
 time = jnp.linspace(0, 10e-6, 100)

@@ -10,7 +10,7 @@ from jax import vmap, grad
 from jax import numpy as jnp
 
 from cthree.Quantity import Quantity
-from cthree.signal.Device import Device, CarrierTone
+from cthree.signal.Waveform import Waveform, LocalOscillator
 from cthree.signal.Generator import Generator
 
 import jax
@@ -35,8 +35,8 @@ class DRAGGenerator(Generator):
         List of generator parameters (phase and deltas) to be optimised.
     """
 
-    __envelopeTones: list[Device]
-    __carrierTone: CarrierTone
+    __envelopeTones: list[Waveform]
+    __carrierTone: LocalOscillator
     __phase: Quantity
     __gradientFunction: Callable = None
     __gradArgNums: tuple[int, ...] = ()
@@ -44,13 +44,13 @@ class DRAGGenerator(Generator):
 
     def __init__(
         self,
-        devices: list[Device] | None,
+        devices: list[Waveform] | None,
         carrier_freq: Quantity | None = None,
         phase: Quantity | None = None,
         deltas: list[Quantity] | None = None,
     ):
         self.__envelopeTones = self.__add_deltas(devices or [], deltas)
-        self.__carrierTone = CarrierTone(carrier_freq=carrier_freq)
+        self.__carrierTone = LocalOscillator(frequency=carrier_freq)
 
         self.__phase = phase or Quantity(
             np.array(0.0),
@@ -107,13 +107,13 @@ class DRAGGenerator(Generator):
 
     @staticmethod
     def __add_deltas(
-        envelopeTones: list[Device], deltas: list[Quantity]
-    ) -> list[Device]:
+        envelopeTones: list[Waveform], deltas: list[Quantity]
+    ) -> list[Waveform]:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
 
         Parameters
         ----------
-        envelopeTones : List[Device]
+        envelopeTones : List[Waveform]
             The list of tones defining the total envelope.
         deltas : List[Quantity]
             A List of Quantities representing the delta parameters to add to
@@ -121,7 +121,7 @@ class DRAGGenerator(Generator):
 
         Returns
         -------
-        List[Device]
+        List[Waveform]
             The list of envelope Tones with the added delta parameters.
         """
         for ii, env_tone in enumerate(envelopeTones):
@@ -138,7 +138,7 @@ class DRAGGenerator(Generator):
         return envelopeTones
 
     @staticmethod
-    def __getToneDelta(tone: Device) -> Quantity:
+    def __getToneDelta(tone: Waveform) -> Quantity:
         """Return a list of deltas for each tone.
 
         Returns
@@ -202,30 +202,6 @@ class DRAGGenerator(Generator):
 
         # Recompute the gradient function
         self.__computeGradientFunc()
-
-    def _dragEnvelope(self, t, *deltas):
-        """Compute the DRAG Envelope using deltas.
-
-        Explicit function depending on deltas to compute gradients using AD.
-
-        Parameters
-        ----------
-        t : np.ndarray
-            One-dimensional vector of timestamps.
-        deltas: List[float]
-            Variable number of inputs for delta parameters for each tone.
-
-        Returns
-        -------
-        numpy.ndarray
-            Returns a vector signal of the DRAG envelope.
-        """
-        total_env = jnp.zeros_like(t, dtype=np.complex128)
-        for delta, tone in zip(deltas, self.__envelopeTones):
-            env = tone.computeEnvelope(t)
-            env_grad = tone.computeEnvelopeTimeGradient(t)
-            total_env += env - 1.0j / delta * env_grad
-        return total_env
 
     def __computeSignal(self, t, phase, *deltas):
         """Compute signal with DRAG based envelope function and phase.

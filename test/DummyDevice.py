@@ -9,10 +9,10 @@ from jax import jit
 from jax.scipy.special import erf
 
 from cthree.Quantity import Quantity
-from cthree.signal.Device import Device
+from cthree.signal.Waveform import Waveform
 
 
-class CosToneAD(Device):
+class CosToneAD(Waveform):
     """Dummy CosTone class without analytical gradients to test AD gradients."""
 
     __amplitude: Quantity
@@ -87,7 +87,7 @@ class CosToneAD(Device):
         return self._evaluate(amp, freq, phase, t)
 
 
-class CosToneErfAD(Device):
+class CosToneErfAD(Waveform):
     """Dummy CosToneErf class without analytical gradients.
 
     For testing AD gradients.

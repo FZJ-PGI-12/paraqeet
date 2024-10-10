@@ -5,7 +5,7 @@ import jax.numpy as jnp
 from jax import Array
 
 from cthree.Quantity import Quantity
-from cthree.signal.Device import Device
+from cthree.signal.Waveform import Waveform, LocalOscillator
 from cthree.signal.Generator import Generator
 
 
@@ -14,21 +14,24 @@ class CosGenerator(Generator):
 
     Parameters
     ----------
-    devices : List[cthree.signal.Device]
+    envelopes : List[cthree.signal.Waveform]
         List of input devices.
 
     """
 
-    __devices: list[Device]
+    __envs: list[Waveform]
     __phase: Quantity
     _optimisableParameters: list[Quantity] = []
 
     def __init__(
         self,
-        devices: list[Device] | None,
+        envelopes: list[Waveform] | None,
+        frequency: Quantity | None = None,
         phase: Quantity | None = None,
     ):
-        self.__devices = devices or []
+        self.__envs = envelopes or []
+
+        self.__lo = LocalOscillator(frequency=frequency)
 
         self.__phase = phase or Quantity(
             np.array(0.0),
@@ -50,8 +53,9 @@ class CosGenerator(Generator):
             All Parameters describing the signal.
         """
         pars = []
-        for dev in self.__devices:
-            pars += dev.getParameters()
+        for env in self.__envs:
+            pars += env.getParameters()
+        pars += self.__lo.getParameters()
         pars += [self.__phase]
         return pars
 
@@ -66,7 +70,7 @@ class CosGenerator(Generator):
         """
         super().setOptimisableParameters(params)
 
-        for dev in self.__devices:
+        for dev in self.__envs:
             dev.setOptimisableParameters(params)
 
     def generateSignal(self, t: np.ndarray) -> Array:
@@ -83,10 +87,12 @@ class CosGenerator(Generator):
             Returns the signal vector.
 
         """
-        sig = jnp.zeros_like(t)
-        for dev in self.__devices:
-            sig += jnp.reshape(dev.computeOutput(t), sig.shape)
-        return (sig * jnp.exp(-1j * self.__phase.getValue())).real
+        env = jnp.zeros_like(t)
+        for dev in self.__envs:
+            env += jnp.reshape(dev.computeOutput(t), env.shape)
+        sig = env.conj() * self.__lo.computeOutput(t)
+        sig = sig * jnp.exp(-1j * self.__phase.getValue())
+        return jnp.real(sig)
 
     def generateSignalGradient(self, t) -> Array:
         """Collect and returns the gradients from all devices.
@@ -102,9 +108,11 @@ class CosGenerator(Generator):
             Returns the signal gradient vector.
 
         """
-        phase_fac_deriv = -1.0 * jnp.exp(-1j * self.__phase.getValue()).imag
+        # TODO: I think we were and still are missing the product of the
+        #  gradient of the LO signal with the envelope signal
+        phase_fac_deriv = -1.0j * jnp.exp(-1j * self.__phase.getValue())
         gradients = jnp.zeros(shape=(t.shape[0], 0))
-        for dev in self.__devices:
+        for dev in self.__envs:
             sig = dev.computeOutput(t)
             grad = dev.computeGradient(t)
             gradients = jnp.append(gradients, grad, axis=1)
@@ -132,9 +140,11 @@ class CosGenerator(Generator):
             Return the gradients from all devices at one time.
 
         """
-        phase_fac_deriv = -1 * jnp.exp(-1j * self.__phase.getValue()).imag
+        # TODO: I think we were and still are missing the product of the
+        #  gradient of the LO signal with the envelope signal
+        phase_fac_deriv = -1.0j * jnp.exp(-1j * self.__phase.getValue())
         gradients = jnp.zeros(shape=(0,))
-        for dev in self.__devices:
+        for dev in self.__envs:
             sig = dev.computeOutput(t)
             grad = jnp.squeeze(dev.computeGradient(t), axis=0)
             gradients = jnp.append(gradients, grad, axis=0)

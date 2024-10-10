@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 
-from cthree.signal.Device import CosToneErf
+from cthree.signal.Envelopes import ErfEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 from cthree.model.GeneratorDrive import GeneratorDrive
 
@@ -24,7 +24,7 @@ def time_samples():
 @pytest.fixture
 def tone():
     """Generate a sinusoidal tone."""
-    tone = CosToneErf()
+    tone = ErfEnvelope()
     tone.setOptimisableParameters(tone.getParameters())
     return tone
 
@@ -32,7 +32,7 @@ def tone():
 @pytest.fixture
 def gen(tone):
     """Return a sinusoidal tone generator object."""
-    gen = CosGenerator(devices=[tone])
+    gen = CosGenerator(envelopes=[tone])
     return gen
 
 
