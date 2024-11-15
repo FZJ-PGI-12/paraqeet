@@ -281,7 +281,7 @@ class LocalOscillator(Waveform):
             Gradient of tone wrt to frequency.
         """
         freq = self.__lo_freq.getValue()
-        t = np.array(t, ndmin=1)
+        t = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
         if self._isOptimised(self.__lo_freq):
