@@ -5,7 +5,7 @@ import numpy as np
 
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
-from cthree.signal.Envelopes import ErfEnvelope
+from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 
 from cthree.OptimisationMap import OptimisationMap
@@ -36,7 +36,7 @@ def tone():
     """Create a signal tone."""
 
     def _method(amp, t_final):
-        tone = ErfEnvelope(
+        tone = FlatTopGaussianEnvelope(
             amplitude=Quantity(
                 amp * 2 * np.pi,
                 min_value=0.8 * amp * 2 * np.pi,

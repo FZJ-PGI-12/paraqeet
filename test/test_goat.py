@@ -14,7 +14,7 @@ from cthree.model.Qubit import Qubit
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
-from cthree.signal.Envelopes import ErfEnvelope
+from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 from test.DummyDevice import CosToneErfAD
 
@@ -26,7 +26,7 @@ RES = 100e9
 @pytest.fixture
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
-    return ErfEnvelope()
+    return FlatTopGaussianEnvelope()
 
 
 @pytest.fixture

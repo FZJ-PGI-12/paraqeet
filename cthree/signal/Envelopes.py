@@ -249,8 +249,8 @@ class ZeroEnvelope(ConstantEnvelope):
         self.amplitude.setValue(0.0)
 
 
-class ErfEnvelope(Envelope):
-    """An error-function shaped envelope.
+class FlatTopGaussianEnvelope(Envelope):
+    """A flat-top Gaussian envelope.
 
     __amplitude: Quantity
         The amplitude of the envelope.
@@ -290,7 +290,7 @@ class ErfEnvelope(Envelope):
         ramp_time = t_final / 10
         rampUp = 1 + erf((t - t_final / 5) / ramp_time)
         rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
-        return jnp.squeeze(amp * rampUp * rampDown / 4)
+        return amp * rampUp * rampDown / 4
 
     @staticmethod
     @jit
@@ -333,7 +333,7 @@ class ErfEnvelope(Envelope):
 
         prod_dir = rampUp * rampDown_t_dir + rampUp_t_dir * rampDown
 
-        return jnp.squeeze(amp * prod_dir / 4)
+        return amp * prod_dir / 4
 
     @partial(jit, static_argnums=(0,))
     def _evaluateTFinalGrad(
@@ -371,7 +371,7 @@ class ErfEnvelope(Envelope):
 
         prod_dir = rampUp * rampDown_t_fin_dir + rampUp_t_fin_dir * rampDown
 
-        return jnp.squeeze(amp * prod_dir / 4)
+        return amp * prod_dir / 4
 
     def computeOutput(self, t: np.ndarray) -> Array:
         """Get the output of the device on time stamps.
@@ -476,7 +476,7 @@ class GaussEnvelope(Envelope):
         """
         sigma = t_final / 8
         env = amp * jnp.exp(-(1 / 2) * (t - t_final / 2) ** 2 / sigma**2)
-        return jnp.squeeze(env)
+        return env
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluateTimeGradient(
@@ -503,7 +503,7 @@ class GaussEnvelope(Envelope):
             * (t - t_final / 2)
             / sigma**2
         )
-        return jnp.squeeze(timeGrad)
+        return timeGrad
 
     def computeOutput(self, t: np.ndarray) -> Array:
         """Compute a Gaussian signal.

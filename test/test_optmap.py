@@ -3,7 +3,7 @@
 from cthree.OptimisationMap import OptimisationMap
 
 from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.Envelopes import ConstantEnvelope, ErfEnvelope
+from cthree.signal.Envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
 
 tone = ConstantEnvelope()
 gen = CosGenerator(envelopes=[tone])
@@ -25,7 +25,7 @@ def testParametersOverwrite() -> None:
 
 def testFilter() -> None:
     """Test for filtered parameters."""
-    tone2 = ErfEnvelope()
+    tone2 = FlatTopGaussianEnvelope()
     optmap.add(tone2)
 
     def HzFilter(par):

@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 
-from cthree.signal.Envelopes import ErfEnvelope
+from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 from cthree.model.GeneratorDrive import GeneratorDrive
 
@@ -24,7 +24,7 @@ def time_samples():
 @pytest.fixture
 def tone():
     """Generate a sinusoidal tone."""
-    tone = ErfEnvelope()
+    tone = FlatTopGaussianEnvelope()
     tone.setOptimisableParameters(tone.getParameters())
     return tone
 
