@@ -439,8 +439,8 @@ class DRAGMixer(Waveform):
                 self.__gradArgNums += (i + 1,)
         if len(self.__gradArgNums) > 0:
             self.__gradientFunction = grad(
-                self._evaluate, argnums=self.__gradArgNums
-            )
+                self._evaluate, argnums=self.__gradArgNums, holomorphic=True
+            )  # TODO - CHECK if holomorphic is the right thing here.
 
     def setOptimisableParameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.

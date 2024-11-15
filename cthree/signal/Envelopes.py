@@ -476,7 +476,7 @@ class GaussEnvelope(Envelope):
         """
         sigma = t_final / 8
         env = amp * jnp.exp(-(1 / 2) * (t - t_final / 2) ** 2 / sigma**2)
-        return env
+        return jnp.squeeze(env)
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluateTimeGradient(
