@@ -430,18 +430,6 @@ class DRAGMixer(Waveform):
         deltas = [self.__getToneDelta(tone).getValue() for tone in self.__envs]
         return self._evaluate(t, *deltas)
 
-    def __computeGradientFunc(self):
-        """Compute Gradient function for AD."""
-        self.__gradArgNums = ()
-
-        for i, tone in enumerate(self.__envs):
-            if self._isOptimised(self.__getToneDelta(tone)):
-                self.__gradArgNums += (i + 1,)
-        if len(self.__gradArgNums) > 0:
-            self.__gradientFunction = grad(
-                self._evaluate, argnums=self.__gradArgNums, holomorphic=True
-            )  # TODO - CHECK if holomorphic is the right thing here.
-
     def setOptimisableParameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.
 
@@ -455,9 +443,6 @@ class DRAGMixer(Waveform):
 
         for tone in self.__envs:
             tone.setOptimisableParameters(params)
-
-        # Recompute the gradient function
-        self.__computeGradientFunc()
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """Generate gradient of the signal for an array of time.
@@ -478,26 +463,28 @@ class DRAGMixer(Waveform):
             Array of gradients wrt each parameter for each time point.
         """
         deltas = [self.__getToneDelta(tone) for tone in self.__envs]
-        deltas_values = [delta.getValue() for delta in deltas]
+        delta_values = [delta.getValue() for delta in deltas]
         delta_scales = [delta.getScale() for delta in deltas]
 
-        grads = []
         gradients = jnp.zeros(shape=(t.shape[0], 0))
-        for dev in self.__envs:
-            grads = dev.computeGradient(t)
+
+        # Collect gradients wrt envelope parameters
+        for tone in self.__envs:
+            grads = tone.computeGradient(t)
             gradients = jnp.append(gradients, grads, axis=1)
 
-        if self.__gradientFunction is not None:
-            parameter_scales = jnp.array(delta_scales)
-            parameter_scales = jnp.reshape(
-                parameter_scales, (1,) + parameter_scales.shape
-            )
-            grads = vmap(
-                self.__gradientFunction,
-                in_axes=(0,) + (None,) * len(deltas),
-            )(t, *deltas_values)
-            grads = jnp.stack(grads, axis=1)
-            grads = jnp.squeeze(grads) * parameter_scales
+        # Collect gradients wrt deltas
+        for i, tone in enumerate(self.__envs):
+            if self._isOptimised(deltas[i]):
+                grad = (
+                    1j
+                    * (delta_values[i] ** 2)
+                    * tone.computeTimeGradient(t)
+                    * delta_scales[i]
+                )
+                grad = jnp.expand_dims(grad, axis=1)
+                gradients = jnp.append(gradients, grad, axis=1)
 
         gradients = jnp.append(gradients, grads, axis=1)
+
         return jnp.array(gradients)
