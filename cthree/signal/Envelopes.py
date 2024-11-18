@@ -67,7 +67,7 @@ class Envelope(Waveform):
             List of parameters of the envelope.
 
         """
-        return [self.__amplitude, self.t_final]
+        return [self.__amplitude, self.__t_final]
 
     @property
     def amplitude(self) -> Quantity:

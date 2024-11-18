@@ -16,23 +16,17 @@ from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 
-FREQ = 4.8e9 * 2 * np.pi
-T_FINAL = 16e-9
+FREQ = 4.327884e9 * 2 * np.pi
+T_FINAL = 13e-9
 RES = 100e9
 
 
 @pytest.fixture
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
-    return FlatTopGaussianEnvelope(
-        t_final=Quantity(
-            T_FINAL,
-            0.8 * T_FINAL,
-            1.2 * T_FINAL,
-            unit="s",
-            name="t_final",
-        ),
-    )
+    env = FlatTopGaussianEnvelope()
+    env.t_final.setValue(T_FINAL)
+    return env
 
 
 @pytest.fixture
@@ -50,9 +44,7 @@ def prop(gen):
 
     """
     drive = GeneratorDrive(gen, isLongitudinal=False)
-    controlled_qubit = Qubit(
-        Quantity(FREQ, 0.5 * FREQ, 1.5 * FREQ), drives=[drive]
-    )
+    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive])
     model = ClosedModel(controlled_qubit)
     return ScipyExpmGOAT(model=model, res=RES)
 
@@ -60,8 +52,8 @@ def prop(gen):
 @pytest.fixture
 def states(prop):
     """Compare the overlap of the initial and final state."""
-    init = np.array([1.0, 0.0j])
-    target = np.array([0.0j, 1])
+    init = np.array([1.0, 0.0])
+    target = np.array([0.0, 1])
     return StateTransferFidelity(
         propagation=prop,
         initialState=init,
@@ -86,11 +78,11 @@ def gates(prop):
 def optMap(gen):
     """Create an optimisation map."""
     params = gen.getParameters()
-    params[0].setValue(0.8 * np.pi / T_FINAL)
-    params[2].setValue(0.96 * FREQ)
+    params[0].setValue(0.5 * np.pi / T_FINAL)
+    params[2].setValue(1.01 * FREQ)
     optmap = OptimisationMap()
     # Not optimizing t_final
-    optmap.add(gen, [params[0]] + params[2:])
+    optmap.add(gen, [params[0], params[2], params[3]])
     return optmap
 
 
@@ -112,6 +104,12 @@ def opt(states, optMap):
     return ScipyOptimiser(measure=states, optimisables=optMap)
 
 
+@pytest.fixture
+def gatesOpt(gates, optMap):
+    """Create a scipy optimiser gradient object over gates."""
+    return ScipyOptimiser(measure=gates, optimisables=optMap)
+
+
 def test_optim_finite_diff(opt) -> None:
     """Check that the optimization goes below threshold."""
     res = opt.optimise()
@@ -121,6 +119,12 @@ def test_optim_finite_diff(opt) -> None:
 def test_optim_GOAT(gradOpt) -> None:
     """Check that the optimization goes below threshold."""
     res = gradOpt.optimise()
+    assert res.value < 1e-4
+
+
+def test_optim_gates_finite_diff(gatesOpt) -> None:
+    """Check that the optimization goes below threshold."""
+    res = gatesOpt.optimise()
     assert res.value < 1e-4
 
 
