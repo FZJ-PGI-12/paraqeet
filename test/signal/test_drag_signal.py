@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from cthree.signal.Envelopes import (
+    FlatTopGaussianEnvelope,
     GaussEnvelope,
     ZeroEnvelope,
 )
@@ -47,6 +48,14 @@ def gauss():
 def zeroGen():
     """Return a zero tone DRAG generator object."""
     tone = ZeroEnvelope()
+    drag_tone = DRAGMixer(tone)
+    return CosGenerator(envelopes=[drag_tone])
+
+
+@pytest.fixture
+def flattop():
+    """Return a FlatTop signal with DRAG."""
+    tone = FlatTopGaussianEnvelope()
     drag_tone = DRAGMixer(tone)
     return CosGenerator(envelopes=[drag_tone])
 
@@ -96,4 +105,11 @@ def test_gradient_shape(gen, time_samples):
     """Test the length of the signal gradient."""
     gen.setOptimisableParameters(gen.getParameters())
     grads = gen.generateSignalGradient(time_samples)
+    assert grads.shape[0] == time_samples.shape[0]
+
+
+def test_gradient_flattop(flattop, time_samples):
+    """Test the length of the gradient of flattop signal."""
+    flattop.setOptimisableParameters(flattop.getParameters())
+    grads = flattop.generateSignalGradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]
