@@ -127,14 +127,14 @@ class CosGenerator(Generator):
             grad = dev.computeGradient(t).conj()
             if grad.size != 0:
                 grad *= jnp.expand_dims(lo_out * phase_fac, axis=1)
-            gradients = jnp.append(gradients, jnp.real(grad), axis=1)
+            gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=1)
 
         # Collect LO gradients
         lo_freq = self.__lo.getParameters()[0]
         if self._isOptimised(lo_freq):
             gradients = jnp.append(
                 gradients,
-                jnp.expand_dims(1.0j * t * sig * lo_freq.getScale(), 1),
+                jnp.expand_dims(0.5j * t * sig * lo_freq.getScale(), 1),
                 axis=1,
             )
 
@@ -143,7 +143,7 @@ class CosGenerator(Generator):
             gradients = jnp.append(
                 gradients,
                 jnp.expand_dims(
-                    -1.0j * sig * phase_fac * self.__phase.getScale(), 1
+                    -0.5j * sig * phase_fac * self.__phase.getScale(), 1
                 ),
                 axis=1,
             )
@@ -156,10 +156,12 @@ class CosGenerator(Generator):
 
         Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
         Derivative of the signal wrt optimisable parameter of envelope would be
-        Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
+        0.5 * Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
 
         And derivative of signal wrt parameter of LO would be
-        Re(env(t).conj() * i*t*e^(i*freq*t) * e^(-i*phase))
+        0.5 * Re(env(t).conj() * i*t*e^(i*freq*t) * e^(-i*phase))
+
+        The 0.5 are due to the Wirtinger derivatives.
 
         Parameters
         ----------
@@ -182,20 +184,20 @@ class CosGenerator(Generator):
             grad = jnp.squeeze(dev.computeGradient(t).conj(), axis=0)
             if grad.size != 0:
                 grad *= lo_out * phase_fac
-            gradients = jnp.append(gradients, jnp.real(grad), axis=0)
+            gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=0)
 
         # Collect LO gradients
         lo_freq = self.__lo.getParameters()[0]
         if self._isOptimised(lo_freq):
             gradients = jnp.append(
-                gradients, 1.0j * t * sig * lo_freq.getScale(), axis=0
+                gradients, 0.5j * t * sig * lo_freq.getScale(), axis=0
             )
 
         # Collect gradient of Phase
         if self._isOptimised(self.__phase):
             gradients = jnp.append(
                 gradients,
-                -1.0j * sig * phase_fac * self.__phase.getScale(),
+                -0.5j * sig * phase_fac * self.__phase.getScale(),
                 axis=0,
             )
         return gradients
