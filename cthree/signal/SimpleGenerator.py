@@ -62,8 +62,6 @@ class CosGenerator(Generator):
     def setOptimisableParameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.
 
-        Also add the indices to `__gradArgNums` to compute the gradients.
-
         Parameters
         ----------
         params : list[Quantity]
@@ -101,12 +99,12 @@ class CosGenerator(Generator):
 
         TODO - Check the following formulas for derivatives
 
-        Here, since the signal = Re(env(t).conj() * LO(t) * exp(-i*phase))
+        Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
         Derivative of the signal wrt optimisable parameter of envelope would be
-        Re(denv(t).conj() * LO(t) * e^(-i*phase))
+        Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
 
         And derivative of signal wrt parameter of LO would be
-        Re(env(t).conj() * dLO(t) * e^(-i*phase))
+        Re(env(t).conj() * i*t*e^(i*freq*t) * e^(-i*phase))
 
         Parameters
         ----------
@@ -121,23 +119,34 @@ class CosGenerator(Generator):
         """
         phase_fac = jnp.exp(-1j * self.__phase.getValue())
         lo_out = self.__lo.computeOutput(t)
+        sig = self.generateSignal(t)
         gradients = jnp.zeros(shape=(t.shape[0], 0))
 
         # Collect gradients for envelopes
         for dev in self.__envs:
-            grad = dev.computeGradient(t).conj() * lo_out * phase_fac
+            grad = dev.computeGradient(t).conj()
+            if grad.size != 0:
+                grad *= jnp.expand_dims(lo_out * phase_fac, axis=1)
             gradients = jnp.append(gradients, jnp.real(grad), axis=1)
 
         # Collect gradient of LO
-        total_env = jnp.zeros_like(t)
-        for dev in self.__envs:
-            total_env += jnp.reshape(dev.computeOutput(t), total_env.shape)
-        gradLO = total_env.conj() * self.__lo.computeGradient(t) * phase_fac
-        gradients = jnp.append(gradients, jnp.real(gradLO), axis=1)
+        # total_env = jnp.zeros(shape=(t.shape[0], 1))
+        # for dev in self.__envs:
+        #     total_env += jnp.reshape(dev.computeOutput(t), total_env.shape)
+        # grad = self.__lo.computeGradient(t)
+        # if grad.size != 0:
+        #     grad *=  total_env.conj() * phase_fac
+        # gradients = jnp.append(gradients, jnp.real(grad), axis=1)
+        lo_freq = self.__lo.getParameters()[0]
+        if self._isOptimised(lo_freq):
+            gradients = jnp.append(
+                gradients,
+                jnp.expand_dims(1.0j * t * sig * lo_freq.getScale(), 1),
+                axis=1,
+            )
 
         # Collect gradient of Phase
         if self._isOptimised(self.__phase):
-            sig = self.generateSignal(t)
             gradients = jnp.append(
                 gradients,
                 jnp.expand_dims(
@@ -164,28 +173,35 @@ class CosGenerator(Generator):
         # TODO: I think we were and still are missing the product of the
         #  gradient of the LO signal with the envelope signal
         phase_fac = jnp.exp(-1j * self.__phase.getValue())
-        lo_out = self.__lo.computeOutput(t)
+        lo_out = jnp.squeeze(self.__lo.computeOutput(t), axis=0)
+        sig = self.generateSignal(t)
         gradients = jnp.zeros(shape=(0,))
 
         # Collect gradients for envelopes
         for dev in self.__envs:
-            grad = jnp.squeeze(
-                dev.computeGradient(t).conj() * lo_out * phase_fac, axis=0
-            )
+            grad = jnp.squeeze(dev.computeGradient(t).conj(), axis=0)
+            if grad.size != 0:
+                grad *= lo_out * phase_fac
             gradients = jnp.append(gradients, jnp.real(grad), axis=0)
 
         # Collect gradient of LO
-        total_env = jnp.zeros_like(t)
-        for dev in self.__envs:
-            total_env += jnp.reshape(dev.computeOutput(t), total_env.shape)
-        gradLO = jnp.squeeze(
-            total_env.conj() * self.__lo.computeGradient(t) * phase_fac, axis=0
-        )
-        gradients = jnp.append(gradients, jnp.real(gradLO), axis=0)
+        # total_env = jnp.zeros_like(t)
+        # for dev in self.__envs:
+        #     total_env += jnp.reshape(dev.computeOutput(t), total_env.shape)
+        # total_env = jnp.squeeze(total_env, axis=0)
+
+        # gradLO = jnp.squeeze(self.__lo.computeGradient(t), axis=0)
+        # if gradLO.size != 0:
+        #     gradLO *= total_env.conj() * phase_fac
+        # gradients = jnp.append(gradients, jnp.real(gradLO), axis=0)
+        lo_freq = self.__lo.getParameters()[0]
+        if self._isOptimised(lo_freq):
+            gradients = jnp.append(
+                gradients, 1.0j * t * sig * lo_freq.getScale(), axis=0
+            )
 
         # Collect gradient of Phase
         if self._isOptimised(self.__phase):
-            sig = self.generateSignal(t)
             gradients = jnp.append(
                 gradients,
                 -1.0j * sig * phase_fac * self.__phase.getScale(),
