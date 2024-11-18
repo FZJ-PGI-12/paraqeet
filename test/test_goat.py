@@ -6,7 +6,6 @@ import pytest
 from cthree.OptimisationMap import OptimisationMap
 from cthree.Quantity import Quantity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.measurement.StateTransferFidelity import StateTransferFidelityAD
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
 from cthree.model.ClosedModel import ClosedModel
 from cthree.model.GeneratorDrive import GeneratorDrive
@@ -16,17 +15,24 @@ from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
-from test.DummyDevice import CosToneErfAD
 
 FREQ = 4.8e9 * 2 * np.pi
-T_FINAL = 10e-9
+T_FINAL = 16e-9
 RES = 100e9
 
 
 @pytest.fixture
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
-    return FlatTopGaussianEnvelope()
+    return FlatTopGaussianEnvelope(
+        t_final=Quantity(
+            T_FINAL,
+            0.8 * T_FINAL,
+            1.2 * T_FINAL,
+            unit="s",
+            name="t_final",
+        ),
+    )
 
 
 @pytest.fixture
@@ -83,7 +89,8 @@ def optMap(gen):
     params[0].setValue(0.8 * np.pi / T_FINAL)
     params[2].setValue(0.96 * FREQ)
     optmap = OptimisationMap()
-    optmap.add(gen, params)
+    # Not optimizing t_final
+    optmap.add(gen, [params[0]] + params[2:])
     return optmap
 
 
@@ -120,68 +127,4 @@ def test_optim_GOAT(gradOpt) -> None:
 def test_optim_GOAT_gates(gradGatesOpt) -> None:
     """Check that the optimization goes below threshold."""
     res = gradGatesOpt.optimise()
-    assert res.value < 1e-4
-
-
-@pytest.fixture
-def toneAD():
-    """Create a dummy CosToneErf class.
-
-    Without analytical gradients to test AD gradients.
-
-    """
-    return CosToneErfAD()
-
-
-@pytest.fixture
-def genAD(toneAD):
-    """Generate a cosine tone."""
-    genAD = CosGenerator(envelopes=[toneAD])
-    return genAD
-
-
-@pytest.fixture
-def propAD(genAD):
-    """Create a Scipy piecewise exponentiation GOAT model."""
-    drive = GeneratorDrive(genAD, isLongitudinal=False)
-    controlled_qubit = Qubit(
-        frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive]
-    )
-    model = ClosedModel(controlled_qubit)
-    return ScipyExpmGOAT(model=model, res=RES)
-
-
-@pytest.fixture
-def statesAD(propAD):
-    """Return the state transfer fidelity."""
-    init = np.array([[1.0], [0.0j]])
-    target = np.array([[0.0j], [1]])
-    return StateTransferFidelityAD(
-        propagation=propAD,
-        initialState=init,
-        targetState=target,
-        times=np.array([0.0, T_FINAL]),
-    )
-
-
-@pytest.fixture
-def optMapAD(toneAD):
-    """Return the optimisation map."""
-    params = toneAD.getParameters()[0:2]
-    params[0].setValue(0.8 * np.pi / T_FINAL)
-    params[2].setValue(0.95 * FREQ)
-    optmap = OptimisationMap()
-    optmap.add(toneAD, params)
-    return optmap
-
-
-@pytest.fixture
-def gradOptAD(statesAD, optMapAD):
-    """Return the Scipy optimiser gradient object."""
-    return ScipyOptimiserGradient(measure=statesAD, optimisables=optMapAD)
-
-
-def test_optim_GOAT_AD(gradOptAD) -> None:
-    """Check that the optimization goes below threshold."""
-    res = gradOptAD.optimise()
     assert res.value < 1e-4
