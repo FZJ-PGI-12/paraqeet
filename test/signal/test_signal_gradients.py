@@ -4,14 +4,34 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.signal.Envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
-from test.DummyDevice import CosToneAD, CosToneErfAD
+from cthree.signal.Envelopes import FlatTopGaussianEnvelope
+from test.DummyDevice import FlatTopGaussianEnvelopeAD
 
-costone = ConstantEnvelope()
-costoneerf = FlatTopGaussianEnvelope()
-costoneAD = CosToneAD()
-costoneerfAD = CosToneErfAD()
 time = jnp.linspace(0, 10e-6, 100)
+
+
+@pytest.fixture
+def tone():
+    """Tone with analytic gradient.
+
+    Returns
+    -------
+    cthree.signal.Envelopes.Envelope
+        A Flat top Gaussian Envelope
+    """
+    return FlatTopGaussianEnvelope()
+
+
+@pytest.fixture
+def toneAD():
+    """Tone with AutoDiff gradients.
+
+    Returns
+    -------
+    cthree.signal.Envelopes.Envelope
+        A Flat top Gaussian Envelope without gradients defined
+    """
+    return FlatTopGaussianEnvelopeAD()
 
 
 def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
@@ -36,9 +56,6 @@ def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
     return np.array(elements)[indices]
 
 
-@pytest.mark.parametrize(
-    "tone, toneAD", [(costone, costoneAD), (costoneerf, costoneerfAD)]
-)
 def test_values(tone, toneAD):
     """Test values from the AD signal."""
     assert toneAD.computeOutput(time) == pytest.approx(
@@ -46,9 +63,6 @@ def test_values(tone, toneAD):
     )
 
 
-@pytest.mark.parametrize(
-    "tone, toneAD", [(costone, costoneAD), (costoneerf, costoneerfAD)]
-)
 def test_gradients(tone, toneAD):
     """Test generation of analytic and AD signal gradients one at a time."""
     grad_tone = []
@@ -72,9 +86,6 @@ def test_gradients(tone, toneAD):
     )
 
 
-@pytest.mark.parametrize(
-    "tone, toneAD", [(costone, costoneAD), (costoneerf, costoneerfAD)]
-)
 def test_gradients_vectorized(tone, toneAD):
     """Test vectorized generation of analytic and AD signal gradients."""
     numParams = np.random.randint(0, len(tone.getParameters()))
@@ -92,7 +103,6 @@ def test_gradients_vectorized(tone, toneAD):
     )
 
 
-@pytest.mark.parametrize("tone", [costone, costoneAD, costoneerf, costoneerfAD])
 def test_gradients_shape(tone):
     """Test the signal gradient shape."""
     tone.setOptimisableParameters(randomEntriesFromList(tone.getParameters()))
