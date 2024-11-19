@@ -293,20 +293,19 @@ class PWCGenerator(Generator):
         for dev in self.__envs:
             env += dev.computeOutput(self.__tlist)
 
-        re_max = jnp.max(jnp.abs(jnp.real(env)))
-        imag_max = jnp.max(jnp.abs(jnp.imag(env)))
+        max_abs = jnp.max(jnp.abs(env))
 
         self.__inphase = Quantity(
             jnp.real(env),
-            min_value=-2 * re_max,
-            max_value=2 * re_max,
+            min_value=-2 * max_abs,
+            max_value=2 * max_abs,
             unit="Hz",
             name="Inphase",
         )
         self.__quadrature = Quantity(
             jnp.imag(env),
-            min_value=-2 * imag_max,
-            max_value=2 * imag_max,
+            min_value=-2 * max_abs,
+            max_value=2 * max_abs,
             unit="Hz",
             name="Quadrature",
         )
@@ -336,7 +335,11 @@ class PWCGenerator(Generator):
 
     @partial(jit, static_argnums=(0,))
     def __PWCSignal(
-        self, inphase: np.ndarray, quadrature: np.ndarray, t: float
+        self,
+        inphase: np.ndarray,
+        quadrature: np.ndarray,
+        tlist: np.ndarray,
+        t: float,
     ) -> Array:
         """Generate a signal for a single time point 't'.
 
@@ -349,6 +352,8 @@ class PWCGenerator(Generator):
             1-D vector of step values of real part of the PWC signal.
         quadrature: np.ndarray
             1-D vector of step values of complex part of the PWC signal.
+        tlist: np.ndarray
+            Time bins of the PWC pulse.
         t : float
             One time point.
 
@@ -358,7 +363,7 @@ class PWCGenerator(Generator):
             Returns the PWC signal value at t.
 
         """
-        index = jnp.argmin(jnp.abs(self.__tlist - t))
+        index = jnp.argmin(jnp.abs(tlist - t))
         return inphase[index] + 1j * quadrature[index]
 
     def generateSignal(self, t: np.ndarray) -> Array:
@@ -378,9 +383,10 @@ class PWCGenerator(Generator):
         t = jnp.array(t, ndmin=1)
         inphase = self.__inphase.getValue()
         quadrature = self.__quadrature.getValue()
+        tlist = self.__tlist
         return jnp.squeeze(
-            vmap(self.__PWCSignal, in_axes=(None, None, 0))(
-                inphase, quadrature, t
+            vmap(self.__PWCSignal, in_axes=(None, None, None, 0))(
+                inphase, quadrature, tlist, t
             )
         )
 
