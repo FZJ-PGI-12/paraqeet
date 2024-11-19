@@ -115,17 +115,16 @@ class CosGenerator(Generator):
     def generateSignalGradient(self, t) -> Array:
         """Collect and returns the gradients from all devices.
 
-        TODO - Check the following formulas for derivatives
-
         Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
         Derivative of the signal wrt optimisable parameter of envelope would be
         0.5 * Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
+        (TODO - Check the envelope derivatives)
 
         And derivative of signal wrt parameter of LO would be
         0.5 * Re(env(t).conj() * i*t*e^(i*freq*t) * e^(-i*phase))
 
         And derivative of signal wrt phase would be
-        -0.5*i * Re(env(t).conj() * *e^(i*freq*t) * e^(-i*phase))
+        -0.5 * i * Re(env(t).conj() * e^(i*freq*t) * e^(-i*phase))
 
         The 0.5 are due to the Wirtinger derivatives due to Re part.
 
@@ -176,12 +175,13 @@ class CosGenerator(Generator):
         Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
         Derivative of the signal wrt optimisable parameter of envelope would be
         0.5 * Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
+        (TODO - Check the envelope derivatives)
 
         And derivative of signal wrt parameter of LO would be
-        0.5*i*t * env(t).conj() * *e^(i*freq*t) * e^(-i*phase)
+        0.5*i*t * env(t).conj() * e^(i*freq*t) * e^(-i*phase)
 
         And derivative of signal wrt phase would be
-        -0.5*i * env(t).conj() * *e^(i*freq*t) * e^(-i*phase)
+        -0.5*i * env(t).conj() * e^(i*freq*t) * e^(-i*phase)
 
         The 0.5 are due to the Wirtinger derivatives due to Re part.
 
@@ -202,7 +202,6 @@ class CosGenerator(Generator):
         gradients = jnp.zeros(shape=(0,))
 
         # Collect gradients for envelopes
-        # TODO - Check this part
         for dev in self.__envs:
             grad = jnp.squeeze(dev.computeGradient(t).conj(), axis=0)
             if grad.size != 0:
