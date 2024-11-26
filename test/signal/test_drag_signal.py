@@ -1,13 +1,15 @@
 """Test the functionality of the generation of the DRAG correted signal."""
 
-from abc import ABC
-
 import numpy as np
 import pytest
-from jax import numpy as jnp
 
-from cthree.signal.DRAGGenerator import DRAGGenerator
-from cthree.signal.Device import GaussTone, ZeroTone, Device
+from cthree.signal.Envelopes import (
+    FlatTopGaussianEnvelope,
+    GaussEnvelope,
+    ZeroEnvelope,
+)
+from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.Waveform import DRAGMixer
 
 LEN_SIG = 1001
 
@@ -25,39 +27,51 @@ def time_samples():
 @pytest.fixture
 def gen():
     """Return DRAG signal generator object."""
-    tone = GaussTone()
-    return DRAGGenerator(devices=[tone])
+    tone = GaussEnvelope()
+    drag_tone = DRAGMixer(tone)
+    return CosGenerator(envelopes=[drag_tone])
 
 
 @pytest.fixture
 def zero():
     """Return a zero signal device."""
-    return ZeroTone()
+    return ZeroEnvelope()
 
 
 @pytest.fixture
 def gauss():
     """Return a gaussian signal device."""
-    return GaussTone()
+    return GaussEnvelope()
 
 
 @pytest.fixture
 def zeroGen():
     """Return a zero tone DRAG generator object."""
-    tone = ZeroTone()
-    return DRAGGenerator(devices=[tone])
+    tone = ZeroEnvelope()
+    drag_tone = DRAGMixer(tone)
+    return CosGenerator(envelopes=[drag_tone])
+
+
+@pytest.fixture
+def flattop():
+    """Return a FlatTop signal with DRAG."""
+    tone = FlatTopGaussianEnvelope()
+    drag_tone = DRAGMixer(tone)
+    return CosGenerator(envelopes=[drag_tone])
 
 
 @pytest.fixture
 def genMultipleTones():
     """Return a multiple tone DRAG generator."""
-    tone1 = GaussTone()
+    tone1 = GaussEnvelope()
     params1 = tone1.getParameters()
+    drag_tone1 = DRAGMixer(tone1)
 
-    tone2 = GaussTone()
+    tone2 = GaussEnvelope()
     params2 = tone2.getParameters()
+    drag_tone2 = DRAGMixer(tone2)
     return (
-        DRAGGenerator(devices=[tone1, tone2]),
+        CosGenerator(envelopes=[drag_tone1, drag_tone2]),
         np.concatenate((params1, params2)),
     )
 
@@ -66,50 +80,6 @@ def test_constant_env(zeroGen, time_samples):
     """Test the values of a DRAG signal using a constant envelope."""
     assert np.all(
         zeroGen.generateSignal(time_samples) == np.zeros_like(time_samples)
-    )
-
-
-def test_env_grad_equality(zero, gauss, time_samples):
-    """Test time gradients.
-
-    Test if the autograd time gradients match the ones calculated by hand
-    for a gaussian signal envelope.
-
-    """
-
-    class GaussTonewithoutgrad(Device, ABC):
-        def __init__(self) -> None:
-            self.__amplitude = gauss.getParameters()[0]
-            self.__duration = gauss.getParameters()[1]
-
-        def computeEnvelope(self, t: np.ndarray):
-            dur = self.__duration.getValue()
-            sigma = dur / 6
-            env = self.__amplitude.getValue()
-            env *= jnp.exp(-(1 / 2) * (t - dur / 2) ** 2 / sigma**2)
-            return jnp.squeeze(env)
-
-    class GaussTonewithoutgradandenv(Device, ABC):
-        def __init__(self) -> None:
-            self.__amplitude = gauss.getParameters()[0]
-            self.__duration = gauss.getParameters()[1]
-
-    autoderiv = GaussTonewithoutgrad().computeEnvelopeTimeGradient(time_samples)
-    deriv = gauss.computeEnvelopeTimeGradient(time_samples)
-
-    with pytest.raises(NotImplementedError):
-        GaussTonewithoutgradandenv().computeEnvelopeTimeGradient(time_samples)
-    assert len(autoderiv) == len(deriv) == LEN_SIG
-    assert np.all(abs((autoderiv - deriv) / deriv) < 1.5 * 10 ** (-8))
-    assert np.all(
-        abs(
-            (
-                gauss.computeEnvelope(time_samples)
-                - gauss.computeOutput(time_samples)
-            )
-            / gauss.computeOutput(time_samples)
-        )
-        < 1.5 * 10 ** (-8)
     )
 
 
@@ -135,4 +105,11 @@ def test_gradient_shape(gen, time_samples):
     """Test the length of the signal gradient."""
     gen.setOptimisableParameters(gen.getParameters())
     grads = gen.generateSignalGradient(time_samples)
+    assert grads.shape[0] == time_samples.shape[0]
+
+
+def test_gradient_flattop(flattop, time_samples):
+    """Test the length of the gradient of flattop signal."""
+    flattop.setOptimisableParameters(flattop.getParameters())
+    grads = flattop.generateSignalGradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]

@@ -7,7 +7,7 @@ from cthree.Quantity import Quantity
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.model.Resonator import Resonator
 from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.Device import CosToneErf
+from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 
 
 FREQ = 4.8e9 * 2 * np.pi
@@ -27,13 +27,13 @@ def time_samples():
 @pytest.fixture
 def tone():
     """Return a object for sinusoidal tone generator with error envelopes."""
-    return CosToneErf()
+    return FlatTopGaussianEnvelope()
 
 
 @pytest.fixture
 def gen(tone):
     """Return a sinusoidal tone generator object."""
-    gen = CosGenerator(devices=[tone])
+    gen = CosGenerator(envelopes=[tone])
     return gen
 
 

@@ -5,153 +5,169 @@ from functools import partial
 import numpy as np
 import jax.numpy as jnp
 
-from jax import jit
+from jax import Array, jit
 from jax.scipy.special import erf
 
-from cthree.Quantity import Quantity
-from cthree.signal.Device import Device
+from cthree.signal.Envelopes import Envelope
 
 
-class CosToneAD(Device):
-    """Dummy CosTone class without analytical gradients to test AD gradients."""
+class FlatTopGaussianEnvelopeAD(Envelope):
+    """A flat-top Gaussian envelope without analytic gradients.
+
+    Dummy device to test AutoDiff Gradients for Envelopes.
 
     __amplitude: Quantity
-    __frequency: Quantity
+        The amplitude of the envelope.
+    __t_final: Quantity
+        The length in time of the envelope.
+    _gradientFunction: Callable | None
+        The function to calculate the gradient with respect to a set of
+        previously defined parameters.
+    _gradArgNums: tuple[int, ...]
+        The identifying indices of which parameters to calculate the gradient
+        with respect to.
 
-    def __init__(self) -> None:
-        self.__amplitude = Quantity(
-            2e5 * 2 * np.pi,
-            min_value=1e5 * 2 * np.pi,
-            max_value=50e6 * 2 * np.pi,
-            unit="Hz",
-            name="Amplitude",
-        )
-        self.__frequency = Quantity(
-            5e9 * 2 * np.pi,
-            min_value=4e9 * 2 * np.pi,
-            max_value=6e9 * 2 * np.pi,
-            unit="Hz",
-            name="Frequency",
-        )
-        self.__phase = Quantity(
-            0,
-            min_value=-np.pi,
-            max_value=np.pi,
-            unit="rad",
-            name="Phase",
-        )
-
-    def getParameters(self) -> list[Quantity]:
-        """Get parameters."""
-        return [self.__amplitude, self.__frequency, self.__phase]
+    """
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate(
-        self, amp: Quantity, freq: Quantity, phase: Quantity, t: np.ndarray
-    ):
-        """Compute the output of a device.
+    def _evaluate(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+        """Compute the output of the device.
 
-        The device explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimisable parameters.
 
         Parameters
         ----------
         amp : cthree.Quantity
             Cosine pulse amplitude.
-        freq : cthree.Quantity
-            Cosine pulse frequency.
-        phase : cthree.Quantity
-            Cosine pulse frequence.
+        t_final: np.ndarray
+            The length in time of the entire envelope.
         t : numpy.ndarray
-            One-dimensional vector containing timestamps.
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the output of the device that explicitly depends
+            on the optimisable parameters.
 
         """
-        return jnp.squeeze(amp * jnp.cos(freq * t + phase))
+        ramp_time = t_final / 10
+        rampUp = 1 + erf((t - t_final / 5) / ramp_time)
+        rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        return amp * rampUp * rampDown / 4
 
-    def computeOutput(self, t: np.ndarray):
-        """Return the scalar output for each step in the time array t.
+    @staticmethod
+    @jit
+    def __dir_erf(x: np.ndarray):
+        return 2 / jnp.sqrt(np.pi) * jnp.exp(-(x**2))
+
+    @partial(jit, static_argnums=(0,))
+    def _evaluateTimeGrad(
+        self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray
+    ):
+        """Compute the output of the device.
+
+        Explicitly depends on the optimisable parameters.
+
+        Parameters
+        ----------
+        amp : cthree.Quantity
+            Cosine pulse amplitude.
+        t_final: np.ndarray
+            The length in time of the entire envelope.
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the output of the device that explicitly depends
+            on the optimisable parameters.
+
+        """
+        ramp_time = t_final / 10
+
+        rampUp = 1 + erf((t - t_final / 5) / ramp_time)
+        rampUp_t_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
+        rampUp_t_dir /= ramp_time
+
+        rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        rampDown_t_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
+        rampDown_t_dir *= -1 / ramp_time
+
+        prod_dir = rampUp * rampDown_t_dir + rampUp_t_dir * rampDown
+
+        return amp * prod_dir / 4
+
+    @partial(jit, static_argnums=(0,))
+    def _evaluateTFinalGrad(
+        self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray
+    ):
+        """Compute the output of the device.
+
+        Explicitly depends on the optimisable parameters.
+
+        Parameters
+        ----------
+        amp : cthree.Quantity
+            Cosine pulse amplitude.
+        t_final: np.ndarray
+            The length in time of the entire envelope.
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        jax.numpy.ndarray
+            Returns the output of the device that explicitly depends
+            on the optimisable parameters.
+
+        """
+        ramp_time = t_final / 10
+
+        rampUp = 1 + erf((t - t_final / 5) / ramp_time)
+        rampUp_t_fin_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
+        rampUp_t_fin_dir *= -1 / (5 * ramp_time)
+
+        rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        rampDown_t_fin_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
+        rampDown_t_fin_dir *= 4 / (5 * ramp_time)
+
+        prod_dir = rampUp * rampDown_t_fin_dir + rampUp_t_fin_dir * rampDown
+
+        return amp * prod_dir / 4
+
+    def computeOutput(self, t: np.ndarray) -> Array:
+        """Get the output of the device on time stamps.
 
         Parameters
         ----------
         t : numpy.ndarray
-            One-dimensional vector containing timestamps.
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the output of the device.
+
+        """
+        amp = self.amplitude.getValue()
+        t_final = self.t_final.getValue()
+        return self._evaluate(amp, t_final, t)
+
+    def computeTimeGradient(self, t: np.ndarray) -> Array:
+        """Compute a signal envelopes time derivative.
+
+        Parameters
+        ----------
+        t: np.ndarray
+            One-dimensional vector of timestamps.
 
         Returns
         -------
         np.ndarray
-            Array of shape [t] with 't' as time.
-
+            Returns a vector signals time derivative.
         """
-        amp = self.__amplitude.getValue()
-        freq = self.__frequency.getValue()
-        phase = self.__phase.getValue()
-        return self._evaluate(amp, freq, phase, t)
-
-
-class CosToneErfAD(Device):
-    """Dummy CosToneErf class without analytical gradients.
-
-    For testing AD gradients.
-    """
-
-    __amplitude: Quantity
-    __frequency: Quantity
-    __t_final: Quantity
-
-    def __init__(self) -> None:
-        self.__amplitude = Quantity(
-            2e5 * 2 * np.pi,
-            min_value=1e5 * 2 * np.pi,
-            max_value=250e6 * 2 * np.pi,
-            unit="Hz",
-            name="Amplitude",
-        )
-        self.__frequency = Quantity(
-            5e9 * 2 * np.pi,
-            min_value=4e9 * 2 * np.pi,
-            max_value=6e9 * 2 * np.pi,
-            unit="Hz",
-            name="Frequency",
-        )
-        self.__t_final = Quantity(
-            10e-9, min_value=0e-9, max_value=100e-9, unit="s", name="Gate time"
-        )
-
-    def getParameters(self) -> list[Quantity]:
-        """Get paramters."""
-        return [self.__amplitude, self.__frequency]
-
-    def _envelope(self, t):
-        """Return a normalized error function shaped envelope with ramps.
-
-        Ramps centered at 1/5 and 4/5 of the final gate time.
-
-        """
-        t0 = self.__t_final.getValue()
-        ramp_time = t0 / 10
-        rampUp = 1 + erf((t - t0 / 5) / ramp_time)
-        rampDown = 1 + erf((-t + 4 * t0 / 5) / ramp_time)
-        return rampUp * rampDown / 4
-
-    @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: Quantity, freq: Quantity, t: np.ndarray):
-        """Compute the output of a device.
-
-        The device explicitly depends on the optimisable parameters.
-
-        Parameters
-        ----------
-        amp : cthree.Quantity
-            Cosine pulse amplitude.
-        freq : cthree.Quantity
-            Cosine pulse frequency.
-        t : numpy.ndarray
-            One-dimensional time array.
-
-        """
-        return jnp.squeeze(self._envelope(t) * amp * jnp.cos(freq * t))
-
-    def computeOutput(self, t: np.ndarray):
-        """Compute the outpute."""
-        amp = self.__amplitude.getValue()
-        freq = self.__frequency.getValue()
-        return self._evaluate(amp, freq, t)
+        amp = self.amplitude.getValue()
+        t_final = self.t_final.getValue()
+        return self._evaluateTimeGrad(amp, t_final, t)

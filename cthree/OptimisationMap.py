@@ -73,8 +73,8 @@ class OptimisationMap:
         try:
             self.__optimisableToParameterMap.pop(optimisable)
         # removed the bare except catch.
-        except Exception as _:
-            pass
+        except Exception as e:
+            raise Exception(e)
 
     def getOptimisables(self) -> set[Optimisable]:
         """Return all optimisable objects that were added to this map.

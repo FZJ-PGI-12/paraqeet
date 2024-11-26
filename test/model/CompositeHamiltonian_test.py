@@ -5,7 +5,7 @@ import numpy as np
 
 from cthree.Quantity import Quantity
 from cthree.model.Coupling import Coupling
-from cthree.signal.Device import CosToneErf
+from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.model.Transmon import Transmon
@@ -28,7 +28,7 @@ def time_samples():
 @pytest.fixture
 def tone():
     """Return a cosine tone."""
-    tone = CosToneErf()
+    tone = FlatTopGaussianEnvelope()
     tone.setOptimisableParameters(tone.getParameters())
     return tone
 
@@ -36,7 +36,7 @@ def tone():
 @pytest.fixture
 def gen(tone):
     """Return a sinusoidal generator object."""
-    gen = CosGenerator(devices=[tone])
+    gen = CosGenerator(envelopes=[tone])
     return gen
 
 

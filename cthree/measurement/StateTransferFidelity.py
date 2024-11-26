@@ -180,3 +180,65 @@ class StateTransferFidelityAD(StateTransferFidelity):
             dfdp = self.__gradientFunction(f) * g
             dF_dp.append(jnp.real(dfdp))
         return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
+
+
+class StateTransferFidelityGRAPE(StateTransferFidelity):
+    """Fidelity measure that compares overlap of the initial and final state.
+
+    For GRAPE the optimisable parameters are vector quantities.
+
+    Parameters
+    ----------
+    propagation : cthree.measurement.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    initialState : jax.typing.ArrayLike
+        Initial state.
+    targetState : jax.typing.ArrayLike
+        Target state.
+    times : jax.typing.ArrayLike
+        One-dimensional vector of timestamps.
+
+    """
+
+    __initialState: jnp.ndarray
+    __targetState: jnp.ndarray
+    _times: jnp.ndarray
+    __propagation: Propagation
+
+    def __init__(
+        self,
+        propagation: Propagation,
+        initialState: jnp.ndarray,
+        targetState: jnp.ndarray,
+        times: jnp.ndarray,
+    ):
+        super().__init__(propagation, initialState, targetState, times)
+        self.__propagation = propagation
+        self.__initialState = initialState
+        self.__targetState = targetState
+        if targetState.shape != initialState.shape:
+            warnings.warn(
+                UserWarning(
+                    f"Different shapes for targetState({targetState.shape})"
+                    f"and initialState({initialState.shape}) detected."
+                    " Use restrictSubsystems to project states to "
+                    "the same shape before measuring."
+                )
+            )
+        self.__propagation.setInitialState(self.__initialState)
+
+    def measureWithGradient(self) -> tuple[Array, Array]:
+        """Compute function value and corresponding gradient.
+
+        Returns
+        -------
+        Tuple[jax.Array, jax.Array]
+            Tuple of function value and gradient of shape (n_parameters,).
+
+        """
+        states, grads = self.__propagation.gradient(time=self._times)
+        final_state = states[-1]
+        f = jnp.vdot(self.__targetState, final_state)
+        grads = jnp.real(f.conj() * grads + grads.conj() * f).flatten()
+        return self._fid(f), grads  # shape scalar, (n_parameters,)

@@ -3,8 +3,7 @@
 import numpy as np
 import pytest
 
-from cthree.signal.Device import CosTone
-from cthree.signal.Device import ZeroTone
+from cthree.signal.Envelopes import ConstantEnvelope, ZeroEnvelope
 from cthree.signal.SimpleGenerator import CosGenerator
 
 LEN_SIG = 1001
@@ -23,27 +22,27 @@ def time_samples():
 @pytest.fixture
 def gen():
     """Return cosine signal generator object."""
-    tone = CosTone()
+    tone = ConstantEnvelope()
     tone.setOptimisableParameters(tone.getParameters())
-    return CosGenerator(devices=[tone])
+    return CosGenerator(envelopes=[tone])
 
 
 @pytest.fixture
 def zeroGen():
     """Return a zero tone cosine generator object."""
-    tone = ZeroTone()
-    return CosGenerator(devices=[tone])
+    tone = ZeroEnvelope()
+    return CosGenerator(envelopes=[tone])
 
 
 @pytest.fixture
 def genMultipleTones():
     """Return a multiple tone cosine generator."""
-    tone1 = CosTone()
+    tone1 = ConstantEnvelope()
     params1 = tone1.getParameters()
 
-    tone2 = CosTone()
+    tone2 = ConstantEnvelope()
     params2 = tone2.getParameters()
-    return CosGenerator(devices=[tone1, tone2]), np.concatenate(
+    return CosGenerator(envelopes=[tone1, tone2]), np.concatenate(
         (params1, params2)
     )
 
@@ -62,14 +61,20 @@ def test_zeroTone(zeroGen, time_samples) -> None:
 
 
 def test_getParamters(genMultipleTones):
-    """Test the get parameters function."""
+    """Test the get parameters function.
+
+    First four parameters are the tone parameters and last two in 'params' are
+    added by the generator, i.e., phase and LO frequency.
+
+    """
     gen, all_params = genMultipleTones
-    params = gen.getParameters()[:4]
+    params = gen.getParameters()[:-2]
     assert np.all(params == all_params)
 
 
 def test_gradientOneTime(gen):
     """Test the generate signal gradient one time function."""
+    print(gen.getParameters())
     gen.setOptimisableParameters(gen.getParameters())
     grads = gen.generateSignalGradientOneTime(0)
     assert grads.shape == (len(gen.getParameters()),)
