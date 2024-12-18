@@ -14,7 +14,7 @@ class JSONFileSerialiser(Serialiser):
         # The comment is simply stored in the same dict
         if comment:
             data[self.__COMMENT_KEY] = comment
-        with open(self.__file, 'w', encoding='utf-8') as f:
+        with open(self.__file, "w", encoding="utf-8") as f:
             json.dump(data, f)
 
     def load(self) -> dict:

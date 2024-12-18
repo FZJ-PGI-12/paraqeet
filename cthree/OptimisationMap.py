@@ -145,14 +145,10 @@ class OptimisationMap:
 
         """
         for key in self.__optimisableToParameterMap.keys():
-            filtered = filter(
-                filterFunction, self.__optimisableToParameterMap[key]
-            )
+            filtered = filter(filterFunction, self.__optimisableToParameterMap[key])
             self.__optimisableToParameterMap[key] = list(filtered)
         self.__optimisableToParameterMap = dict(
-            (k, v)
-            for k, v in self.__optimisableToParameterMap.items()
-            if len(v) > 0
+            (k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0
         )
 
     def filterByName(self, name: str):
@@ -164,12 +160,10 @@ class OptimisationMap:
             Name of parameter to be filtered with.
 
         """
-        return self.filterParameters(
-            lambda quantity: quantity.getName() == name
-        )
+        return self.filterParameters(lambda quantity: quantity.getName() == name)
 
     def toDict(self) -> dict:
-        """ Creates a dictionary that contains the values of all quantities that are being optimised, sorted by the
+        """Creates a dictionary that contains the values of all quantities that are being optimised, sorted by the
         Optimisable instances to which they belong. The returned dictionary is meant for export using the serialisation
         package. It uses the names of Optimisables and Quantities and assumes that those are unique and not None. The
         format of the dict will be
@@ -201,16 +195,16 @@ class OptimisationMap:
         data = dict()
         for optimisable, quantities in self.__optimisableToParameterMap.items():
             # Check that the optimisable's name is valid
-            if len((optimisable.name or '').strip()) == 0 or optimisable.name in data:
-                raise SerialisationException(
-                    'Optimisable does not have a name or the name is not unique.')
+            if len((optimisable.name or "").strip()) == 0 or optimisable.name in data:
+                raise SerialisationException("Optimisable does not have a name or the name is not unique.")
 
             # Check that the quantities' names are valid
-            quantityNames = [(q.getName() or '').strip() for q in quantities]
+            quantityNames = [(q.getName() or "").strip() for q in quantities]
             nonEmptyQuantityNames = list(filter(lambda name: len(name) > 0, quantityNames))
             if len(quantities) != len(set(nonEmptyQuantityNames)):
                 raise SerialisationException(
-                    f'Quantities in {optimisable.name} have empty or non-unique names within the optimisable.')
+                    f"Quantities in {optimisable.name} have empty or non-unique names within the optimisable."
+                )
 
             data[optimisable.name] = {q.getName(): q.toDict() for q in quantities}
         return data
@@ -234,12 +228,12 @@ class OptimisationMap:
         for optimisableName, values in data.items():
             if optimisableName not in optimisablesForName:
                 raise SerialisationException(
-                    f'An optimisable with the name "{optimisableName}" does not exist in the optimisation map.')
+                    f'An optimisable with the name "{optimisableName}" does not exist in the optimisation map.'
+                )
             optimisable = optimisablesForName[optimisableName]
 
             quantitiesForName = {q.getName(): q for q in optimisable.getParameters()}
             for quantityName, quantityValues in values.items():
                 if quantityName not in quantitiesForName:
-                    raise SerialisationException(
-                        f'Quantity "{quantityName}" does not exist in {optimisableName}.')
+                    raise SerialisationException(f'Quantity "{quantityName}" does not exist in {optimisableName}.')
                 quantitiesForName[quantityName].fromDict(quantityValues)
