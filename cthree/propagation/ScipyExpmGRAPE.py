@@ -297,11 +297,11 @@ class ScipyExpmGRAPE(ScipyExpm):
         lamdas = jnp.flip(lamdas, axis=0)
 
         if self._saveBwdPropagatedStates:
+            # Save lamdas as kets
             self._bwdPropagatedStates = jnp.transpose(
                 lamdas.conj(), axes=(0, 2, 1)
             )
 
-        # TODO - Shift indices accordingly before doing the overlap
         grads = []
         for i in range(n_params):
             grad = vmap(
@@ -310,7 +310,7 @@ class ScipyExpmGRAPE(ScipyExpm):
                 lamdas[1:],
                 Ugrads[:, i, ...],  # type: ignore
                 psis[:-1],
-            )  # TODO - CHECK
+            )
             grad = jnp.squeeze(grad)
             grads.append(grad)
         return psis, jnp.array(grads)

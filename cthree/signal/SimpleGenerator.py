@@ -261,8 +261,11 @@ class PWCGenerator(Generator):
         tlist: np.ndarray,
     ):
         self.__envs = envelopes or []
+
+        # Choose the center point as time grid
         dt = tlist[1] - tlist[0]
         self.__tlist = tlist[:-1] + dt / 2
+
         self.__setInphaseAndQuadrature()
 
     @property
