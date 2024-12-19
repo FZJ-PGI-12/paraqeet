@@ -4,6 +4,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 from cthree.Exceptions import IncompatibleOptimisationMap
+from cthree.OptimisationMap import OptimisationMap
 from cthree.optimisers.Optimiser import OptimisationResult
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.measurement.Measurement import Measurement
@@ -22,6 +23,16 @@ class ScipyOptimiserGradient(ScipyOptimiser):
     _options: dict
     _method: str
     __gradCache: np.ndarray  # of shape (n_parameters,)
+
+    def __init__(
+        self, measure: Measurement, optimisables: OptimisationMap
+    ) -> None:
+        super().__init__(measure, optimisables)
+        params = self._optimisables.getAllParameters()
+        scales = []
+        for p in params:
+            scales.extend([p.getScale()] * p.getLength())
+        self.__scales = np.stack(scales)
 
     def optimise(self) -> OptimisationResult:
         """Optimise via the Scipy optimizer gradient model.
@@ -133,4 +144,4 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             Returns the gradient of a measurement result.
 
         """
-        return -1 * self.__gradCache
+        return -1 * self.__gradCache * self.__scales
