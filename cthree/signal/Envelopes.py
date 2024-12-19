@@ -187,7 +187,7 @@ class ConstantEnvelope(Envelope):
             Subclasses derived from this class must implement this method.
 
         """
-        return jnp.squeeze(jnp.where(t < t_final, amp, 0.0))
+        return jnp.squeeze(jnp.where(t <= t_final, amp, 0.0))
 
     def computeOutput(self, t: np.ndarray) -> Array:
         """Compute the constant signal envelope at different times.

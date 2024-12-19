@@ -79,7 +79,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
         self._saveBwdPropagatedStates = saveBwdPropagatedStates
 
-    def setSchirmerDerivative(self, schirmerDerivative: bool):
+    def useSchirmerDerivative(self, schirmerDerivative: bool):
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
         Parameters
@@ -262,8 +262,10 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         dt = time[1] - time[0]
 
-        hams = eom_func(time + dt / 2) * dt
-        dH_dps = jnp.array(grad_func(time + dt / 2)) * dt
+        timeGrid = time[:-1] + dt / 2
+
+        hams = eom_func(timeGrid) * dt
+        dH_dps = jnp.array(grad_func(timeGrid)) * dt
 
         Ugrads = []
         n_params = dH_dps.shape[1]
@@ -284,7 +286,12 @@ class ScipyExpmGRAPE(ScipyExpm):
         Ugrads = jnp.stack(Ugrads, axis=1)
 
         psis, lamdas = self._ForwardAndBackwardPropagation(
-            Us, init_state, target_state, jnp.arange(0, len(time), 1)
+            Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
+        )
+
+        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
+        lamdas = jnp.concat(
+            [jnp.expand_dims(target_state, axis=0), lamdas], axis=0
         )
 
         lamdas = jnp.flip(lamdas, axis=0)
@@ -301,9 +308,9 @@ class ScipyExpmGRAPE(ScipyExpm):
                 self.__sandwichOpValues, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
-                Ugrads[1:, i, ...],  # type: ignore
+                Ugrads[:, i, ...],  # type: ignore
                 psis[:-1],
             )  # TODO - CHECK
             grad = jnp.squeeze(grad)
-            grads.append(jnp.insert(grad, 0, grad[0]))
+            grads.append(grad)
         return psis, jnp.array(grads)
