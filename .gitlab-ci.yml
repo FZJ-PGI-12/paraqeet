@@ -81,7 +81,6 @@ build-docs:
     - pip install sphinx sphinx-rtd-theme sphinx-pyproject
     - cd doc
     - make html
-    - mv build/html/ doc/html/
   artifacts:
     paths:
       - doc/html/
