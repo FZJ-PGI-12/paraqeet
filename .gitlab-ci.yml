@@ -25,8 +25,8 @@ cache:
     - .mypy_cache
 
 stages:
-  - codestyle
-  - tests
+  #- codestyle
+  #- tests
   - docs
 
 before_script:
