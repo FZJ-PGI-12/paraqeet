@@ -119,10 +119,26 @@ convention = "numpy"
 [tool.sphinx-pyproject]
 extensions = [
   "sphinx.ext.napoleon", # Support for NumPy docstrings
-  "sphinx.ext.viewcode", # Code highlighting
-  "sphinx.ext.autodoc", # Reads documentation from python docstrings
   "nbsphinx", # Converts jupyter notebooks
+  #"sphinx.ext.viewcode", # Code highlighting
+  "autoapi.extension", # Automatically generates docs for all files
+  "sphinx.ext.autodoc", # Reads documentation from python docstrings
 ]
 language = "en"
-html_theme = "sphinx_rtd_theme"
+html_theme = "insipid"
 master_doc = "index"
+autoapi_dirs = ["../cthree", "../examples"]
+autoapi_file_patterns = ["*.py", "*.ipynb"]
+autoapi_ignore = ["__pycache__", ".ipynb_checkpoints"]
+autoapi_member_order = "bysource"
+autoapi_keep_files = false
+autoapi_add_toctree_entry = false
+autoapi_options = [
+    "members",
+    "inherited-members",
+    "special-members",
+    "show-inheritance",
+    "special-members",
+    "imported-members",
+    "show-inheritance-diagram",
+]
