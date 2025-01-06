@@ -6,6 +6,7 @@ class Serialiser:
 
     def save(self, data: dict, comment: str | None = None) -> None:
         """
+        Saves data to a persistent format. The actual format depends on the implementation.
 
         Parameters
         ----------
@@ -14,8 +15,6 @@ class Serialiser:
         comment: str
             Optional comment to be stored with the data, for example a description of the data. Implementations have
             to decide how to store the comment.
-
-        Returns
         -------
 
         """
@@ -27,5 +26,9 @@ class Serialiser:
 
     def loadComment(self) -> str | None:
         """Loads and returns the comment, if any, that was previously saved with the data. Returns None if no comment
-        was saved."""
+        was saved.
+
+        Returns
+            The comment, or None if no comment was saved.
+        """
         raise NotImplementedError()

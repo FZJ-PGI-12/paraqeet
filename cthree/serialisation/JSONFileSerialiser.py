@@ -4,6 +4,8 @@ from cthree.serialisation.Serialiser import Serialiser
 
 
 class JSONFileSerialiser(Serialiser):
+    """Writes data into and read data from JSON files in a human-readable format."""
+
     __COMMENT_KEY = "__comment"
     __file: str
 
@@ -11,6 +13,7 @@ class JSONFileSerialiser(Serialiser):
         self.__file = file
 
     def save(self, data: dict, comment: str | None = None) -> None:
+        """Saves the data and the optional comment to the JSON file that was specified in the constructor."""
         # The comment is simply stored in the same dict
         if comment:
             data[self.__COMMENT_KEY] = comment
@@ -18,6 +21,7 @@ class JSONFileSerialiser(Serialiser):
             json.dump(data, f)
 
     def load(self) -> dict:
+        """Loads and returns the data from JSON file"""
         with open(self.__file) as f:
             data = json.load(f)
             if self.__COMMENT_KEY in data:
@@ -25,6 +29,7 @@ class JSONFileSerialiser(Serialiser):
             return data
 
     def loadComment(self) -> str | None:
+        """Loads and returns the comment from the JSON file."""
         with open(self.__file) as f:
             data = json.load(f)
             return data[self.__COMMENT_KEY] if self.__COMMENT_KEY in data else None
