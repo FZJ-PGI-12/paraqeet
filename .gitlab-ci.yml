@@ -27,6 +27,7 @@ cache:
 stages:
   - codestyle
   - tests
+  - docs
 
 before_script:
   - python --version  # For debugging
@@ -74,14 +75,15 @@ examples:
   script:
     - pytest --nbval-lax examples/*.ipynb
 
-# pages:
-#   script:
-#     - pip install sphinx sphinx-rtd-theme
-#     - cd doc
-#     - make html
-#     - mv build/html/ ../public/
-#   artifacts:
-#     paths:
-#       - public
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+build-docs:
+  stage: docs
+  script:
+    - pip install sphinx sphinx-rtd-theme
+    - cd doc
+    - make html
+    - mv build/html/ ../public/
+  artifacts:
+    paths:
+      - public
+  #rules:
+  #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
