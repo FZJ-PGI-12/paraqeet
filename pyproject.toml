@@ -97,6 +97,11 @@ extend-select = [
   "UP",  # pyupgrade (https://pypi.org/project/pyupgrade/)
   "D",  # pydocstyle
 ]
+ignore = [
+  "D100", # Missing docstring in public module
+  "D205", # 1 blank line required between summary line and description
+  "D40" # All D40x errors are about docstrings
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
