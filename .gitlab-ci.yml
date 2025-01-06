@@ -89,8 +89,9 @@ build-docs:
     - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
     - cd doc
     - make html
+    - mv _build/html/ ../public/
   artifacts:
     paths:
-      - doc/_build/html/
+      - public
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
