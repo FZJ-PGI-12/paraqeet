@@ -88,8 +88,8 @@ ignore_errors = true
 
 # ruff's linting and formatting configurations
 [tool.ruff]
-# set the maximum line length to 80
-line-length = 80
+# set the maximum line length to 120
+line-length = 120
 
 [tool.ruff.lint]
 extend-select = [
