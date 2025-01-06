@@ -78,11 +78,11 @@ examples:
 build-docs:
   stage: docs
   script:
-    - pip install sphinx sphinx-rtd-theme sphinx-pyproject
+    - pip install sphinx sphinx-rtd-theme sphinx-pyproject nbsphinx
     - cd doc
     - make html
   artifacts:
     paths:
-      - doc/html/
+      - doc/build/html/
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

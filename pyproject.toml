@@ -118,10 +118,12 @@ convention = "numpy"
 
 [tool.sphinx-pyproject]
 extensions = [
-  "sphinx.ext.napoleon",
-  "sphinx.ext.viewcode",
+  "sphinx.ext.napoleon", # Support for NumPy docstrings
+  "sphinx.ext.viewcode", # Code highlighting
   "sphinx.ext.autodoc", # Reads documentation from python docstrings
+  "nbsphinx", # Converts jupyter notebooks
 ]
 language = "en"
 html_theme = "sphinx_rtd_theme"
 master_doc = "index"
+include_patterns = ["cthree/*", "examples/*", "doc/*", "doc/index.rst"]
