@@ -126,4 +126,3 @@ extensions = [
 language = "en"
 html_theme = "sphinx_rtd_theme"
 master_doc = "index"
-include_patterns = ["cthree/*", "examples/*", "doc/*", "doc/index.rst"]
