@@ -11,7 +11,7 @@ from test.TestOptimisable import TestOptimisable
 @pytest.fixture
 def randomOptimisables(randomQuantity):
     """Create random optimisables."""
-    return [TestOptimisable(randomQuantity, np.random.randint(1, 10)) for i in range(10)]
+    return [TestOptimisable(randomQuantity, np.random.randint(1, 10)) for i in range(2, 10)]
 
 
 @pytest.fixture
@@ -20,6 +20,11 @@ def optMapWithOptimisables(randomOptimisables):
     m = OptimisationMap()
     for i, optimisable in enumerate(randomOptimisables):
         m.add(optimisable)
+
+        # Assign valid and unique names to the optimisable and its quantities
+        optimisable.name = f"optimisable {i}"
+        for j, quantity in enumerate(optimisable.getParameters()):
+            quantity.setName(f"optimisable {i} - quantity {j}")
     return m
 
 
@@ -131,7 +136,6 @@ def test_removing_parameters(optMapWithOptimisables) -> None:
 
 def test_exporting_fails(optMapWithOptimisables) -> None:
     """Tests if exporting fails if the optimisables or quantities do not have unique names."""
-    setValidNames(optMapWithOptimisables)
     optimisables = list(optMapWithOptimisables.getOptimisables())
 
     # Test bad names of optimisables
@@ -154,7 +158,6 @@ def test_exporting_fails(optMapWithOptimisables) -> None:
 
 def test_exporting(optMapWithOptimisables) -> None:
     """Tests if all optimisables and quantities are being exported."""
-    setValidNames(optMapWithOptimisables)
     optimisables = list(optMapWithOptimisables.getOptimisables())
 
     dictionary = optMapWithOptimisables.toDict()
@@ -162,12 +165,3 @@ def test_exporting(optMapWithOptimisables) -> None:
     for optimisable in optimisables:
         assert optimisable.name in dictionary
         assert len(optimisable.getParameters()) == len(dictionary[optimisable.name])
-
-
-def setValidNames(optMap: OptimisationMap) -> None:
-    """Assigns valid and unique names to all optimisables and quantities in the opt map."""
-    optimisables = list(optMap.getOptimisables())
-    for i, optimisable in enumerate(optimisables):
-        optimisable.name = f"optimisable {i}"
-        for j, quantity in enumerate(optimisable.getParameters()):
-            quantity.setName(f"optimisable {i} - quantity {j}")
