@@ -112,3 +112,16 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"doc/*" = ["D"] # ignore pydocstyle
+
+[tool.sphinx-pyproject]
+extensions = [
+  "sphinx.ext.napoleon",
+  "sphinx.ext.viewcode",
+  "sphinx.ext.autodoc", # Reads documentation from python docstrings
+]
+language = "en"
+html_theme = "sphinx_rtd_theme"
+master_doc = "index"
