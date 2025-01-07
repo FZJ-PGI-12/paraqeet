@@ -25,9 +25,9 @@ cache:
     - .mypy_cache
 
 stages:
-  - docs
   - codestyle
   - tests
+  - docs
 
 before_script:
   - python --version  # For debugging
