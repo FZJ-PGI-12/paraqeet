@@ -78,7 +78,7 @@ examples:
 build-docs:
   stage: docs
   script:
-    - pip install sphinx sphinx-press-theme sphinx-pyproject nbsphinx
+    - pip install sphinx sphinx-press-theme sphinx-pyproject nbsphinx sphinx-autoapi
     - cd doc
     - make html
   artifacts:

@@ -132,7 +132,7 @@ autoapi_file_patterns = ["*.py", "*.ipynb"]
 autoapi_ignore = ["__pycache__", ".ipynb_checkpoints"]
 autoapi_member_order = "bysource"
 autoapi_keep_files = false
-autoapi_add_toctree_entry = false
+autoapi_add_toctree_entry = true
 autoapi_options = [
     "members",
     "inherited-members",
