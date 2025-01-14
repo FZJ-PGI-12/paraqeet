@@ -50,7 +50,7 @@ class EquationOfMotion(Optimisable):
 
         The format depends on the implementation and could for example
         be a state vector or a matrix. Default implementation assumes a
-        homogeneous ODE with matrix operator given by self.getMatrixEOM().
+        homogeneous ODE with matrix operator given by self.getMatrix().
 
         Parameters
         ----------
@@ -67,10 +67,7 @@ class EquationOfMotion(Optimisable):
 
     @abstractmethod
     def getMatrix(self, time: np.ndarray) -> np.ndarray:
-        """Returns the prefactor matrix.
-
-        Abstract method to get the prefactor matrix in the case of homogeneous
-        equations of motion. Used for solving by exponentation.
+        """Abstract method to get the prefactor matrix.
 
         Parameters
         ----------

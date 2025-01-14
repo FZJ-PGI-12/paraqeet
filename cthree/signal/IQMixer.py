@@ -13,7 +13,10 @@ from cthree.signal.Envelopes import Envelope
 
 
 class IQMixer(Generator):
-    """Simple sinusoidal signal generation.
+    """Control signal generation.
+
+    Waveforms of envelopes (low bandwith) are mixed with a local oscillator
+    (high bandwidth) to apply a desired control field to the system.
 
     Parameters
     ----------

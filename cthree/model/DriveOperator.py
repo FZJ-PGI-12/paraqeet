@@ -63,7 +63,7 @@ class DriveOperator(Drive):
         Returns
         -------
         np.ndarray
-            Returns the operator for the longitudinal or trasverse drive.
+            Returns the operator for the longitudinal or transverse drive.
 
         """
         return (jnp.conjugate(a.T) @ a) if self.__isLongitudinal else (jnp.conjugate(a.T) + a)

@@ -55,7 +55,7 @@ class ClosedSystem(EquationOfMotion):
         return -1.0j * self._hamiltonian.getMatrix(time)
 
     def gradient(self, t) -> np.ndarray:
-        """Compute the gradient of getMatrixEOM.
+        """Compute the gradient of getMatrix.
 
         Parameters
         ----------
@@ -65,7 +65,7 @@ class ClosedSystem(EquationOfMotion):
         Returns
         -------
         numpy.ndarray
-            Returns the gradient of getMatrixEOM.
+            Returns the gradient of getMatrix.
 
         """
         return -1.0j * self._hamiltonian.gradient(t)
