@@ -6,7 +6,7 @@ import numpy as np
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 
 from cthree.OptimisationMap import OptimisationMap
 from cthree.Quantity import Quantity
@@ -64,7 +64,7 @@ def coupledTransmons(tone):
     tone1 = tone(191e6, T_FINAL)
     tone2 = tone(9.18e6, T_FINAL)
 
-    generator1 = CosGenerator(
+    generator1 = IQMixer(
         envelopes=[tone1],
         frequency=Quantity(
             freq1 * 2 * np.pi,
@@ -81,7 +81,7 @@ def coupledTransmons(tone):
     )
     drive1 = GeneratorDrive(generator1, isLongitudinal=False)
 
-    generator2 = CosGenerator(
+    generator2 = IQMixer(
         envelopes=[tone2],
         frequency=Quantity(
             freq2 * 2 * np.pi,
@@ -100,22 +100,14 @@ def coupledTransmons(tone):
 
     transmon1 = Transmon(
         dimension=3,
-        frequency=Quantity(
-            FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"
-        ),
-        anharmonicity=Quantity(
-            ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"
-        ),
+        frequency=Quantity(FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"),
+        anharmonicity=Quantity(ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"),
         drives=[drive1],
     )
     transmon2 = Transmon(
         dimension=3,
-        frequency=Quantity(
-            FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"
-        ),
-        anharmonicity=Quantity(
-            ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"
-        ),
+        frequency=Quantity(FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"),
+        anharmonicity=Quantity(ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"),
         drives=[drive2],
     )
     coupling = Coupling(
@@ -135,9 +127,7 @@ def coupledTransmons(tone):
     X = np.array([[0.0, 1], [1, 0.0]])
     Z = np.array([[1, 0], [0.0, -1]])
     ZX = np.exp(1j * np.pi / 4) * np.kron(Z, X)
-    CRGate = np.array(
-        [[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]]
-    )
+    CRGate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 
     CRGate = ZX @ CRGate
     prop.setInitialState(np.identity(9))

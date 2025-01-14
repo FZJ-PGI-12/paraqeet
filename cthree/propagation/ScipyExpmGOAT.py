@@ -100,12 +100,9 @@ class ScipyExpmGOAT(ScipyExpm):
         n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initialState.shape[0]
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
-        dpsis = [
-            [jnp.zeros_like(self._initialState, dtype=jnp.complex128)]
-            * n_params
-        ]
+        dpsis = [[jnp.zeros_like(self._initialState, dtype=jnp.complex128)] * n_params]
 
-        eom_func = self._model.getMatrixEOM
+        eom_func = self._model.getMatrix
         grad_func = self._model.gradient
 
         for ti in range(1, len(time)):
@@ -115,16 +112,7 @@ class ScipyExpmGOAT(ScipyExpm):
             eom = eom_func(times + dt / 2) * dt
             grads = jnp.array(grad_func(times + dt / 2)) * dt
 
-            psis_t = self._propagateGradient(
-                n_params, psis_t, eom, grads, jnp.arange(0, len(times), 1)
-            )
+            psis_t = self._propagateGradient(n_params, psis_t, eom, grads, jnp.arange(0, len(times), 1))
             psi.append(psis_t[0:dim])
-            dpsis.append(
-                jnp.array(
-                    [
-                        psis_t[dim * ii : dim * (ii + 1)]
-                        for ii in range(1, n_params + 1)
-                    ]
-                )
-            )
+            dpsis.append(jnp.array([psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]))
         return jnp.array(psi), jnp.array(dpsis)

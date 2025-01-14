@@ -4,10 +4,10 @@ import numpy as np
 
 from cthree.Quantity import Quantity
 from cthree.model.Hamiltonian import Hamiltonian
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 
 
-class DummyModel(Model):
+class DummyModel(EquationOfMotion):
     """Dummy model class to construct derived model classes.
 
     Parameters
@@ -30,7 +30,7 @@ class DummyModel(Model):
         """
         pass
 
-    def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
+    def getMatrix(self, time: np.ndarray) -> np.ndarray:
         """Get the matrix representation of the equations of motion.
 
         Parameters

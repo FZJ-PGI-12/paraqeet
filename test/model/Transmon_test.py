@@ -6,7 +6,7 @@ import numpy as np
 from cthree.Quantity import Quantity
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.model.Transmon import Transmon
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 
 
@@ -34,7 +34,7 @@ def tone():
 @pytest.fixture
 def gen(tone):
     """Return a sinusoidal tone generator object."""
-    gen = CosGenerator(envelopes=[tone])
+    gen = IQMixer(envelopes=[tone])
     return gen
 
 
@@ -48,9 +48,7 @@ def hamiltonian(gen):
         return Transmon(
             dimension=dimension,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-            anharmonicity=Quantity(
-                ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY
-            ),
+            anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
             drives=[drive],
         )
 

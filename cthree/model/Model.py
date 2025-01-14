@@ -9,7 +9,7 @@ from cthree.model.Hamiltonian import Hamiltonian
 import numpy as np
 
 
-class Model(Optimisable):
+class EquationOfMotion(Optimisable):
     """Represents the equation of motion for a given Hamiltonian.
 
     Implementations can for example be the Schrödinger equation for a
@@ -45,9 +45,7 @@ class Model(Optimisable):
         """
         raise NotImplementedError()
 
-    def getEquationOfMotion(
-        self, time: np.ndarray, state: np.ndarray
-    ) -> np.ndarray:
+    def getRightHandSide(self, time: np.ndarray, state: np.ndarray) -> np.ndarray:
         """Return the right-hand side of the equations of motion.
 
         The format depends on the implementation and could for example
@@ -65,11 +63,14 @@ class Model(Optimisable):
             The right-hand side of the equation of motion at each time stamp.
 
         """
-        return self.getMatrixEOM(time) @ state
+        return self.getMatrix(time) @ state
 
     @abstractmethod
-    def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
-        """Abstract method to get MatrixEOM.
+    def getMatrix(self, time: np.ndarray) -> np.ndarray:
+        """Returns the prefactor matrix.
+
+        Abstract method to get the prefactor matrix in the case of homogeneous
+        equations of motion. Used for solving by exponentation.
 
         Parameters
         ----------

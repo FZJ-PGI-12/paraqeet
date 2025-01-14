@@ -3,7 +3,7 @@
 import numpy as np
 
 from cthree.Quantity import Quantity
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 from cthree.propagation.StatePropagation import StatePropagation
 
 
@@ -22,7 +22,7 @@ class Euler(StatePropagation):
 
     """
 
-    def __init__(self, model: Model):
+    def __init__(self, model: EquationOfMotion):
         super().__init__(model)
 
     def getParameters(self) -> list[Quantity]:
@@ -52,7 +52,7 @@ class Euler(StatePropagation):
             Results of the Euler propagation.
 
         """
-        equationsOfMotion = self._model.getMatrixEOM(time)
+        equationsOfMotion = self._model.getMatrix(time)
 
         dt = time[1:] - time[0:-1]
         shape1 = (len(time),)

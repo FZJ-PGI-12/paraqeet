@@ -5,7 +5,7 @@ from scipy.integrate import RK45
 
 from cthree.Exceptions import ConfigurationException
 from cthree.Quantity import Quantity
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 from cthree.propagation.StatePropagation import StatePropagation
 
 
@@ -26,7 +26,7 @@ class RungeKutta(StatePropagation):
 
     __initialTimeStep: float
 
-    def __init__(self, model: Model, initialTimeStep: float | None = None):
+    def __init__(self, model: EquationOfMotion, initialTimeStep: float | None = None):
         super().__init__(model)
         self.__initialTimeStep = initialTimeStep
 
@@ -79,14 +79,12 @@ class RungeKutta(StatePropagation):
             raise ConfigurationException("Initial state is not set")
 
         if len(time) < 2:
-            raise ValueError(
-                "Runge-Kutta propagation needs at least two time steps"
-            )
+            raise ValueError("Runge-Kutta propagation needs at least two time steps")
 
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._model.getEquationOfMotion(np.array([time]), column_state),
+                self._model.getRightHandSide(np.array([time]), column_state),
                 (-1,),
             )
 

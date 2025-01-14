@@ -8,7 +8,7 @@ from cthree.signal.Envelopes import (
     GaussEnvelope,
     ZeroEnvelope,
 )
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Waveform import DRAGMixer
 
 LEN_SIG = 1001
@@ -29,7 +29,7 @@ def gen():
     """Return DRAG signal generator object."""
     tone = GaussEnvelope()
     drag_tone = DRAGMixer(tone)
-    return CosGenerator(envelopes=[drag_tone])
+    return IQMixer(envelopes=[drag_tone])
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def zeroGen():
     """Return a zero tone DRAG generator object."""
     tone = ZeroEnvelope()
     drag_tone = DRAGMixer(tone)
-    return CosGenerator(envelopes=[drag_tone])
+    return IQMixer(envelopes=[drag_tone])
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def flattop():
     """Return a FlatTop signal with DRAG."""
     tone = FlatTopGaussianEnvelope()
     drag_tone = DRAGMixer(tone)
-    return CosGenerator(envelopes=[drag_tone])
+    return IQMixer(envelopes=[drag_tone])
 
 
 @pytest.fixture
@@ -71,16 +71,14 @@ def genMultipleTones():
     params2 = tone2.getParameters()
     drag_tone2 = DRAGMixer(tone2)
     return (
-        CosGenerator(envelopes=[drag_tone1, drag_tone2]),
+        IQMixer(envelopes=[drag_tone1, drag_tone2]),
         np.concatenate((params1, params2)),
     )
 
 
 def test_constant_env(zeroGen, time_samples):
     """Test the values of a DRAG signal using a constant envelope."""
-    assert np.all(
-        zeroGen.generateSignal(time_samples) == np.zeros_like(time_samples)
-    )
+    assert np.all(zeroGen.generateSignal(time_samples) == np.zeros_like(time_samples))
 
 
 def test_gen(gen, time_samples) -> None:

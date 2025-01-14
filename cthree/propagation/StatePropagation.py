@@ -1,6 +1,6 @@
 """Class definition of the State propagation model."""
 
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 
 import numpy as np
 
@@ -21,7 +21,7 @@ class StatePropagation(Propagation):
 
     _initialState: np.ndarray | None = None
 
-    def __init__(self, model: Model):
+    def __init__(self, model: EquationOfMotion):
         super().__init__(model)
 
     def setInitialState(self, state: np.ndarray):

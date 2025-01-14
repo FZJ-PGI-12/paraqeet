@@ -2,12 +2,12 @@
 
 from cthree.Quantity import Quantity
 from cthree.model.Hamiltonian import Hamiltonian
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 
 import numpy as np
 
 
-class ClosedModel(Model):
+class ClosedModel(EquationOfMotion):
     """Model of a closed physical system, defined by a Hamiltonian.
 
     Its dynamics is given by the Schrödinger equation.
@@ -33,7 +33,7 @@ class ClosedModel(Model):
         """
         return self._hamiltonian.getParameters()
 
-    def getMatrixEOM(self, time: np.ndarray) -> np.ndarray:
+    def getMatrix(self, time: np.ndarray) -> np.ndarray:
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation

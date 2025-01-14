@@ -6,7 +6,7 @@ import numpy as np
 from cthree.Quantity import Quantity
 from cthree.model.Coupling import Coupling
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 from cthree.model.GeneratorDrive import GeneratorDrive
 from cthree.model.Transmon import Transmon
 from cthree.model.CompositeHamiltonian import CompositeHamiltonian
@@ -36,7 +36,7 @@ def tone():
 @pytest.fixture
 def gen(tone):
     """Return a sinusoidal generator object."""
-    gen = CosGenerator(envelopes=[tone])
+    gen = IQMixer(envelopes=[tone])
     return gen
 
 
@@ -99,19 +99,11 @@ def coupledTransmons(transmon):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
 
-        couplingStr = (
-            np.abs(
-                transmon1.getFrequency().getValue()
-                - transmon2.getFrequency().getValue()
-            )
-            * 0.05
-        )
+        couplingStr = np.abs(transmon1.getFrequency().getValue() - transmon2.getFrequency().getValue()) * 0.05
         coupling = Coupling(
             [transmon1, transmon2],
             isLongitudinal=False,
-            coefficient=Quantity(
-                couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"
-            ),
+            coefficient=Quantity(couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"),
             useRWA=useRWA,
         )
 

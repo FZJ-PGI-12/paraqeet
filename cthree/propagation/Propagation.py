@@ -3,7 +3,7 @@
 from abc import abstractmethod
 
 from cthree.Optimisable import Optimisable
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 
 import numpy as np
 
@@ -20,9 +20,9 @@ class Propagation(Optimisable):
 
     """
 
-    _model: Model
+    _model: EquationOfMotion
 
-    def __init__(self, model: Model):
+    def __init__(self, model: EquationOfMotion):
         self._model = model
 
     def setInitialState(self, state: np.ndarray):

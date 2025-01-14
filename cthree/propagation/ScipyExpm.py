@@ -7,7 +7,7 @@ import jax.numpy as jnp
 
 from cthree.Exceptions import ConfigurationException
 from cthree.Quantity import Quantity
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 from cthree.propagation.StatePropagation import StatePropagation
 
 from jax.scipy.linalg import expm
@@ -33,7 +33,7 @@ class ScipyExpm(StatePropagation):
     _res: float
     _initialState: np.ndarray = None
 
-    def __init__(self, model: Model, res: float):
+    def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model)
         self.setResolution(res)
 
@@ -167,13 +167,11 @@ class ScipyExpm(StatePropagation):
             raise ConfigurationException("Initial state is not set")
 
         psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
-        eom_func = self._model.getMatrixEOM
+        eom_func = self._model.getMatrix
         for ti in range(1, len(time)):
             times, dt = self._constructTimes(time, ti)
             psis_t = psi[ti - 1]
             eom = eom_func(times + dt / 2) * dt
-            psis_t = self._propagateInTime(
-                psis_t, eom, jnp.arange(0, len(times), 1)
-            )
+            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
         return jnp.array(psi)

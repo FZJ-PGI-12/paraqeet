@@ -16,7 +16,7 @@ from jax.lax import scan
 
 from jax.scipy.linalg import expm, expm_frechet
 
-from cthree.model.Model import Model
+from cthree.model.Model import EquationOfMotion
 from cthree.Exceptions import ConfigurationException
 from cthree.propagation.ScipyExpm import ScipyExpm
 
@@ -56,7 +56,7 @@ class ScipyExpmGRAPE(ScipyExpm):
     _bwdPropagatedStates: np.ndarray = None
     _schirmerDerivative: bool = False
 
-    def __init__(self, model: Model, res: float):
+    def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
 
     def setTargetState(self, targetState: np.ndarray):
@@ -112,9 +112,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         np.ndarray
             Matrix element of the operator for each time point.
         """
-        return jnp.matmul(
-            bwd_propagated_state, jnp.matmul(Op, fwd_propagated_state)
-        )
+        return jnp.matmul(bwd_propagated_state, jnp.matmul(Op, fwd_propagated_state))
 
     @partial(jit, static_argnums=(0,))
     def _ForwardAndBackwardPropagation(
@@ -228,7 +226,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         timeGrid = time[:-1] + dt / 2
 
-        eom_func = self._model.getMatrixEOM
+        eom_func = self._model.getMatrix
         eom = eom_func(timeGrid) * dt
 
         Us = vmap(self._exponentiate, in_axes=(0,))(eom)
@@ -260,7 +258,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         target_state = jnp.array(self._targetState, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
-        eom_func = self._model.getMatrixEOM
+        eom_func = self._model.getMatrix
         grad_func = self._model.gradient
 
         dt = time[1] - time[0]
@@ -281,16 +279,12 @@ class ScipyExpmGRAPE(ScipyExpm):
             exponentiating_function = self._exponentiateFrechet
 
         for i in range(n_params):
-            Us, dUs = vmap(exponentiating_function, in_axes=(None, 0, 0))(
-                dim, hams, dH_dps[:, i, ...]
-            )
+            Us, dUs = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dH_dps[:, i, ...])
             Ugrads.append(dUs)
 
         Ugrads = jnp.stack(Ugrads, axis=1)
 
-        psis, lamdas = self._ForwardAndBackwardPropagation(
-            Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
-        )
+        psis, lamdas = self._ForwardAndBackwardPropagation(Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1))
 
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         lamdas = jnp.concat(
@@ -301,9 +295,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         if self._saveBwdPropagatedStates:
             # Save lamdas as kets
-            self._bwdPropagatedStates = jnp.transpose(
-                lamdas.conj(), axes=(0, 2, 1)
-            )
+            self._bwdPropagatedStates = jnp.transpose(lamdas.conj(), axes=(0, 2, 1))
 
         grads = []
         for i in range(n_params):

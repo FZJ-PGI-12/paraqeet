@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 from cthree.model.GeneratorDrive import GeneratorDrive
 
 
@@ -32,7 +32,7 @@ def tone():
 @pytest.fixture
 def gen(tone):
     """Return a sinusoidal tone generator object."""
-    gen = CosGenerator(envelopes=[tone])
+    gen = IQMixer(envelopes=[tone])
     return gen
 
 

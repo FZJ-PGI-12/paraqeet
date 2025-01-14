@@ -14,7 +14,7 @@ from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9
@@ -32,7 +32,7 @@ def tone():
 @pytest.fixture
 def gen(tone):
     """Generate a cosine tone."""
-    gen = CosGenerator(envelopes=[tone])
+    gen = IQMixer(envelopes=[tone])
     return gen
 
 

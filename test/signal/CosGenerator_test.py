@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from cthree.signal.Envelopes import ConstantEnvelope, ZeroEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 
 LEN_SIG = 1001
 
@@ -24,14 +24,14 @@ def gen():
     """Return cosine signal generator object."""
     tone = ConstantEnvelope()
     tone.setOptimisableParameters(tone.getParameters())
-    return CosGenerator(envelopes=[tone])
+    return IQMixer(envelopes=[tone])
 
 
 @pytest.fixture
 def zeroGen():
     """Return a zero tone cosine generator object."""
     tone = ZeroEnvelope()
-    return CosGenerator(envelopes=[tone])
+    return IQMixer(envelopes=[tone])
 
 
 @pytest.fixture
@@ -42,9 +42,7 @@ def genMultipleTones():
 
     tone2 = ConstantEnvelope()
     params2 = tone2.getParameters()
-    return CosGenerator(envelopes=[tone1, tone2]), np.concatenate(
-        (params1, params2)
-    )
+    return IQMixer(envelopes=[tone1, tone2]), np.concatenate((params1, params2))
 
 
 def test_gen(gen, time_samples) -> None:

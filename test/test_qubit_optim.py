@@ -15,12 +15,12 @@ from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
 
 from cthree.model.ClosedModel import ClosedModel
 
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Envelopes import ConstantEnvelope
 
 
 tone = ConstantEnvelope()
-gen = CosGenerator(envelopes=[tone])
+gen = IQMixer(envelopes=[tone])
 params = gen.getParameters()
 
 FREQ = 4.8e9 * 2 * np.pi
@@ -30,9 +30,7 @@ params[0].setValue(0.8 * np.pi / t_final)
 params[2].setValue(1.01 * FREQ)
 
 drive = GeneratorDrive(gen, isLongitudinal=False)
-controlled_qubit = Qubit(
-    frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive]
-)
+controlled_qubit = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 model = ClosedModel(controlled_qubit)
 
 prop = ScipyExpmGOAT(model, res=100e9)

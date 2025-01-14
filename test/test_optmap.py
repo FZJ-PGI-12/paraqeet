@@ -2,11 +2,11 @@
 
 from cthree.OptimisationMap import OptimisationMap
 
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
 
 tone = ConstantEnvelope()
-gen = CosGenerator(envelopes=[tone])
+gen = IQMixer(envelopes=[tone])
 params = tone.getParameters()
 optmap = OptimisationMap()
 
