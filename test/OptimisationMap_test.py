@@ -11,7 +11,7 @@ from test.TestOptimisable import TestOptimisable
 @pytest.fixture
 def randomOptimisables(randomQuantity):
     """Create random optimisables."""
-    return [TestOptimisable(randomQuantity, np.random.randint(1, 10)) for i in range(2, 10)]
+    return [TestOptimisable(randomQuantity, np.random.randint(2, 10)) for i in range(2, 10)]
 
 
 @pytest.fixture
