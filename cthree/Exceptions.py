@@ -44,3 +44,9 @@ class IncompatibleOptimisationMap(Exception):
     """
 
     pass
+
+
+class SerialisationException(Exception):
+    """Raised when reading or writing of a Quantity or an OptimisationMap fails."""
+
+    pass

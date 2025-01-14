@@ -31,9 +31,7 @@ def testGet(randomQuantityForValues) -> None:
     for N in range(1, 100):
         # create a quantity with random values and check if the
         # get functions return the same values
-        values = (2 * np.random.random(N) - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
         testing.assert_allclose(q.getValue(), values)
         testing.assert_array_less(q.getMinValue(), q.getValue())
@@ -48,9 +46,7 @@ def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
     """
     for N in range(1, 100):
         # create a random quantity with values that will be overwritten
-        values = (2 * np.random.random(N) - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
         oldMin = q.getMinValue()
         oldMax = q.getMaxValue()
@@ -75,9 +71,7 @@ def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
 def testGetItem(randomQuantityForValues) -> None:
     """Test get item for scalar quantities."""
     for N in range(1, 100):
-        values = (2 * np.random.random(N) - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
         for i in range(len(q)):
             testing.assert_almost_equal(q[i], values[i])
@@ -86,9 +80,7 @@ def testGetItem(randomQuantityForValues) -> None:
 def testLen(randomQuantityForValues) -> None:
     """Test the length value for scalar quantities."""
     for N in range(1, 100):
-        values = (2 * np.random.random(N) - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
         testing.assert_almost_equal(len(q), N)
 
@@ -97,9 +89,7 @@ def testLen(randomQuantityForValues) -> None:
 def testFloat(randomQuantityForValues) -> None:
     """Test float conversion for scalar quantities."""
     for i in range(100):
-        value = (2 * np.random.random(1) - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        value = (2 * np.random.random(1) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(value)
         testing.assert_almost_equal(float(q), value)
 
@@ -107,9 +97,7 @@ def testFloat(randomQuantityForValues) -> None:
 def testToArray(randomQuantityForValues) -> None:
     """Test array conversion for scalar quantities."""
     for N in range(1, 100):
-        values = (2 * np.random.random(N) - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
         testing.assert_array_almost_equal(np.array(q), values)
 
@@ -120,9 +108,7 @@ def testComparisons(randomQuantityForValues) -> None:
     for i in range(1, 100):
         # create a quantity with random values and check if the
         # get functions return the same values
-        value = (2 * np.random.random() - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        value = (2 * np.random.random() - 1) * np.power(10.0, np.random.randint(-10, 10))
         q1 = randomQuantityForValues(value)
         q2 = randomQuantityForValues(2 * np.abs(value))
 
@@ -139,9 +125,7 @@ def testEquality(randomQuantityForValues) -> None:
     for i in range(1, 100):
         # create a quantity with random values and check if the
         # get functions return the same values
-        value = (2 * np.random.random() - 1) * np.power(
-            10.0, np.random.randint(-10, 10)
-        )
+        value = (2 * np.random.random() - 1) * np.power(10.0, np.random.randint(-10, 10))
         q1 = randomQuantityForValues(value)
         q2 = randomQuantityForValues(1.2 * np.abs(value))
 
@@ -156,9 +140,7 @@ def testEquality(randomQuantityForValues) -> None:
 def testEqualityById(randomQuantity):
     """Test __eq__ by ID."""
     q1 = randomQuantity(1)
-    q2 = Quantity(
-        q1.getValue(), q1.getMinValue(), q1.getMaxValue(), q1.getUnit()
-    )
+    q2 = Quantity(q1.getValue(), q1.getMinValue(), q1.getMaxValue(), q1.getUnit())
     assert q1 == q2
     assert q1 is not q2
     assert q2 is not q1
@@ -173,13 +155,9 @@ def testNoInput():
     with pytest.raises(Exception):
         Quantity()
     with pytest.raises(Exception):
-        Quantity(
-            np.random.random(), min_value=np.random.random(), max_value=None
-        )
+        Quantity(np.random.random(), min_value=np.random.random(), max_value=None)
     with pytest.raises(Exception):
-        Quantity(
-            np.random.random(), min_value=None, max_value=np.random.random()
-        )
+        Quantity(np.random.random(), min_value=None, max_value=np.random.random())
 
 
 def testOutOfBounds():
@@ -283,3 +261,23 @@ def testRelations(three):
         _ = Quantity.relational([unit1, unit2], lambda x, y: x + y)
     with pytest.raises(ValueError):
         unit1.addRelation(unit2, lambda x: x)
+
+
+def testPersistence(randomQuantity):
+    for N in range(1, 10):
+        for i in range(20):
+            q = randomQuantity(N)
+            data = q.toDict()
+            q2 = Quantity(0, -1, 1)
+            q2.fromDict(data)
+
+            # assert q == q2
+            assert q.getName() == q2.getName()
+            assert q.getUnit() == q2.getUnit()
+            testing.assert_almost_equal(q.getMinValue(), q2.getMinValue())
+            testing.assert_almost_equal(q.getMaxValue(), q2.getMaxValue())
+            testing.assert_almost_equal(q.getReducedValue(), q2.getReducedValue())
+            if N == 1:
+                assert q2.isScalar()
+            else:
+                assert q2.isVector()

@@ -24,13 +24,13 @@ def opt(rabi):
 def rabi():
     """Create Rabi test object."""
     exp = RabiExperiment(FREQ)
-    exp.setName(RABI_NAME)
+    exp.name = RABI_NAME
     return exp
 
 
 def test_name(rabi):
     """Check that the name is 'RABI_NAME'."""
-    assert rabi.getName() == RABI_NAME
+    assert rabi.name == RABI_NAME
 
 
 def test_rabi(opt) -> None:

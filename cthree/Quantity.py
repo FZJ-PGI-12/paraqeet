@@ -179,9 +179,7 @@ class Quantity:
                 unit is specified.
 
         """
-        quantities = (
-            quantities if isinstance(quantities, list) else [quantities]
-        )
+        quantities = quantities if isinstance(quantities, list) else [quantities]
         min_val = np.min([qty.getMinValue() for qty in quantities])
         max_val = np.max([qty.getMaxValue() for qty in quantities])
 
@@ -191,12 +189,9 @@ class Quantity:
                 name += "_" + qty.getName()
 
         if unit is None:
-            if not all(
-                qty.getUnit() == quantities[0].getUnit() for qty in quantities
-            ):
+            if not all(qty.getUnit() == quantities[0].getUnit() for qty in quantities):
                 raise ValueError(
-                    f"All quantities in creation on {name} "
-                    f"must have the same unit if no unit is specified."
+                    f"All quantities in creation on {name} " f"must have the same unit if no unit is specified."
                 )
             unit = quantities[0].getUnit()
 
@@ -272,10 +267,7 @@ class Quantity:
         """
         other = other if isinstance(other, list) else [other]
 
-        if (
-            not all(qty.getUnit() == self.getUnit() for qty in other)
-            and checkUnits
-        ):
+        if not all(qty.getUnit() == self.getUnit() for qty in other) and checkUnits:
             raise ValueError(
                 "Not all Quantities in the relation have the same units. "
                 "This may lead to unintentional physical errors. "
@@ -297,9 +289,7 @@ class Quantity:
         is dependent on is changed.
 
         """
-        self.__setValue(
-            self.__relation(*[qty.getValue() for qty in self.__dependencies])
-        )
+        self.__setValue(self.__relation(*[qty.getValue() for qty in self.__dependencies]))
 
     def getValue(self) -> np.array:
         """Get value of the parameter."""
@@ -341,15 +331,12 @@ class Quantity:
         self.__setValue(value)
 
     def __setValue(self, value) -> None:
-        """Set value for the paramter."""
+        """Set value for the parameter."""
         if isinstance(value, np.ndarray):
             val = value.astype(np.float64)
         else:
             val = np.array(value).astype(np.float64)
-        tmp = (
-            2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale
-            - 1
-        )
+        tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
         if np.any(np.abs(tmp) > 1.0):
             print("Error: ", val, self.getMinValue(), self.getMaxValue())
@@ -404,7 +391,16 @@ class Quantity:
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
         # the value is based on offset and scale and needs to be updated
-        self.setValue(oldValue)
+        self.__setValue(oldValue)
+
+    def setValueAndLimits(self, value, min_value, max_value) -> None:
+        """
+        This can be used to set the value and the limits to new values at the same time. This function does not raise
+        an exception if the new value is outside of the old limits.
+        """
+        self.__offset = np.array(min_value)
+        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        self.__setValue(value)
 
     def getName(self) -> str:
         """Return the symbol or description or this quantity.
@@ -419,6 +415,10 @@ class Quantity:
 
         """
         return self.__name
+
+    def setName(self, name: str) -> None:
+        """Assigns a new name to this quantity."""
+        self.__name = name
 
     def getUnit(self) -> str:
         """Get unit of measurement from paramter."""
@@ -517,9 +517,7 @@ class Quantity:
 
         """
         if not self.isScalar():
-            raise IncompatibleQuantityException(
-                "Ordering operators are only usable with scalar quantities"
-            )
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() < other.getValue()
 
     def __le__(self, other) -> bool:
@@ -541,9 +539,7 @@ class Quantity:
 
         """
         if not self.isScalar():
-            raise IncompatibleQuantityException(
-                "Ordering operators are only usable with scalar quantities"
-            )
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() <= other
 
     def __eq__(self, other) -> bool:
@@ -577,9 +573,7 @@ class Quantity:
 
         """
         if not self.isScalar():
-            raise IncompatibleQuantityException(
-                "Ordering operators are only usable with scalar quantities"
-            )
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() >= other
 
     def __gt__(self, other) -> bool:
@@ -600,9 +594,7 @@ class Quantity:
 
         """
         if not self.isScalar():
-            raise IncompatibleQuantityException(
-                "Ordering operators are only usable with scalar quantities"
-            )
+            raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return self.getValue() > other
 
     def __array__(self):
@@ -657,25 +649,14 @@ class Quantity:
         for entry in np.nditer(val):
             if self.__unit != "":
                 if self.__twoPi:
-                    ret += (
-                        self.__makeHumanReadable(entry / np.pi / 2)
-                        + self.__unit
-                        + " x 2pi "
-                    )
+                    ret += self.__makeHumanReadable(entry / np.pi / 2) + self.__unit + " x 2pi "
                 else:
                     ret += self.__makeHumanReadable(entry) + self.__unit + " "
             else:
                 if self.__twoPi:
-                    ret += (
-                        self.__makeHumanReadable(
-                            entry / np.pi / 2, use_prefix=False
-                        )
-                        + " x 2pi "
-                    )
+                    ret += self.__makeHumanReadable(entry / np.pi / 2, use_prefix=False) + " x 2pi "
                 else:
-                    ret += (
-                        self.__makeHumanReadable(entry, use_prefix=False) + " "
-                    )
+                    ret += self.__makeHumanReadable(entry, use_prefix=False) + " "
         if self.__name:
             ret = self.__name + ": " + ret
         return ret
@@ -745,3 +726,37 @@ class Quantity:
             prefix = units[idx]
 
         return sign * (10 ** (tmp % 3)), prefix
+
+    def toDict(self) -> dict:
+        """
+        Creates a dictionary representation of this quantity that can be stored. The returned dict is compatible with
+        the fromDict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
+        dimensional quantities (tensors) will be flattened into a list but their proper shape is stored as well.
+        """
+        if self.dependent:
+            raise UserWarning("Saving of dependent quantities is not supported yet")
+
+        return {
+            "unit": self.__unit,
+            "shape": self.__shape,
+            "twoPi": self.__twoPi,
+            "value": self.getValue().flatten().tolist(),
+            "min": self.getMinValue().tolist(),
+            "max": self.getMaxValue().tolist(),
+        }
+
+    def fromDict(self, data: dict) -> None:
+        """
+        Loads the quantity from a dictionary. The dictionary must have the same form as the one created by the toDict
+        function. All properties of this quantity (value, name, etc.) will be overwritten.
+        """
+        self.__unit = data["unit"]
+        self.__shape = data["shape"]
+        self.__length = int(np.prod(self.__shape))
+        self.__twoPi = data["twoPi"]
+
+        # The value and limits need to be set at the same time so that the new value is not out of range
+        value = np.array(data["value"]).reshape(self.__shape)
+        minVal = np.array(data["min"]).reshape(self.__shape)
+        maxVal = np.array(data["max"]).reshape(self.__shape)
+        self.setValueAndLimits(value, minVal, maxVal)

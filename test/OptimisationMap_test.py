@@ -11,10 +11,7 @@ from test.TestOptimisable import TestOptimisable
 @pytest.fixture
 def randomOptimisables(randomQuantity):
     """Create random optimisables."""
-    return [
-        TestOptimisable(randomQuantity, np.random.randint(1, 10))
-        for i in range(10)
-    ]
+    return [TestOptimisable(randomQuantity, np.random.randint(1, 10)) for i in range(2, 10)]
 
 
 @pytest.fixture
@@ -23,6 +20,11 @@ def optMapWithOptimisables(randomOptimisables):
     m = OptimisationMap()
     for i, optimisable in enumerate(randomOptimisables):
         m.add(optimisable)
+
+        # Assign valid and unique names to the optimisable and its quantities
+        optimisable.name = f"optimisable {i}"
+        for j, quantity in enumerate(optimisable.getParameters()):
+            quantity.setName(f"optimisable {i} - quantity {j}")
     return m
 
 
@@ -66,15 +68,9 @@ def test_adding_all_parameters(randomOptimisables) -> None:
         m.add(optimisable)
         assert len(m.getAllParameters()) == numParams
 
-        intersection = [
-            p for p in optimisable.getParameters() if p in m.getAllParameters()
-        ]
+        intersection = [p for p in optimisable.getParameters() if p in m.getAllParameters()]
         assert len(intersection) == len(optimisable.getParameters())
-        intersection2 = [
-            p
-            for p in optimisable.getParameters()
-            if p in m.getParameters(optimisable)
-        ]
+        intersection2 = [p for p in optimisable.getParameters() if p in m.getParameters(optimisable)]
         assert len(intersection2) == len(optimisable.getParameters())
 
 
@@ -88,11 +84,7 @@ def test_adding_some_parameters(randomOptimisables) -> None:
     m = OptimisationMap()
     numParams = 0
     for i, optimisable in enumerate(randomOptimisables):
-        numAdded = (
-            np.random.randint(1, len(optimisable.getParameters()))
-            if len(optimisable.getParameters()) > 1
-            else 1
-        )
+        numAdded = np.random.randint(1, len(optimisable.getParameters())) if len(optimisable.getParameters()) > 1 else 1
         parameters = random.sample(optimisable.getParameters(), numAdded)
         numParams += numAdded
         m.add(optimisable, parameters)
@@ -100,15 +92,9 @@ def test_adding_some_parameters(randomOptimisables) -> None:
         allP = m.getAllParameters()
         assert len(allP) == numParams
 
-        intersection = [
-            p for p in optimisable.getParameters() if p in m.getAllParameters()
-        ]
+        intersection = [p for p in optimisable.getParameters() if p in m.getAllParameters()]
         assert len(intersection) == numAdded
-        intersection2 = [
-            p
-            for p in optimisable.getParameters()
-            if p in m.getParameters(optimisable)
-        ]
+        intersection2 = [p for p in optimisable.getParameters() if p in m.getParameters(optimisable)]
         assert len(intersection2) == numAdded
 
 
@@ -123,9 +109,7 @@ def test_removing_optimisables(optMapWithOptimisables) -> None:
     for i, optimisable in enumerate(optimisables):
         optMapWithOptimisables.remove(optimisable)
         assert optimisable not in optMapWithOptimisables.getOptimisables()
-        assert len(optMapWithOptimisables.getOptimisables()) == len(
-            optimisables
-        ) - (i + 1)
+        assert len(optMapWithOptimisables.getOptimisables()) == len(optimisables) - (i + 1)
 
 
 def test_removing_parameters(optMapWithOptimisables) -> None:
@@ -144,11 +128,40 @@ def test_removing_parameters(optMapWithOptimisables) -> None:
         optMapWithOptimisables.remove(optimisable)
         assert len(optMapWithOptimisables.getAllParameters()) == numParams
 
-        intersection = [
-            p
-            for p in optimisable.getParameters()
-            if p in optMapWithOptimisables.getAllParameters()
-        ]
+        intersection = [p for p in optimisable.getParameters() if p in optMapWithOptimisables.getAllParameters()]
         assert len(intersection) == 0
         with pytest.raises(Exception):
             optMapWithOptimisables.getParameters(optimisable)
+
+
+def test_exporting_fails(optMapWithOptimisables) -> None:
+    """Tests if exporting fails if the optimisables or quantities do not have unique names."""
+    optimisables = list(optMapWithOptimisables.getOptimisables())
+
+    # Test bad names of optimisables
+    notAllowed = [None, "", optimisables[1].name]
+    for x in notAllowed:
+        optimisables[0].name = x
+        with pytest.raises(Exception):
+            optMapWithOptimisables.toDict()
+    optimisables[0].name = "optimisable 0"
+
+    # Test bad names of quantities
+    quantities = optimisables[0].getParameters()
+    print("Changing: ", optimisables[0].name)
+    notAllowed = [quantities[1].getName()]
+    for x in notAllowed:
+        quantities[0].setName(x)
+        with pytest.raises(Exception):
+            optMapWithOptimisables.toDict()
+
+
+def test_exporting(optMapWithOptimisables) -> None:
+    """Tests if all optimisables and quantities are being exported."""
+    optimisables = list(optMapWithOptimisables.getOptimisables())
+
+    dictionary = optMapWithOptimisables.toDict()
+    assert len(dictionary) == len(optimisables)
+    for optimisable in optimisables:
+        assert optimisable.name in dictionary
+        assert len(optimisable.getParameters()) == len(dictionary[optimisable.name])

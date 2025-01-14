@@ -14,7 +14,7 @@ class Optimisable:
 
     """
 
-    _name: str = ""
+    _name: str = None
     _optimisableParameters: list[Quantity] = []
 
     @abstractmethod
@@ -29,18 +29,20 @@ class Optimisable:
         """
         raise NotImplementedError()
 
-    def getName(self) -> str:
+    @property
+    def name(self) -> str | None:
         """Get the name of the parameter.
 
         Returns
         -------
-        str
+        str | None
             Name of the parameter.
 
         """
         return self._name
 
-    def setName(self, name: str) -> None:
+    @name.setter
+    def name(self, name: str | None) -> None:
         """Set the name of the parameter.
 
         Parameters
