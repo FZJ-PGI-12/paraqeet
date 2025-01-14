@@ -3,7 +3,7 @@
 import numpy as np
 
 from cthree.Quantity import Quantity
-from cthree.model.Model import EquationOfMotion
+from cthree.model.EquationOfMotion import EquationOfMotion
 from cthree.propagation.StatePropagation import StatePropagation
 
 

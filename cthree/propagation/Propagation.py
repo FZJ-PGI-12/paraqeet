@@ -3,7 +3,7 @@
 from abc import abstractmethod
 
 from cthree.Optimisable import Optimisable
-from cthree.model.Model import EquationOfMotion
+from cthree.model.EquationOfMotion import EquationOfMotion
 
 import numpy as np
 

@@ -16,7 +16,7 @@ from jax.lax import scan
 
 from jax.scipy.linalg import expm, expm_frechet
 
-from cthree.model.Model import EquationOfMotion
+from cthree.model.EquationOfMotion import EquationOfMotion
 from cthree.Exceptions import ConfigurationException
 from cthree.propagation.ScipyExpm import ScipyExpm
 

@@ -7,8 +7,8 @@ from cthree.OptimisationMap import OptimisationMap
 from cthree.Quantity import Quantity
 from cthree.measurement.StateTransferFidelity import StateTransferFidelity
 from cthree.measurement.UnitaryFidelity import UnitaryFidelity
-from cthree.model.ClosedModel import ClosedModel
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.ClosedSystem import ClosedSystem
+from cthree.model.DriveOperator import DriveOperator
 from cthree.model.Qubit import Qubit
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
@@ -43,9 +43,9 @@ def prop(gen):
     By piecewise exponentation with the scipy package.
 
     """
-    drive = GeneratorDrive(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, isLongitudinal=False)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive])
-    model = ClosedModel(controlled_qubit)
+    model = ClosedSystem(controlled_qubit)
     return ScipyExpmGOAT(model=model, res=RES)
 
 

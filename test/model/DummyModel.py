@@ -4,7 +4,7 @@ import numpy as np
 
 from cthree.Quantity import Quantity
 from cthree.model.Hamiltonian import Hamiltonian
-from cthree.model.Model import EquationOfMotion
+from cthree.model.EquationOfMotion import EquationOfMotion
 
 
 class DummyModel(EquationOfMotion):

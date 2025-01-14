@@ -1,6 +1,6 @@
 """Class definition of the State propagation model."""
 
-from cthree.model.Model import EquationOfMotion
+from cthree.model.EquationOfMotion import EquationOfMotion
 
 import numpy as np
 

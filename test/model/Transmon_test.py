@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from cthree.Quantity import Quantity
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.DriveOperator import DriveOperator
 from cthree.model.Transmon import Transmon
 from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
@@ -43,7 +43,7 @@ def hamiltonian(gen):
     """Return a transmon object."""
 
     def _method(dimension):
-        drive = GeneratorDrive(gen, isLongitudinal=False)
+        drive = DriveOperator(gen, isLongitudinal=False)
         drive.setOptimisableParameters(drive.getParameters())
         return Transmon(
             dimension=dimension,

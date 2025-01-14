@@ -2,12 +2,12 @@
 
 from cthree.Quantity import Quantity
 from cthree.model.Hamiltonian import Hamiltonian
-from cthree.model.Model import EquationOfMotion
+from cthree.model.EquationOfMotion import EquationOfMotion
 
 import numpy as np
 
 
-class ClosedModel(EquationOfMotion):
+class ClosedSystem(EquationOfMotion):
     """Model of a closed physical system, defined by a Hamiltonian.
 
     Its dynamics is given by the Schrödinger equation.

@@ -5,7 +5,7 @@ import numpy as np
 
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.IQMixer import IQMixer
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.DriveOperator import DriveOperator
 
 
 LEN_SIG = 101
@@ -39,7 +39,7 @@ def gen(tone):
 @pytest.fixture
 def drive(gen):
     """Return a generator drive object."""
-    drive = GeneratorDrive(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, isLongitudinal=False)
     return drive
 
 

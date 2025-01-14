@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from cthree.Quantity import Quantity
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.DriveOperator import DriveOperator
 from cthree.model.Resonator import Resonator
 from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
@@ -42,7 +42,7 @@ def hamiltonian(gen):
     """Return a resonator object."""
 
     def _method(dimension):
-        drive = GeneratorDrive(gen, isLongitudinal=False)
+        drive = DriveOperator(gen, isLongitudinal=False)
         return Resonator(
             dimension=dimension,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),

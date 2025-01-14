@@ -7,7 +7,7 @@ from cthree.Quantity import Quantity
 from cthree.model.Coupling import Coupling
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.IQMixer import IQMixer
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.DriveOperator import DriveOperator
 from cthree.model.Transmon import Transmon
 from cthree.model.CompositeHamiltonian import CompositeHamiltonian
 
@@ -43,7 +43,7 @@ def gen(tone):
 @pytest.fixture
 def drive(gen):
     """Return a generator drive object."""
-    drive = GeneratorDrive(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, isLongitudinal=False)
     return drive
 
 

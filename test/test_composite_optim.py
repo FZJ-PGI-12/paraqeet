@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.DriveOperator import DriveOperator
 from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
 from cthree.signal.IQMixer import IQMixer
@@ -15,7 +15,7 @@ from cthree.model.Coupling import Coupling
 from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
 from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
 
-from cthree.model.ClosedModel import ClosedModel
+from cthree.model.ClosedSystem import ClosedSystem
 from cthree.model.CompositeHamiltonian import CompositeHamiltonian
 from cthree.model.Transmon import Transmon
 
@@ -79,7 +79,7 @@ def coupledTransmons(tone):
             unit="rad",
         ),
     )
-    drive1 = GeneratorDrive(generator1, isLongitudinal=False)
+    drive1 = DriveOperator(generator1, isLongitudinal=False)
 
     generator2 = IQMixer(
         envelopes=[tone2],
@@ -96,7 +96,7 @@ def coupledTransmons(tone):
             unit="rad",
         ),
     )
-    drive2 = GeneratorDrive(generator2, isLongitudinal=False)
+    drive2 = DriveOperator(generator2, isLongitudinal=False)
 
     transmon1 = Transmon(
         dimension=3,
@@ -121,7 +121,7 @@ def coupledTransmons(tone):
         ),
     )
     hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
-    model = ClosedModel(hamiltonian)
+    model = ClosedSystem(hamiltonian)
     prop = ScipyExpmGOAT(model=model, res=RES)
 
     X = np.array([[0.0, 1], [1, 0.0]])

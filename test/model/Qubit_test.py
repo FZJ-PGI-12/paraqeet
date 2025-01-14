@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from cthree.Quantity import Quantity
-from cthree.model.GeneratorDrive import GeneratorDrive
+from cthree.model.DriveOperator import DriveOperator
 from cthree.model.Qubit import Qubit
 from cthree.signal.IQMixer import IQMixer
 from cthree.signal.Envelopes import FlatTopGaussianEnvelope
@@ -40,7 +40,7 @@ def gen(tone):
 @pytest.fixture
 def ham(gen):
     """Return a qubit."""
-    drive = GeneratorDrive(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, isLongitudinal=False)
     return Qubit(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 
 
