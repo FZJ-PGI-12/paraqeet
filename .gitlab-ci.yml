@@ -78,8 +78,9 @@ examples:
 build-docs:
   stage: docs
   script:
-    - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi
-    - for notebook in examples/*.ipynb; jupyter nbconvert --to rst --output-dir doc/notebooks $notebook
+    - apt-get install -y pandoc
+    - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
+    - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
     - cd doc
     - make html
   artifacts:
