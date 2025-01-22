@@ -86,6 +86,6 @@ build-docs:
     - make html
   artifacts:
     paths:
-      - doc/build/html/
+      - doc/_build/html/
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
