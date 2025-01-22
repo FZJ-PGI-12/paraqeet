@@ -78,6 +78,7 @@ examples:
 build-docs:
   stage: docs
   script:
+    - apt-get update
     - apt-get install -y pandoc
     - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
     - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
