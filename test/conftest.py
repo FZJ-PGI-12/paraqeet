@@ -5,9 +5,9 @@ import pytest
 import numpy as np
 from scipy.stats import unitary_group
 
-from cthree.Quantity import Quantity
-from test.model.DummyModel import DummyModel
-from test.model.EmptyHamiltonian import EmptyHamiltonian
+from cthree.quantity import Quantity
+from test.model.dummy_model import DummyModel
+from test.model.empty_hamiltonian import EmptyHamiltonian
 
 LEN_SIG = 20
 

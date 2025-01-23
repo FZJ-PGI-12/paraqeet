@@ -3,18 +3,18 @@
 import numpy as np
 import pytest
 
-from cthree.OptimisationMap import OptimisationMap
-from cthree.Quantity import Quantity
-from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.measurement.UnitaryFidelity import UnitaryFidelity
-from cthree.model.ClosedSystem import ClosedSystem
-from cthree.model.DriveOperator import DriveOperator
-from cthree.model.Qubit import Qubit
-from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
-from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
-from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
-from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.IQMixer import IQMixer
+from cthree.optimisation_map import OptimisationMap
+from cthree.quantity import Quantity
+from cthree.measurement.state_transfer_fidelity import StateTransferFidelity
+from cthree.measurement.unitary_fidelity import UnitaryFidelity
+from cthree.model.closed_system import ClosedSystem
+from cthree.model.drive_operator import DriveOperator
+from cthree.model.qubit import Qubit
+from cthree.optimisers.scipy_optimiser import ScipyOptimiser
+from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
+from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from cthree.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9

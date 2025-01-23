@@ -4,8 +4,8 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from test.DummyDevice import FlatTopGaussianEnvelopeAD
+from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from test.dummy_device import FlatTopGaussianEnvelopeAD
 
 time = jnp.linspace(0, 10e-6, 100)
 
@@ -16,7 +16,7 @@ def tone():
 
     Returns
     -------
-    cthree.signal.Envelopes.Envelope
+    cthree.signal.envelopes.Envelope
         A Flat top Gaussian Envelope
     """
     return FlatTopGaussianEnvelope()
@@ -28,7 +28,7 @@ def toneAD():
 
     Returns
     -------
-    cthree.signal.Envelopes.Envelope
+    cthree.signal.envelopes.Envelope
         A Flat top Gaussian Envelope without gradients defined
     """
     return FlatTopGaussianEnvelopeAD()

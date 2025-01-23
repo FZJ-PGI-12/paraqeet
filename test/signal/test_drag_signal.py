@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
-from cthree.signal.Envelopes import (
+from cthree.signal.envelopes import (
     FlatTopGaussianEnvelope,
     GaussEnvelope,
     ZeroEnvelope,
 )
-from cthree.signal.IQMixer import IQMixer
-from cthree.signal.Waveform import DRAGMixer
+from cthree.signal.iq_mixer import IQMixer
+from cthree.signal.waveform import DRAGMixer
 
 LEN_SIG = 1001
 

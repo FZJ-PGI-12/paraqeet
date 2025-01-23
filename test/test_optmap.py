@@ -1,9 +1,9 @@
 """Testing the optimisation map."""
 
-from cthree.OptimisationMap import OptimisationMap
+from cthree.optimisation_map import OptimisationMap
 
-from cthree.signal.IQMixer import IQMixer
-from cthree.signal.Envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
+from cthree.signal.iq_mixer import IQMixer
+from cthree.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
 
 tone = ConstantEnvelope()
 gen = IQMixer(envelopes=[tone])
