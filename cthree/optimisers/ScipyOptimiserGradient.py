@@ -124,7 +124,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         infid = 1 - fun
         if self._logger:
-            self._logger.log(log, infid)
+            self._logger.log(log, float(infid))
         return 1 - fun
 
     def _lookupJac(self, values) -> np.ndarray:

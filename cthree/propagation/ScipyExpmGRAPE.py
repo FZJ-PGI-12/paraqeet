@@ -226,14 +226,17 @@ class ScipyExpmGRAPE(ScipyExpm):
         init_state = jnp.array(self._initialState, dtype=jnp.complex128)
         dt = time[1] - time[0]
 
+        timeGrid = time[:-1] + dt / 2
+
         eom_func = self._model.getMatrixEOM
-        eom = eom_func(time + dt / 2) * dt
+        eom = eom_func(timeGrid) * dt
 
         Us = vmap(self._exponentiate, in_axes=(0,))(eom)
 
         psis = self._propagateInTime(
-            Us, init_state, jnp.arange(0, len(time), 1)
+            Us, init_state, jnp.arange(0, len(timeGrid), 1)
         )
+        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         return psis
 
     def gradient(self, time: np.ndarray) -> np.ndarray:

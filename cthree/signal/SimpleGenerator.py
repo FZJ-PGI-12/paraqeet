@@ -10,6 +10,7 @@ from jax.scipy.special import erf
 from cthree.Quantity import Quantity
 from cthree.signal.Waveform import Waveform, LocalOscillator
 from cthree.signal.Generator import Generator
+from cthree.signal.Envelopes import Envelope
 
 
 class CosGenerator(Generator):
@@ -239,19 +240,19 @@ class PWCGenerator(Generator):
     Driving with a PWC pulse (without the LO) should be done in the rotating
     frame of drive.
 
-    __envs: list[Waveform]
+    __envs: list[Envelope]
         List of Envelopes
     __tlist: np.ndarray
         Time grid discritization points
 
     Parameters
     ----------
-    envelopes : List[cthree.signal.Waveform]
+    envelopes : List[cthree.signal.Envelope]
         List of input devices.
 
     """
 
-    __envs: list[Waveform]
+    __envs: list[Envelope]
     __tlist: np.ndarray
     __inphase: Quantity
     __quadrature: Quantity
@@ -260,7 +261,7 @@ class PWCGenerator(Generator):
 
     def __init__(
         self,
-        envelopes: list[Waveform] | None,
+        envelopes: list[Envelope] | None,
         tlist: np.ndarray,
     ):
         self.__envs = envelopes or []
@@ -274,9 +275,9 @@ class PWCGenerator(Generator):
 
     def __computeEnvelope(self, t):
         t_final = self.__t_final
-        ramp_time = t_final / 20
-        rampUp = 1 + erf((t - t_final / 20) / ramp_time)
-        rampDown = 1 + erf((-t + 19 * t_final / 20) / ramp_time)
+        ramp_time = t_final / 25
+        rampUp = 1 + erf((t - 2 * t_final / 20) / ramp_time)
+        rampDown = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
         return rampUp * rampDown / 4
 
     @property
@@ -329,6 +330,7 @@ class PWCGenerator(Generator):
             Flag value for multiplyFlatTop.
         """
         self.__multiplyFlatTop = multiplyFlatTop
+        self.__setInphaseAndQuadrature()
 
     def __setInphaseAndQuadrature(self) -> None:
         """Generate Inphase and Quadrature Quantities using tlist."""
@@ -336,19 +338,23 @@ class PWCGenerator(Generator):
         for dev in self.__envs:
             env += dev.computeOutput(self.__tlist)
 
-        max_abs = jnp.max(jnp.abs(env))
+        if self.__multiplyFlatTop:
+            env *= self.__computeEnvelope(self.__tlist)
+
+        min_val = np.min([env.amplitude.getMinValue() for env in self.__envs])
+        max_val = np.max([env.amplitude.getMaxValue() for env in self.__envs])
 
         self.__inphase = Quantity(
             jnp.real(env),
-            min_value=-2 * max_abs,
-            max_value=2 * max_abs,
+            min_value=min_val,
+            max_value=max_val,
             unit="Hz",
             name="Inphase",
         )
         self.__quadrature = Quantity(
             jnp.imag(env),
-            min_value=-2 * max_abs,
-            max_value=2 * max_abs,
+            min_value=min_val,
+            max_value=max_val,
             unit="Hz",
             name="Quadrature",
         )
@@ -432,8 +438,11 @@ class PWCGenerator(Generator):
                 inphase, quadrature, tlist, t
             )
         )
-        if self.__multiplyFlatTop:
-            shape *= self.__computeEnvelope(t)
+
+        # shape = jnp.reshape(inphase + 1j * quadrature, (-1,1))
+
+        # if self.__multiplyFlatTop:
+        #     shape *= self.__computeEnvelope(t)
         return shape
 
     def generateSignalGradient(self, t: np.ndarray) -> Array:
@@ -457,7 +466,8 @@ class PWCGenerator(Generator):
         grads = []
 
         if self.__multiplyFlatTop:
-            env = self.__computeEnvelope(t)
+            # env = 1/self.__computeEnvelope(t)
+            env = jnp.ones_like(t)
         else:
             env = jnp.ones_like(t)
 

@@ -137,5 +137,5 @@ class ScipyOptimiser(Optimiser):
         infid = 1 - self._measure.measureNormalised()
 
         if self._logger:
-            self._logger.log(log, infid)
+            self._logger.log(log, float(infid))
         return infid
