@@ -28,7 +28,7 @@ class JSONFileSerialiser(Serialiser):
                 del data[self.__COMMENT_KEY]
             return data
 
-    def loadComment(self) -> str | None:
+    def load_comment(self) -> str | None:
         """Loads and returns the comment from the JSON file."""
         with open(self.__file) as f:
             data = json.load(f)

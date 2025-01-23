@@ -24,7 +24,7 @@ class Serialiser:
         """Loads and returns data that was previously saved."""
         raise NotImplementedError()
 
-    def loadComment(self) -> str | None:
+    def load_comment(self) -> str | None:
         """Loads and returns the comment, if any, that was previously saved with the data. Returns None if no comment
         was saved.
 
