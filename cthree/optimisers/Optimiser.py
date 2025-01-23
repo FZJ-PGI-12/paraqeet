@@ -33,7 +33,7 @@ class OptimisationResult:
     message : str | None, optional
         Any additional message from the optimisation algorithm.
         This can be an error message in case of failure.
-    rawResult : Any | None, optional
+    raw_result : Any | None, optional
         The raw result from the underlying algorithm.
 
     """
@@ -58,7 +58,7 @@ class OptimisationResult:
     # This can be an error message in case of failure.
     message: str | None = None
     # The raw result from the underlying algorithm.
-    rawResult: Any | None = None
+    raw_result: Any | None = None
 
     def __repr__(self):
         """Magic method for human-readable printable representation.
@@ -112,9 +112,9 @@ class Optimiser:
     ):
         self._measure = measure
         self._logger = logger
-        self.setOptimisables(optimisables)
+        self.set_optimisables(optimisables)
 
-    def setLogger(self, logger: Logger):
+    def set_logger(self, logger: Logger):
         """Set the logger for the optimiser object.
 
         Parameters
@@ -124,7 +124,7 @@ class Optimiser:
         """
         self._logger = logger
 
-    def getOptimisables(self) -> OptimisationMap:
+    def get_optimisables(self) -> OptimisationMap:
         """Return the optimisation map that this optimiser uses.
 
         Parameters that can be optimised need to be added to this map.
@@ -137,7 +137,7 @@ class Optimiser:
         """
         return self._optimisables
 
-    def setOptimisables(self, opt: OptimisationMap) -> None:
+    def set_optimisables(self, opt: OptimisationMap) -> None:
         """Set optimisable options (via Map).
 
         Registers optimisables and their length to keep track of vector
@@ -175,7 +175,7 @@ class Optimiser:
         """
         raise NotImplementedError()
 
-    def _buildOptimisableIndexList(self):
+    def _build_optimisable_index_list(self):
         """Build the optimisable index list.
 
         Register optimisables and their length to keep track of vector

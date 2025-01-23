@@ -59,17 +59,17 @@ class CMAEsOptimiser(Optimiser):
             "spread": 0.1,
             "bounds": [-1.0, 1],
         }
-        self.setCallback(callback)
+        self.set_callback(callback)
 
-    def getOptions(self) -> dict:
+    def get_options(self) -> dict:
         """Get options from the system."""
         return self._options
 
-    def setOptions(self, opts):
+    def set_options(self, opts):
         """Set options for the system."""
         self._options.update(opts)
 
-    def setCallback(self, cbfun: Callable) -> None:
+    def set_callback(self, cbfun: Callable) -> None:
         """Set the callback function for the optimiser.
 
         Parameters
@@ -135,7 +135,7 @@ class CMAEsOptimiser(Optimiser):
         if self._logger:
             self._logger.start()
 
-        self._buildOptimisableIndexList()
+        self._build_optimisable_index_list()
         self._optimisables.register_params_with_optimisables()
 
         x_init = []
@@ -165,7 +165,7 @@ class CMAEsOptimiser(Optimiser):
             if batch_noise:
                 error = np.random.randn() * noise
             for sample in samples:
-                goal = self._setParametersAndMeasure(sample)
+                goal = self._set_parameters_and_measure(sample)
                 if noise:
                     error = np.random.randn() * noise
                 if batch_noise or noise:
@@ -182,13 +182,13 @@ class CMAEsOptimiser(Optimiser):
             self._logger.stop(es.result_pretty())
 
         return OptimisationResult(
-            status=self.__determineTerminationStatus(es.result.stop()),
+            status=self.__determine_termination_status(es.result.stop()),
             value=es.result.fbest,
             iterations=es.result.iterations,
-            rawResult=es.result,
+            raw_result=es.result,
         )
 
-    def _setParametersAndMeasure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> np.ndarray:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
@@ -215,7 +215,7 @@ class CMAEsOptimiser(Optimiser):
             self._logger.log(log, infid)
         return infid
 
-    def __determineTerminationStatus(self, conditions: dict) -> int:
+    def __determine_termination_status(self, conditions: dict) -> int:
         """Determine the optimisation termination status.
 
         Determines the success or failure of the optimisation depending on the

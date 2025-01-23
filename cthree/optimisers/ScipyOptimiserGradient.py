@@ -48,7 +48,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         if self._logger:
             self._logger.start()
 
-        self._buildOptimisableIndexList()
+        self._build_optimisable_index_list()
         self._optimisables.register_params_with_optimisables()
 
         init = []
@@ -57,8 +57,8 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         try:
             result = minimize(
-                fun=self._setParametersAndMeasure,
-                jac=self._lookupJac,
+                fun=self._set_parameters_and_measure,
+                jac=self._lookup_jac,
                 x0=np.concatenate(init).flatten(),
                 bounds=[(-1, 1)] * self._opt_idxs[-1],
                 method=self._method,
@@ -82,10 +82,10 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             value=result.fun,
             iterations=result.nfev,
             message=result.message,
-            rawResult=result,
+            raw_result=result,
         )
 
-    def _setParametersAndMeasure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> np.ndarray:
         """Update the parameter values and return measurement result.
 
         Returns the measurement result including gradient.
@@ -118,7 +118,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             self._logger.log(log, float(infid))
         return 1 - fun
 
-    def _lookupJac(self, values) -> np.ndarray:
+    def _lookup_jac(self, values) -> np.ndarray:
         """Update the parameter values.
 
         Return the gradient of a measurement result.

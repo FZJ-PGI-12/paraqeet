@@ -83,6 +83,6 @@ def test_cma(cma_opt: CMAEsOptimiser) -> None:
 
 def test_baysian(bay_opt: BayesianOptimiser) -> None:
     """Check that the optimization goes below threshold."""
-    bay_opt.setIterations(200)
+    bay_opt.set_iterations(200)
     res = bay_opt.optimise()
     assert res.value < 1e-3

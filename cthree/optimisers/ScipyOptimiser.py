@@ -35,7 +35,7 @@ class ScipyOptimiser(Optimiser):
         self._method = "L-BFGS-B"
         self._callback = None
 
-    def setMethod(self, method: str):
+    def set_method(self, method: str):
         """Select method from scipy.optimize.minimize.
 
         See Also
@@ -50,15 +50,15 @@ class ScipyOptimiser(Optimiser):
         """
         self._method = method
 
-    def setOptions(self, opts: dict):
+    def set_options(self, opts: dict):
         """Set the options for the system."""
         self._options.update(opts)
 
-    def updateOption(self, key, val):
+    def update_option(self, key, val):
         """Update the options for the system."""
         self._options.update(key, val)
 
-    def setCallback(self, cbfun: Callable) -> None:
+    def set_callback(self, cbfun: Callable) -> None:
         """Set the callback function for the optimiser.
 
         Parameters
@@ -83,7 +83,7 @@ class ScipyOptimiser(Optimiser):
         if self._logger:
             self._logger.start()
 
-        self._buildOptimisableIndexList()
+        self._build_optimisable_index_list()
         self._optimisables.register_params_with_optimisables()
 
         # Collect the initial values of all parameters
@@ -92,7 +92,7 @@ class ScipyOptimiser(Optimiser):
             init.append(qty.get_reduced_value())
 
         opt_res = minimize(
-            fun=self._setParametersAndMeasure,
+            fun=self._set_parameters_and_measure,
             x0=np.concatenate(init).flatten(),
             bounds=[(-1, 1)] * self._opt_idxs[-1],
             method=self._method,
@@ -108,10 +108,10 @@ class ScipyOptimiser(Optimiser):
             value=opt_res.fun,
             iterations=opt_res.nfev,
             message=opt_res.message,
-            rawResult=opt_res,
+            raw_result=opt_res,
         )
 
-    def _setParametersAndMeasure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> np.ndarray:
         """Update the parameter values and return the measurement result.
 
         Internal callback.

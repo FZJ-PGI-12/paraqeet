@@ -34,7 +34,7 @@ class BayesianOptimiser(Optimiser):
     """
 
     _measure: Measurement
-    __initialSamples: int
+    __initial_samples: int
     __iterations: int
 
     def __init__(
@@ -45,22 +45,22 @@ class BayesianOptimiser(Optimiser):
         iterations=100,
     ):
         super().__init__(measure, optimisables)
-        self.__initialSamples = initialSamples
+        self.__initial_samples = initialSamples
         self.__iterations = iterations
 
-    def getInitialSamples(self) -> int:
+    def get_initial_samples(self) -> int:
         """Get the initial samples fed to the system."""
-        return self.__initialSamples
+        return self.__initial_samples
 
-    def setInitialSamples(self, initialSamples: int):
+    def set_initial_samples(self, initialSamples: int):
         """Set the initial samples for the system."""
-        self.__initialSamples = initialSamples
+        self.__initial_samples = initialSamples
 
-    def getIterations(self) -> int:
+    def get_iterations(self) -> int:
         """Get the iterations of the system."""
         return self.__iterations
 
-    def setIterations(self, iterations: int):
+    def set_iterations(self, iterations: int):
         """Set the iterations of the system."""
         self.__iterations = iterations
 
@@ -87,12 +87,12 @@ class BayesianOptimiser(Optimiser):
         # not be unique. The bounds are in the reduced representation
         # because this will be the working range for the optimiser.
         optimiser = BayesianOptimization(
-            f=self._setParametersAndMeasure,
+            f=self._set_parameters_and_measure,
             pbounds={str(i): (-1, 1) for i in range(len(params))},
             verbose=2,
             random_state=1,
         )
-        optimiser.maximize(init_points=self.__initialSamples, n_iter=self.__iterations)
+        optimiser.maximize(init_points=self.__initial_samples, n_iter=self.__iterations)
 
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
@@ -110,11 +110,11 @@ class BayesianOptimiser(Optimiser):
         return OptimisationResult(
             status=OptimisationResult.STATUS_FINISHED,
             value=result["fun"],
-            iterations=self.__iterations + self.__initialSamples,
-            rawResult=optimiser.max,
+            iterations=self.__iterations + self.__initial_samples,
+            raw_result=optimiser.max,
         )
 
-    def _setParametersAndMeasure(self, **kwargs) -> np.ndarray:
+    def _set_parameters_and_measure(self, **kwargs) -> np.ndarray:
         """Update the parameter values and returns the measurement result.
 
         Internal callback.
