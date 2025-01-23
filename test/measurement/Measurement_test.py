@@ -12,9 +12,7 @@ from test.propagation.RandomPropagation import RandomPropagation
 
 def randomState(dimension):
     """Generate random state according to the given dimension value."""
-    state = np.random.random((dimension, 1)) + 1j * np.random.random(
-        (dimension, 1)
-    )
+    state = np.random.random((dimension, 1)) + 1j * np.random.random((dimension, 1))
     return state / np.sqrt(np.vdot(state, state))
 
 
@@ -30,10 +28,8 @@ def test_limit_projected_vectors(randomState):
     for size in range(3, 30):
         for projectedSize in range(2, size):
             propagation = RandomPropagation(size, False)
-            measurement = RandomMeasurement(
-                propagation=propagation, times=times
-            )
-            measurement.restrictSubsystems([size], [projectedSize])
+            measurement = RandomMeasurement(propagation=propagation, times=times)
+            measurement.restrict_subsystems([size], [projectedSize])
             for _ in range(20):
                 m = measurement.measure()
                 assert 0.0 <= m <= 1.0
@@ -50,10 +46,8 @@ def test_gate_shape(randomUnitaryMatrix):
     for size in range(5, 30):
         for projectedSize in range(2, size):
             propagation = RandomPropagation(size, True)
-            measurement = RandomMeasurement(
-                propagation=propagation, times=times
-            )
-            measurement.restrictSubsystems([size], [projectedSize])
+            measurement = RandomMeasurement(propagation=propagation, times=times)
+            measurement.restrict_subsystems([size], [projectedSize])
             for _ in range(20):
                 m = measurement.measure()
                 assert 0.0 <= m <= 1.0

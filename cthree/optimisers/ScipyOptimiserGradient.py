@@ -110,7 +110,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        fun, grad = self._measure.measureWithGradient()
+        fun, grad = self._measure.measure_with_gradient()
         self.__gradCache = grad
 
         infid = 1 - fun

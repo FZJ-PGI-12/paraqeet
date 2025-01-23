@@ -51,7 +51,7 @@ class UnitaryFidelity(Measurement):
             basis_states = np.eye(gate.shape[0])
         self.__basis_states = basis_states
         self._times = times
-        self.setIdealGate(gate)
+        self.set_ideal_gate(gate)
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the system.
@@ -91,13 +91,13 @@ class UnitaryFidelity(Measurement):
 
         """
         states = self.__propagation.propagate(time=self._times)
-        states = self._preprocessMatrix(states)
+        states = self._preprocess_matrix(states)
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(np.vdot(s, states[-1][:, ii]))
         return self.__fid(overlaps)
 
-    def measureWithGradient(self) -> tuple[np.ndarray, np.ndarray]:
+    def measure_with_gradient(self) -> tuple[np.ndarray, np.ndarray]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns
@@ -107,8 +107,8 @@ class UnitaryFidelity(Measurement):
 
         """
         states, dg_dp_list = self.__propagation.gradient(time=self._times)  # gradient of states wrt parameters
-        states = self._preprocessMatrix(states)
-        dg_dp_list = self._preprocessMatrix(dg_dp_list)
+        states = self._preprocess_matrix(states)
+        dg_dp_list = self._preprocess_matrix(dg_dp_list)
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(np.vdot(s, states[-1][:, ii]))
@@ -125,7 +125,7 @@ class UnitaryFidelity(Measurement):
         fid = self.__fid(overlaps)
         return fid, np.array(dF_dp)  # shape scalar, (n_parameters,)
 
-    def setIdealGate(self, gate: np.ndarray):
+    def set_ideal_gate(self, gate: np.ndarray):
         """Compute target states for the L2 norm.
 
         Parameters

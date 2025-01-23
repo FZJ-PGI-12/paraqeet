@@ -34,8 +34,7 @@ class WeightedSumGoal(Measurement):
         self.__weights = weights
         if len(measurements) != len(weights):
             raise ConfigurationException(
-                f"Incompatible number of measurements {len(measurements)}"
-                " and weights {len(weights)}"
+                f"Incompatible number of measurements {len(measurements)}" " and weights {len(weights)}"
             )
         if not np.isclose(sum(weights), 1.0):
             raise UserWarning("Supplied weights are not normalized.")
@@ -55,7 +54,7 @@ class WeightedSumGoal(Measurement):
             sumMeas += w * measurements[ii]
         return sumMeas
 
-    def measureNormalised(self) -> np.ndarray:
+    def measure_normalised(self) -> np.ndarray:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -64,13 +63,13 @@ class WeightedSumGoal(Measurement):
             Returns the normalized weighted sum.
 
         """
-        measurements = [m.measureNormalised() for m in self.__measurements]
+        measurements = [m.measure_normalised() for m in self.__measurements]
         sumMeas = 0
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii]
         return float(sumMeas)
 
-    def measureWithGradient(self) -> tuple[jnp.ndarray, jnp.ndarray]:
+    def measure_with_gradient(self) -> tuple[jnp.ndarray, jnp.ndarray]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns
@@ -81,7 +80,7 @@ class WeightedSumGoal(Measurement):
             Returns the sum of gradients.
 
         """
-        measurements = [m.measureWithGradient() for m in self.__measurements]
+        measurements = [m.measure_with_gradient() for m in self.__measurements]
         sumMeas = jnp.array(0)
         sumGrads = jnp.zeros_like(measurements[0][1])
         for ii, w in enumerate(self.__weights):

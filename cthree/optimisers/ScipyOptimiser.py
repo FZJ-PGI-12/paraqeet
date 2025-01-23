@@ -132,7 +132,7 @@ class ScipyOptimiser(Optimiser):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.measureNormalised()
+        infid = 1 - self._measure.measure_normalised()
 
         if self._logger:
             self._logger.log(log, float(infid))

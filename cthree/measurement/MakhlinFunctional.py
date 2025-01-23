@@ -25,23 +25,23 @@ class MakhlinFunctional(Measurement):
         the equation of motion.
     times : numpy.ndarray
         One-dimensional vector of timestamps.
-    idealInvariants : numpy.ndarray, optional
+    ideal_invariants : numpy.ndarray, optional
         One-dimensional vector of ideal Makhlin invariants.
 
     """
 
     __propagation: Propagation
-    __idealInvariants: np.ndarray
+    __ideal_invariants: np.ndarray
 
     def __init__(
         self,
         propagation: Propagation,
         times: np.ndarray,
-        idealInvariants: np.ndarray = None,
+        ideal_invariants: np.ndarray = None,
     ):
         super().__init__(times=times)
         self.__propagation = propagation
-        self.__idealInvariants = idealInvariants
+        self.__ideal_invariants = ideal_invariants
 
     def get_parameters(self) -> list[Quantity]:
         """Get the parameters of the system.
@@ -70,16 +70,16 @@ class MakhlinFunctional(Measurement):
 
         """
         U = self.__propagation.propagate(self._times)[-1]
-        U = self._preprocessMatrix(U)
+        U = self._preprocess_matrix(U)
         if U.shape != (4, 4):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
-        gs = self.__makhlinInvariants(U)
-        if self.__idealInvariants is not None:
-            return np.linalg.norm(gs - self.__idealInvariants)
+        gs = self.__makhlin_invariants(U)
+        if self.__ideal_invariants is not None:
+            return np.linalg.norm(gs - self.__ideal_invariants)
         else:
             return np.abs(gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
-    def __makhlinInvariants(self, U: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def __makhlin_invariants(self, U: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute the Makhlin invariants for a matrix U.
 
         Returns a tuple with the three invariants g1, g2 and g3.

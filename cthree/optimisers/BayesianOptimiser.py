@@ -136,7 +136,7 @@ class BayesianOptimiser(Optimiser):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        fidelity = self._measure.measureNormalised()
+        fidelity = self._measure.measure_normalised()
 
         if self._logger:
             self._logger.log(log, fidelity)

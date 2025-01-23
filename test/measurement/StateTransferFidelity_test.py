@@ -57,7 +57,7 @@ def test_limit_projected_vectors(randomState):
                 times=times,
             )
 
-            measurement.restrictSubsystems([size], [projectedSize])
+            measurement.restrict_subsystems([size], [projectedSize])
             for _ in range(20):
                 m = measurement.measure()
                 assert 0.0 <= m <= 1.0

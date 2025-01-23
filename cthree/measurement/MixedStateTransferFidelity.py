@@ -27,8 +27,8 @@ class MixedStateTransferFidelity(Measurement):
 
     """
 
-    __targetState: np.ndarray
-    __targetStateSqrt: np.ndarray | None
+    __target_state: np.ndarray
+    __target_state_sqrt: np.ndarray | None
     __propagation: Propagation
     __times: np.ndarray
 
@@ -40,11 +40,11 @@ class MixedStateTransferFidelity(Measurement):
     ):
         super().__init__()
         self.__propagation = propagation
-        self.__targetState = targetState
+        self.__target_state = targetState
         self.__times = times
 
         # store the sqrt of the density matrix to simplify the measurement
-        self.__targetStateSqrt = sclin.sqrtm(self.__targetState)
+        self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
 
     def measure(self) -> np.ndarray:
         """Measure overlap between initial and final state of density matrices.
@@ -61,14 +61,14 @@ class MixedStateTransferFidelity(Measurement):
 
         """
         state = self.__propagation.propagate(self.__times)[-1]
-        state = self._preprocessMatrix(state)
-        if state.shape != self.__targetState.shape:
+        state = self._preprocess_matrix(state)
+        if state.shape != self.__target_state.shape:
             raise IncompatibleLayersException(
-                f"Need a state vector of size {self.__targetState.shape}"
+                f"Need a state vector of size {self.__target_state.shape}"
                 "for the state transfer fidelity, "
                 "but got shape {state.shape}"
             )
 
         # density matrix
-        product = self.__targetStateSqrt @ state @ self.__targetStateSqrt
+        product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
         return np.abs(np.trace(sclin.sqrtm(product))) ** 2

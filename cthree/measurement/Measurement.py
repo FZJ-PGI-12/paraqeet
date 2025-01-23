@@ -21,8 +21,8 @@ class Measurement(Optimisable):
     """
 
     # Fields for tracing and projecting before the measurement
-    __inputDimensions: list[int] | None = None
-    __outputDimensions: list[int] | None = None
+    __input_dimensions: list[int] | None = None
+    __output_dimensions: list[int] | None = None
     __projector: np.ndarray | None = None
 
     def __init__(self, times: np.ndarray | None = None):
@@ -48,7 +48,7 @@ class Measurement(Optimisable):
         """
         raise NotImplementedError()
 
-    def measureNormalised(self) -> np.ndarray:
+    def measure_normalised(self) -> np.ndarray:
         """Measure the normalised observable.
 
         Returns the value between 0 and 1, 1 representing the perfect result.
@@ -63,7 +63,7 @@ class Measurement(Optimisable):
         """
         return self.measure()
 
-    def measureWithGradient(self) -> tuple[np.ndarray, np.ndarray]:
+    def measure_with_gradient(self) -> tuple[np.ndarray, np.ndarray]:
         """Measure with gradient.
 
         Compute the measurement value as in measureNormalised()
@@ -83,10 +83,10 @@ class Measurement(Optimisable):
         """
         raise NotImplementedError()
 
-    def restrictSubsystems(
+    def restrict_subsystems(
         self,
-        inputDimensions: list[int],
-        outputDimensions: list[int] | None = None,
+        input_dimensions: list[int],
+        output_dimensions: list[int] | None = None,
     ) -> None:
         """Restrict subsystem by projecting to a subspace.
 
@@ -96,9 +96,9 @@ class Measurement(Optimisable):
 
         Parameters
         ----------
-        inputDimensions : List[int]
+        input_dimensions : List[int]
             Actual dimensions of all subsystems.
-        outputDimensions : List[int] | None, optional
+        output_dimensions : List[int] | None, optional
             Desired dimensions of all subsystems.
             Individual values can be 0 to fully remove subsystems
             from the propagator. The list can be None to disable projection.
@@ -116,38 +116,31 @@ class Measurement(Optimisable):
             If all output dimensions are zero.
 
         """
-        self.__inputDimensions = inputDimensions
-        self.__outputDimensions = outputDimensions
+        self.__input_dimensions = input_dimensions
+        self.__output_dimensions = output_dimensions
         self.__projector = None
 
         # Construct the projector matrix
-        if outputDimensions is not None:
-            if len(inputDimensions) != len(outputDimensions):
+        if output_dimensions is not None:
+            if len(input_dimensions) != len(output_dimensions):
                 raise RuntimeError(
                     "The input and output dimensions must \
                         contain the same number of subsystems"
                 )
-            if np.any(np.array(self.__inputDimensions) < 0) or np.any(
-                np.array(self.__outputDimensions) < 0
-            ):
+            if np.any(np.array(self.__input_dimensions) < 0) or np.any(np.array(self.__output_dimensions) < 0):
                 raise RuntimeError("Dimensions must not be negative")
-            if np.any(
-                np.array(self.__inputDimensions)
-                < np.array(self.__outputDimensions)
-            ):
-                raise RuntimeError(
-                    "Output dimensions can not be larger than input dimensions"
-                )
-            if np.sum(outputDimensions) == 0:
+            if np.any(np.array(self.__input_dimensions) < np.array(self.__output_dimensions)):
+                raise RuntimeError("Output dimensions can not be larger than input dimensions")
+            if np.sum(output_dimensions) == 0:
                 raise RuntimeError("All output dimensions can not be 0")
 
             P = np.eye(1)
-            for dimIn, dimOut in zip(inputDimensions, outputDimensions):
+            for dimIn, dimOut in zip(input_dimensions, output_dimensions):
                 dim2 = dimOut if dimOut > 0 else 1
                 P = np.kron(P, np.eye(dimIn, dim2))
             self.__projector = P
 
-    def _preprocessMatrix(self, operator: np.ndarray) -> np.ndarray:
+    def _preprocess_matrix(self, operator: np.ndarray) -> np.ndarray:
         """Perform any preprocessing on the "operator" that was registered.
 
         Operator could be unitary matrices, density matrices.
@@ -169,7 +162,7 @@ class Measurement(Optimisable):
             operator = self.__projector.T @ operator @ self.__projector
         return operator
 
-    def _preprocessVector(self, states: np.ndarray) -> np.ndarray:
+    def _preprocess_vector(self, states: np.ndarray) -> np.ndarray:
         """Perform any preprocessing on the "states" that were registered.
 
         States could be a single state or batch of state vectors.
