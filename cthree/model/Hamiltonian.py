@@ -157,12 +157,10 @@ class Hamiltonian(Optimisable):
         """
         params = []
         for d in self._drives:
-            params += d.getParameters()
+            params += d.get_parameters()
         return params
 
-    def _getDriveMatrix(
-        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
-    ) -> jnp.ndarray:
+    def _getDriveMatrix(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations for
@@ -183,13 +181,9 @@ class Hamiltonian(Optimisable):
             Returns the sum of all drives in matrix form.
 
         """
-        return vmap(self._getDriveMatrixOneTime, in_axes=(None, 0))(
-            annihilationOperator, t
-        )
+        return vmap(self._getDriveMatrixOneTime, in_axes=(None, 0))(annihilationOperator, t)
 
-    def _getDriveMatrixOneTime(
-        self, annihilationOperator: jnp.ndarray, t: float
-    ) -> jnp.ndarray:
+    def _getDriveMatrixOneTime(self, annihilationOperator: jnp.ndarray, t: float) -> jnp.ndarray:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -214,9 +208,7 @@ class Hamiltonian(Optimisable):
             M += drive.getMatrixOneTime(annihilationOperator, t)
         return M
 
-    def _getDriveGradients(
-        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
-    ) -> jnp.ndarray:
+    def _getDriveGradients(self, annihilationOperator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -242,9 +234,7 @@ class Hamiltonian(Optimisable):
             allGrads = jnp.append(allGrads, grads, axis=1)
         return allGrads
 
-    def _getDriveGradientsOneTime(
-        self, annihilationOperator: jnp.ndarray, t: float
-    ) -> jnp.ndarray:
+    def _getDriveGradientsOneTime(self, annihilationOperator: jnp.ndarray, t: float) -> jnp.ndarray:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations

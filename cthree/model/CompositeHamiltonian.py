@@ -42,7 +42,7 @@ class CompositeHamiltonian(Hamiltonian):
         self.__dimensions = [s.dimension() for s in subsystems]
         self.__totalDimension = np.prod(self.__dimensions)
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
 
         Parameters
@@ -53,12 +53,12 @@ class CompositeHamiltonian(Hamiltonian):
         """
         params = []
         for subsystem in self.__subsystems:
-            params += subsystem.getParameters()
+            params += subsystem.get_parameters()
         for coupling in self.__couplings:
-            params += coupling.getParameters()
+            params += coupling.get_parameters()
         return params
 
-    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set optimisable parameters for the system.
 
         Forward parameters to the subsystems and couplings.
@@ -71,9 +71,9 @@ class CompositeHamiltonian(Hamiltonian):
 
         """
         for subsystem in self.__subsystems:
-            subsystem.setOptimisableParameters(params)
+            subsystem.set_optimisable_parameters(params)
         for coupling in self.__couplings:
-            coupling.setOptimisableParameters(params)
+            coupling.set_optimisable_parameters(params)
 
     def dimension(self) -> int:
         """Return the dimension of the system.
@@ -110,9 +110,7 @@ class CompositeHamiltonian(Hamiltonian):
         for coupling in self.__couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
-            indices = [
-                self.__subsystems.index(s) for s in coupling.getSubsystems()
-            ]
+            indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
             subMatrices = coupling.getMatricesOneTime(t)
             for term in subMatrices:
                 matrix += self.__tensorProductWithIdentity(term, indices)
@@ -167,21 +165,15 @@ class CompositeHamiltonian(Hamiltonian):
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
         for coupling in self.__couplings:
-            indices = [
-                self.__subsystems.index(s) for s in coupling.getSubsystems()
-            ]
+            indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
             couplingGradient = coupling.gradientOneTime(t)
             for term in couplingGradient:
                 for g in term:
-                    gradients.append(
-                        self.__tensorProductWithIdentity(g, indices)
-                    )
+                    gradients.append(self.__tensorProductWithIdentity(g, indices))
 
         return jnp.array(gradients)
 
-    def __tensorProductWithIdentity(
-        self, M: list[jnp.ndarray], n: list[int]
-    ) -> jnp.ndarray:
+    def __tensorProductWithIdentity(self, M: list[jnp.ndarray], n: list[int]) -> jnp.ndarray:
         r"""Put the matrices M into a tensor product at positions `n`.
 
         All other positions are identity matrices:

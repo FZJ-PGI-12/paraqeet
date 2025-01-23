@@ -182,9 +182,9 @@ class Optimiser:
         and matrix valued parameters.
 
         """
-        params = self._optimisables.getAllParameters()
+        params = self._optimisables.get_all_parameters()
         self._opt_idxs = []
         index = 0
         for qty in params:
-            index += qty.getLength()
+            index += qty.get_length()
             self._opt_idxs.append(index)

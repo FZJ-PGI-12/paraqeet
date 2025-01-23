@@ -45,7 +45,7 @@ class ScipyExpm(StatePropagation):
         """Get the resolution of the system."""
         return self._res
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get a list of optimisable parameters of the system.
 
         Note: Method has no optimisable parameters.

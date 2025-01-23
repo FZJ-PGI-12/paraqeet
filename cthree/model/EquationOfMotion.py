@@ -29,7 +29,7 @@ class EquationOfMotion(Optimisable):
         self._hamiltonian = hamiltonian
 
     @abstractmethod
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Abstract method to get parameters of the model.
 
         Returns

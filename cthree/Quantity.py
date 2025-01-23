@@ -40,7 +40,7 @@ class Quantity:
         physical unit
     name : str
         symbol or description of this quantity
-    twoPi : bool
+    two_pi : bool
         divide by two pi for representation
 
     Raises
@@ -71,7 +71,7 @@ class Quantity:
         max_value: np.ndarray,
         unit: str = "",
         name: str = "",
-        twoPi: bool = False,
+        two_pi: bool = False,
     ):
         if value is None or max_value is None or min_value is None:
             raise Exception("value, minimum, and maximum must be not null")
@@ -79,7 +79,7 @@ class Quantity:
         self.__unit = unit
         self.__name = name
         self.__scale = np.array(0)
-        self.__twoPi = twoPi
+        self.__twoPi = two_pi
 
         if np.shape(value) == ():
             value = np.array([value])
@@ -102,7 +102,7 @@ class Quantity:
         # all Quantities that use this quantity to calculate value
         self.__dependents = list()
 
-        self.setValue(value)
+        self.set_value(value)
 
     @property
     def dependencies(self) -> list[Quantity]:
@@ -143,7 +143,7 @@ class Quantity:
         relation: Callable,
         unit: str | None = None,
         name: str | None = None,
-        twoPi: bool = False,
+        two_pi: bool = False,
     ) -> Self:
         """Create a relationally derived parameter.
 
@@ -163,7 +163,7 @@ class Quantity:
         name: str | None
             A string identifier name of the resulting Quantity. If 'None', then
             a name is generated from the names of the related Quantities.
-        twoPi: bool
+        two_pi: bool
             Divide by two pi for representation.
 
         Returns
@@ -180,20 +180,20 @@ class Quantity:
 
         """
         quantities = quantities if isinstance(quantities, list) else [quantities]
-        min_val = np.min([qty.getMinValue() for qty in quantities])
-        max_val = np.max([qty.getMaxValue() for qty in quantities])
+        min_val = np.min([qty.get_min_value() for qty in quantities])
+        max_val = np.max([qty.get_max_value() for qty in quantities])
 
         if name is None:
             name = "relation_of"
             for qty in quantities:
-                name += "_" + qty.getName()
+                name += "_" + qty.get_name()
 
         if unit is None:
-            if not all(qty.getUnit() == quantities[0].getUnit() for qty in quantities):
+            if not all(qty.get_unit() == quantities[0].get_unit() for qty in quantities):
                 raise ValueError(
                     f"All quantities in creation on {name} " f"must have the same unit if no unit is specified."
                 )
-            unit = quantities[0].getUnit()
+            unit = quantities[0].get_unit()
 
         qty = cls(
             value=min_val,
@@ -201,13 +201,13 @@ class Quantity:
             max_value=max_val,
             unit=unit,
             name=name,
-            twoPi=twoPi,
+            two_pi=two_pi,
         )
-        qty.addRelation(quantities, relation)
+        qty.add_relation(quantities, relation)
         return qty
 
     @classmethod
-    def relationalCopy(cls, quantity: Quantity) -> Self:
+    def relational_copy(cls, quantity: Quantity) -> Self:
         """Create a Quantity object that is a one to one copy of a Quantity.
 
         If the quantity is updated, so is this relational copy.
@@ -224,14 +224,14 @@ class Quantity:
             self from all dependencies.
         """
         qty = cls(
-            value=quantity.getValue(),
-            min_value=quantity.getMinValue(),
-            max_value=quantity.getMaxValue(),
-            unit=quantity.getUnit(),
-            name=quantity.getName(),
-            twoPi=quantity.__twoPi,
+            value=quantity.get_value(),
+            min_value=quantity.get_min_value(),
+            max_value=quantity.get_max_value(),
+            unit=quantity.get_unit(),
+            name=quantity.get_name(),
+            two_pi=quantity.__twoPi,
         )
-        qty.addRelation(quantity, lambda x: x)
+        qty.add_relation(quantity, lambda x: x)
         return qty
 
     @property
@@ -245,7 +245,7 @@ class Quantity:
         """
         return self.__dependent
 
-    def addRelation(
+    def add_relation(
         self,
         other: Quantity | list[Quantity],
         relation: Callable,
@@ -267,7 +267,7 @@ class Quantity:
         """
         other = other if isinstance(other, list) else [other]
 
-        if not all(qty.getUnit() == self.getUnit() for qty in other) and checkUnits:
+        if not all(qty.get_unit() == self.get_unit() for qty in other) and checkUnits:
             raise ValueError(
                 "Not all Quantities in the relation have the same units. "
                 "This may lead to unintentional physical errors. "
@@ -289,13 +289,13 @@ class Quantity:
         is dependent on is changed.
 
         """
-        self.__setValue(self.__relation(*[qty.getValue() for qty in self.__dependencies]))
+        self.__set_value(self.__relation(*[qty.get_value() for qty in self.__dependencies]))
 
-    def getValue(self) -> np.array:
+    def get_value(self) -> np.array:
         """Get value of the parameter."""
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
-    def getReducedValue(self) -> np.ndarray:
+    def get_reduced_value(self) -> np.ndarray:
         """Return the value in the reduced representation.
 
         Returns
@@ -306,7 +306,7 @@ class Quantity:
         """
         return np.reshape(self.__value, (-1, 1))
 
-    def setValue(self, value) -> None:
+    def set_value(self, value) -> None:
         """Set the value of this quantity.
 
         Value needs to be within the range of 'min_value' and 'max_value'.
@@ -328,9 +328,9 @@ class Quantity:
                     as it is calculated from other quantities."
             )
 
-        self.__setValue(value)
+        self.__set_value(value)
 
-    def __setValue(self, value) -> None:
+    def __set_value(self, value) -> None:
         """Set value for the parameter."""
         if isinstance(value, np.ndarray):
             val = value.astype(np.float64)
@@ -339,14 +339,14 @@ class Quantity:
         tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
         if np.any(np.abs(tmp) > 1.0):
-            print("Error: ", val, self.getMinValue(), self.getMaxValue())
+            print("Error: ", val, self.get_min_value(), self.get_max_value())
             raise ValueError(
                 f"Value \
-                    {self.__toString(val)}{self.__unit} \
+                    {self.__to_string(val)}{self.__unit} \
                         out of bounds for quantity with "
                 f"min_val: \
-                    {self.__toString(self.getMinValue())}{self.__unit} and "
-                f"max_val: {self.__toString(self.getMaxValue())}{self.__unit}",
+                    {self.__to_string(self.get_min_value())}{self.__unit} and "
+                f"max_val: {self.__to_string(self.get_max_value())}{self.__unit}",
             )
         self.__value = tmp
 
@@ -354,29 +354,29 @@ class Quantity:
         for qty in self.__dependents:
             qty.update()
 
-    def setReducedValue(self, value) -> None:
+    def set_reduced_value(self, value) -> None:
         """Set reduced value limit for parameter."""
         if np.shape(value) == ():
             value = np.array([value])
         self.__value = value
 
-    def getMinValue(self) -> np.ndarray:
+    def get_min_value(self) -> np.ndarray:
         """Get minimum value of parameter."""
         return self.__offset
 
-    def getMaxValue(self) -> np.ndarray:
+    def get_max_value(self) -> np.ndarray:
         """Get maximum value of parameter."""
         return self.__scale + self.__offset
 
-    def getScale(self) -> np.ndarray:
+    def get_scale(self) -> np.ndarray:
         """Get scale of parameter."""
         return self.__scale
 
-    def getLength(self) -> int:
+    def get_length(self) -> int:
         """Get length of parameter."""
         return self.__length
 
-    def setLimits(self, min_value, max_value) -> None:
+    def set_limits(self, min_value, max_value) -> None:
         """Set the allowed minimum and maximum of this quantity.
 
         Parameters
@@ -387,22 +387,22 @@ class Quantity:
             Input value for setting the maximum limit.
 
         """
-        oldValue = self.getValue()
+        oldValue = self.get_value()
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
         # the value is based on offset and scale and needs to be updated
-        self.__setValue(oldValue)
+        self.__set_value(oldValue)
 
-    def setValueAndLimits(self, value, min_value, max_value) -> None:
+    def set_value_and_limits(self, value, min_value, max_value) -> None:
         """
         This can be used to set the value and the limits to new values at the same time. This function does not raise
         an exception if the new value is outside of the old limits.
         """
         self.__offset = np.array(min_value)
         self.__scale = np.abs(np.array(max_value) - np.array(min_value))
-        self.__setValue(value)
+        self.__set_value(value)
 
-    def getName(self) -> str:
+    def get_name(self) -> str:
         """Return the symbol or description or this quantity.
 
         Note that this does not have to be unique.
@@ -416,19 +416,19 @@ class Quantity:
         """
         return self.__name
 
-    def setName(self, name: str) -> None:
+    def set_name(self, name: str) -> None:
         """Assigns a new name to this quantity."""
         self.__name = name
 
-    def getUnit(self) -> str:
+    def get_unit(self) -> str:
         """Get unit of measurement from paramter."""
         return self.__unit
 
-    def isScalar(self) -> bool:
+    def is_scalar(self) -> bool:
         """Check if parameter is scalar."""
         return self.__length == 1
 
-    def isVector(self) -> bool:
+    def is_vector(self) -> bool:
         """Check if parameter is vector."""
         return self.__length > 1 and len(self.__shape) == 1
 
@@ -436,67 +436,67 @@ class Quantity:
     def __add__(self, other) -> Quantity:
         """Magic method for addition by operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() + other)
+        out_val.set_value(self.get_value() + other)
         return out_val
 
     def __radd__(self, other) -> Quantity:
         """Magic method for addition by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() + other)
+        out_val.set_value(self.get_value() + other)
         return out_val
 
     def __sub__(self, other) -> Quantity:
         """Magic method for subtraction by operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() - other)
+        out_val.set_value(self.get_value() - other)
         return out_val
 
     def __rsub__(self, other) -> Quantity:
         """Magic method for subtraction by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(other - self.getValue())
+        out_val.set_value(other - self.get_value())
         return out_val
 
     def __mul__(self, other) -> Quantity:
         """Magic method for multiplication by operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() * other)
+        out_val.set_value(self.get_value() * other)
         return out_val
 
     def __rmul__(self, other) -> Quantity:
         """Magic method for multiplication by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() * other)
+        out_val.set_value(self.get_value() * other)
         return out_val
 
     def __pow__(self, other) -> Quantity:
         """Magic method for exponentiation by operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(np.float_power(self.getValue(), other))
+        out_val.set_value(np.float_power(self.get_value(), other))
         return out_val
 
     def __rpow__(self, other) -> Quantity:
         """Magic method for exponentiation by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(np.float_power(other, self.getValue()))
+        out_val.set_value(np.float_power(other, self.get_value()))
         return out_val
 
     def __truediv__(self, other) -> Quantity:
         """Magic method for division by operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() / other)
+        out_val.set_value(self.get_value() / other)
         return out_val
 
     def __rtruediv__(self, other) -> Quantity:
         """Magic method for division by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(other / self.getValue())
+        out_val.set_value(other / self.get_value())
         return out_val
 
     def __mod__(self, other) -> Quantity:
         """Magic method for representation of the modulus operation."""
         out_val = copy.deepcopy(self)
-        out_val.setValue(self.getValue() % other)
+        out_val.set_value(self.get_value() % other)
         return out_val
 
     def __lt__(self, other) -> bool:
@@ -516,9 +516,9 @@ class Quantity:
             type might have to be written as 'Any'.
 
         """
-        if not self.isScalar():
+        if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.getValue() < other.getValue()
+        return self.get_value() < other.get_value()
 
     def __le__(self, other) -> bool:
         """Magic method for representation of less-equal operation.
@@ -538,21 +538,21 @@ class Quantity:
             type might have to be written as 'Any'.
 
         """
-        if not self.isScalar():
+        if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.getValue() <= other
+        return self.get_value() <= other
 
     def __eq__(self, other) -> bool:
         """Magic method for representation of equality operation."""
         if self.__shape != other.__shape:
             return False
-        return all(self.getValue() == other)
+        return all(self.get_value() == other)
 
     def __ne__(self, other) -> bool:
         """Magic method for representation of not-equal operation."""
         if self.__shape != other.__shape:
             return True
-        return any(self.getValue() != other)
+        return any(self.get_value() != other)
 
     def __ge__(self, other) -> bool:
         """Magic method for representation of greater-equal operation.
@@ -572,9 +572,9 @@ class Quantity:
             type might have to be written as 'Any'.
 
         """
-        if not self.isScalar():
+        if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.getValue() >= other
+        return self.get_value() >= other
 
     def __gt__(self, other) -> bool:
         """Magic method for representation of greater-than operation.
@@ -593,13 +593,13 @@ class Quantity:
             type might have to be written as 'Any'.
 
         """
-        if not self.isScalar():
+        if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.getValue() > other
+        return self.get_value() > other
 
     def __array__(self):
         """Magic method for representation into array."""
-        return np.array(self.getValue())
+        return np.array(self.get_value())
 
     def __len__(self):
         """Magic method for calculation of length."""
@@ -615,12 +615,12 @@ class Quantity:
 
         """
         if self.__length == 1 and key == 0:
-            return self.getValue()
-        return self.getValue().__getitem__(key)
+            return self.get_value()
+        return self.get_value().__getitem__(key)
 
     def __abs__(self):
         """Magic method for absolute value calculation."""
-        return abs(self.getValue())
+        return abs(self.get_value())
 
     def __float__(self):
         """Magic method for float coversion.
@@ -633,7 +633,7 @@ class Quantity:
         """
         if self.__length > 1:
             raise NotImplementedError
-        return float(np.squeeze(self.getValue()))
+        return float(np.squeeze(self.get_value()))
 
     def __repr__(self):
         """Magic method for human readable representation."""
@@ -641,28 +641,28 @@ class Quantity:
 
     def __str__(self):
         """Human readable representation of the parameters set to optimise."""
-        return self.__toString(self.getValue())
+        return self.__to_string(self.get_value())
 
-    def __toString(self, val):
+    def __to_string(self, val):
         """Represent parameter as custom defined string value."""
         ret = ""
         for entry in np.nditer(val):
             if self.__unit != "":
                 if self.__twoPi:
-                    ret += self.__makeHumanReadable(entry / np.pi / 2) + self.__unit + " x 2pi "
+                    ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi "
                 else:
-                    ret += self.__makeHumanReadable(entry) + self.__unit + " "
+                    ret += self.__make_human_readable(entry) + self.__unit + " "
             else:
                 if self.__twoPi:
-                    ret += self.__makeHumanReadable(entry / np.pi / 2, use_prefix=False) + " x 2pi "
+                    ret += self.__make_human_readable(entry / np.pi / 2, use_prefix=False) + " x 2pi "
                 else:
-                    ret += self.__makeHumanReadable(entry, use_prefix=False) + " "
+                    ret += self.__make_human_readable(entry, use_prefix=False) + " "
         if self.__name:
             ret = self.__name + ": " + ret
         return ret
 
     @staticmethod
-    def __makeHumanReadable(val, use_prefix: bool = True) -> str:
+    def __make_human_readable(val, use_prefix: bool = True) -> str:
         """Convert to human readable string in engineering notation.
 
         Parameters
@@ -678,7 +678,7 @@ class Quantity:
 
         """
         if use_prefix:
-            num, prefix = Quantity.__engineeringNumber(val)
+            num, prefix = Quantity.__engineering_number(val)
             formatted_string = f"{num:.3g} " + prefix
         else:
             formatted_string = f"{val:.3g} "
@@ -686,7 +686,7 @@ class Quantity:
 
     # Internal utility functions
     @staticmethod
-    def __engineeringNumber(val: float) -> tuple[float, str]:
+    def __engineering_number(val: float) -> tuple[float, str]:
         """Convert number to engineering notation.
 
         Returns number and prefix.
@@ -727,7 +727,7 @@ class Quantity:
 
         return sign * (10 ** (tmp % 3)), prefix
 
-    def toDict(self) -> dict:
+    def to_dict(self) -> dict:
         """
         Creates a dictionary representation of this quantity that can be stored. The returned dict is compatible with
         the fromDict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
@@ -740,12 +740,12 @@ class Quantity:
             "unit": self.__unit,
             "shape": self.__shape,
             "twoPi": self.__twoPi,
-            "value": self.getValue().flatten().tolist(),
-            "min": self.getMinValue().tolist(),
-            "max": self.getMaxValue().tolist(),
+            "value": self.get_value().flatten().tolist(),
+            "min": self.get_min_value().tolist(),
+            "max": self.get_max_value().tolist(),
         }
 
-    def fromDict(self, data: dict) -> None:
+    def from_dict(self, data: dict) -> None:
         """
         Loads the quantity from a dictionary. The dictionary must have the same form as the one created by the toDict
         function. All properties of this quantity (value, name, etc.) will be overwritten.
@@ -759,4 +759,4 @@ class Quantity:
         value = np.array(data["value"]).reshape(self.__shape)
         minVal = np.array(data["min"]).reshape(self.__shape)
         maxVal = np.array(data["max"]).reshape(self.__shape)
-        self.setValueAndLimits(value, minVal, maxVal)
+        self.set_value_and_limits(value, minVal, maxVal)

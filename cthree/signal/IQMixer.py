@@ -27,7 +27,7 @@ class IQMixer(Generator):
 
     __envs: list[Waveform]
     __phase: Quantity
-    _optimisableParameters: list[Quantity] = []
+    _optimisable_parameters: list[Quantity] = []
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class IQMixer(Generator):
             name="Phase",
         )
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
 
         Collects and returns a list of parameters from the tone, generator
@@ -60,24 +60,24 @@ class IQMixer(Generator):
         """
         pars = []
         for env in self.__envs:
-            pars += env.getParameters()
-        pars += self.__lo.getParameters()
+            pars += env.get_parameters()
+        pars += self.__lo.get_parameters()
         pars += [self.__phase]
         return pars
 
-    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.
 
         Parameters
         ----------
         params : list[Quantity]
         """
-        super().setOptimisableParameters(params)
+        super().set_optimisable_parameters(params)
 
         for dev in self.__envs:
-            dev.setOptimisableParameters(params)
+            dev.set_optimisable_parameters(params)
 
-        self.__lo.setOptimisableParameters(params)
+        self.__lo.set_optimisable_parameters(params)
 
     def __complexSignal(self, t: np.ndarray) -> Array:
         """Generate a signal for time(s) 't'.
@@ -99,7 +99,7 @@ class IQMixer(Generator):
         for dev in self.__envs:
             env += jnp.reshape(dev.computeOutput(t), env.shape)
         sig = env.conj() * self.__lo.computeOutput(t)
-        sig = sig * jnp.exp(-1j * self.__phase.getValue())
+        sig = sig * jnp.exp(-1j * self.__phase.get_value())
         return sig
 
     def generateSignal(self, t: np.ndarray) -> Array:
@@ -145,7 +145,7 @@ class IQMixer(Generator):
             Returns the signal gradient vector.
 
         """
-        phase_fac = jnp.exp(-1j * self.__phase.getValue())
+        phase_fac = jnp.exp(-1j * self.__phase.get_value())
         lo_out = self.__lo.computeOutput(t)
         sig = self.__complexSignal(t)
         gradients = jnp.zeros(shape=(t.shape[0], 0))
@@ -158,8 +158,8 @@ class IQMixer(Generator):
             gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=1)
 
         # Collect LO gradients
-        lo_freq = self.__lo.getParameters()[0]
-        if self._isOptimised(lo_freq):
+        lo_freq = self.__lo.get_parameters()[0]
+        if self._is_optimised(lo_freq):
             gradients = jnp.append(
                 gradients,
                 jnp.expand_dims(0.5j * t * sig, 1),
@@ -167,7 +167,7 @@ class IQMixer(Generator):
             )
 
         # Collect gradient of Phase
-        if self._isOptimised(self.__phase):
+        if self._is_optimised(self.__phase):
             gradients = jnp.append(
                 gradients,
                 jnp.expand_dims(-0.5j * sig, 1),
@@ -202,7 +202,7 @@ class IQMixer(Generator):
             Return the gradients from all devices at one time.
 
         """
-        phase_fac = jnp.exp(-1j * self.__phase.getValue())
+        phase_fac = jnp.exp(-1j * self.__phase.get_value())
         lo_out = jnp.squeeze(self.__lo.computeOutput(t), axis=0)
         sig = self.__complexSignal(t)
         gradients = jnp.zeros(shape=(0,))
@@ -215,12 +215,12 @@ class IQMixer(Generator):
             gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=0)
 
         # Collect LO gradients
-        lo_freq = self.__lo.getParameters()[0]
-        if self._isOptimised(lo_freq):
+        lo_freq = self.__lo.get_parameters()[0]
+        if self._is_optimised(lo_freq):
             gradients = jnp.append(gradients, 0.5j * t * sig, axis=0)
 
         # Collect gradient of Phase
-        if self._isOptimised(self.__phase):
+        if self._is_optimised(self.__phase):
             gradients = jnp.append(
                 gradients,
                 -0.5j * sig,

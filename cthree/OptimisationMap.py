@@ -18,10 +18,10 @@ class OptimisationMap:
 
     """
 
-    __optimisableToParameterMap: dict[Optimisable, list[Quantity]]
+    __optimisable_to_parameter_map: dict[Optimisable, list[Quantity]]
 
     def __init__(self):
-        self.__optimisableToParameterMap = {}
+        self.__optimisable_to_parameter_map = {}
 
     def __repr__(self):
         """Magic method for human readable representation."""
@@ -30,7 +30,7 @@ class OptimisationMap:
     def __str__(self):
         """Human readable representation of the parameters set to optimise."""
         om_str = ""
-        for key, val in self.__optimisableToParameterMap.items():
+        for key, val in self.__optimisable_to_parameter_map.items():
             om_str += f"==== {key} ====\n"
             om_str += str(val)
             om_str += "\n\n"
@@ -39,7 +39,7 @@ class OptimisationMap:
     def add(
         self,
         optimisable: Optimisable,
-        optimisableQuantities: list[Quantity] = None,
+        optimisable_quantities: list[Quantity] = None,
     ):
         """Add an optimisable object and a list of its quantities to the map.
 
@@ -52,15 +52,15 @@ class OptimisationMap:
         ----------
         optimisable : cthree.Optimisable
             Input Optimisable object for adding to the map.
-        optimisableQuantities : List[cthree.Quantity], optional
+        optimisable_quantities : List[cthree.Quantity], optional
             List of all parameters of the optimisable object considered for
             optimisation.
 
         """
-        params = optimisableQuantities or optimisable.getParameters()
-        self.__optimisableToParameterMap[optimisable] = params
-        if len(self.__optimisableToParameterMap[optimisable]) < 1:
-            self.__optimisableToParameterMap.pop(optimisable)
+        params = optimisable_quantities or optimisable.get_parameters()
+        self.__optimisable_to_parameter_map[optimisable] = params
+        if len(self.__optimisable_to_parameter_map[optimisable]) < 1:
+            self.__optimisable_to_parameter_map.pop(optimisable)
 
     def remove(self, optimisable: Optimisable):
         """Remove the given parameter from the sytem.
@@ -72,12 +72,12 @@ class OptimisationMap:
 
         """
         try:
-            self.__optimisableToParameterMap.pop(optimisable)
+            self.__optimisable_to_parameter_map.pop(optimisable)
         # removed the bare except catch.
         except Exception as e:
             raise Exception(e)
 
-    def getOptimisables(self) -> set[Optimisable]:
+    def get_optimisables(self) -> set[Optimisable]:
         """Return all optimisable objects that were added to this map.
 
         Returns
@@ -86,9 +86,9 @@ class OptimisationMap:
             Set of all optimisable objects from the map.
 
         """
-        return set(self.__optimisableToParameterMap.keys())
+        return set(self.__optimisable_to_parameter_map.keys())
 
-    def getParameters(self, optimisable: Optimisable) -> list[Quantity] | None:
+    def get_parameters(self, optimisable: Optimisable) -> list[Quantity] | None:
         """Return all quantities associated with the given parameter.
 
         Parameters
@@ -103,9 +103,9 @@ class OptimisationMap:
             added yet).
 
         """
-        return self.__optimisableToParameterMap[optimisable]
+        return self.__optimisable_to_parameter_map[optimisable]
 
-    def getAllParameters(self) -> list[Quantity]:
+    def get_all_parameters(self) -> list[Quantity]:
         """Return all parameters that were added to the system map.
 
         Returns
@@ -115,11 +115,11 @@ class OptimisationMap:
 
         """
         quantities = []
-        for params in self.__optimisableToParameterMap.values():
+        for params in self.__optimisable_to_parameter_map.values():
             quantities.extend(params)
         return quantities
 
-    def registerParamsWithOptimisables(self) -> None:
+    def register_params_with_optimisables(self) -> None:
         """Register optimisable parameters with the system.
 
         Utility function that synchronises the list of parameters with
@@ -128,10 +128,10 @@ class OptimisationMap:
         to compute.
 
         """
-        for optimisable, params in self.__optimisableToParameterMap.items():
-            optimisable.setOptimisableParameters(params)
+        for optimisable, params in self.__optimisable_to_parameter_map.items():
+            optimisable.set_optimisable_parameters(params)
 
-    def filterParameters(self, filterFunction: Callable) -> None:
+    def filter_parameters(self, filterFunction: Callable) -> None:
         """Filter parameters using filter function.
 
         Updates the list of parameters for all Optimisables in this map using
@@ -144,14 +144,14 @@ class OptimisationMap:
             Filter function that maps quantities to boolean values.
 
         """
-        for key in self.__optimisableToParameterMap.keys():
-            filtered = filter(filterFunction, self.__optimisableToParameterMap[key])
-            self.__optimisableToParameterMap[key] = list(filtered)
-        self.__optimisableToParameterMap = dict(
-            (k, v) for k, v in self.__optimisableToParameterMap.items() if len(v) > 0
+        for key in self.__optimisable_to_parameter_map.keys():
+            filtered = filter(filterFunction, self.__optimisable_to_parameter_map[key])
+            self.__optimisable_to_parameter_map[key] = list(filtered)
+        self.__optimisable_to_parameter_map = dict(
+            (k, v) for k, v in self.__optimisable_to_parameter_map.items() if len(v) > 0
         )
 
-    def filterByName(self, name: str):
+    def filter_by_name(self, name: str):
         """Filter parameters by name of parameter.
 
         Parameters
@@ -160,9 +160,9 @@ class OptimisationMap:
             Name of parameter to be filtered with.
 
         """
-        return self.filterParameters(lambda quantity: quantity.getName() == name)
+        return self.filter_parameters(lambda quantity: quantity.get_name() == name)
 
-    def toDict(self) -> dict:
+    def to_dict(self) -> dict:
         """Creates a dictionary that contains the values of all quantities that are being optimised, sorted by the
         Optimisable instances to which they belong. The returned dictionary is meant for export using the serialisation
         package. It uses the names of Optimisables and Quantities and assumes that those are unique and not None. The
@@ -193,23 +193,23 @@ class OptimisationMap:
             If the name of any Optimisable or Quantity is None or not unique.
         """
         data = dict()
-        for optimisable, quantities in self.__optimisableToParameterMap.items():
+        for optimisable, quantities in self.__optimisable_to_parameter_map.items():
             # Check that the optimisable's name is valid
             if len((optimisable.name or "").strip()) == 0 or optimisable.name in data:
                 raise SerialisationException("Optimisable does not have a name or the name is not unique.")
 
             # Check that the quantities' names are valid
-            quantityNames = [(q.getName() or "").strip() for q in quantities]
+            quantityNames = [(q.get_name() or "").strip() for q in quantities]
             nonEmptyQuantityNames = list(filter(lambda name: len(name) > 0, quantityNames))
             if len(quantities) != len(set(nonEmptyQuantityNames)):
                 raise SerialisationException(
                     f"Quantities in {optimisable.name} have empty or non-unique names within the optimisable."
                 )
 
-            data[optimisable.name] = {q.getName(): q.toDict() for q in quantities}
+            data[optimisable.name] = {q.get_name(): q.to_dict() for q in quantities}
         return data
 
-    def fromDict(self, data: dict) -> None:
+    def from_dict(self, data: dict) -> None:
         """
         Restores the values of all optimised quantities that are in the dictionary. The format of the dictionary needs
         to be in the same format as generated by the toDict function.
@@ -224,7 +224,7 @@ class OptimisationMap:
         SerialisationException
             If the dict contains an Optimisable or a Quantity that does not exist in this optimisation map.
         """
-        optimisablesForName = {opt.name: opt for opt in self.__optimisableToParameterMap.keys()}
+        optimisablesForName = {opt.name: opt for opt in self.__optimisable_to_parameter_map.keys()}
         for optimisableName, values in data.items():
             if optimisableName not in optimisablesForName:
                 raise SerialisationException(
@@ -232,8 +232,8 @@ class OptimisationMap:
                 )
             optimisable = optimisablesForName[optimisableName]
 
-            quantitiesForName = {q.getName(): q for q in optimisable.getParameters()}
+            quantitiesForName = {q.get_name(): q for q in optimisable.get_parameters()}
             for quantityName, quantityValues in values.items():
                 if quantityName not in quantitiesForName:
                     raise SerialisationException(f'Quantity "{quantityName}" does not exist in {optimisableName}.')
-                quantitiesForName[quantityName].fromDict(quantityValues)
+                quantitiesForName[quantityName].from_dict(quantityValues)

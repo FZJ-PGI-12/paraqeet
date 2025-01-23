@@ -96,12 +96,10 @@ class StateTransferFidelity(Measurement):
         f = jnp.vdot(self.__targetState, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = jnp.vdot(self.__targetState, dg_dp)
-            dF_dp.append(
-                jnp.real(f.conj() * g + f * g.conj())
-            )  # chain rule for abs^2
+            dF_dp.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
         return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get the parameters of the system.
 
         Returns

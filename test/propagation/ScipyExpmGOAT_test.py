@@ -21,7 +21,7 @@ def expm():
 def test_parameters(expm):
     """Test parameters from the equations of motion."""
     propagation = expm(dimension=np.random.randint(10), res=3)
-    assert propagation.getParameters() == []
+    assert propagation.get_parameters() == []
 
 
 def test_resolution(expm):

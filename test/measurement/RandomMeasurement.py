@@ -25,7 +25,7 @@ class RandomMeasurement(Measurement):
         super().__init__(times=times)
         self.__propagation = propagation
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get parameters of the system.
 
         Returns

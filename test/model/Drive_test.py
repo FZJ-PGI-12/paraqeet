@@ -25,7 +25,7 @@ def time_samples():
 def tone():
     """Generate a sinusoidal tone."""
     tone = FlatTopGaussianEnvelope()
-    tone.setOptimisableParameters(tone.getParameters())
+    tone.set_optimisable_parameters(tone.get_parameters())
     return tone
 
 
@@ -56,5 +56,5 @@ def test_drive_gradient(tone, drive, time_samples):
     dim = np.random.randint(2, 10)
     annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
     grads = drive.gradient(annihilationOp, time_samples)
-    toneParams = tone.getParameters()
+    toneParams = tone.get_parameters()
     assert grads.shape == time_samples.shape + (len(toneParams), dim, dim)

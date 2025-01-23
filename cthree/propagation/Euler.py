@@ -25,7 +25,7 @@ class Euler(StatePropagation):
     def __init__(self, model: EquationOfMotion):
         super().__init__(model)
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
         Returns

@@ -49,11 +49,11 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             self._logger.start()
 
         self._buildOptimisableIndexList()
-        self._optimisables.registerParamsWithOptimisables()
+        self._optimisables.register_params_with_optimisables()
 
         init = []
-        for qty in self._optimisables.getAllParameters():
-            init.append(qty.getReducedValue())
+        for qty in self._optimisables.get_all_parameters():
+            init.append(qty.get_reduced_value())
 
         try:
             result = minimize(
@@ -66,14 +66,9 @@ class ScipyOptimiserGradient(ScipyOptimiser):
                 callback=self._callback,
             )
         except Exception as e:
-            if (
-                "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th"
-                + " argument `g`"
-                in str(e)
-            ):
+            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument `g`" in str(e):
                 raise IncompatibleOptimisationMap(
-                    "Number of quantities in optMap differ from number of"
-                    + f" gradients computed. \n {e}"
+                    "Number of quantities in optMap differ from number of" + f" gradients computed. \n {e}"
                 )
             else:
                 raise e
@@ -83,11 +78,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         self._rawResult = result
         return OptimisationResult(
-            status=(
-                OptimisationResult.STATUS_SUCCESS
-                if result.success
-                else OptimisationResult.STATUS_FAILED
-            ),
+            status=(OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED),
             value=result.fun,
             iterations=result.nfev,
             message=result.message,
@@ -115,9 +106,9 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         """
         log = []
-        params = self._optimisables.getAllParameters()
+        params = self._optimisables.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            params[index].setReducedValue(val)
+            params[index].set_reduced_value(val)
             log.append(params[index])
         fun, grad = self._measure.measureWithGradient()
         self.__gradCache = grad

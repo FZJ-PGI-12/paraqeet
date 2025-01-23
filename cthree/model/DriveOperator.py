@@ -41,7 +41,7 @@ class DriveOperator(Drive):
         """
         return self.__generator
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
         Returns
@@ -50,7 +50,7 @@ class DriveOperator(Drive):
             List of optimizable parameters of the system.
 
         """
-        return self.__generator.getParameters()
+        return self.__generator.get_parameters()
 
     def _computeMatrix(self, a: np.ndarray) -> np.ndarray:
         """Return the operator for the longitudinal or transverse drive.

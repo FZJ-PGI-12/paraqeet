@@ -20,7 +20,7 @@ def euler():
 
 def test_parameters(euler):
     """Test parameters of the model."""
-    assert euler(2).getParameters() == []
+    assert euler(2).get_parameters() == []
 
 
 def test_state_dimension_vector(randomState, euler, ts):

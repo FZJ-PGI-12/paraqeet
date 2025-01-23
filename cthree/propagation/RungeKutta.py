@@ -30,7 +30,7 @@ class RungeKutta(StatePropagation):
         super().__init__(model)
         self.__initialTimeStep = initialTimeStep
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
         Returns

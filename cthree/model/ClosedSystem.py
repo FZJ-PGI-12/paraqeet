@@ -22,7 +22,7 @@ class ClosedSystem(EquationOfMotion):
     def __init__(self, hamiltonian: Hamiltonian):
         super().__init__(hamiltonian)
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get a list of optimisable parameters.
 
         Returns
@@ -31,7 +31,7 @@ class ClosedSystem(EquationOfMotion):
             List of optimisable parameters of the system.
 
         """
-        return self._hamiltonian.getParameters()
+        return self._hamiltonian.get_parameters()
 
     def getMatrix(self, time: np.ndarray) -> np.ndarray:
         """Get the matrix equations of motion.

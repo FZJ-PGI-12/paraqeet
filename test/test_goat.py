@@ -25,7 +25,7 @@ RES = 100e9
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
     env = FlatTopGaussianEnvelope()
-    env.t_final.setValue(T_FINAL)
+    env.t_final.set_value(T_FINAL)
     return env
 
 
@@ -77,9 +77,9 @@ def gates(prop):
 @pytest.fixture
 def optMap(gen):
     """Create an optimisation map."""
-    params = gen.getParameters()
-    params[0].setValue(0.5 * np.pi / T_FINAL)
-    params[2].setValue(1.01 * FREQ)
+    params = gen.get_parameters()
+    params[0].set_value(0.5 * np.pi / T_FINAL)
+    params[2].set_value(1.01 * FREQ)
     optmap = OptimisationMap()
     # Not optimizing t_final
     optmap.add(gen, [params[0], params[2], params[3]])

@@ -21,10 +21,8 @@ class TestOptimisable(Optimisable):
 
     def __init__(self, randomQuantity, numParams: int):
         super().__init__()
-        self._optimisableParameters = [
-            randomQuantity(np.random.randint(1, 20)) for i in range(numParams)
-        ]
+        self._optimisableParameters = [randomQuantity(np.random.randint(1, 20)) for i in range(numParams)]
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get optimisable parameters."""
         return self._optimisableParameters

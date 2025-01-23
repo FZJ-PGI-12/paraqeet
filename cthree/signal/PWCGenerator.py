@@ -38,7 +38,7 @@ class PWCGenerator(Generator):
     __tlist: np.ndarray
     __inphase: Quantity
     __quadrature: Quantity
-    _optimisableParameters: list[Quantity] = []
+    _optimisable_parameters: list[Quantity] = []
 
     def __init__(
         self,
@@ -95,7 +95,7 @@ class PWCGenerator(Generator):
             name="Quadrature",
         )
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
 
         Return the inphase and quadrature as parameters.
@@ -107,7 +107,7 @@ class PWCGenerator(Generator):
         """
         return [self.__inphase, self.__quadrature]
 
-    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.
 
         Optimisable paramters can be inphase and quadrature.
@@ -116,7 +116,7 @@ class PWCGenerator(Generator):
         ----------
         params : list[Quantity]
         """
-        super().setOptimisableParameters(params)
+        super().set_optimisable_parameters(params)
 
     @partial(jit, static_argnums=(0,))
     def __PWCSignal(
@@ -166,8 +166,8 @@ class PWCGenerator(Generator):
 
         """
         t = jnp.array(t, ndmin=1)
-        inphase = self.__inphase.getValue()
-        quadrature = self.__quadrature.getValue()
+        inphase = self.__inphase.get_value()
+        quadrature = self.__quadrature.get_value()
         tlist = self.__tlist
         return jnp.squeeze(vmap(self.__PWCSignal, in_axes=(None, None, None, 0))(inphase, quadrature, tlist, t))
 
@@ -191,12 +191,12 @@ class PWCGenerator(Generator):
 
         grads = []
 
-        inphase_scale = self.__inphase.getScale()
-        quadrature_scale = self.__quadrature.getScale()
+        inphase_scale = self.__inphase.get_scale()
+        quadrature_scale = self.__quadrature.get_scale()
 
-        if self._isOptimised(self.__inphase):
+        if self._is_optimised(self.__inphase):
             grads.append(jnp.ones_like(t) * inphase_scale)
-        if self._isOptimised(self.__quadrature):
+        if self._is_optimised(self.__quadrature):
             grads.append(jnp.ones_like(t) * quadrature_scale)
 
         return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
@@ -219,12 +219,12 @@ class PWCGenerator(Generator):
         """
         grads = []
 
-        inphase_scale = self.__inphase.getScale()
-        quadrature_scale = self.__quadrature.getScale()
+        inphase_scale = self.__inphase.get_scale()
+        quadrature_scale = self.__quadrature.get_scale()
 
-        if self._isOptimised(self.__inphase):
+        if self._is_optimised(self.__inphase):
             grads.append(inphase_scale)
-        if self._isOptimised(self.__quadrature):
+        if self._is_optimised(self.__quadrature):
             grads.append(quadrature_scale)
 
         return jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,))

@@ -33,9 +33,9 @@ def testGet(randomQuantityForValues) -> None:
         # get functions return the same values
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
-        testing.assert_allclose(q.getValue(), values)
-        testing.assert_array_less(q.getMinValue(), q.getValue())
-        testing.assert_array_less(q.getValue(), q.getMaxValue())
+        testing.assert_allclose(q.get_value(), values)
+        testing.assert_array_less(q.get_min_value(), q.get_value())
+        testing.assert_array_less(q.get_value(), q.get_max_value())
 
 
 def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
@@ -48,24 +48,24 @@ def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
         # create a random quantity with values that will be overwritten
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = randomQuantityForValues(values)
-        oldMin = q.getMinValue()
-        oldMax = q.getMaxValue()
+        oldMin = q.get_min_value()
+        oldMax = q.get_max_value()
 
         # set new values within the limits and check that the
         # limits stay unchanged
         newValues = np.random.random(N) * (oldMax - oldMin) + oldMin
-        q.setValue(newValues)
-        testing.assert_allclose(q.getValue(), newValues)
-        testing.assert_allclose(q.getMinValue(), oldMin)
-        testing.assert_allclose(q.getMaxValue(), oldMax)
+        q.set_value(newValues)
+        testing.assert_allclose(q.get_value(), newValues)
+        testing.assert_allclose(q.get_min_value(), oldMin)
+        testing.assert_allclose(q.get_max_value(), oldMax)
 
         # set new limits and check that the values stay unchanged
         newLimits = randomLimitsForQuantity(newValues)
-        q.setLimits(*newLimits)
-        testing.assert_allclose(q.getMinValue(), newLimits[0])
-        testing.assert_allclose(q.getMaxValue(), newLimits[1])
-        testing.assert_array_less(q.getMinValue(), q.getValue())
-        testing.assert_array_less(q.getValue(), q.getMaxValue())
+        q.set_limits(*newLimits)
+        testing.assert_allclose(q.get_min_value(), newLimits[0])
+        testing.assert_allclose(q.get_max_value(), newLimits[1])
+        testing.assert_array_less(q.get_min_value(), q.get_value())
+        testing.assert_array_less(q.get_value(), q.get_max_value())
 
 
 def testGetItem(randomQuantityForValues) -> None:
@@ -134,13 +134,13 @@ def testEquality(randomQuantityForValues) -> None:
         assert q1 == q1
         assert q2 == q2
         testing.assert_almost_equal(q1, value)
-        testing.assert_almost_equal(q1, q1.getValue())
+        testing.assert_almost_equal(q1, q1.get_value())
 
 
 def testEqualityById(randomQuantity):
     """Test __eq__ by ID."""
     q1 = randomQuantity(1)
-    q2 = Quantity(q1.getValue(), q1.getMinValue(), q1.getMaxValue(), q1.getUnit())
+    q2 = Quantity(q1.get_value(), q1.get_min_value(), q1.get_max_value(), q1.get_unit())
     assert q1 == q2
     assert q1 is not q2
     assert q2 is not q1
@@ -164,7 +164,7 @@ def testOutOfBounds():
     """Test out of bounds for scalar quantities."""
     num = Quantity(5, 3, 6)
     with pytest.raises(Exception):
-        num.setValue(7)
+        num.set_value(7)
 
 
 def testArithmetic(five, three):
@@ -188,7 +188,7 @@ def testStr(five):
     assert str(volts) == "5 mV "
     resist = Quantity(2100, 0, 2500, unit="Ohm")
     assert str(resist) == "2.1 KOhm "
-    amps = Quantity(125e6 * 2 * np.pi, 100e6, 1e9, unit="Hz", twoPi=True)
+    amps = Quantity(125e6 * 2 * np.pi, 100e6, 1e9, unit="Hz", two_pi=True)
     assert str(amps) == "125 MHz x 2pi "
 
 
@@ -196,19 +196,19 @@ def testIsScalarOrVector(randomQuantity):
     """Test whether quantity objects are scalars or vectors."""
     for i in range(20):
         q = randomQuantity(1)
-        assert q.isScalar()
-        assert not q.isVector()
+        assert q.is_scalar()
+        assert not q.is_vector()
 
     for dim in range(2, 100):
         for i in range(20):
             q = randomQuantity(dim)
-            assert q.isVector()
-            assert not q.isScalar()
+            assert q.is_vector()
+            assert not q.is_scalar()
 
             v = __generateRandomMatrix(dim)
             q2 = Quantity(v, v - 1, v + 1)
-            assert not q2.isVector()
-            assert not q2.isScalar()
+            assert not q2.is_vector()
+            assert not q2.is_scalar()
 
 
 def __generateRandomMatrix(N: int) -> np.ndarray:
@@ -233,51 +233,51 @@ def testRelations(three):
     """Test relation special methods for scalar quantities."""
     relation = Quantity.relational(three, lambda x: 2 * x)
     assert relation.dependent
-    assert relation.getValue() == 6
-    assert relation.getMinValue() == 0
-    assert relation.getMaxValue() == 15
-    assert relation.getUnit() == ""
-    assert relation.getName() == "relation_of_"
+    assert relation.get_value() == 6
+    assert relation.get_min_value() == 0
+    assert relation.get_max_value() == 15
+    assert relation.get_unit() == ""
+    assert relation.get_name() == "relation_of_"
 
     assert three.dependents == [relation]
     assert relation.dependencies == [three]
 
-    three.setValue(4)
-    assert relation.getValue() == 8
+    three.set_value(4)
+    assert relation.get_value() == 8
     with pytest.raises(ValueError):
-        relation.setValue(7)
+        relation.set_value(7)
 
-    copy = Quantity.relationalCopy(relation)
+    copy = Quantity.relational_copy(relation)
     assert copy.dependent
-    assert copy.getValue() == 8
-    assert copy.getMinValue() == 0
-    assert copy.getMaxValue() == 15
-    assert copy.getUnit() == ""
-    assert copy.getName() == "relation_of_"
+    assert copy.get_value() == 8
+    assert copy.get_min_value() == 0
+    assert copy.get_max_value() == 15
+    assert copy.get_unit() == ""
+    assert copy.get_name() == "relation_of_"
 
     unit1 = Quantity(1, np.array(0), np.array(10), "Hz", "one")
     unit2 = Quantity(1, np.array(0), np.array(10), "s", "two")
     with pytest.raises(ValueError):
         _ = Quantity.relational([unit1, unit2], lambda x, y: x + y)
     with pytest.raises(ValueError):
-        unit1.addRelation(unit2, lambda x: x)
+        unit1.add_relation(unit2, lambda x: x)
 
 
 def testPersistence(randomQuantity):
     for N in range(1, 10):
         for i in range(20):
             q = randomQuantity(N)
-            data = q.toDict()
+            data = q.to_dict()
             q2 = Quantity(0, -1, 1)
-            q2.fromDict(data)
+            q2.from_dict(data)
 
             # assert q == q2
-            assert q.getName() == q2.getName()
-            assert q.getUnit() == q2.getUnit()
-            testing.assert_almost_equal(q.getMinValue(), q2.getMinValue())
-            testing.assert_almost_equal(q.getMaxValue(), q2.getMaxValue())
-            testing.assert_almost_equal(q.getReducedValue(), q2.getReducedValue())
+            assert q.get_name() == q2.get_name()
+            assert q.get_unit() == q2.get_unit()
+            testing.assert_almost_equal(q.get_min_value(), q2.get_min_value())
+            testing.assert_almost_equal(q.get_max_value(), q2.get_max_value())
+            testing.assert_almost_equal(q.get_reduced_value(), q2.get_reduced_value())
             if N == 1:
-                assert q2.isScalar()
+                assert q2.is_scalar()
             else:
-                assert q2.isVector()
+                assert q2.is_vector()

@@ -84,12 +84,12 @@ class ScipyOptimiser(Optimiser):
             self._logger.start()
 
         self._buildOptimisableIndexList()
-        self._optimisables.registerParamsWithOptimisables()
+        self._optimisables.register_params_with_optimisables()
 
         # Collect the initial values of all parameters
         init = []
-        for qty in self._optimisables.getAllParameters():
-            init.append(qty.getReducedValue())
+        for qty in self._optimisables.get_all_parameters():
+            init.append(qty.get_reduced_value())
 
         opt_res = minimize(
             fun=self._setParametersAndMeasure,
@@ -104,9 +104,7 @@ class ScipyOptimiser(Optimiser):
             self._logger.stop(str(opt_res))
 
         return OptimisationResult(
-            status=OptimisationResult.STATUS_SUCCESS
-            if opt_res.success
-            else OptimisationResult.STATUS_FAILED,
+            status=OptimisationResult.STATUS_SUCCESS if opt_res.success else OptimisationResult.STATUS_FAILED,
             value=opt_res.fun,
             iterations=opt_res.nfev,
             message=opt_res.message,
@@ -130,9 +128,9 @@ class ScipyOptimiser(Optimiser):
 
         """
         log = []
-        params = self._optimisables.getAllParameters()
+        params = self._optimisables.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            params[index].setReducedValue(val)
+            params[index].set_reduced_value(val)
             log.append(params[index])
         infid = 1 - self._measure.measureNormalised()
 

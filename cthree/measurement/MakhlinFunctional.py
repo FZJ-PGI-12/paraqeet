@@ -43,7 +43,7 @@ class MakhlinFunctional(Measurement):
         self.__propagation = propagation
         self.__idealInvariants = idealInvariants
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get the parameters of the system.
 
         Returns
@@ -72,18 +72,14 @@ class MakhlinFunctional(Measurement):
         U = self.__propagation.propagate(self._times)[-1]
         U = self._preprocessMatrix(U)
         if U.shape != (4, 4):
-            raise IncompatibleLayersException(
-                "quadratic unitary 4x4 propagator needed for Makhlin invariants"
-            )
+            raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self.__makhlinInvariants(U)
         if self.__idealInvariants is not None:
             return np.linalg.norm(gs - self.__idealInvariants)
         else:
             return np.abs(gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
-    def __makhlinInvariants(
-        self, U: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def __makhlinInvariants(self, U: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute the Makhlin invariants for a matrix U.
 
         Returns a tuple with the three invariants g1, g2 and g3.

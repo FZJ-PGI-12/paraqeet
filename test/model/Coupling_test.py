@@ -55,18 +55,14 @@ def transmon(transmonParameters):
 def coupling(transmon):
     """Return a coupling generator method."""
 
-    def _method(
-        dim1: int, dim2: int, isLongitudinal: bool, useRWA: bool = False
-    ):
+    def _method(dim1: int, dim2: int, isLongitudinal: bool, useRWA: bool = False):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
         coupling = Coupling(
             [transmon1, transmon2],
             isLongitudinal=isLongitudinal,
             useRWA=useRWA,
-            coefficient=Quantity(
-                COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"
-            ),
+            coefficient=Quantity(COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"),
         )
 
         return coupling
@@ -152,7 +148,7 @@ def test_gradient_shape(coupling, time_samples):
     dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, isLongitudinal=False)
-    coup.setOptimisableParameters(coup.getParameters())
+    coup.set_optimisable_parameters(coup.get_parameters())
     grads = coup.gradient(time_samples)
     for grad in grads:
         for term in grad:
@@ -164,7 +160,7 @@ def test_gradient_shape(coupling, time_samples):
     dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, isLongitudinal=False, useRWA=True)
-    coup.setOptimisableParameters(coup.getParameters())
+    coup.set_optimisable_parameters(coup.get_parameters())
     grads = coup.gradient(time_samples)
     for grad in grads:
         for term in grad:

@@ -51,11 +51,9 @@ class Coupling(Optimisable):
         self._coefficient = coefficient
         self.__isLongitudinal = isLongitudinal
         self.__useRWA = useRWA
-        self._totalDims = jnp.prod(
-            jnp.array([s.dimension() for s in self.getSubsystems()])
-        )
+        self._totalDims = jnp.prod(jnp.array([s.dimension() for s in self.getSubsystems()]))
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
 
         Parameters
@@ -101,7 +99,7 @@ class Coupling(Optimisable):
         """
         matrices = self.__couplingOperators()
         for i in range(len(matrices)):  # iterating over terms
-            matrices[i][0] *= self._coefficient.getValue()
+            matrices[i][0] *= self._coefficient.get_value()
         return matrices
 
     def getMatrices(self, t: jnp.ndarray) -> list[list[jnp.ndarray]]:
@@ -146,7 +144,7 @@ class Coupling(Optimisable):
             result of getMatricesOneTime.
 
         """
-        if self._isOptimised(self._coefficient):
+        if self._is_optimised(self._coefficient):
             grads = [self.__couplingOperators()]
         else:
             grads = jnp.empty((0, self._totalDims, self._totalDims))
@@ -187,26 +185,16 @@ class Coupling(Optimisable):
         """
         if self.__isLongitudinal:
             # Number operator (a^\dagger a) for each subsystem
-            return [
-                [
-                    jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64))
-                    for s in self._subsystems
-                ]
-            ]
+            return [[jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64)) for s in self._subsystems]]
 
         elif self.__useRWA:
             # TODO - How to use RWA for more than 2 subsystems?
 
             if len(self.getSubsystems()) > 2:
-                raise NotImplementedError(
-                    "RWA is defined for 2 subsystems only"
-                )
+                raise NotImplementedError("RWA is defined for 2 subsystems only")
 
             dimensions = [s.dimension() for s in self.getSubsystems()]
-            annihilationOp = [
-                jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1))
-                for dim in dimensions
-            ]
+            annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
             return [
                 [annihilationOp[0], annihilationOp[1].T],
                 [annihilationOp[0].T, annihilationOp[1]],
@@ -215,8 +203,5 @@ class Coupling(Optimisable):
         else:
             # (a + a^\dagger) for each subsystem
             dimensions = [s.dimension() for s in self.getSubsystems()]
-            annihilationOp = [
-                jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1))
-                for dim in dimensions
-            ]
+            annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
             return [[(a + a.T) for a in annihilationOp]]

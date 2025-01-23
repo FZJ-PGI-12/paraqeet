@@ -20,7 +20,7 @@ def rk():
 
 def test_parameters(rk):
     """Test parameters of the model."""
-    assert rk(2).getParameters() == []
+    assert rk(2).get_parameters() == []
 
 
 def test_state_dimension(rk, ts, randomState):
@@ -47,9 +47,7 @@ def test_initial_state(rk, ts):
 
     """
     rungeKutta = rk(np.random.randint(1, 100))
-    with pytest.raises(
-        ConfigurationException, match="Initial state is not set"
-    ):
+    with pytest.raises(ConfigurationException, match="Initial state is not set"):
         rungeKutta.propagate(ts)
 
 

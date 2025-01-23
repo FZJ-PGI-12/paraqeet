@@ -22,7 +22,7 @@ def expm():
 def test_parameters(expm):
     """Test parameters from the propagation."""
     propagation = expm(dimension=np.random.randint(10), res=3)
-    assert propagation.getParameters() == []
+    assert propagation.get_parameters() == []
 
 
 def test_resolution(expm):
@@ -75,9 +75,7 @@ def test_initial_state(model):
     """
     propagation = ScipyExpm(model=model, res=3)
     ts = np.linspace(0.0, 1e-9, 3)
-    with pytest.raises(
-        ConfigurationException, match="Initial state is not set"
-    ):
+    with pytest.raises(ConfigurationException, match="Initial state is not set"):
         propagation.propagate(ts)
 
 

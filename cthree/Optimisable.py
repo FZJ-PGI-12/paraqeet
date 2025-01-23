@@ -15,10 +15,10 @@ class Optimisable:
     """
 
     _name: str = None
-    _optimisableParameters: list[Quantity] = []
+    _optimisable_parameters: list[Quantity] = []
 
     @abstractmethod
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Return all parameters of this class that can be optimised.
 
         Raises
@@ -61,7 +61,7 @@ class Optimisable:
         """Magic method for human readable string representation."""
         return self._name or str(self.__class__)
 
-    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set which parameters shall be considered during optimisation.
 
         All quantities that are not in the response of getParameters will
@@ -75,12 +75,10 @@ class Optimisable:
             List of optimisable parameters to be set.
 
         """
-        allParams = self.getParameters()
-        self._optimisableParameters = [
-            p for p in params if any([p is q for q in allParams])
-        ]
+        allParams = self.get_parameters()
+        self._optimisable_parameters = [p for p in params if any([p is q for q in allParams])]
 
-    def _isOptimised(self, param: Quantity) -> bool:
+    def _is_optimised(self, param: Quantity) -> bool:
         """Check if a parameter is being optimised.
 
         Should therefore be included in gradients.
@@ -96,4 +94,4 @@ class Optimisable:
             True if parameter is optimised.
 
         """
-        return param in self._optimisableParameters
+        return param in self._optimisable_parameters

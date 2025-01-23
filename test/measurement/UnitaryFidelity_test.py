@@ -29,9 +29,7 @@ def test_positivity(randomUnitaryMatrix, randomBasisVectors):
             basisStates = randomBasisVectors(dim, subDim)
             # gate is defined on the subspace.
             gate = randomUnitaryMatrix(subDim)
-            measurement = UnitaryFidelity(
-                propagation, gate, np.array([1.0]), basisStates
-            )
+            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]), basisStates)
             m = measurement.measure()
             assert 0.0 <= m
 
@@ -43,9 +41,7 @@ def test_positivity_projected(randomUnitaryMatrix):
         for projectedSize in range(2, size):
             gate = randomUnitaryMatrix(projectedSize)
             propagation = RandomPropagation(size, True)
-            measurement = UnitaryFidelity(
-                propagation=propagation, gate=gate, times=times
-            )
+            measurement = UnitaryFidelity(propagation=propagation, gate=gate, times=times)
 
             measurement.restrictSubsystems([size], [projectedSize])
             for _ in range(20):
@@ -58,9 +54,7 @@ def test_equality(identityPropagation, randomUnitaryMatrix):
     for dim in range(2, 30):
         for i in range(100):
             gate = randomUnitaryMatrix(dim)
-            np.testing.assert_almost_equal(
-                np.conjugate(gate.T) @ gate, np.eye(dim)
-            )
+            np.testing.assert_almost_equal(np.conjugate(gate.T) @ gate, np.eye(dim))
             propagation = IdentityPropagation()
             propagation.setInitialState(gate)
             measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
@@ -76,9 +70,7 @@ def test_projection(identityPropagation, randomBasisVectors):
             init_state = randomBasisVectors(dim + 4, dim)
             propagation = identityPropagation
             propagation.setInitialState(gate)
-            measurement = UnitaryFidelity(
-                propagation, gate, np.array([1.0]), basis_states=init_state
-            )
+            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]), basis_states=init_state)
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
 
@@ -114,4 +106,4 @@ def test_no_parameters(identityPropagation, randomUnitaryMatrix):
     """Test the no parameter case."""
     state = randomUnitaryMatrix(np.random.randint(2, 30))
     measurement = UnitaryFidelity(identityPropagation, state, np.array([1.0]))
-    assert measurement.getParameters() == []
+    assert measurement.get_parameters() == []

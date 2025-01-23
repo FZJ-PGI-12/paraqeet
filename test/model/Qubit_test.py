@@ -58,7 +58,7 @@ def test_gradient(gen, ham, time_samples):
 
     """
     grads = gen.generateSignalGradient(time_samples)
-    ham.setOptimisableParameters(ham.getParameters())
+    ham.set_optimisable_parameters(ham.get_parameters())
     hamGrads = ham.gradient(time_samples)
 
     assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 1, 2, 2)

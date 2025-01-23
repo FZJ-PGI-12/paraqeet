@@ -21,13 +21,13 @@ from cthree.signal.Envelopes import ConstantEnvelope
 
 tone = ConstantEnvelope()
 gen = IQMixer(envelopes=[tone])
-params = gen.getParameters()
+params = gen.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
 t_final = 10e-9
 
-params[0].setValue(0.8 * np.pi / t_final)
-params[2].setValue(1.01 * FREQ)
+params[0].set_value(0.8 * np.pi / t_final)
+params[2].set_value(1.01 * FREQ)
 
 drive = DriveOperator(gen, isLongitudinal=False)
 controlled_qubit = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])

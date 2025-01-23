@@ -34,7 +34,7 @@ class ConstantMeasurement(Measurement):
         self.__propagation = propagation
         self.__value = value
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get the system parameters.
 
         Parameters

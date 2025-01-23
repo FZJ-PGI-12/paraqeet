@@ -39,7 +39,7 @@ class RotatingFrameCoupling(Coupling):
         super().__init__(subsystems, coefficient, isLongitudinal=False)
         self.__diffFreq = diffFreq
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Return the coupling coeffecient and the difference frequency.
 
         NOTE - Optimisation using relational quantities can be optimise the
@@ -56,10 +56,7 @@ class RotatingFrameCoupling(Coupling):
     def __couplingOperators(self) -> list[np.ndarray]:
         """Return the annhilation operator."""
         dimensions = [s.dimension() for s in self.getSubsystems()]
-        annihilationOp = [
-            np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-            for dim in dimensions
-        ]
+        annihilationOp = [np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1)) for dim in dimensions]
         if len(annihilationOp) > 1:
             annihilationOp[1] = annihilationOp[1].conj().T
         return annihilationOp
@@ -89,9 +86,7 @@ class RotatingFrameCoupling(Coupling):
         if len(annihilationOp) > 2:
             raise NotImplementedError()
 
-        annihilationOp[0] *= self._coefficient.getValue() * jnp.exp(
-            1j * self.__diffFreq.getValue() * t
-        )
+        annihilationOp[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diffFreq.get_value() * t)
         annihilationOp_conj = [a.conj().T for a in annihilationOp]
         return [annihilationOp, annihilationOp_conj]
 
@@ -116,14 +111,14 @@ class RotatingFrameCoupling(Coupling):
             result of getMatricesOneTime.
 
         """
-        if self._isOptimised(self._coefficient):
+        if self._is_optimised(self._coefficient):
             annihilationOp = self.__couplingOperators()
-            annihilationOp[0] *= jnp.exp(1j * self.__diffFreq.getValue() * t)
+            annihilationOp[0] *= jnp.exp(1j * self.__diffFreq.get_value() * t)
             annihilationOp_conj = [a.conj().T for a in annihilationOp]
             grads = [annihilationOp, annihilationOp_conj]
-        elif self._isOptimised(self.__diffFreq):
+        elif self._is_optimised(self.__diffFreq):
             annihilationOp = self.__couplingOperators()
-            annihilationOp[0] *= self._coefficient.getValue() * 1j * t
+            annihilationOp[0] *= self._coefficient.get_value() * 1j * t
             annihilationOp_conj = [a.conj().T for a in annihilationOp]
             grads = [annihilationOp, annihilationOp_conj]
         else:

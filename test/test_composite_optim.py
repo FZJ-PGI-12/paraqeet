@@ -138,7 +138,7 @@ def coupledTransmons(tone):
     )
     gateFid.restrictSubsystems([3, 3], [2, 2])
 
-    tone1Amp = tone1.getParameters()[0]
+    tone1Amp = tone1.get_parameters()[0]
 
     optmap = OptimisationMap()
     optmap.add(tone1, [tone1Amp])

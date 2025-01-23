@@ -136,28 +136,20 @@ class CMAEsOptimiser(Optimiser):
             self._logger.start()
 
         self._buildOptimisableIndexList()
-        self._optimisables.registerParamsWithOptimisables()
+        self._optimisables.register_params_with_optimisables()
 
         x_init = []
-        for qty in self._optimisables.getAllParameters():
-            x_init.append(qty.getReducedValue())
+        for qty in self._optimisables.get_all_parameters():
+            x_init.append(qty.get_reduced_value())
 
-        es = cma.CMAEvolutionStrategy(
-            np.concatenate(x_init).flatten(), spread, settings
-        )
+        es = cma.CMAEvolutionStrategy(np.concatenate(x_init).flatten(), spread, settings)
         iter = 0
         while not es.stop():
             if shrunk_check:
                 sigmas.append(es.sigma)
                 if iter > sigma_conv:
-                    if all(
-                        sigmas[-(i + 1)] < sigmas[-(i + 2)]
-                        for i in range(sigma_conv - 1)
-                    ):
-                        print(
-                            f"C3:STATUS:Shrunk cloud for {sigma_conv} steps. "
-                            "Switching to gradients."
-                        )
+                    if all(sigmas[-(i + 1)] < sigmas[-(i + 2)] for i in range(sigma_conv - 1)):
+                        print(f"C3:STATUS:Shrunk cloud for {sigma_conv} steps. " "Switching to gradients.")
                         break
 
             if sigma_check:
@@ -213,9 +205,9 @@ class CMAEsOptimiser(Optimiser):
 
         """
         log = []
-        params = self._optimisables.getAllParameters()
+        params = self._optimisables.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
-            params[index].setReducedValue(val)
+            params[index].set_reduced_value(val)
             log.append(params[index])
         infid = 1 - self._measure.measureNormalised()
 
@@ -252,9 +244,7 @@ class CMAEsOptimiser(Optimiser):
             ]
         ):
             return OptimisationResult.STATUS_SUCCESS
-        elif any(
-            (key in conditions) for key in ["maxfevals", "maxiter", "timeout"]
-        ):
+        elif any((key in conditions) for key in ["maxfevals", "maxiter", "timeout"]):
             return OptimisationResult.STATUS_FAILED
         else:
             # not decidable

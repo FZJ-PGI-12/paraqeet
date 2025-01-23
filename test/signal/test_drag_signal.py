@@ -64,11 +64,11 @@ def flattop():
 def genMultipleTones():
     """Return a multiple tone DRAG generator."""
     tone1 = GaussEnvelope()
-    params1 = tone1.getParameters()
+    params1 = tone1.get_parameters()
     drag_tone1 = DRAGMixer(tone1)
 
     tone2 = GaussEnvelope()
-    params2 = tone2.getParameters()
+    params2 = tone2.get_parameters()
     drag_tone2 = DRAGMixer(tone2)
     return (
         IQMixer(envelopes=[drag_tone1, drag_tone2]),
@@ -95,19 +95,19 @@ def test_getParameters(genMultipleTones):
 
     """
     gen, all_params = genMultipleTones
-    params = gen.getParameters()
+    params = gen.get_parameters()
     assert len(params) == len(all_params) + 4
 
 
 def test_gradient_shape(gen, time_samples):
     """Test the length of the signal gradient."""
-    gen.setOptimisableParameters(gen.getParameters())
+    gen.set_optimisable_parameters(gen.get_parameters())
     grads = gen.generateSignalGradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]
 
 
 def test_gradient_flattop(flattop, time_samples):
     """Test the length of the gradient of flattop signal."""
-    flattop.setOptimisableParameters(flattop.getParameters())
+    flattop.set_optimisable_parameters(flattop.get_parameters())
     grads = flattop.generateSignalGradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]

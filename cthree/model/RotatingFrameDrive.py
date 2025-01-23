@@ -31,7 +31,7 @@ class RotatingFrameDrive(Drive):
         """
         return self.__signalGenerator
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
         Returns
@@ -40,11 +40,9 @@ class RotatingFrameDrive(Drive):
             List of optimizable parameters of the system.
 
         """
-        return self.__signalGenerator.getParameters()
+        return self.__signalGenerator.get_parameters()
 
-    def getMatrixOneTime(
-        self, annihilationOperator: jnp.ndarray, t: float
-    ) -> jnp.ndarray:
+    def getMatrixOneTime(self, annihilationOperator: jnp.ndarray, t: float) -> jnp.ndarray:
         r"""Implement drive in the rotating frame of drive.
 
         Drive Hamiltonian is implemented as
@@ -61,14 +59,9 @@ class RotatingFrameDrive(Drive):
             One time step
         """
         env = self.__signalGenerator.generateSignal(t)
-        return (
-            env * annihilationOperator
-            + jnp.conjugate(env) * annihilationOperator.conj().T
-        )
+        return env * annihilationOperator + jnp.conjugate(env) * annihilationOperator.conj().T
 
-    def gradientOneTime(
-        self, annihilationOperator: ndarray, t: float
-    ) -> ndarray:
+    def gradientOneTime(self, annihilationOperator: ndarray, t: float) -> ndarray:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -87,10 +80,5 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        envGrad = self.__signalGenerator.generateSignalGradient(t).reshape(
-            (-1, 1, 1)
-        )
-        return (
-            envGrad * annihilationOperator
-            + jnp.conjugate(envGrad) * annihilationOperator.conj().T
-        )
+        envGrad = self.__signalGenerator.generateSignalGradient(t).reshape((-1, 1, 1))
+        return envGrad * annihilationOperator + jnp.conjugate(envGrad) * annihilationOperator.conj().T

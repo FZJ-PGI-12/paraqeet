@@ -62,9 +62,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         return 2 / jnp.sqrt(np.pi) * jnp.exp(-(x**2))
 
     @partial(jit, static_argnums=(0,))
-    def _evaluateTimeGrad(
-        self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray
-    ):
+    def _evaluateTimeGrad(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -100,9 +98,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         return amp * prod_dir / 4
 
     @partial(jit, static_argnums=(0,))
-    def _evaluateTFinalGrad(
-        self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray
-    ):
+    def _evaluateTFinalGrad(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -151,8 +147,8 @@ class FlatTopGaussianEnvelopeAD(Envelope):
             Returns the output of the device.
 
         """
-        amp = self.amplitude.getValue()
-        t_final = self.t_final.getValue()
+        amp = self.amplitude.get_value()
+        t_final = self.t_final.get_value()
         return self._evaluate(amp, t_final, t)
 
     def computeTimeGradient(self, t: np.ndarray) -> Array:
@@ -168,6 +164,6 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         np.ndarray
             Returns a vector signals time derivative.
         """
-        amp = self.amplitude.getValue()
-        t_final = self.t_final.getValue()
+        amp = self.amplitude.get_value()
+        t_final = self.t_final.get_value()
         return self._evaluateTimeGrad(amp, t_final, t)

@@ -53,7 +53,7 @@ class UnitaryFidelity(Measurement):
         self._times = times
         self.setIdealGate(gate)
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get parameters of the system.
 
         Returns
@@ -106,9 +106,7 @@ class UnitaryFidelity(Measurement):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self.__propagation.gradient(
-            time=self._times
-        )  # gradient of states wrt parameters
+        states, dg_dp_list = self.__propagation.gradient(time=self._times)  # gradient of states wrt parameters
         states = self._preprocessMatrix(states)
         dg_dp_list = self._preprocessMatrix(dg_dp_list)
         overlaps = []
@@ -122,9 +120,7 @@ class UnitaryFidelity(Measurement):
             for ii, s in enumerate(self.__target_costates.T):
                 gs.append(np.vdot(s, dg_dp[:, ii]))
             g = np.average(gs)
-            dF_dp.append(
-                np.real(f.conj() * g + f * g.conj())
-            )  # chain rule for abs^2
+            dF_dp.append(np.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
         fid = self.__fid(overlaps)
         return fid, np.array(dF_dp)  # shape scalar, (n_parameters,)

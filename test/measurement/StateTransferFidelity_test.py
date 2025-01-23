@@ -69,9 +69,7 @@ def test_vector_equality(identityPropagation, randomState):
         for _ in range(100):
             state = randomState(size)
             identityPropagation.setInitialState(state)
-            measurement = StateTransferFidelity(
-                identityPropagation, state, state, np.array([1.0])
-            )
+            measurement = StateTransferFidelity(identityPropagation, state, state, np.array([1.0]))
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
 
@@ -97,13 +95,9 @@ def test_incompatible_shape(identityPropagation, randomState):
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             targetState = randomState(np.random.choice(dimensions))
 
-            fid = StateTransferFidelity(
-                identityPropagation, initialState, targetState, np.array([1.0])
-            )
+            fid = StateTransferFidelity(identityPropagation, initialState, targetState, np.array([1.0]))
 
-            fid_AD = StateTransferFidelityAD(
-                identityPropagation, initialState, targetState, np.array([1.0])
-            )
+            fid_AD = StateTransferFidelityAD(identityPropagation, initialState, targetState, np.array([1.0]))
 
             with pytest.raises(Exception):
                 fid.measure()
@@ -114,12 +108,8 @@ def test_incompatible_shape(identityPropagation, randomState):
 def test_no_parameters(identityPropagation, randomState):
     """Test the no parameter case."""
     state = randomState(np.random.randint(2, 30))
-    measurement = StateTransferFidelity(
-        identityPropagation, state, state, np.array([1.0])
-    )
-    assert measurement.getParameters() == []
+    measurement = StateTransferFidelity(identityPropagation, state, state, np.array([1.0]))
+    assert measurement.get_parameters() == []
 
-    measurement = StateTransferFidelityAD(
-        identityPropagation, state, state, np.array([1.0])
-    )
-    assert measurement.getParameters() == []
+    measurement = StateTransferFidelityAD(identityPropagation, state, state, np.array([1.0]))
+    assert measurement.get_parameters() == []

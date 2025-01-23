@@ -47,13 +47,9 @@ class Transmon(Hamiltonian):
         self.__dimension = dimension
         self.__frequency = frequency
         self.__anharmonicity = anharmonicity
-        self.__annihilationOp = jnp.sqrt(
-            jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1)
-        )
+        self.__annihilationOp = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
         self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
-        self.__anharmonicTerm = (
-            0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
-        )
+        self.__anharmonicTerm = 0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
 
     def dimension(self) -> int:
         """Get the dimension of the Transmon system."""
@@ -75,7 +71,7 @@ class Transmon(Hamiltonian):
         """Set the anharmonicity of the Transmon system."""
         self.__anharmonicity = anharmonicity
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
         Returns
@@ -103,10 +99,7 @@ class Transmon(Hamiltonian):
             The repeated drive matrix.
 
         """
-        H = (
-            self.__frequency.getValue() * self.__numOp
-            + self.__anharmonicity.getValue() * self.__anharmonicTerm
-        )
+        H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonicTerm
         return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
 
     def gradientOneTime(self, t: float) -> jnp.ndarray:
@@ -128,15 +121,11 @@ class Transmon(Hamiltonian):
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads = []
-        if self._isOptimised(self.__frequency):
+        if self._is_optimised(self.__frequency):
             grads.append(self.__numOp)
-        if self._isOptimised(self.__anharmonicity):
+        if self._is_optimised(self.__anharmonicity):
             grads.append(self.__anharmonicTerm)
-        grads = (
-            jnp.stack(grads, axis=0)
-            if len(grads) > 0
-            else jnp.empty((0,) + self.__numOp.shape)
-        )
+        grads = jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,) + self.__numOp.shape)
         gradients = jnp.append(gradients, grads, axis=0)
 
         return gradients

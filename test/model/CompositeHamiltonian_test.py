@@ -29,7 +29,7 @@ def time_samples():
 def tone():
     """Return a cosine tone."""
     tone = FlatTopGaussianEnvelope()
-    tone.setOptimisableParameters(tone.getParameters())
+    tone.set_optimisable_parameters(tone.get_parameters())
     return tone
 
 
@@ -99,7 +99,7 @@ def coupledTransmons(transmon):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
 
-        couplingStr = np.abs(transmon1.getFrequency().getValue() - transmon2.getFrequency().getValue()) * 0.05
+        couplingStr = np.abs(transmon1.getFrequency().get_value() - transmon2.getFrequency().get_value()) * 0.05
         coupling = Coupling(
             [transmon1, transmon2],
             isLongitudinal=False,
@@ -162,7 +162,7 @@ def test_gradient(gen, coupledTransmons, time_samples):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         H = coupledTransmons(dim1, dim2)
-        H.setOptimisableParameters(H.getParameters())
+        H.set_optimisable_parameters(H.get_parameters())
         grads = gen.generateSignalGradient(time_samples)
         hamGrads = H.gradient(time_samples)
         assert hamGrads.shape == (

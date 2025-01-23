@@ -79,8 +79,8 @@ class BayesianOptimiser(Optimiser):
         if self._logger:
             self._logger.start()
 
-        self._optimisables.registerParamsWithOptimisables()
-        params = self._optimisables.getAllParameters()
+        self._optimisables.register_params_with_optimisables()
+        params = self._optimisables.get_all_parameters()
 
         # The optimiser needs a dict of named bounds. We use the parameters'
         # indices in the list as names because the parameters' names might
@@ -92,22 +92,17 @@ class BayesianOptimiser(Optimiser):
             verbose=2,
             random_state=1,
         )
-        optimiser.maximize(
-            init_points=self.__initialSamples, n_iter=self.__iterations
-        )
+        optimiser.maximize(init_points=self.__initialSamples, n_iter=self.__iterations)
 
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
         bestValues = optimiser.max["params"]
         for i, param in enumerate(params):
-            param.setReducedValue(bestValues[str(i)])
+            param.set_reduced_value(bestValues[str(i)])
 
         # Use the actual names and the non-reduced values
         # for the return value
-        result = {
-            params[i].getName(): params[i].getValue()
-            for i in range(len(bestValues))
-        }
+        result = {params[i].get_name(): params[i].get_value() for i in range(len(bestValues))}
         result["fun"] = 1 - optimiser.max["target"]
         if self._logger:
             self._logger.stop(str(result))
@@ -136,9 +131,9 @@ class BayesianOptimiser(Optimiser):
 
         """
         log = []
-        params = self._optimisables.getAllParameters()
+        params = self._optimisables.get_all_parameters()
         for i, param in enumerate(params):
-            param.setReducedValue(kwargs[str(i)])
+            param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
         fidelity = self._measure.measureNormalised()

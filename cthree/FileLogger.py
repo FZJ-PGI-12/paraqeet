@@ -24,9 +24,9 @@ class FileLogger(Logger):
     __resultFile: str
 
     def __init__(self, logdir: str = ".") -> None:
-        self.setLogDir(logdir)
+        self.set_log_dir(logdir)
 
-    def setLogDir(self, logdir: str):
+    def set_log_dir(self, logdir: str):
         """Set the destination log directory.
 
         Stores both the log and the result files.
@@ -59,7 +59,7 @@ class FileLogger(Logger):
 
         """
         super().log(params, infidelity)
-        formattedParams = [param.getValue().tolist() for param in params]
+        formattedParams = [param.get_value().tolist() for param in params]
         status = {
             "Eval": self._counter,
             "Parameters": formattedParams,
@@ -70,21 +70,21 @@ class FileLogger(Logger):
             log.write("\n")
             log.flush()
 
-    def stop(self, resultMessage: str = None):
+    def stop(self, result_message: str = None):
         """Stop logging and end the log file with the run information.
 
         Parameters
         ----------
-        resultMessage : str, optional
+        result_message : str, optional
             The message that the user wants to write at the end of the log file.
 
         """
         super().stop()
         with open(self.__resultFile, "a") as log:
-            if resultMessage:
-                log.write(resultMessage)
+            if result_message:
+                log.write(result_message)
                 log.write("\n")
-            log.write(f"Finished at {self._stopTime}\n")
-            log.write(f"Total runtime: {self._stopTime - self._startTime}")
+            log.write(f"Finished at {self._stop_time}\n")
+            log.write(f"Total runtime: {self._stop_time - self._start_time}")
             log.write("\n")
             log.flush()

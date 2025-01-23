@@ -44,7 +44,7 @@ class Waveform(Optimisable):
         partial_grads = vmap(grads, vmap_axes)
         self._gradientFunction = jit(partial_grads)
 
-    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set optimisable parameters for optimisation.
 
         Parameters
@@ -53,15 +53,15 @@ class Waveform(Optimisable):
             Input list of parameters to be set.
 
         """
-        super().setOptimisableParameters(params)
+        super().set_optimisable_parameters(params)
 
         self._gradArgNums = ()
-        for i, param in enumerate(self.getParameters()):
-            if self._isOptimised(param):
+        for i, param in enumerate(self.get_parameters()):
+            if self._is_optimised(param):
                 self._gradArgNums += (i,)
 
         # Recompute gradient function
-        params = self.getParameters()
+        params = self.get_parameters()
         num_params = len(params)
 
         # vmap over time axis only, set everything else to None
@@ -136,8 +136,8 @@ class Waveform(Optimisable):
             Returns the gradient array of the `_evaluate` method.
 
         """
-        params = self.getParameters()
-        param_values = [param.getValue() for param in params]
+        params = self.get_parameters()
+        param_values = [param.get_value() for param in params]
         t = jnp.array(t, ndmin=1)
         grads = jnp.empty((t.shape[0], 0))
         if self._gradientFunction is not None:
@@ -182,10 +182,10 @@ class LocalOscillator(Waveform):
             max_value=np.array(1.2 * 4.8e9 * 2 * np.pi),
             unit="Hz",
             name="lo_freq",
-            twoPi=True,
+            two_pi=True,
         )
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Return device parameters.
 
         Returns
@@ -250,7 +250,7 @@ class LocalOscillator(Waveform):
         np.ndarray
             Returns a vector carrier signal.
         """
-        return self._evaluate(self.__lo_freq.getValue(), t)
+        return self._evaluate(self.__lo_freq.get_value(), t)
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """Return the gradient wrt to frequency of carrier signal.
@@ -265,11 +265,11 @@ class LocalOscillator(Waveform):
         np.ndarray
             Gradient of tone wrt to frequency.
         """
-        freq = self.__lo_freq.getValue()
+        freq = self.__lo_freq.get_value()
         t = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
-        if self._isOptimised(self.__lo_freq):
+        if self._is_optimised(self.__lo_freq):
             grads = jnp.reshape(1j * t * self._evaluate(freq, t), (-1, 1))
 
         return grads
@@ -288,7 +288,7 @@ class LocalOscillator(Waveform):
             Returns a vector signals time derivative.
 
         """
-        freq = self.__lo_freq.getValue()
+        freq = self.__lo_freq.get_value()
         return 1j * t * self._evaluate(freq, t)
 
 
@@ -314,7 +314,7 @@ class DRAGMixer(Waveform):
         self.__envs = envelopes if isinstance(envelopes, list) else [envelopes]
         self.__add_deltas(self.__envs, deltas)
 
-    def getParameters(self) -> list[Quantity]:
+    def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
 
         Collects and returns a list of parameters from the tone, generator
@@ -327,7 +327,7 @@ class DRAGMixer(Waveform):
         """
         params = list()
         for tone in self.__envs:
-            params += tone.getParameters()
+            params += tone.get_parameters()
             params += [self.__getToneDelta(tone)]
         return params
 
@@ -408,10 +408,10 @@ class DRAGMixer(Waveform):
         np.ndarray
             Returns a vector carrier signal.
         """
-        deltas = [self.__getToneDelta(tone).getValue() for tone in self.__envs]
+        deltas = [self.__getToneDelta(tone).get_value() for tone in self.__envs]
         return self._evaluate(t, *deltas)
 
-    def setOptimisableParameters(self, params: list[Quantity]) -> None:
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.
 
         Also add the indices to `__gradArgNums` to compute the gradients.
@@ -420,10 +420,10 @@ class DRAGMixer(Waveform):
         ----------
         params : list[Quantity]
         """
-        super().setOptimisableParameters(params)
+        super().set_optimisable_parameters(params)
 
         for tone in self.__envs:
-            tone.setOptimisableParameters(params)
+            tone.set_optimisable_parameters(params)
 
     def computeGradient(self, t: np.ndarray) -> Array:
         """Generate gradient of the signal for an array of time.
@@ -444,7 +444,7 @@ class DRAGMixer(Waveform):
             Array of gradients wrt each parameter for each time point.
         """
         deltas = [self.__getToneDelta(tone) for tone in self.__envs]
-        delta_values = [delta.getValue() for delta in deltas]
+        delta_values = [delta.get_value() for delta in deltas]
 
         gradients = jnp.zeros(shape=(t.shape[0], 0))
 
@@ -455,7 +455,7 @@ class DRAGMixer(Waveform):
 
         # Collect gradients wrt deltas
         for i, tone in enumerate(self.__envs):
-            if self._isOptimised(deltas[i]):
+            if self._is_optimised(deltas[i]):
                 grad = (
                     1j * (delta_values[i] ** 2) * tone.computeTimeGradient(t)
                     # * delta_scales[i]

@@ -28,7 +28,7 @@ class RabiExperiment(Measurement):
         self.__freq = Quantity(0.6 * qubit_freq, 0, 10e9)
         self.__time = Quantity(0.6e-9, 0, 10e-9)
 
-    def getParameters(self):
+    def get_parameters(self):
         """Return a list of parameters accessible in this measurement.
 
         Returns
@@ -51,15 +51,9 @@ class RabiExperiment(Measurement):
             Result of a general Rabi oscillation.
 
         """
-        q_freq = self.__qubit_freq.getValue()
-        amp = self.__amp.getValue() * 2 * np.pi
-        freq = self.__freq.getValue()
-        t = self.__time.getValue()
+        q_freq = self.__qubit_freq.get_value()
+        amp = self.__amp.get_value() * 2 * np.pi
+        freq = self.__freq.get_value()
+        t = self.__time.get_value()
         diff_sq = (q_freq - freq) ** 2
-        return (
-            np.abs(
-                np.cos(np.sqrt(diff_sq + amp**2) / 2 * t)
-                / np.sqrt(1 + diff_sq / (amp**2))
-            )
-            ** 2
-        )
+        return np.abs(np.cos(np.sqrt(diff_sq + amp**2) / 2 * t) / np.sqrt(1 + diff_sq / (amp**2))) ** 2
