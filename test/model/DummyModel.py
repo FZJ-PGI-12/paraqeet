@@ -30,7 +30,7 @@ class DummyModel(EquationOfMotion):
         """
         pass
 
-    def getMatrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: np.ndarray) -> np.ndarray:
         """Get the matrix representation of the equations of motion.
 
         Parameters
@@ -44,7 +44,7 @@ class DummyModel(EquationOfMotion):
             Returns the matrix equations of motion.
 
         """
-        return -1.0j * self._hamiltonian.getMatrix(time)
+        return -1.0j * self._hamiltonian.get_matrix(time)
 
     def gradient(self, t) -> list[np.ndarray]:
         """Compute the gradient of getMatrixEOM.

@@ -21,7 +21,7 @@ class EmptyHamiltonian(Hamiltonian):
 
         self.__dimension = dimension
 
-    def getMatrix(self, t: np.ndarray) -> np.ndarray:
+    def get_matrix(self, t: np.ndarray) -> np.ndarray:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters

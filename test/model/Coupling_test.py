@@ -60,7 +60,7 @@ def coupling(transmon):
         transmon2 = transmon.get(dim2)
         coupling = Coupling(
             [transmon1, transmon2],
-            isLongitudinal=isLongitudinal,
+            is_longitudinal=isLongitudinal,
             useRWA=useRWA,
             coefficient=Quantity(COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"),
         )
@@ -79,7 +79,7 @@ def test_getMatricesOneTime(coupling):
 
         # Test shape for Longitudinal coupling
         coup = coupling(dim1, dim2, isLongitudinal=True)
-        coup_hams = coup.getMatricesOneTime(0)
+        coup_hams = coup.get_matrices_one_time(0)
         for term in coup_hams:
             for i, ops in enumerate(term):
                 assert np.shape(ops) == (dims[i], dims[i])
@@ -92,14 +92,14 @@ def test_getMatricesOneTime(coupling):
 
         # Test for RWA
         coup = coupling(dim1, dim2, isLongitudinal=False, useRWA=True)
-        coup_hams = coup.getMatricesOneTime(0)
+        coup_hams = coup.get_matrices_one_time(0)
         for term in coup_hams:
             for i, ops in enumerate(term):
                 assert np.shape(ops) == (dims[i], dims[i])
 
         # Test shape for Transverse coupling
         coup = coupling(dim1, dim2, isLongitudinal=False)
-        coup_hams = coup.getMatricesOneTime(0)
+        coup_hams = coup.get_matrices_one_time(0)
         for term in coup_hams:
             for i, ops in enumerate(term):
                 assert np.shape(ops) == (dims[i], dims[i])
@@ -114,21 +114,21 @@ def test_getMatrices(coupling, time_samples):
 
         # Test shape for Longitudinal coupling
         coup = coupling(dim1, dim2, isLongitudinal=True)
-        coup_hams = coup.getMatrices(time_samples)
+        coup_hams = coup.get_matrices(time_samples)
         for term in coup_hams:
             for i, ops in enumerate(term):
                 assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
 
         # Test for RWA
         coup = coupling(dim1, dim2, isLongitudinal=False, useRWA=True)
-        coup_hams = coup.getMatrices(time_samples)
+        coup_hams = coup.get_matrices(time_samples)
         for term in coup_hams:
             for i, ops in enumerate(term):
                 assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
 
         # Test shape for Transverse coupling
         coup = coupling(dim1, dim2, isLongitudinal=False)
-        coup_hams = coup.getMatrices(time_samples)
+        coup_hams = coup.get_matrices(time_samples)
         for term in coup_hams:
             for i, ops in enumerate(term):
                 assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])

@@ -99,10 +99,10 @@ def coupledTransmons(transmon):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
 
-        couplingStr = np.abs(transmon1.getFrequency().get_value() - transmon2.getFrequency().get_value()) * 0.05
+        couplingStr = np.abs(transmon1.get_frequency().get_value() - transmon2.get_frequency().get_value()) * 0.05
         coupling = Coupling(
             [transmon1, transmon2],
-            isLongitudinal=False,
+            is_longitudinal=False,
             coefficient=Quantity(couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"),
             useRWA=useRWA,
         )
@@ -128,7 +128,7 @@ def test_getMatrixOneTime(uncoupledTransmons):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         H = uncoupledTransmons(dim1, dim2)
-        hams = H.getMatrixOneTime(0)
+        hams = H.get_matrix_one_time(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -138,7 +138,7 @@ def test_getMatrixOneTime_RWA(coupledTransmons):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         H = coupledTransmons(dim1, dim2, useRWA=True)
-        hams = H.getMatrixOneTime(0)
+        hams = H.get_matrix_one_time(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -148,7 +148,7 @@ def test_getMatrix(coupledTransmons, time_samples):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         H = coupledTransmons(dim1, dim2)
-        hams = H.getMatrix(time_samples)
+        hams = H.get_matrix(time_samples)
         assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 

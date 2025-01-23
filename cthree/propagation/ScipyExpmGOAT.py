@@ -102,7 +102,7 @@ class ScipyExpmGOAT(ScipyExpm):
         psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         dpsis = [[jnp.zeros_like(self._initial_state, dtype=jnp.complex128)] * n_params]
 
-        eom_func = self._model.getMatrix
+        eom_func = self._model.get_matrix
         grad_func = self._model.gradient
 
         for ti in range(1, len(time)):

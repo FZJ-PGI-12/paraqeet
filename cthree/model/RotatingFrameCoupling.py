@@ -28,7 +28,7 @@ class RotatingFrameCoupling(Coupling):
 
     _subsystems: list[Hamiltonian]
     _coefficient: Quantity
-    __diffFreq: Quantity
+    __diff_freq: Quantity
 
     def __init__(
         self,
@@ -36,8 +36,8 @@ class RotatingFrameCoupling(Coupling):
         coefficient: Quantity,
         diffFreq: Quantity,
     ):
-        super().__init__(subsystems, coefficient, isLongitudinal=False)
-        self.__diffFreq = diffFreq
+        super().__init__(subsystems, coefficient, is_longitudinal=False)
+        self.__diff_freq = diffFreq
 
     def get_parameters(self) -> list[Quantity]:
         """Return the coupling coeffecient and the difference frequency.
@@ -51,17 +51,17 @@ class RotatingFrameCoupling(Coupling):
             Returns the list of parameters of the system.
 
         """
-        return [self._coefficient, self.__diffFreq]
+        return [self._coefficient, self.__diff_freq]
 
-    def __couplingOperators(self) -> list[np.ndarray]:
+    def __coupling_operators(self) -> list[np.ndarray]:
         """Return the annhilation operator."""
-        dimensions = [s.dimension() for s in self.getSubsystems()]
+        dimensions = [s.dimension() for s in self.get_subsystems()]
         annihilationOp = [np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1)) for dim in dimensions]
         if len(annihilationOp) > 1:
             annihilationOp[1] = annihilationOp[1].conj().T
         return annihilationOp
 
-    def getMatricesOneTime(self, t: float) -> list[np.ndarray]:
+    def get_matrices_one_time(self, t: float) -> list[np.ndarray]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -82,15 +82,15 @@ class RotatingFrameCoupling(Coupling):
             shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
             with n the subsystem dimension.
         """
-        annihilationOp = self.__couplingOperators()
+        annihilationOp = self.__coupling_operators()
         if len(annihilationOp) > 2:
             raise NotImplementedError()
 
-        annihilationOp[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diffFreq.get_value() * t)
+        annihilationOp[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
         annihilationOp_conj = [a.conj().T for a in annihilationOp]
         return [annihilationOp, annihilationOp_conj]
 
-    def gradientOneTime(self, t) -> list[list[np.ndarray]]:
+    def gradient_one_time(self, t) -> list[list[np.ndarray]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
@@ -112,15 +112,15 @@ class RotatingFrameCoupling(Coupling):
 
         """
         if self._is_optimised(self._coefficient):
-            annihilationOp = self.__couplingOperators()
-            annihilationOp[0] *= jnp.exp(1j * self.__diffFreq.get_value() * t)
+            annihilationOp = self.__coupling_operators()
+            annihilationOp[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
             annihilationOp_conj = [a.conj().T for a in annihilationOp]
             grads = [annihilationOp, annihilationOp_conj]
-        elif self._is_optimised(self.__diffFreq):
-            annihilationOp = self.__couplingOperators()
+        elif self._is_optimised(self.__diff_freq):
+            annihilationOp = self.__coupling_operators()
             annihilationOp[0] *= self._coefficient.get_value() * 1j * t
             annihilationOp_conj = [a.conj().T for a in annihilationOp]
             grads = [annihilationOp, annihilationOp_conj]
         else:
-            grads = jnp.empty((0, self._totalDims, self._totalDims))
+            grads = jnp.empty((0, self._total_dims, self._total_dims))
         return grads

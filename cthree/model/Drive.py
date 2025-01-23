@@ -13,9 +13,7 @@ class Drive(Optimisable):
 
     """
 
-    def getMatrix(
-        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
-    ) -> jnp.ndarray:
+    def get_matrix(self, annihilation_operator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -25,7 +23,7 @@ class Drive(Optimisable):
 
         Parameters
         ----------
-        annihilationOperator : jax.numpy.ndarray
+        annihilation_operator : jax.numpy.ndarray
             Operator of the subsystem to which this drive is attached
         t : jax.numpy.ndarray
             Vector of time samples.
@@ -42,13 +40,9 @@ class Drive(Optimisable):
             Subclasses derived from this class must implement this method.
 
         """
-        return vmap(self.getMatrixOneTime, in_axes=(None, 0))(
-            annihilationOperator, t
-        )
+        return vmap(self.get_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def getMatrixOneTime(
-        self, annihilationOperator: jnp.ndarray, t: float
-    ) -> jnp.ndarray:
+    def get_matrix_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -56,7 +50,7 @@ class Drive(Optimisable):
 
         Parameters
         ----------
-        annihilationOperator
+        annihilation_operator
             Operator of the subsystem to which this drive is attached.
         t : float
             One time point.
@@ -74,9 +68,7 @@ class Drive(Optimisable):
         """
         raise NotImplementedError()
 
-    def gradient(
-        self, annihilationOperator: jnp.ndarray, t: jnp.ndarray
-    ) -> jnp.ndarray:
+    def gradient(self, annihilation_operator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
         """Return the gradient of the system.
 
         Returns the gradient of the matrix representation of the Hamiltonian
@@ -84,7 +76,7 @@ class Drive(Optimisable):
 
         Parameters
         ----------
-        annihilationOperator : jax.numpy.ndarray
+        annihilation_operator : jax.numpy.ndarray
             Operator of the subsystem to which this drive is attached.
         t : jax.numpy.ndarray
             Vector of time samples.
@@ -101,13 +93,9 @@ class Drive(Optimisable):
             Subclasses derived from this class must implement this method.
 
         """
-        return vmap(self.gradientOneTime, in_axes=(None, 0))(
-            annihilationOperator, t
-        )
+        return vmap(self.gradient_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def gradientOneTime(
-        self, annihilationOperator: jnp.ndarray, t: float
-    ) -> jnp.ndarray:
+    def gradient_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
         """Get the one-time gradient of the system.
 
         Returns the gradient of the matrix representation of the
@@ -115,7 +103,7 @@ class Drive(Optimisable):
 
         Parameters
         ----------
-        annihilationOperator : jax.numpy.ndarray
+        annihilation_operator : jax.numpy.ndarray
             Operator of the subsystem to which this drive is attached.
         t : float
             One time step.

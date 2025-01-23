@@ -29,25 +29,25 @@ class Resonator(Hamiltonian):
 
     __dimension: int
     __frequency: Quantity
-    __annihilationOp: jnp.ndarray
+    __annihilation_op: jnp.ndarray
     __numOp: jnp.ndarray
 
     def __init__(self, dimension: int, frequency: Quantity, drives: list[Drive] = None):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
-        self.__annihilationOp = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
-        self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
+        self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
+        self.__numOp = self.__annihilation_op.T @ self.__annihilation_op
 
     def dimension(self):
         """Get the dimension of the resonator."""
         return self.__dimension
 
-    def getFrequency(self) -> Quantity:
+    def get_frequency(self) -> Quantity:
         """Get the frequency of the resonator."""
         return self.__frequency
 
-    def setFrequency(self, frequency: Quantity) -> None:
+    def set_frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the resonator."""
         self.__frequency = frequency
 
@@ -60,9 +60,9 @@ class Resonator(Hamiltonian):
             Returns the list of parameters of the system.
 
         """
-        return self._getDriveParameters() + [self.__frequency]
+        return self._get_drive_parameters() + [self.__frequency]
 
-    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
         """Get the drive matrix.
 
         Parameters
@@ -77,9 +77,9 @@ class Resonator(Hamiltonian):
 
         """
         H = self.__frequency.get_value() * self.__numOp
-        return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
+        return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradientOneTime(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: float) -> jnp.ndarray:
         """Get the gradient of the drive.
 
         Parameters
@@ -94,7 +94,7 @@ class Resonator(Hamiltonian):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._getDriveGradientsOneTime(self.__annihilationOp, t)
+        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimised(self.__frequency):

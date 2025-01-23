@@ -33,7 +33,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_parameters()
 
-    def getMatrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: np.ndarray) -> np.ndarray:
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -52,7 +52,7 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._hamiltonian.getMatrix(time)
+        return -1.0j * self._hamiltonian.get_matrix(time)
 
     def gradient(self, t) -> np.ndarray:
         """Compute the gradient of getMatrix.

@@ -32,9 +32,9 @@ class Transmon(Hamiltonian):
     __dimension: int
     __frequency: Quantity
     __anharmonicity: Quantity
-    __annihilationOp: jnp.ndarray
+    __annihilation_op: jnp.ndarray
     __numOp: jnp.ndarray
-    __anharmonicTerm: jnp.ndarray
+    __anharmonic_term: jnp.ndarray
 
     def __init__(
         self,
@@ -47,27 +47,27 @@ class Transmon(Hamiltonian):
         self.__dimension = dimension
         self.__frequency = frequency
         self.__anharmonicity = anharmonicity
-        self.__annihilationOp = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
-        self.__numOp = self.__annihilationOp.T @ self.__annihilationOp
-        self.__anharmonicTerm = 0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
+        self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
+        self.__numOp = self.__annihilation_op.T @ self.__annihilation_op
+        self.__anharmonic_term = 0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
 
     def dimension(self) -> int:
         """Get the dimension of the Transmon system."""
         return self.__dimension
 
-    def getFrequency(self) -> Quantity:
+    def get_frequency(self) -> Quantity:
         """Get the frequency of the Transmon system."""
         return self.__frequency
 
-    def setFrequency(self, frequency: Quantity) -> None:
+    def set_frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the Transmon system."""
         self.__frequency = frequency
 
-    def getAnharmonicity(self) -> Quantity:
+    def get_anharmonicity(self) -> Quantity:
         """Get the anharmonicity of the Transmon system."""
         return self.__anharmonicity
 
-    def setAnharmonicity(self, anharmonicity: Quantity) -> None:
+    def set_anharmonicity(self, anharmonicity: Quantity) -> None:
         """Set the anharmonicity of the Transmon system."""
         self.__anharmonicity = anharmonicity
 
@@ -80,12 +80,12 @@ class Transmon(Hamiltonian):
             Returns the list of parameters of the system.
 
         """
-        return self._getDriveParameters() + [
+        return self._get_drive_parameters() + [
             self.__frequency,
             self.__anharmonicity,
         ]
 
-    def getMatrixOneTime(self, t: jnp.ndarray) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: jnp.ndarray) -> jnp.ndarray:
         """Get the drive matrix.
 
         Parameters
@@ -99,10 +99,10 @@ class Transmon(Hamiltonian):
             The repeated drive matrix.
 
         """
-        H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonicTerm
-        return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
+        H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonic_term
+        return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradientOneTime(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: float) -> jnp.ndarray:
         """Get the gradient of the drive.
 
         Parameters
@@ -117,14 +117,14 @@ class Transmon(Hamiltonian):
 
         """
         # Fetch the gradient of the drive
-        gradients = self._getDriveGradientsOneTime(self.__annihilationOp, t)
+        gradients = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads = []
         if self._is_optimised(self.__frequency):
             grads.append(self.__numOp)
         if self._is_optimised(self.__anharmonicity):
-            grads.append(self.__anharmonicTerm)
+            grads.append(self.__anharmonic_term)
         grads = jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,) + self.__numOp.shape)
         gradients = jnp.append(gradients, grads, axis=0)
 

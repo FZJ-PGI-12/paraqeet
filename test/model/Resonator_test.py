@@ -56,7 +56,7 @@ def test_getMatrix(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
         H = hamiltonian(dim)
-        hams = H.getMatrix(time_samples)
+        hams = H.get_matrix(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 

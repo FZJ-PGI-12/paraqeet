@@ -40,11 +40,11 @@ class Qubit(Hamiltonian):
         )
         self.__drift = 0.5 * jnp.diag(jnp.array([1.0, -1.0]))
 
-    def getFrequency(self) -> Quantity:
+    def get_frequency(self) -> Quantity:
         """Get the frequency of the qubit."""
         return self.__frequency
 
-    def setFrequency(self, frequency: Quantity) -> None:
+    def set_frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the qubit."""
         self.__frequency = frequency
 
@@ -57,7 +57,7 @@ class Qubit(Hamiltonian):
             Returns the list of parameters of the system.
 
         """
-        return self._getDriveParameters() + [self.__frequency]
+        return self._get_drive_parameters() + [self.__frequency]
 
     def dimension(self) -> int:
         """Dimension of the qubit.
@@ -70,7 +70,7 @@ class Qubit(Hamiltonian):
         """
         return 2
 
-    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
         """Get the drive matrix.
 
         Parameters
@@ -85,9 +85,9 @@ class Qubit(Hamiltonian):
 
         """
         H = self.__frequency.get_value() * self.__drift
-        return H + self._getDriveMatrixOneTime(self.__annihilationOp, t)
+        return H + self._get_drive_matrix_one_time(self.__annihilationOp, t)
 
-    def gradientOneTime(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: float) -> jnp.ndarray:
         """Get the gradient of the drive.
 
         Parameters
@@ -102,7 +102,7 @@ class Qubit(Hamiltonian):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._getDriveGradientsOneTime(self.__annihilationOp, t)
+        derivatives = self._get_drive_gradients_one_time(self.__annihilationOp, t)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimised(self.__frequency):

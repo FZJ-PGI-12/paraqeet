@@ -46,7 +46,7 @@ def ham(gen):
 
 def test_getMatrix(ham, time_samples):
     """Test the getMatrix method."""
-    hams = ham.getMatrix(time_samples)
+    hams = ham.get_matrix(time_samples)
     assert hams.shape == time_samples.shape + (2, 2)
 
 

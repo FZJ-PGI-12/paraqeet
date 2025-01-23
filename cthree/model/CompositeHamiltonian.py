@@ -27,7 +27,7 @@ class CompositeHamiltonian(Hamiltonian):
     __subsystems: list[Hamiltonian]
     __couplings: list[Coupling]
     __dimensions: list[int]
-    __totalDimension: int
+    __total_dimension: int
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ class CompositeHamiltonian(Hamiltonian):
         self.__subsystems = subsystems
         self.__couplings = couplings
         self.__dimensions = [s.dimension() for s in subsystems]
-        self.__totalDimension = np.prod(self.__dimensions)
+        self.__total_dimension = np.prod(self.__dimensions)
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
@@ -84,9 +84,9 @@ class CompositeHamiltonian(Hamiltonian):
             Dimension of the system.
 
         """
-        return self.__totalDimension
+        return self.__total_dimension
 
-    def getMatrixOneTime(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
@@ -102,18 +102,18 @@ class CompositeHamiltonian(Hamiltonian):
 
         """
         # Calculate the tensor product of all subsystem matrices
-        matrix = jnp.zeros((self.__totalDimension, self.__totalDimension))
+        matrix = jnp.zeros((self.__total_dimension, self.__total_dimension))
         for n, subsystem in enumerate(self.__subsystems):
-            subMatrix = subsystem.getMatrixOneTime(t)
-            matrix += self.__tensorProductWithIdentity([subMatrix], [n])
+            subMatrix = subsystem.get_matrix_one_time(t)
+            matrix += self.__tensor_product_with_identity([subMatrix], [n])
 
         for coupling in self.__couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
-            indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
-            subMatrices = coupling.getMatricesOneTime(t)
+            indices = [self.__subsystems.index(s) for s in coupling.get_subsystems()]
+            subMatrices = coupling.get_matrices_one_time(t)
             for term in subMatrices:
-                matrix += self.__tensorProductWithIdentity(term, indices)
+                matrix += self.__tensor_product_with_identity(term, indices)
 
         return matrix
 
@@ -158,22 +158,22 @@ class CompositeHamiltonian(Hamiltonian):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for i, subsystem in enumerate(self.__subsystems):
-            subGradients = subsystem.gradientOneTime(t)
+            subGradients = subsystem.gradient_one_time(t)
             for g in subGradients:
-                gradients.append(self.__tensorProductWithIdentity([g], [i]))
+                gradients.append(self.__tensor_product_with_identity([g], [i]))
 
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
         for coupling in self.__couplings:
-            indices = [self.__subsystems.index(s) for s in coupling.getSubsystems()]
-            couplingGradient = coupling.gradientOneTime(t)
+            indices = [self.__subsystems.index(s) for s in coupling.get_subsystems()]
+            couplingGradient = coupling.gradient_one_time(t)
             for term in couplingGradient:
                 for g in term:
-                    gradients.append(self.__tensorProductWithIdentity(g, indices))
+                    gradients.append(self.__tensor_product_with_identity(g, indices))
 
         return jnp.array(gradients)
 
-    def __tensorProductWithIdentity(self, M: list[jnp.ndarray], n: list[int]) -> jnp.ndarray:
+    def __tensor_product_with_identity(self, M: list[jnp.ndarray], n: list[int]) -> jnp.ndarray:
         r"""Put the matrices M into a tensor product at positions `n`.
 
         All other positions are identity matrices:

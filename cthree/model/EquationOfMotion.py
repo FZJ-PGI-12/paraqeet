@@ -45,7 +45,7 @@ class EquationOfMotion(Optimisable):
         """
         raise NotImplementedError()
 
-    def getRightHandSide(self, time: np.ndarray, state: np.ndarray) -> np.ndarray:
+    def get_right_hand_side(self, time: np.ndarray, state: np.ndarray) -> np.ndarray:
         """Return the right-hand side of the equations of motion.
 
         The format depends on the implementation and could for example
@@ -63,10 +63,10 @@ class EquationOfMotion(Optimisable):
             The right-hand side of the equation of motion at each time stamp.
 
         """
-        return self.getMatrix(time) @ state
+        return self.get_matrix(time) @ state
 
     @abstractmethod
-    def getMatrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: np.ndarray) -> np.ndarray:
         """Abstract method to get the prefactor matrix.
 
         Parameters

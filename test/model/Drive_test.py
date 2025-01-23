@@ -47,7 +47,7 @@ def test_drive_getMatrix(drive, time_samples):
     """Test the drive getMatrix method."""
     dim = np.random.randint(2, 10)
     annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    driveMatrices = drive.getMatrix(annihilationOp, time_samples)
+    driveMatrices = drive.get_matrix(annihilationOp, time_samples)
     assert driveMatrices.shape == time_samples.shape + (dim, dim)
 
 

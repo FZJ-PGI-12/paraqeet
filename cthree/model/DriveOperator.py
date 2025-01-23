@@ -52,7 +52,7 @@ class DriveOperator(Drive):
         """
         return self.__generator.get_parameters()
 
-    def _computeMatrix(self, a: np.ndarray) -> np.ndarray:
+    def _compute_matrix(self, a: np.ndarray) -> np.ndarray:
         """Return the operator for the longitudinal or transverse drive.
 
         Parameters
@@ -68,7 +68,7 @@ class DriveOperator(Drive):
         """
         return (jnp.conjugate(a.T) @ a) if self.__isLongitudinal else (jnp.conjugate(a.T) + a)
 
-    def getMatrixOneTime(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
+    def get_matrix_one_time(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -88,10 +88,10 @@ class DriveOperator(Drive):
 
         """
         signal = self.__generator.generate_signal(t)
-        matrix = self._computeMatrix(a)
+        matrix = self._compute_matrix(a)
         return signal * matrix
 
-    def gradientOneTime(self, a: jnp.ndarray, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, a: jnp.ndarray, t: float) -> jnp.ndarray:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -111,5 +111,5 @@ class DriveOperator(Drive):
 
         """
         signalGrad = self.__generator.generate_signal_gradient_one_time(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
-        matrix = self._repeat(self._computeMatrix(a), signalGrad.shape[0])
+        matrix = self._repeat(self._compute_matrix(a), signalGrad.shape[0])
         return signalGrad * matrix

@@ -28,7 +28,7 @@ class Coupling(Optimisable):
     coefficient : Quantity
         Either a constant coefficient as float or a callable that returns the
         coefficient for a given time.
-    isLongitudinal : bool
+    is_longitudinal : bool
         Whether the coupling is longitudinal or transversal.
     useRWA : bool, optional
         If the transversal coupling should use the rotating-wave approximation
@@ -37,21 +37,22 @@ class Coupling(Optimisable):
 
     _subsystems: list[Hamiltonian]
     _coefficient: Quantity
-    __isLongitudinal: bool
+    _total_dims: jnp.ndarray
+    __is_longitudinal: bool
     __useRWA: bool
 
     def __init__(
         self,
         subsystems: list[Hamiltonian],
         coefficient: Quantity,
-        isLongitudinal: bool,
+        is_longitudinal: bool,
         useRWA: bool = False,
     ):
         self._subsystems = subsystems
         self._coefficient = coefficient
-        self.__isLongitudinal = isLongitudinal
+        self.__is_longitudinal = is_longitudinal
         self.__useRWA = useRWA
-        self._totalDims = jnp.prod(jnp.array([s.dimension() for s in self.getSubsystems()]))
+        self._total_dims = jnp.prod(jnp.array([s.dimension() for s in self.get_subsystems()]))
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
@@ -64,7 +65,7 @@ class Coupling(Optimisable):
         """
         return [self._coefficient]
 
-    def getSubsystems(self) -> list[Hamiltonian]:
+    def get_subsystems(self) -> list[Hamiltonian]:
         """Return all subsystems that are coupled by this term.
 
         Returns
@@ -75,7 +76,7 @@ class Coupling(Optimisable):
         """
         return self._subsystems
 
-    def getMatricesOneTime(self, t: float) -> list[list[jnp.ndarray]]:
+    def get_matrices_one_time(self, t: float) -> list[list[jnp.ndarray]]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -97,12 +98,12 @@ class Coupling(Optimisable):
             with n the subsystem dimension.
 
         """
-        matrices = self.__couplingOperators()
+        matrices = self.__coupling_operators()
         for i in range(len(matrices)):  # iterating over terms
             matrices[i][0] *= self._coefficient.get_value()
         return matrices
 
-    def getMatrices(self, t: jnp.ndarray) -> list[list[jnp.ndarray]]:
+    def get_matrices(self, t: jnp.ndarray) -> list[list[jnp.ndarray]]:
         """Return the matrices for an array of time.
 
         vmaps over the method for one time step.
@@ -121,9 +122,9 @@ class Coupling(Optimisable):
             the subsystem dimension.
 
         """
-        return vmap(self.getMatricesOneTime)(t)
+        return vmap(self.get_matrices_one_time)(t)
 
-    def gradientOneTime(self, t: float) -> list[list[list[jnp.ndarray]]]:
+    def gradient_one_time(self, t: float) -> list[list[list[jnp.ndarray]]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
@@ -145,9 +146,9 @@ class Coupling(Optimisable):
 
         """
         if self._is_optimised(self._coefficient):
-            grads = [self.__couplingOperators()]
+            grads = [self.__coupling_operators()]
         else:
-            grads = jnp.empty((0, self._totalDims, self._totalDims))
+            grads = jnp.empty((0, self._total_dims, self._total_dims))
         return grads
 
     def gradient(self, t: jnp.ndarray) -> list[list[list[jnp.ndarray]]]:
@@ -166,9 +167,9 @@ class Coupling(Optimisable):
             The rest is in the same shape as the result of getMatrices.
 
         """
-        return vmap(self.gradientOneTime)(t)
+        return vmap(self.gradient_one_time)(t)
 
-    def __couplingOperators(self) -> list[list[jnp.ndarray]]:
+    def __coupling_operators(self) -> list[list[jnp.ndarray]]:
         """Return coupling operators.
 
         Returns the operators of the longitudinal or transversal coupling
@@ -183,17 +184,17 @@ class Coupling(Optimisable):
             The subsystems are the outer list.
 
         """
-        if self.__isLongitudinal:
+        if self.__is_longitudinal:
             # Number operator (a^\dagger a) for each subsystem
             return [[jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64)) for s in self._subsystems]]
 
         elif self.__useRWA:
             # TODO - How to use RWA for more than 2 subsystems?
 
-            if len(self.getSubsystems()) > 2:
+            if len(self.get_subsystems()) > 2:
                 raise NotImplementedError("RWA is defined for 2 subsystems only")
 
-            dimensions = [s.dimension() for s in self.getSubsystems()]
+            dimensions = [s.dimension() for s in self.get_subsystems()]
             annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
             return [
                 [annihilationOp[0], annihilationOp[1].T],
@@ -202,6 +203,6 @@ class Coupling(Optimisable):
 
         else:
             # (a + a^\dagger) for each subsystem
-            dimensions = [s.dimension() for s in self.getSubsystems()]
+            dimensions = [s.dimension() for s in self.get_subsystems()]
             annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
             return [[(a + a.T) for a in annihilationOp]]

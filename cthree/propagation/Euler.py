@@ -52,7 +52,7 @@ class Euler(StatePropagation):
             Results of the Euler propagation.
 
         """
-        equationsOfMotion = self._model.getMatrix(time)
+        equationsOfMotion = self._model.get_matrix(time)
 
         dt = time[1:] - time[0:-1]
         shape1 = (len(time),)

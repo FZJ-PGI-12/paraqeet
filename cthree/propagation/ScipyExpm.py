@@ -167,7 +167,7 @@ class ScipyExpm(StatePropagation):
             raise ConfigurationException("Initial state is not set")
 
         psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
-        eom_func = self._model.getMatrix
+        eom_func = self._model.get_matrix
         for ti in range(1, len(time)):
             times, dt = self._construct_times(time, ti)
             psis_t = psi[ti - 1]

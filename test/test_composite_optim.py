@@ -112,7 +112,7 @@ def coupledTransmons(tone):
     )
     coupling = Coupling(
         [transmon1, transmon2],
-        isLongitudinal=False,
+        is_longitudinal=False,
         coefficient=Quantity(
             COUPLINGSTR,
             np.array(0.8 * COUPLINGSTR),

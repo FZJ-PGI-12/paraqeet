@@ -226,7 +226,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         timeGrid = time[:-1] + dt / 2
 
-        eom_func = self._model.getMatrix
+        eom_func = self._model.get_matrix
         eom = eom_func(timeGrid) * dt
 
         Us = vmap(self._exponentiate, in_axes=(0,))(eom)
@@ -258,7 +258,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
-        eom_func = self._model.getMatrix
+        eom_func = self._model.get_matrix
         grad_func = self._model.gradient
 
         dt = time[1] - time[0]

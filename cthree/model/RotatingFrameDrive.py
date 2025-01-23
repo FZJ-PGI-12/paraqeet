@@ -15,10 +15,10 @@ class RotatingFrameDrive(Drive):
         Signal Generator without a LO, like the PWCGenerator
     """
 
-    __signalGenerator: Generator
+    __signal_generator: Generator
 
-    def __init__(self, signalGenerator: Generator):
-        self.__signalGenerator = signalGenerator
+    def __init__(self, signal_generator: Generator):
+        self.__signal_generator = signal_generator
 
     def getGenerator(self) -> Generator:
         """Get the signal generator from the system.
@@ -29,7 +29,7 @@ class RotatingFrameDrive(Drive):
             Returns the signal generator object from the system.
 
         """
-        return self.__signalGenerator
+        return self.__signal_generator
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -40,9 +40,9 @@ class RotatingFrameDrive(Drive):
             List of optimizable parameters of the system.
 
         """
-        return self.__signalGenerator.get_parameters()
+        return self.__signal_generator.get_parameters()
 
-    def getMatrixOneTime(self, annihilationOperator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
         r"""Implement drive in the rotating frame of drive.
 
         Drive Hamiltonian is implemented as
@@ -53,15 +53,15 @@ class RotatingFrameDrive(Drive):
 
         Parameters
         ----------
-        annihilationOperator: jnp.ndarray
+        annihilation_operator: jnp.ndarray
             Annihilation operator of the subsystem
         t: float
             One time step
         """
-        env = self.__signalGenerator.generate_signal(t)
-        return env * annihilationOperator + jnp.conjugate(env) * annihilationOperator.conj().T
+        env = self.__signal_generator.generate_signal(t)
+        return env * annihilation_operator + jnp.conjugate(env) * annihilation_operator.conj().T
 
-    def gradientOneTime(self, annihilationOperator: ndarray, t: float) -> ndarray:
+    def gradient_one_time(self, annihilation_operator: ndarray, t: float) -> ndarray:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -80,5 +80,5 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        envGrad = self.__signalGenerator.generate_signal_gradient(t).reshape((-1, 1, 1))
-        return envGrad * annihilationOperator + jnp.conjugate(envGrad) * annihilationOperator.conj().T
+        envGrad = self.__signal_generator.generate_signal_gradient(t).reshape((-1, 1, 1))
+        return envGrad * annihilation_operator + jnp.conjugate(envGrad) * annihilation_operator.conj().T

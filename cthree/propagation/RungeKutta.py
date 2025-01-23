@@ -84,7 +84,7 @@ class RungeKutta(StatePropagation):
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._model.getRightHandSide(np.array([time]), column_state),
+                self._model.get_right_hand_side(np.array([time]), column_state),
                 (-1,),
             )
 
