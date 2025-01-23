@@ -7,18 +7,10 @@ from cthree.measurement.MakhlinFunctional import MakhlinFunctional
 from test.propagation.IdentityPropagation import IdentityPropagation
 from test.propagation.RandomPropagation import RandomPropagation
 
-iswap = np.array(
-    [[1.0, 0, 0, 0], [0, 0, 1.0j, 0], [0, 1.0j, 0, 0], [0, 0, 0, 1.0]]
-)
-cnot = np.array(
-    [[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]]
-)
-swap = np.array(
-    [[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0]]
-)
-sqrtSwap = np.array(
-    [[1.0, 0, 0, 0], [0, 1.0, 1.0, 0], [0, 1.0, 1.00, 0], [0, 0, 0, 1.0]]
-)
+iswap = np.array([[1.0, 0, 0, 0], [0, 0, 1.0j, 0], [0, 1.0j, 0, 0], [0, 0, 0, 1.0]])
+cnot = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
+swap = np.array([[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0]])
+sqrtSwap = np.array([[1.0, 0, 0, 0], [0, 1.0, 1.0, 0], [0, 1.0, 1.00, 0], [0, 0, 0, 1.0]])
 
 
 def test_positivity():
@@ -58,7 +50,7 @@ def test_local_gates():
     gates2 = [np.kron(np.eye(2), g) for g in [x, y, z]]
     for gate in gates1 + gates2:
         propagation = IdentityPropagation()
-        propagation.setInitialState(gate)
+        propagation.set_initial_state(gate)
         measurement = MakhlinFunctional(propagation, np.array([1.0]))
         m = measurement.measure()
         np.testing.assert_almost_equal(m, 2.0)
@@ -68,7 +60,7 @@ def test_perfect_entanglers():
     """Test that perfect entangling gates have a distance of 0."""
     for gate in [iswap, cnot]:
         propagation = IdentityPropagation()
-        propagation.setInitialState(gate)
+        propagation.set_initial_state(gate)
         measurement = MakhlinFunctional(propagation, np.array([1.0]))
         m = measurement.measure()
         np.testing.assert_almost_equal(m, 0.0)
@@ -85,10 +77,8 @@ def test_invariants():
 
     propagation = IdentityPropagation()
     for gate, invariants in expectedInvariants:
-        propagation.setInitialState(gate)
-        measurement = MakhlinFunctional(
-            propagation, np.array([1.0]), np.array(invariants)
-        )
+        propagation.set_initial_state(gate)
+        measurement = MakhlinFunctional(propagation, np.array([1.0]), np.array(invariants))
         m = measurement.measure()
         np.testing.assert_almost_equal(m, 0.0)
 

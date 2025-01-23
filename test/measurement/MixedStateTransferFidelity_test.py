@@ -12,9 +12,7 @@ from test.propagation.RandomPropagation import RandomPropagation
 
 def randomMixedState(dimension):
     """Generate random mixed states."""
-    state = np.random.random((dimension, dimension)) + 1j * np.random.random(
-        (dimension, dimension)
-    )
+    state = np.random.random((dimension, dimension)) + 1j * np.random.random((dimension, dimension))
     state = state @ np.conjugate(state.T)
     return state / np.trace(state)
 
@@ -29,9 +27,7 @@ def test_limits_vectors():
         targetState = randomMixedState(size)
         propagation = RandomPropagation(size, True)
         times = np.array([1.0])
-        measurement = MixedStateTransferFidelity(
-            propagation, targetState, times
-        )
+        measurement = MixedStateTransferFidelity(propagation, targetState, times)
 
         for i in range(100):
             m = measurement.measure()
@@ -44,10 +40,8 @@ def test_vector_equality():
         for i in range(100):
             state = randomMixedState(size)
             propagation = IdentityPropagation()
-            propagation.setInitialState(state)
-            measurement = MixedStateTransferFidelity(
-                propagation, state, np.array([1.0])
-            )
+            propagation.set_initial_state(state)
+            measurement = MixedStateTransferFidelity(propagation, state, np.array([1.0]))
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0, decimal=2)
 
@@ -73,8 +67,6 @@ def test_incompatible_shape():
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             propagation = RandomPropagation(np.random.choice(dimensions), True)
 
-            measurement = MixedStateTransferFidelity(
-                propagation, targetState, np.array([1.0])
-            )
+            measurement = MixedStateTransferFidelity(propagation, targetState, np.array([1.0]))
             with pytest.raises(Exception):
                 measurement.measure()

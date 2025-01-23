@@ -66,7 +66,7 @@ def states(prop):
 def gates(prop):
     """Compare the propagator with a gate via the L2 norm."""
     xGate = np.array([[0.0, 1], [1, 0.0]])
-    prop.setInitialState(np.identity(2))
+    prop.set_initial_state(np.identity(2))
     return UnitaryFidelity(
         propagation=prop,
         gate=xGate,

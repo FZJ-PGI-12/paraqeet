@@ -31,7 +31,7 @@ def test_state_dimension(rk, ts, randomState):
     dim = np.random.randint(1, 100)
     state = randomState(dim)
     rungeKutta = rk(dim)
-    rungeKutta.setInitialState(state)
+    rungeKutta.set_initial_state(state)
     propagatedStates = rungeKutta.propagate(ts)
     assert len(propagatedStates) == len(ts)
     assert propagatedStates[-1].shape == state.shape
@@ -64,7 +64,7 @@ def test_time_steps(rk, randomState):
     dim = np.random.randint(1, 100)
     state = randomState(dim)
     rungeKutta = rk(dim)
-    rungeKutta.setInitialState(state)
+    rungeKutta.set_initial_state(state)
     with pytest.raises(
         ValueError,
         match="Runge-Kutta propagation needs at least two time steps",

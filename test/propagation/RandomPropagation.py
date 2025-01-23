@@ -39,7 +39,7 @@ class RandomPropagation(Propagation):
         self.__autoUpdate = autoUpdate
         self.update()
 
-    def setInitialState(self, state: np.ndarray):
+    def set_initial_state(self, state: np.ndarray):
         """Set the initial state of the system.
 
         Set it to the given state.
@@ -86,7 +86,5 @@ class RandomPropagation(Propagation):
             self.__state = np.conjugate(U.T) @ rho @ U
         else:
             # generate a random state vector
-            state = np.random.random(
-                (self.__dimension, 1)
-            ) + 1j * np.random.random((self.__dimension, 1))
+            state = np.random.random((self.__dimension, 1)) + 1j * np.random.random((self.__dimension, 1))
             self.__state = state / np.sqrt(np.vdot(state, state))

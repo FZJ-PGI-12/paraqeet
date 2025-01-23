@@ -56,7 +56,7 @@ def test_equality(identityPropagation, randomUnitaryMatrix):
             gate = randomUnitaryMatrix(dim)
             np.testing.assert_almost_equal(np.conjugate(gate.T) @ gate, np.eye(dim))
             propagation = IdentityPropagation()
-            propagation.setInitialState(gate)
+            propagation.set_initial_state(gate)
             measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)
@@ -69,7 +69,7 @@ def test_projection(identityPropagation, randomBasisVectors):
             gate = np.eye(dim)
             init_state = randomBasisVectors(dim + 4, dim)
             propagation = identityPropagation
-            propagation.setInitialState(gate)
+            propagation.set_initial_state(gate)
             measurement = UnitaryFidelity(propagation, gate, np.array([1.0]), basis_states=init_state)
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)

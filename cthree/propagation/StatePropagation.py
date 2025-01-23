@@ -19,12 +19,12 @@ class StatePropagation(Propagation):
 
     """
 
-    _initialState: np.ndarray | None = None
+    _initial_state: np.ndarray | None = None
 
     def __init__(self, model: EquationOfMotion):
         super().__init__(model)
 
-    def setInitialState(self, state: np.ndarray):
+    def set_initial_state(self, state: np.ndarray):
         """Set the initial state for the propagation.
 
         Subclasses can access the state in the _initialState field.
@@ -35,4 +35,4 @@ class StatePropagation(Propagation):
             Parameter value to be set as the initial state for the propagation.
 
         """
-        self._initialState = state
+        self._initial_state = state

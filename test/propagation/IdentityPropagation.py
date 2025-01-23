@@ -16,7 +16,7 @@ class IdentityPropagation(Propagation):
     def __init__(self):
         super().__init__(None)
 
-    def setInitialState(self, state: np.ndarray):
+    def set_initial_state(self, state: np.ndarray):
         """Set the initial state of the system.
 
         Set it to the given state argument.

@@ -25,7 +25,7 @@ class Propagation(Optimisable):
     def __init__(self, model: EquationOfMotion):
         self._model = model
 
-    def setInitialState(self, state: np.ndarray):
+    def set_initial_state(self, state: np.ndarray):
         """Set the initial state for the propagation.
 
         Propagation implementations that do not need the state should not

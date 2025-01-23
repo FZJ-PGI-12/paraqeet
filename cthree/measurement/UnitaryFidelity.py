@@ -46,7 +46,7 @@ class UnitaryFidelity(Measurement):
         super().__init__()
         self.__propagation = propagation
         if basis_states is not None:
-            self.__propagation.setInitialState(basis_states)
+            self.__propagation.set_initial_state(basis_states)
         else:
             basis_states = np.eye(gate.shape[0])
         self.__basis_states = basis_states

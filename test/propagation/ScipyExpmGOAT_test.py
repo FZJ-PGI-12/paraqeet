@@ -29,8 +29,8 @@ def test_resolution(expm):
     for i in range(10):
         propagation = expm(dimension=np.random.randint(2, 100), res=3)
         resolution = np.random.randint(1, 1000)
-        propagation.setResolution(resolution)
-        assert propagation.getResolution() == resolution
+        propagation.set_resolution(resolution)
+        assert propagation.get_resolution() == resolution
 
 
 def test_state_dimension_vector(randomState, expm, ts):
@@ -44,7 +44,7 @@ def test_state_dimension_vector(randomState, expm, ts):
         dim = np.random.randint(2, 30)
         state = randomState(dim)
         propagation = expm(dim, res=3)
-        propagation.setInitialState(state)
+        propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape
@@ -56,7 +56,7 @@ def test_state_dimension_matrix(randomMatrix, expm, ts):
         dim = np.random.randint(2, 30)
         state = randomMatrix(dim, dim)
         propagation = expm(dim, res=3)
-        propagation.setInitialState(state)
+        propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape

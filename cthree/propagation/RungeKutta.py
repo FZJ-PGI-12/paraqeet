@@ -19,16 +19,16 @@ class RungeKutta(StatePropagation):
     ----------
     model : cthree.model.Model
         Represents the equation of motion for a given Hamiltonian.
-    initialTimeStep : float | None, optional
+    initial_time_step : float | None, optional
         The initial time step for the adaptive time steps in RK45.
 
     """
 
-    __initialTimeStep: float
+    __initial_time_step: float
 
-    def __init__(self, model: EquationOfMotion, initialTimeStep: float | None = None):
+    def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)
-        self.__initialTimeStep = initialTimeStep
+        self.__initial_time_step = initial_time_step
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -41,7 +41,7 @@ class RungeKutta(StatePropagation):
         """
         return []
 
-    def setInitialState(self, state: np.ndarray):
+    def set_initial_state(self, state: np.ndarray):
         """Set the initial state for the propagation.
 
         Subclasses can access the state in the _initialState field.
@@ -93,7 +93,7 @@ class RungeKutta(StatePropagation):
         # function has to iterate over the time steps itself.
         states = np.array([self._initialState] * len(time))
         for ti in range(1, len(time)):
-            dt = self.__initialTimeStep
+            dt = self.__initial_time_step
             if dt is None or dt > time[ti] - time[ti - 1]:
                 dt = (time[ti] - time[ti - 1]) / 5
 

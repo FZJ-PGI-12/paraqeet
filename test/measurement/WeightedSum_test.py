@@ -15,7 +15,7 @@ def test_WeightedSumGoal(randomUnitaryMatrix):
     for _ in range(np.random.randint(2, 10)):
         gate = randomUnitaryMatrix(np.random.randint(2, 4))
         propagation = IdentityPropagation()
-        propagation.setInitialState(gate)
+        propagation.set_initial_state(gate)
         meas.append(UnitaryFidelity(propagation, gate, np.array([1.0])))
     weights = np.random.random(len(meas))
     weights /= sum(weights)
@@ -46,6 +46,4 @@ def test_WeightedSumGoalWeightsNotNormalised():
 
     """
     with pytest.raises(UserWarning):
-        WeightedSumGoal(
-            measurements=[None, None, None], weights=[0.4, 0.3, 0.5]
-        )
+        WeightedSumGoal(measurements=[None, None, None], weights=[0.4, 0.3, 0.5])

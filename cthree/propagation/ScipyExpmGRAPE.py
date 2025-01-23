@@ -50,16 +50,16 @@ class ScipyExpmGRAPE(ScipyExpm):
     """
 
     _res: float
-    _initialState: np.ndarray = None
-    _targetState: np.ndarray = None
-    _saveBwdPropagatedStates: bool = False
-    _bwdPropagatedStates: np.ndarray = None
-    _schirmerDerivative: bool = False
+    _initial_state: np.ndarray = None
+    _target_state: np.ndarray = None
+    _save_bwd_propagated_states: bool = False
+    _bwd_propagated_states: np.ndarray = None
+    _schirmer_derivative: bool = False
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
 
-    def setTargetState(self, targetState: np.ndarray):
+    def set_target_state(self, targetState: np.ndarray):
         """Set target state for backward propagation.
 
         Parameters
@@ -67,9 +67,9 @@ class ScipyExpmGRAPE(ScipyExpm):
         targetState : np.ndarray
             Target state.
         """
-        self._targetState = targetState
+        self._target_state = targetState
 
-    def setSaveBwdPropagatedStates(self, saveBwdPropagatedStates: bool):
+    def set_save_bwd_propagated_states(self, saveBwdPropagatedStates: bool):
         """Flag to save backwards propagated target state result.
 
         Parameters
@@ -77,9 +77,9 @@ class ScipyExpmGRAPE(ScipyExpm):
         saveBwdPropagatedStates : bool
             Save the states if True.
         """
-        self._saveBwdPropagatedStates = saveBwdPropagatedStates
+        self._save_bwd_propagated_states = saveBwdPropagatedStates
 
-    def useSchirmerDerivative(self, schirmerDerivative: bool):
+    def use_schirmer_derivative(self, schirmerDerivative: bool):
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
         Parameters
@@ -87,11 +87,11 @@ class ScipyExpmGRAPE(ScipyExpm):
         schirmerDerivative : bool
             If True use Schirmer derivative, if False use Frechet Derivative.
         """
-        self._schirmerDerivative = schirmerDerivative
+        self._schirmer_derivative = schirmerDerivative
 
     @staticmethod
     @jit
-    def __sandwichOpValues(
+    def __sandwich_op_values(
         bwd_propagated_state: np.ndarray,
         Op: np.ndarray,
         fwd_propagated_state: np.ndarray,
@@ -115,7 +115,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         return jnp.matmul(bwd_propagated_state, jnp.matmul(Op, fwd_propagated_state))
 
     @partial(jit, static_argnums=(0,))
-    def _ForwardAndBackwardPropagation(
+    def _forward_and_backward_propagation(
         self,
         Us,
         psis_t,
@@ -134,22 +134,22 @@ class ScipyExpmGRAPE(ScipyExpm):
             Backward propagated state
         """
 
-        def ForwardPropagation(psis_t, index):
+        def forward_propagation(psis_t, index):
             psis_t = Us[index] @ psis_t
             return psis_t, psis_t
 
-        def BackwardPropagation(lamdas_t, index):
+        def backward_propagation(lamdas_t, index):
             lamdas_t = lamdas_t @ Us[-index-1]
             return lamdas_t, lamdas_t
 
-        psis_t, psis_list = scan(ForwardPropagation, psis_t, steps_arr)
-        lamdas_t, lamdas_list = scan(BackwardPropagation, lamdas_t, steps_arr)
+        psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
+        lamdas_t, lamdas_list = scan(backward_propagation, lamdas_t, steps_arr)
 
         return psis_list, lamdas_list
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
-    def _exponentiateFrechet(dim, ham, dh_dp):
+    def _exponentiate_frechet(dim, ham, dh_dp):
         r"""Exponentiate and also calculate the frechet derivative.
 
         Parameters
@@ -163,7 +163,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
-    def _exponentiateSchirmer(dim, ham, dh_dp):
+    def _exponentiate_schirmer(dim, ham, dh_dp):
         r"""Exponentiate an auxilliary matrix to compute U and dU.
 
         Parameters
@@ -191,7 +191,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         return expm(ham)
 
     @partial(jit, static_argnums=(0,))
-    def _propagateInTime(
+    def _propagate_in_time(
         self,
         Us,
         psis_t,
@@ -209,19 +209,19 @@ class ScipyExpmGRAPE(ScipyExpm):
             Backward propagated state
         """
 
-        def ForwardPropagation(psis_t, index):
+        def forward_propagation(psis_t, index):
             psis_t = Us[index] @ psis_t
             return psis_t, psis_t
 
-        psis_t, psis_list = scan(ForwardPropagation, psis_t, steps_arr)
+        psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
         return psis_list
 
     def propagate(self, time: np.ndarray) -> np.ndarray:
         """Loop over all desired times in time at set resolution."""
-        if self._initialState is None:
+        if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
-        init_state = jnp.array(self._initialState, dtype=jnp.complex128)
+        init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         dt = time[1] - time[0]
 
         timeGrid = time[:-1] + dt / 2
@@ -231,7 +231,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Us = vmap(self._exponentiate, in_axes=(0,))(eom)
 
-        psis = self._propagateInTime(
+        psis = self._propagate_in_time(
             Us, init_state, jnp.arange(0, len(timeGrid), 1)
         )
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
@@ -248,14 +248,14 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         This propagation method assumes a PWC pulse as input.
         """
-        if self._initialState is None:
+        if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
-        if self._targetState is None:
+        if self._target_state is None:
             raise ConfigurationException("Target state is not set")
 
-        init_state = jnp.array(self._initialState, dtype=jnp.complex128)
-        target_state = jnp.array(self._targetState, dtype=jnp.complex128)
+        init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
+        target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
         eom_func = self._model.getMatrix
@@ -273,10 +273,10 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         dim = init_state.shape[0]
 
-        if self._schirmerDerivative:
-            exponentiating_function = self._exponentiateSchirmer
+        if self._schirmer_derivative:
+            exponentiating_function = self._exponentiate_schirmer
         else:
-            exponentiating_function = self._exponentiateFrechet
+            exponentiating_function = self._exponentiate_frechet
 
         for i in range(n_params):
             Us, dUs = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dH_dps[:, i, ...])
@@ -284,7 +284,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Ugrads = jnp.stack(Ugrads, axis=1)
 
-        psis, lamdas = self._ForwardAndBackwardPropagation(Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1))
+        psis, lamdas = self._forward_and_backward_propagation(Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1))
 
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         lamdas = jnp.concat(
@@ -293,14 +293,14 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         lamdas = jnp.flip(lamdas, axis=0)
 
-        if self._saveBwdPropagatedStates:
+        if self._save_bwd_propagated_states:
             # Save lamdas as kets
-            self._bwdPropagatedStates = jnp.transpose(lamdas.conj(), axes=(0, 2, 1))
+            self._bwd_propagated_states = jnp.transpose(lamdas.conj(), axes=(0, 2, 1))
 
         grads = []
         for i in range(n_params):
             grad = vmap(
-                self.__sandwichOpValues, in_axes=(0, 0, 0)
+                self.__sandwich_op_values, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
                 Ugrads[:, i, ...],  # type: ignore

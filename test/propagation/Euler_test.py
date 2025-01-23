@@ -33,7 +33,7 @@ def test_state_dimension_vector(randomState, euler, ts):
         dim = np.random.randint(2, 30)
         state = randomState(dim)
         propagation = euler(dim)
-        propagation.setInitialState(state)
+        propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape
@@ -45,7 +45,7 @@ def test_state_dimension_matrix(randomMatrix, euler, ts):
         dim = np.random.randint(2, 30)
         state = randomMatrix(dim, dim)
         propagation = euler(dim)
-        propagation.setInitialState(state)
+        propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape

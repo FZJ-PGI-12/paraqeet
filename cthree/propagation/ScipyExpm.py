@@ -31,17 +31,17 @@ class ScipyExpm(StatePropagation):
     """
 
     _res: float
-    _initialState: np.ndarray = None
+    _initial_state: np.ndarray = None
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model)
-        self.setResolution(res)
+        self.set_resolution(res)
 
-    def setResolution(self, res: float):
+    def set_resolution(self, res: float):
         """Set the resolution of the propagation."""
         self._res = res
 
-    def getResolution(self) -> float:
+    def get_resolution(self) -> float:
         """Get the resolution of the system."""
         return self._res
 
@@ -58,7 +58,7 @@ class ScipyExpm(StatePropagation):
         """
         return []
 
-    def _constructTimes(self, time, ti):
+    def _construct_times(self, time, ti):
         """Construct one-dimensional vector of time.
 
         In specified resolution at a snapshot.
@@ -89,7 +89,7 @@ class ScipyExpm(StatePropagation):
         return times, dt
 
     @partial(jit, static_argnums=(0,))
-    def _propagateInTime(self, psis_t, eom, steps_arr):
+    def _propagate_in_time(self, psis_t, eom, steps_arr):
         """Propagate the system in time.
 
         Iteratively propagate state/states (psis_t) according
@@ -114,17 +114,17 @@ class ScipyExpm(StatePropagation):
 
         """
 
-        def propagateBody(psis_t, index):
-            psis_t = self._propagatePsi(eom[index], psis_t)
+        def propagate_body(psis_t, index):
+            psis_t = self._propagate_psi(eom[index], psis_t)
             return psis_t, psis_t
 
-        psis_t, _ = scan(propagateBody, psis_t, steps_arr)
+        psis_t, _ = scan(propagate_body, psis_t, steps_arr)
 
         return psis_t
 
     @staticmethod
     @jit
-    def _propagatePsi(eom_matrix, psis_t):
+    def _propagate_psi(eom_matrix, psis_t):
         """Propagate the state/states (psis_t).
 
         Parameters
@@ -163,15 +163,15 @@ class ScipyExpm(StatePropagation):
             If the initial state is not set.
 
         """
-        if self._initialState is None:
+        if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
-        psi = [jnp.array(self._initialState, dtype=jnp.complex128)]
+        psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         eom_func = self._model.getMatrix
         for ti in range(1, len(time)):
-            times, dt = self._constructTimes(time, ti)
+            times, dt = self._construct_times(time, ti)
             psis_t = psi[ti - 1]
             eom = eom_func(times + dt / 2) * dt
-            psis_t = self._propagateInTime(psis_t, eom, jnp.arange(0, len(times), 1))
+            psis_t = self._propagate_in_time(psis_t, eom, jnp.arange(0, len(times), 1))
             psi.append(psis_t)
         return jnp.array(psi)

@@ -68,7 +68,7 @@ def test_vector_equality(identityPropagation, randomState):
     for size in range(2, 30):
         for _ in range(100):
             state = randomState(size)
-            identityPropagation.setInitialState(state)
+            identityPropagation.set_initial_state(state)
             measurement = StateTransferFidelity(identityPropagation, state, state, np.array([1.0]))
             m = measurement.measure()
             np.testing.assert_almost_equal(m, 1.0)

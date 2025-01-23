@@ -58,7 +58,7 @@ class StateTransferFidelity(Measurement):
                     "the same shape before measuring."
                 )
             )
-        self.__propagation.setInitialState(self.__initial_state)
+        self.__propagation.set_initial_state(self.__initial_state)
 
     @staticmethod
     def _fid(overlap):
@@ -149,7 +149,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
                     " same shape before measuring."
                 )
             )
-        self.__propagation.setInitialState(self.__initialState)
+        self.__propagation.set_initial_state(self.__initialState)
         self.__gradient_function = None
 
     def measure_with_gradient(self) -> tuple[Array, Array]:
@@ -224,7 +224,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
                     "the same shape before measuring."
                 )
             )
-        self.__propagation.setInitialState(self.__initial_state)
+        self.__propagation.set_initial_state(self.__initial_state)
 
     def measure_with_gradient(self) -> tuple[Array, Array]:
         """Compute function value and corresponding gradient.

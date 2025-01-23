@@ -130,7 +130,7 @@ def coupledTransmons(tone):
     CRGate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 
     CRGate = ZX @ CRGate
-    prop.setInitialState(np.identity(9))
+    prop.set_initial_state(np.identity(9))
     gateFid = UnitaryFidelity(
         propagation=prop,
         gate=CRGate,
