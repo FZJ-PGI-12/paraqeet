@@ -73,7 +73,7 @@ def test_gradient(gen, hamiltonian, time_samples):
     for dim in np.arange(1, 10):
         H = hamiltonian(dim)
         H.set_optimisable_parameters(H.get_parameters())
-        grads = gen.generateSignalGradient(time_samples)
+        grads = gen.generate_signal_gradient(time_samples)
         hamGrads = H.gradient(time_samples)
         assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
 
@@ -92,6 +92,6 @@ def test_getDriveGradients(gen, hamiltonian, time_samples):
     dim = np.random.randint(2, 10)
     annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
     H = hamiltonian(dim)
-    grads = gen.generateSignalGradient(time_samples)
+    grads = gen.generate_signal_gradient(time_samples)
     driveGradients = H._getDriveGradients(annihilationOp, time_samples)
     assert driveGradients.shape == (grads.shape[0], grads.shape[1], dim, dim)

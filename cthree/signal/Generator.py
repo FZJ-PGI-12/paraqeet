@@ -24,7 +24,7 @@ class Generator(Optimisable):
     __devices: list[Waveform]
 
     @abstractmethod
-    def generateSignal(self, times: np.ndarray) -> np.ndarray:
+    def generate_signal(self, times: np.ndarray) -> np.ndarray:
         """Return array with scalar signal value for each time step.
 
         Parameters
@@ -46,7 +46,7 @@ class Generator(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def generateSignalGradient(self, times: np.ndarray) -> np.ndarray:
+    def generate_signal_gradient(self, times: np.ndarray) -> np.ndarray:
         """Return array with gradient of signal value for each time step.
 
         Abstract method.
@@ -72,7 +72,7 @@ class Generator(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def generateSignalGradientOneTime(self, time: float) -> np.ndarray:
+    def generate_signal_gradient_one_time(self, time: float) -> np.ndarray:
         """Return array with the gradient of the signal value for one time step.
 
         The result has the shape (p,) where 'p' is the parameter index.

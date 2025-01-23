@@ -78,12 +78,12 @@ def genMultipleTones():
 
 def test_constant_env(zeroGen, time_samples):
     """Test the values of a DRAG signal using a constant envelope."""
-    assert np.all(zeroGen.generateSignal(time_samples) == np.zeros_like(time_samples))
+    assert np.all(zeroGen.generate_signal(time_samples) == np.zeros_like(time_samples))
 
 
 def test_gen(gen, time_samples) -> None:
     """Computes a sample signal and checks vectorized generation."""
-    sig = gen.generateSignal(time_samples)
+    sig = gen.generate_signal(time_samples)
     assert len(sig) == LEN_SIG
 
 
@@ -102,12 +102,12 @@ def test_getParameters(genMultipleTones):
 def test_gradient_shape(gen, time_samples):
     """Test the length of the signal gradient."""
     gen.set_optimisable_parameters(gen.get_parameters())
-    grads = gen.generateSignalGradient(time_samples)
+    grads = gen.generate_signal_gradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]
 
 
 def test_gradient_flattop(flattop, time_samples):
     """Test the length of the gradient of flattop signal."""
     flattop.set_optimisable_parameters(flattop.get_parameters())
-    grads = flattop.generateSignalGradient(time_samples)
+    grads = flattop.generate_signal_gradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]

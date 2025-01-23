@@ -163,7 +163,7 @@ def test_gradient(gen, coupledTransmons, time_samples):
         dim2 = np.random.randint(2, 7)
         H = coupledTransmons(dim1, dim2)
         H.set_optimisable_parameters(H.get_parameters())
-        grads = gen.generateSignalGradient(time_samples)
+        grads = gen.generate_signal_gradient(time_samples)
         hamGrads = H.gradient(time_samples)
         assert hamGrads.shape == (
             grads.shape[0],

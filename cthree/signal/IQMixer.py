@@ -79,7 +79,7 @@ class IQMixer(Generator):
 
         self.__lo.set_optimisable_parameters(params)
 
-    def __complexSignal(self, t: np.ndarray) -> Array:
+    def __complex_signal(self, t: np.ndarray) -> Array:
         """Generate a signal for time(s) 't'.
 
         Doesnt take real value now for ease of gradient computation.
@@ -97,12 +97,12 @@ class IQMixer(Generator):
         """
         env = jnp.zeros_like(t)
         for dev in self.__envs:
-            env += jnp.reshape(dev.computeOutput(t), env.shape)
-        sig = env.conj() * self.__lo.computeOutput(t)
+            env += jnp.reshape(dev.compute_output(t), env.shape)
+        sig = env.conj() * self.__lo.compute_output(t)
         sig = sig * jnp.exp(-1j * self.__phase.get_value())
         return sig
 
-    def generateSignal(self, t: np.ndarray) -> Array:
+    def generate_signal(self, t: np.ndarray) -> Array:
         """Generate a signal for time(s) 't'.
 
         Parameters
@@ -116,9 +116,9 @@ class IQMixer(Generator):
             Returns the signal vector.
 
         """
-        return jnp.real(self.__complexSignal(t))
+        return jnp.real(self.__complex_signal(t))
 
-    def generateSignalGradient(self, t) -> Array:
+    def generate_signal_gradient(self, t) -> Array:
         """Collect and returns the gradients from all devices.
 
         Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
@@ -146,13 +146,13 @@ class IQMixer(Generator):
 
         """
         phase_fac = jnp.exp(-1j * self.__phase.get_value())
-        lo_out = self.__lo.computeOutput(t)
-        sig = self.__complexSignal(t)
+        lo_out = self.__lo.compute_output(t)
+        sig = self.__complex_signal(t)
         gradients = jnp.zeros(shape=(t.shape[0], 0))
 
         # Collect gradients for envelopes
         for dev in self.__envs:
-            grad = dev.computeGradient(t).conj()
+            grad = dev.compute_gradient(t).conj()
             if grad.size != 0:
                 grad *= jnp.expand_dims(lo_out * phase_fac, axis=1)
             gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=1)
@@ -175,7 +175,7 @@ class IQMixer(Generator):
             )
         return gradients
 
-    def generateSignalGradientOneTime(self, t) -> Array:
+    def generate_signal_gradient_one_time(self, t) -> Array:
         """Return the gradients from all devices at the given time.
 
         Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
@@ -203,13 +203,13 @@ class IQMixer(Generator):
 
         """
         phase_fac = jnp.exp(-1j * self.__phase.get_value())
-        lo_out = jnp.squeeze(self.__lo.computeOutput(t), axis=0)
-        sig = self.__complexSignal(t)
+        lo_out = jnp.squeeze(self.__lo.compute_output(t), axis=0)
+        sig = self.__complex_signal(t)
         gradients = jnp.zeros(shape=(0,))
 
         # Collect gradients for envelopes
         for dev in self.__envs:
-            grad = jnp.squeeze(dev.computeGradient(t).conj(), axis=0)
+            grad = jnp.squeeze(dev.compute_gradient(t).conj(), axis=0)
             if grad.size != 0:
                 grad *= lo_out * phase_fac
             gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=0)

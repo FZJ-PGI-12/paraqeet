@@ -57,7 +57,7 @@ def test_gradient(gen, ham, time_samples):
     plus the derivative w.r.t. the qubit frequency.
 
     """
-    grads = gen.generateSignalGradient(time_samples)
+    grads = gen.generate_signal_gradient(time_samples)
     ham.set_optimisable_parameters(ham.get_parameters())
     hamGrads = ham.gradient(time_samples)
 

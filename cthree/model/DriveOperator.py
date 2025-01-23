@@ -87,7 +87,7 @@ class DriveOperator(Drive):
             Returns the shape-shifted coefficient from the drive.
 
         """
-        signal = self.__generator.generateSignal(t)
+        signal = self.__generator.generate_signal(t)
         matrix = self._computeMatrix(a)
         return signal * matrix
 
@@ -110,6 +110,6 @@ class DriveOperator(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signalGrad = self.__generator.generateSignalGradientOneTime(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
+        signalGrad = self.__generator.generate_signal_gradient_one_time(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
         matrix = self._repeat(self._computeMatrix(a), signalGrad.shape[0])
         return signalGrad * matrix

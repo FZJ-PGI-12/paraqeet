@@ -133,7 +133,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
         return amp * prod_dir / 4
 
-    def computeOutput(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: np.ndarray) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
@@ -151,7 +151,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         t_final = self.t_final.get_value()
         return self._evaluate(amp, t_final, t)
 
-    def computeTimeGradient(self, t: np.ndarray) -> Array:
+    def compute_time_gradient(self, t: np.ndarray) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters

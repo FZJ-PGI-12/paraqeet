@@ -70,6 +70,6 @@ def test_gradient(gen, hamiltonian, time_samples):
     for dim in np.arange(1, 10):
         H = hamiltonian(dim)
         H.set_optimisable_parameters(H.get_parameters())
-        grads = gen.generateSignalGradient(time_samples)
+        grads = gen.generate_signal_gradient(time_samples)
         hamGrads = H.gradient(time_samples)
         assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)

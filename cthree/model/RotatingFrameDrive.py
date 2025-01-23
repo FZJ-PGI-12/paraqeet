@@ -58,7 +58,7 @@ class RotatingFrameDrive(Drive):
         t: float
             One time step
         """
-        env = self.__signalGenerator.generateSignal(t)
+        env = self.__signalGenerator.generate_signal(t)
         return env * annihilationOperator + jnp.conjugate(env) * annihilationOperator.conj().T
 
     def gradientOneTime(self, annihilationOperator: ndarray, t: float) -> ndarray:
@@ -80,5 +80,5 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        envGrad = self.__signalGenerator.generateSignalGradient(t).reshape((-1, 1, 1))
+        envGrad = self.__signalGenerator.generate_signal_gradient(t).reshape((-1, 1, 1))
         return envGrad * annihilationOperator + jnp.conjugate(envGrad) * annihilationOperator.conj().T
