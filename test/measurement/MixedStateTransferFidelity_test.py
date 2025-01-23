@@ -10,7 +10,7 @@ from test.propagation.IdentityPropagation import IdentityPropagation
 from test.propagation.RandomPropagation import RandomPropagation
 
 
-def randomMixedState(dimension):
+def random_mixed_state(dimension):
     """Generate random mixed states."""
     state = np.random.random((dimension, dimension)) + 1j * np.random.random((dimension, dimension))
     state = state @ np.conjugate(state.T)
@@ -24,7 +24,7 @@ def test_limits_vectors():
 
     """
     for size in range(2, 30):
-        targetState = randomMixedState(size)
+        targetState = random_mixed_state(size)
         propagation = RandomPropagation(size, True)
         times = np.array([1.0])
         measurement = MixedStateTransferFidelity(propagation, targetState, times)
@@ -38,7 +38,7 @@ def test_vector_equality():
     """Test that F(v,v) = 1 for state vectors."""
     for size in range(2, 30):
         for i in range(100):
-            state = randomMixedState(size)
+            state = random_mixed_state(size)
             propagation = IdentityPropagation()
             propagation.set_initial_state(state)
             measurement = MixedStateTransferFidelity(propagation, state, np.array([1.0]))
@@ -61,7 +61,7 @@ def test_incompatible_shape():
     allDims = np.arange(2, 30)
     for dim in allDims:
         for i in range(100):
-            targetState = randomMixedState(dim)
+            targetState = random_mixed_state(dim)
 
             # create a propagator of a different dimension
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])

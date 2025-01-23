@@ -9,11 +9,11 @@ from cthree.measurement.UnitaryFidelity import UnitaryFidelity
 from cthree.measurement.WeightedSumGoal import WeightedSumGoal
 
 
-def test_WeightedSumGoal(randomUnitaryMatrix):
+def test_weighted_sum_goal(random_unitary_matrix):
     """Test the weighted sum goal function."""
     meas = []
     for _ in range(np.random.randint(2, 10)):
-        gate = randomUnitaryMatrix(np.random.randint(2, 4))
+        gate = random_unitary_matrix(np.random.randint(2, 4))
         propagation = IdentityPropagation()
         propagation.set_initial_state(gate)
         meas.append(UnitaryFidelity(propagation, gate, np.array([1.0])))
@@ -23,7 +23,7 @@ def test_WeightedSumGoal(randomUnitaryMatrix):
     assert goal.measure() > 0
 
 
-def test_WeightedSumGoalMismatchedWeights():
+def test_weighted_sum_goal_mismatched_weights():
     """Test the mismatched weights from a weighted sum goal.
 
     Raises
@@ -36,7 +36,7 @@ def test_WeightedSumGoalMismatchedWeights():
         WeightedSumGoal(measurements=[], weights=[0.2, 0.3, 0.5])
 
 
-def test_WeightedSumGoalWeightsNotNormalised():
+def test_weighted_sum_goal_weights_not_normalised():
     """Test the not normalised weighted sum goal function.
 
     Raises

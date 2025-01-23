@@ -43,7 +43,7 @@ def drive(gen):
     return drive
 
 
-def test_drive_getMatrix(drive, time_samples):
+def test_drive_get_matrix(drive, time_samples):
     """Test the drive getMatrix method."""
     dim = np.random.randint(2, 10)
     annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))

@@ -48,7 +48,7 @@ def drive(gen):
 
 
 @pytest.fixture
-def transmonParameters():
+def transmon_parameters():
     """Return a random parameter generating function for transmons."""
 
     class RandomParameters:
@@ -61,12 +61,12 @@ def transmonParameters():
 
 
 @pytest.fixture
-def transmon(transmonParameters, drive):
+def transmon(transmon_parameters, drive):
     """Return a transmon generating function."""
 
-    class createTransmon:
+    class CreateTransmon:
         def get(self, dimension):
-            freq, anharm = transmonParameters.get()
+            freq, anharm = transmon_parameters.get()
             transmon = Transmon(
                 dimension=dimension,
                 frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
@@ -75,11 +75,11 @@ def transmon(transmonParameters, drive):
             )
             return transmon
 
-    return createTransmon()
+    return CreateTransmon()
 
 
 @pytest.fixture
-def uncoupledTransmons(transmon):
+def uncoupled_transmons(transmon):
     """Return a composite Hamiltonian generating function."""
 
     def _method(dim1, dim2):
@@ -92,7 +92,7 @@ def uncoupledTransmons(transmon):
 
 
 @pytest.fixture
-def coupledTransmons(transmon):
+def coupled_transmons(transmon):
     """Return a coupled transmon generating function."""
 
     def _method(dim1: int, dim2: int, useRWA: bool = False):
@@ -113,46 +113,46 @@ def coupledTransmons(transmon):
     return _method
 
 
-def test_dimension(coupledTransmons):
+def test_dimension(coupled_transmons):
     """Test dimension of matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupledTransmons(dim1, dim2)
+        H = coupled_transmons(dim1, dim2)
         assert H.dimension() == dim1 * dim2
 
 
-def test_getMatrixOneTime(uncoupledTransmons):
+def test_get_matrix_one_time(uncoupled_transmons):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = uncoupledTransmons(dim1, dim2)
+        H = uncoupled_transmons(dim1, dim2)
         hams = H.get_matrix_one_time(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_getMatrixOneTime_RWA(coupledTransmons):
+def test_get_matrix_one_time_rwa(coupled_transmons):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupledTransmons(dim1, dim2, useRWA=True)
+        H = coupled_transmons(dim1, dim2, useRWA=True)
         hams = H.get_matrix_one_time(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_getMatrix(coupledTransmons, time_samples):
+def test_get_matrix(coupled_transmons, time_samples):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupledTransmons(dim1, dim2)
+        H = coupled_transmons(dim1, dim2)
         hams = H.get_matrix(time_samples)
         assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 
-def test_gradient(gen, coupledTransmons, time_samples):
+def test_gradient(gen, coupled_transmons, time_samples):
     """Test shape of gradients by compositeHamiltonian.
 
     Number of gradient parameters include gradients from both the drives, and
@@ -161,7 +161,7 @@ def test_gradient(gen, coupledTransmons, time_samples):
     for _ in np.arange(1, 5):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupledTransmons(dim1, dim2)
+        H = coupled_transmons(dim1, dim2)
         H.set_optimisable_parameters(H.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
         hamGrads = H.gradient(time_samples)

@@ -22,7 +22,7 @@ def three():
 # getter and setter
 
 
-def testGet(randomQuantityForValues) -> None:
+def testGet(random_quantity_for_values) -> None:
     """Test get_value, get_min_value, and get_max_value.
 
     For scalar quantities.
@@ -32,13 +32,13 @@ def testGet(randomQuantityForValues) -> None:
         # create a quantity with random values and check if the
         # get functions return the same values
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q = randomQuantityForValues(values)
+        q = random_quantity_for_values(values)
         testing.assert_allclose(q.get_value(), values)
         testing.assert_array_less(q.get_min_value(), q.get_value())
         testing.assert_array_less(q.get_value(), q.get_max_value())
 
 
-def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
+def testSet(random_quantity_for_values, random_limits_for_quantity) -> None:
     """Test setValue, setMinValue, and setMaxValue.
 
     For scalar quantities.
@@ -47,7 +47,7 @@ def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
     for N in range(1, 100):
         # create a random quantity with values that will be overwritten
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q = randomQuantityForValues(values)
+        q = random_quantity_for_values(values)
         oldMin = q.get_min_value()
         oldMax = q.get_max_value()
 
@@ -60,7 +60,7 @@ def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
         testing.assert_allclose(q.get_max_value(), oldMax)
 
         # set new limits and check that the values stay unchanged
-        newLimits = randomLimitsForQuantity(newValues)
+        newLimits = random_limits_for_quantity(newValues)
         q.set_limits(*newLimits)
         testing.assert_allclose(q.get_min_value(), newLimits[0])
         testing.assert_allclose(q.get_max_value(), newLimits[1])
@@ -68,49 +68,49 @@ def testSet(randomQuantityForValues, randomLimitsForQuantity) -> None:
         testing.assert_array_less(q.get_value(), q.get_max_value())
 
 
-def testGetItem(randomQuantityForValues) -> None:
+def testGetItem(random_quantity_for_values) -> None:
     """Test get item for scalar quantities."""
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q = randomQuantityForValues(values)
+        q = random_quantity_for_values(values)
         for i in range(len(q)):
             testing.assert_almost_equal(q[i], values[i])
 
 
-def testLen(randomQuantityForValues) -> None:
+def testLen(random_quantity_for_values) -> None:
     """Test the length value for scalar quantities."""
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q = randomQuantityForValues(values)
+        q = random_quantity_for_values(values)
         testing.assert_almost_equal(len(q), N)
 
 
 # conversion
-def testFloat(randomQuantityForValues) -> None:
+def testFloat(random_quantity_for_values) -> None:
     """Test float conversion for scalar quantities."""
     for i in range(100):
         value = (2 * np.random.random(1) - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q = randomQuantityForValues(value)
+        q = random_quantity_for_values(value)
         testing.assert_almost_equal(float(q), value)
 
 
-def testToArray(randomQuantityForValues) -> None:
+def testToArray(random_quantity_for_values) -> None:
     """Test array conversion for scalar quantities."""
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q = randomQuantityForValues(values)
+        q = random_quantity_for_values(values)
         testing.assert_array_almost_equal(np.array(q), values)
 
 
 # comparison
-def testComparisons(randomQuantityForValues) -> None:
+def testComparisons(random_quantity_for_values) -> None:
     """Tests __lt__, __le__, __gt__, and __ge__ for scalar quantities."""
     for i in range(1, 100):
         # create a quantity with random values and check if the
         # get functions return the same values
         value = (2 * np.random.random() - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q1 = randomQuantityForValues(value)
-        q2 = randomQuantityForValues(2 * np.abs(value))
+        q1 = random_quantity_for_values(value)
+        q2 = random_quantity_for_values(2 * np.abs(value))
 
         assert q2 > q1
         assert q2 >= q1
@@ -120,14 +120,14 @@ def testComparisons(randomQuantityForValues) -> None:
         assert q1 >= q1
 
 
-def testEquality(randomQuantityForValues) -> None:
+def testEquality(random_quantity_for_values) -> None:
     """Tests __eq__ and __ne__ for scalar quantities."""
     for i in range(1, 100):
         # create a quantity with random values and check if the
         # get functions return the same values
         value = (2 * np.random.random() - 1) * np.power(10.0, np.random.randint(-10, 10))
-        q1 = randomQuantityForValues(value)
-        q2 = randomQuantityForValues(1.2 * np.abs(value))
+        q1 = random_quantity_for_values(value)
+        q2 = random_quantity_for_values(1.2 * np.abs(value))
 
         assert q1 != q2
         assert q2 != q1
@@ -137,9 +137,9 @@ def testEquality(randomQuantityForValues) -> None:
         testing.assert_almost_equal(q1, q1.get_value())
 
 
-def testEqualityById(randomQuantity):
+def testEqualityById(random_quantity):
     """Test __eq__ by ID."""
-    q1 = randomQuantity(1)
+    q1 = random_quantity(1)
     q2 = Quantity(q1.get_value(), q1.get_min_value(), q1.get_max_value(), q1.get_unit())
     assert q1 == q2
     assert q1 is not q2
@@ -192,16 +192,16 @@ def testStr(five):
     assert str(amps) == "125 MHz x 2pi "
 
 
-def testIsScalarOrVector(randomQuantity):
+def testIsScalarOrVector(random_quantity):
     """Test whether quantity objects are scalars or vectors."""
     for i in range(20):
-        q = randomQuantity(1)
+        q = random_quantity(1)
         assert q.is_scalar()
         assert not q.is_vector()
 
     for dim in range(2, 100):
         for i in range(20):
-            q = randomQuantity(dim)
+            q = random_quantity(dim)
             assert q.is_vector()
             assert not q.is_scalar()
 
@@ -263,10 +263,10 @@ def testRelations(three):
         unit1.add_relation(unit2, lambda x: x)
 
 
-def testPersistence(randomQuantity):
+def testPersistence(random_quantity):
     for N in range(1, 10):
         for i in range(20):
-            q = randomQuantity(N)
+            q = random_quantity(N)
             data = q.to_dict()
             q2 = Quantity(0, -1, 1)
             q2.from_dict(data)

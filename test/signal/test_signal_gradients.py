@@ -34,7 +34,7 @@ def toneAD():
     return FlatTopGaussianEnvelopeAD()
 
 
-def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
+def random_entries_from_list(elements: jnp.array, num: int = None) -> jnp.array:
     """Get random entries from an array of elements.
 
     Parameters
@@ -69,8 +69,8 @@ def test_gradients(tone, toneAD):
     # Pick a random number of parameters from the tones
     numParams = np.random.randint(0, len(tone.get_parameters()))
     for t in time:
-        tone.set_optimisable_parameters(randomEntriesFromList(tone.get_parameters(), numParams))
-        toneAD.set_optimisable_parameters(randomEntriesFromList(toneAD.get_parameters(), numParams))
+        tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), numParams))
+        toneAD.set_optimisable_parameters(random_entries_from_list(toneAD.get_parameters(), numParams))
 
         grad_toneAD.append(toneAD.compute_gradient(t))
         grad_tone.append(tone.compute_gradient(t))
@@ -82,15 +82,15 @@ def test_gradients_vectorized(tone, toneAD):
     """Test vectorized generation of analytic and AD signal gradients."""
     numParams = np.random.randint(0, len(tone.get_parameters()))
 
-    toneAD.set_optimisable_parameters(randomEntriesFromList(toneAD.get_parameters(), numParams))
+    toneAD.set_optimisable_parameters(random_entries_from_list(toneAD.get_parameters(), numParams))
     grad_toneAD = toneAD.compute_gradient(time)
-    tone.set_optimisable_parameters(randomEntriesFromList(tone.get_parameters(), numParams))
+    tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), numParams))
     grad_tone = tone.compute_gradient(time)
     assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
 
 
 def test_gradients_shape(tone):
     """Test the signal gradient shape."""
-    tone.set_optimisable_parameters(randomEntriesFromList(tone.get_parameters()))
+    tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters()))
     grads = tone.compute_gradient(time)
     assert grads.shape[0] == time.shape[0]

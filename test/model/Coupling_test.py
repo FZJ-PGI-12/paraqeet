@@ -22,7 +22,7 @@ def time_samples():
 
 
 @pytest.fixture
-def transmonParameters():
+def transmon_parameters():
     """Return a random parameter object for transmons."""
 
     class RandomParameters:
@@ -35,12 +35,12 @@ def transmonParameters():
 
 
 @pytest.fixture
-def transmon(transmonParameters):
+def transmon(transmon_parameters):
     """Return a transmon created from the given parameters."""
 
-    class createTransmon:
+    class CreateTransmon:
         def get(self, dimension):
-            freq, anharm = transmonParameters.get()
+            freq, anharm = transmon_parameters.get()
             transmon = Transmon(
                 dimension=dimension,
                 frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
@@ -48,7 +48,7 @@ def transmon(transmonParameters):
             )
             return transmon
 
-    return createTransmon()
+    return CreateTransmon()
 
 
 @pytest.fixture
@@ -70,7 +70,7 @@ def coupling(transmon):
     return _method
 
 
-def test_getMatricesOneTime(coupling):
+def test_get_matrices_one_time(coupling):
     """Test shape of Matrix produced by the coupling Hamiltonian."""
     for _ in range(10):
         dim1 = np.random.randint(2, 7)
@@ -105,7 +105,7 @@ def test_getMatricesOneTime(coupling):
                 assert np.shape(ops) == (dims[i], dims[i])
 
 
-def test_getMatrices(coupling, time_samples):
+def test_get_matrices(coupling, time_samples):
     """Test the get matrice method workings."""
     for _ in range(10):
         dim1 = np.random.randint(2, 7)

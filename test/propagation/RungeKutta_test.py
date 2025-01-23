@@ -23,13 +23,13 @@ def test_parameters(rk):
     assert rk(2).get_parameters() == []
 
 
-def test_state_dimension(rk, ts, randomState):
+def test_state_dimension(rk, ts, random_state):
     """Test the state vector dimensions.
 
     Dimension and norm of state vectors should be the same after propagation.
     """
     dim = np.random.randint(1, 100)
-    state = randomState(dim)
+    state = random_state(dim)
     rungeKutta = rk(dim)
     rungeKutta.set_initial_state(state)
     propagatedStates = rungeKutta.propagate(ts)
@@ -51,7 +51,7 @@ def test_initial_state(rk, ts):
         rungeKutta.propagate(ts)
 
 
-def test_time_steps(rk, randomState):
+def test_time_steps(rk, random_state):
     """Test the Runge-Kutta time steps for propagation.
 
     Raises
@@ -62,7 +62,7 @@ def test_time_steps(rk, randomState):
     """
     time = np.array([0])
     dim = np.random.randint(1, 100)
-    state = randomState(dim)
+    state = random_state(dim)
     rungeKutta = rk(dim)
     rungeKutta.set_initial_state(state)
     with pytest.raises(

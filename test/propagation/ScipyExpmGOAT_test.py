@@ -33,7 +33,7 @@ def test_resolution(expm):
         assert propagation.get_resolution() == resolution
 
 
-def test_state_dimension_vector(randomState, expm, ts):
+def test_state_dimension_vector(random_state, expm, ts):
     """Test dimension and norm of state vectors after propagation.
 
     The dimension and norm of state vectors should be the same
@@ -42,7 +42,7 @@ def test_state_dimension_vector(randomState, expm, ts):
     """
     for i in range(10):
         dim = np.random.randint(2, 30)
-        state = randomState(dim)
+        state = random_state(dim)
         propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
@@ -50,11 +50,11 @@ def test_state_dimension_vector(randomState, expm, ts):
         assert propagatedStates.shape[1:] == state.shape
 
 
-def test_state_dimension_matrix(randomMatrix, expm, ts):
+def test_state_dimension_matrix(random_matrix, expm, ts):
     """Test the state matrix after propagation."""
     for i in range(10):
         dim = np.random.randint(2, 30)
-        state = randomMatrix(dim, dim)
+        state = random_matrix(dim, dim)
         propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)

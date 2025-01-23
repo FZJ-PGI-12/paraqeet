@@ -28,14 +28,14 @@ def gen():
 
 
 @pytest.fixture
-def zeroGen():
+def zero_gen():
     """Return a zero tone cosine generator object."""
     tone = ZeroEnvelope()
     return IQMixer(envelopes=[tone])
 
 
 @pytest.fixture
-def genMultipleTones():
+def gen_multiple_tones():
     """Return a multiple tone cosine generator."""
     tone1 = ConstantEnvelope()
     params1 = tone1.get_parameters()
@@ -51,26 +51,26 @@ def test_gen(gen, time_samples) -> None:
     assert len(sig) == LEN_SIG
 
 
-def test_zeroTone(zeroGen, time_samples) -> None:
+def test_zero_tone(zero_gen, time_samples) -> None:
     """Test generation of zeroTone signal."""
-    sig = zeroGen.generate_signal(time_samples)
+    sig = zero_gen.generate_signal(time_samples)
     assert len(sig) == LEN_SIG
     assert np.all(sig == 0)
 
 
-def test_getParamters(genMultipleTones):
+def test_get_parameters(gen_multiple_tones):
     """Test the get parameters function.
 
     First four parameters are the tone parameters and last two in 'params' are
     added by the generator, i.e., phase and LO frequency.
 
     """
-    gen, all_params = genMultipleTones
+    gen, all_params = gen_multiple_tones
     params = gen.get_parameters()[:-2]
     assert np.all(params == all_params)
 
 
-def test_gradientOneTime(gen):
+def test_gradient_one_time(gen):
     """Test the generate signal gradient one time function."""
     print(gen.get_parameters())
     gen.set_optimisable_parameters(gen.get_parameters())

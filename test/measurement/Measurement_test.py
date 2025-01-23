@@ -10,14 +10,14 @@ from test.measurement.RandomMeasurement import RandomMeasurement
 from test.propagation.RandomPropagation import RandomPropagation
 
 
-def randomState(dimension):
+def random_state(dimension):
     """Generate random state according to the given dimension value."""
     state = np.random.random((dimension, 1)) + 1j * np.random.random((dimension, 1))
     return state / np.sqrt(np.vdot(state, state))
 
 
 @pytest.mark.filterwarnings("ignore:Different shapes for")
-def test_limit_projected_vectors(randomState):
+def test_limit_projected_vectors(random_state):
     """Test the projection to a subspace.
 
     The projection to a subspace should not increase the
@@ -35,7 +35,7 @@ def test_limit_projected_vectors(randomState):
                 assert 0.0 <= m <= 1.0
 
 
-def test_gate_shape(randomUnitaryMatrix):
+def test_gate_shape(random_unitary_matrix):
     """Test the gate shape.
 
     The projection to a subspace should not increase the

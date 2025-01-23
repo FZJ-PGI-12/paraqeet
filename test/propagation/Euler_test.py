@@ -23,7 +23,7 @@ def test_parameters(euler):
     assert euler(2).get_parameters() == []
 
 
-def test_state_dimension_vector(randomState, euler, ts):
+def test_state_dimension_vector(random_state, euler, ts):
     """Test the dimension and the norm of the state vector.
 
     The dimension and the norm should be the same.
@@ -31,7 +31,7 @@ def test_state_dimension_vector(randomState, euler, ts):
     """
     for i in range(10):
         dim = np.random.randint(2, 30)
-        state = randomState(dim)
+        state = random_state(dim)
         propagation = euler(dim)
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
@@ -39,11 +39,11 @@ def test_state_dimension_vector(randomState, euler, ts):
         assert propagatedStates.shape[1:] == state.shape
 
 
-def test_state_dimension_matrix(randomMatrix, euler, ts):
+def test_state_dimension_matrix(random_matrix, euler, ts):
     """Test the state dimension matrix."""
     for i in range(10):
         dim = np.random.randint(2, 30)
-        state = randomMatrix(dim, dim)
+        state = random_matrix(dim, dim)
         propagation = euler(dim)
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)

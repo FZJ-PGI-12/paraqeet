@@ -55,7 +55,7 @@ def hamiltonian(gen):
     return _method
 
 
-def test_getMatrix(hamiltonian, time_samples):
+def test_get_matrix(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
         H = hamiltonian(dim)
@@ -78,7 +78,7 @@ def test_gradient(gen, hamiltonian, time_samples):
         assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
 
 
-def test_getDriveMatrix(hamiltonian, time_samples):
+def test_get_drive_matrix(hamiltonian, time_samples):
     """Test the getDriveMatrix method of the Hamiltonian."""
     dim = np.random.randint(2, 10)
     annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
@@ -87,7 +87,7 @@ def test_getDriveMatrix(hamiltonian, time_samples):
     assert driveMatrix.shape == time_samples.shape + (dim, dim)
 
 
-def test_getDriveGradients(gen, hamiltonian, time_samples):
+def test_get_drive_gradients(gen, hamiltonian, time_samples):
     """Test the drive gradients of the Hamiltonian."""
     dim = np.random.randint(2, 10)
     annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))

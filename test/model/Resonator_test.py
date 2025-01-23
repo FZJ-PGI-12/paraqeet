@@ -52,7 +52,7 @@ def hamiltonian(gen):
     return _method
 
 
-def test_getMatrix(hamiltonian, time_samples):
+def test_get_matrix(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
         H = hamiltonian(dim)

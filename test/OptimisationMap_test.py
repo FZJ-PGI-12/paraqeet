@@ -9,9 +9,9 @@ from test.TestOptimisable import TestOptimisable
 
 
 @pytest.fixture
-def randomOptimisables(randomQuantity):
+def randomOptimisables(random_quantity):
     """Create random optimisables."""
-    return [TestOptimisable(randomQuantity, np.random.randint(2, 10)) for i in range(2, 10)]
+    return [TestOptimisable(random_quantity, np.random.randint(2, 10)) for i in range(2, 10)]
 
 
 @pytest.fixture

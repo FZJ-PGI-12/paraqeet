@@ -61,7 +61,7 @@ def flattop():
 
 
 @pytest.fixture
-def genMultipleTones():
+def gen_multiple_tones():
     """Return a multiple tone DRAG generator."""
     tone1 = GaussEnvelope()
     params1 = tone1.get_parameters()
@@ -87,14 +87,14 @@ def test_gen(gen, time_samples) -> None:
     assert len(sig) == LEN_SIG
 
 
-def test_getParameters(genMultipleTones):
+def test_getParameters(gen_multiple_tones):
     """Test if the expected amount of parameters is present.
 
     If multiple tones define the total envelope, the signal needs to have the
     sum of all parameters of the envelope tones plus 4 parameters.
 
     """
-    gen, all_params = genMultipleTones
+    gen, all_params = gen_multiple_tones
     params = gen.get_parameters()
     assert len(params) == len(all_params) + 4
 
