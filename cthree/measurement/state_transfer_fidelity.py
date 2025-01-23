@@ -33,8 +33,8 @@ class StateTransferFidelity(Measurement):
 
     """
 
-    __initial_state: ArrayLike
-    __target_state: ArrayLike
+    _initial_state: ArrayLike
+    _target_state: ArrayLike
     _times: ArrayLike
     __propagation: Propagation
 
@@ -47,8 +47,8 @@ class StateTransferFidelity(Measurement):
     ):
         super().__init__(times=times)
         self.__propagation = propagation
-        self.__initial_state = initial_state
-        self.__target_state = target_state
+        self._initial_state = initial_state
+        self._target_state = target_state
         if target_state.shape != initial_state.shape:
             warnings.warn(
                 UserWarning(
@@ -58,7 +58,7 @@ class StateTransferFidelity(Measurement):
                     "the same shape before measuring."
                 )
             )
-        self.__propagation.set_initial_state(self.__initial_state)
+        self.__propagation.set_initial_state(self._initial_state)
 
     @staticmethod
     def _fid(overlap):
@@ -76,7 +76,7 @@ class StateTransferFidelity(Measurement):
         states = self.__propagation.propagate(time=self._times)
         states = self._preprocess_vector(states)
         final_state = states[-1]
-        f = jnp.vdot(self.__target_state, final_state)
+        f = jnp.vdot(self._target_state, final_state)
         return self._fid(f)
 
     def measure_with_gradient(self) -> tuple[Array, Array]:
@@ -93,9 +93,9 @@ class StateTransferFidelity(Measurement):
         dg_dp_list = self._preprocess_vector(dg_dp_list)
         final_state = states[-1]
         dF_dp = []
-        f = jnp.vdot(self.__target_state, final_state)
+        f = jnp.vdot(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
-            g = jnp.vdot(self.__target_state, dg_dp)
+            g = jnp.vdot(self._target_state, dg_dp)
             dF_dp.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
         return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
 
@@ -137,19 +137,6 @@ class StateTransferFidelityAD(StateTransferFidelity):
         times: ArrayLike,
     ):
         super().__init__(propagation, initial_state, target_state, times)
-        self.__propagation = propagation
-        self.__initialState = initial_state
-        self.__targetState = target_state
-        if target_state.shape != initial_state.shape:
-            warnings.warn(
-                UserWarning(
-                    f"Different shapes for targetState({target_state.shape})"
-                    f"and initialState({initial_state.shape}) detected."
-                    " Use restrictSubsystems to project states to the"
-                    " same shape before measuring."
-                )
-            )
-        self.__propagation.set_initial_state(self.__initialState)
         self.__gradient_function = None
 
     def measure_with_gradient(self) -> tuple[Array, Array]:
@@ -172,9 +159,9 @@ class StateTransferFidelityAD(StateTransferFidelity):
         dg_dp_list = self._preprocess_vector(dg_dp_list)
         final_state = states[-1]
         dF_dp = []
-        f = jnp.vdot(self.__targetState, final_state)
+        f = jnp.vdot(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
-            g = jnp.vdot(self.__targetState, dg_dp)
+            g = jnp.vdot(self._target_state, dg_dp)
             dfdp = self.__gradient_function(f) * g
             dF_dp.append(jnp.real(dfdp))
         return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
@@ -199,32 +186,8 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     """
 
-    __initial_state: jnp.ndarray
-    __target_state: jnp.ndarray
     _times: jnp.ndarray
     __propagation: Propagation
-
-    def __init__(
-        self,
-        propagation: Propagation,
-        initial_state: jnp.ndarray,
-        target_state: jnp.ndarray,
-        times: jnp.ndarray,
-    ):
-        super().__init__(propagation, initial_state, target_state, times)
-        self.__propagation = propagation
-        self.__initial_state = initial_state
-        self.__target_state = target_state
-        if target_state.shape != initial_state.shape:
-            warnings.warn(
-                UserWarning(
-                    f"Different shapes for targetState({target_state.shape})"
-                    f"and initialState({initial_state.shape}) detected."
-                    " Use restrictSubsystems to project states to "
-                    "the same shape before measuring."
-                )
-            )
-        self.__propagation.set_initial_state(self.__initial_state)
 
     def measure_with_gradient(self) -> tuple[Array, Array]:
         """Compute function value and corresponding gradient.
@@ -237,6 +200,6 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         """
         states, grads = self.__propagation.gradient(time=self._times)
         final_state = states[-1]
-        f = jnp.vdot(self.__target_state, final_state)
+        f = jnp.vdot(self._target_state, final_state)
         grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
         return self._fid(f), grads  # shape scalar, (n_parameters,)
