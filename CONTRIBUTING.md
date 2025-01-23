@@ -27,7 +27,7 @@ pre-commit install
 - The target user is a scientific person with programming skills
 - No "let's fix that later"
 - Use the numpy package of jax (`import jax.numpy as jnp`) instead of numpy. Conversion to numpy is only done in the optimiser.
-- Write unit tests for (almost) everything. Test for properties instead of specific values.
+- Write unit tests for (almost) everything. Test for properties instead of specific values. Use dummy classes instead of fixtures whenever possible.
 
 ## Code-specific
 
