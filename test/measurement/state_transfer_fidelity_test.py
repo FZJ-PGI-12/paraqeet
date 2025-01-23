@@ -20,14 +20,14 @@ def identity_propagation():
 def test_limits_vectors(random_state):
     """Test fidelity for state vectors is always in the interval [0, 1)."""
     for size in range(2, 30):
-        initialState = random_state(size)
-        targetState = random_state(size)
+        initial_state = random_state(size)
+        target_state = random_state(size)
         propagation = RandomPropagation(size, False)
         times = np.array([1.0])
         measurement = StateTransferFidelity(
             propagation,
-            initialState,
-            targetState,
+            initial_state,
+            target_state,
             times,
         )
 
@@ -52,8 +52,8 @@ def test_limit_projected_vectors(random_state):
             propagation = RandomPropagation(size, False)
             measurement = StateTransferFidelity(
                 propagation=propagation,
-                initialState=inital_state,
-                targetState=target_state,
+                initial_state=inital_state,
+                target_state=target_state,
                 times=times,
             )
 

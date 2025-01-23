@@ -39,8 +39,8 @@ init = np.array([[1.0], [0]])
 target = np.array([[0.0], [1]])
 zeroone = StateTransferFidelity(
     propagation=prop,
-    initialState=init,
-    targetState=target,
+    initial_state=init,
+    target_state=target,
     times=np.array([0.0, t_final]),
 )
 

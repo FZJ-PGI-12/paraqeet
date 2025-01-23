@@ -36,15 +36,15 @@ class ScipyExpmGRAPE(ScipyExpm):
 
     _res: float
         Simulation resolution.
-    _initialState: np.ndarray = None
+    _initial_state: np.ndarray = None
         Initial state for forward propagation.
-    _targetState: np.ndarray = None
+    _target_state: np.ndarray = None
         Target state for backward propagation.
-    _saveBwdPropagatedStates: bool = False
+    _save_bwd_propagated_states: bool = False
         Flag for saving backward propgated state. Saved if True.
-    _bwdPropagatedStates: np.ndarray = None
+    _bwd_propagated_states: np.ndarray = None
         If `_saveBwdPropagatedStates` is True, save the bwd propagated states.
-    _schirmerDerivative: bool = False
+    _schirmer_derivative: bool = False
         If true, compute the gradient by Schirmer Derivative/Method of auxillary
         matrix exponential. If false, use frechet derivative.
     """

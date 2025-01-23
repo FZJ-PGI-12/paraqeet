@@ -24,9 +24,9 @@ class StateTransferFidelity(Measurement):
     propagation : cthree.measurement.Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initialState : jax.typing.ArrayLike
+    initial_state : jax.typing.ArrayLike
         Initial state.
-    targetState : jax.typing.ArrayLike
+    target_state : jax.typing.ArrayLike
         Target state.
     times : jax.typing.ArrayLike
         One-dimensional vector of timestamps.
@@ -41,20 +41,20 @@ class StateTransferFidelity(Measurement):
     def __init__(
         self,
         propagation: Propagation,
-        initialState: ArrayLike,
-        targetState: ArrayLike,
+        initial_state: ArrayLike,
+        target_state: ArrayLike,
         times: ArrayLike,
     ):
         super().__init__(times=times)
         self.__propagation = propagation
-        self.__initial_state = initialState
-        self.__target_state = targetState
-        if targetState.shape != initialState.shape:
+        self.__initial_state = initial_state
+        self.__target_state = target_state
+        if target_state.shape != initial_state.shape:
             warnings.warn(
                 UserWarning(
-                    f"Different shapes for targetState({targetState.shape})"
-                    f"and initialState({initialState.shape}) detected."
-                    " Use restrictSubsystems to project states to "
+                    f"Different shapes for target_state({target_state.shape})"
+                    f"and initial_state({initial_state.shape}) detected."
+                    " Use restrict_subsystems to project states to "
                     "the same shape before measuring."
                 )
             )
@@ -118,9 +118,9 @@ class StateTransferFidelityAD(StateTransferFidelity):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initialState : jax.typing.ArrayLike
+    initial_state : jax.typing.ArrayLike
         Initial state.
-    targetState : jax.typing.ArrayLike
+    target_state : jax.typing.ArrayLike
         Target state.
     times : jax.typing.ArrayLike
         One-dimensional vector of timestamps.
@@ -132,19 +132,19 @@ class StateTransferFidelityAD(StateTransferFidelity):
     def __init__(
         self,
         propagation: Propagation,
-        initialState: ArrayLike,
-        targetState: ArrayLike,
+        initial_state: ArrayLike,
+        target_state: ArrayLike,
         times: ArrayLike,
     ):
-        super().__init__(propagation, initialState, targetState, times)
+        super().__init__(propagation, initial_state, target_state, times)
         self.__propagation = propagation
-        self.__initialState = initialState
-        self.__targetState = targetState
-        if targetState.shape != initialState.shape:
+        self.__initialState = initial_state
+        self.__targetState = target_state
+        if target_state.shape != initial_state.shape:
             warnings.warn(
                 UserWarning(
-                    f"Different shapes for targetState({targetState.shape})"
-                    f"and initialState({initialState.shape}) detected."
+                    f"Different shapes for targetState({target_state.shape})"
+                    f"and initialState({initial_state.shape}) detected."
                     " Use restrictSubsystems to project states to the"
                     " same shape before measuring."
                 )
@@ -190,9 +190,9 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     propagation : cthree.measurement.Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initialState : jax.typing.ArrayLike
+    initial_state : jax.typing.ArrayLike
         Initial state.
-    targetState : jax.typing.ArrayLike
+    target_state : jax.typing.ArrayLike
         Target state.
     times : jax.typing.ArrayLike
         One-dimensional vector of timestamps.
@@ -207,19 +207,19 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     def __init__(
         self,
         propagation: Propagation,
-        initialState: jnp.ndarray,
-        targetState: jnp.ndarray,
+        initial_state: jnp.ndarray,
+        target_state: jnp.ndarray,
         times: jnp.ndarray,
     ):
-        super().__init__(propagation, initialState, targetState, times)
+        super().__init__(propagation, initial_state, target_state, times)
         self.__propagation = propagation
-        self.__initial_state = initialState
-        self.__target_state = targetState
-        if targetState.shape != initialState.shape:
+        self.__initial_state = initial_state
+        self.__target_state = target_state
+        if target_state.shape != initial_state.shape:
             warnings.warn(
                 UserWarning(
-                    f"Different shapes for targetState({targetState.shape})"
-                    f"and initialState({initialState.shape}) detected."
+                    f"Different shapes for targetState({target_state.shape})"
+                    f"and initialState({initial_state.shape}) detected."
                     " Use restrictSubsystems to project states to "
                     "the same shape before measuring."
                 )

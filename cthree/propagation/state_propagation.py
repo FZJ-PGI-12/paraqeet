@@ -10,7 +10,7 @@ from cthree.propagation.propagation import Propagation
 class StatePropagation(Propagation):
     """Propagation implementation that need an initial state.
 
-    This implements the setInitialState function.
+    This implements the set_initial_state function.
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ class StatePropagation(Propagation):
     def set_initial_state(self, state: np.ndarray):
         """Set the initial state for the propagation.
 
-        Subclasses can access the state in the _initialState field.
+        Subclasses can access the state in the _initial_sate field.
 
         Parameters
         ----------

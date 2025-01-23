@@ -56,8 +56,8 @@ def states(prop):
     target = np.array([0.0, 1])
     return StateTransferFidelity(
         propagation=prop,
-        initialState=init,
-        targetState=target,
+        initial_state=init,
+        target_state=target,
         times=np.array([0.0, T_FINAL]),
     )
 

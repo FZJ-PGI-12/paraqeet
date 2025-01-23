@@ -25,9 +25,11 @@ class RungeKutta(StatePropagation):
     """
 
     __initial_time_step: float
+    _initial_state: np.ndarray
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)
+        self._initial_state = None
         self.__initial_time_step = initial_time_step
 
     def get_parameters(self) -> list[Quantity]:
@@ -44,7 +46,7 @@ class RungeKutta(StatePropagation):
     def set_initial_state(self, state: np.ndarray):
         """Set the initial state for the propagation.
 
-        Subclasses can access the state in the _initialState field.
+        Subclasses can access the state in the _initial_state field.
 
         Parameters
         ----------
@@ -52,7 +54,7 @@ class RungeKutta(StatePropagation):
             Parameter value to be set as the initial state for the propagation.
 
         """
-        self._initialState = np.reshape(state, (-1,))
+        self._initial_state = np.reshape(state, (-1,))
 
     def propagate(self, time: np.ndarray) -> np.ndarray:
         """Return the solution of the equations of motion.
@@ -75,7 +77,7 @@ class RungeKutta(StatePropagation):
             If the propagation needs at least two time steps.
 
         """
-        if self._initialState is None:
+        if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
         if len(time) < 2:
@@ -91,7 +93,7 @@ class RungeKutta(StatePropagation):
         # Since RK45 uses adaptive time steps and does not guarantee
         # to return a state for each time stamp, this
         # function has to iterate over the time steps itself.
-        states = np.array([self._initialState] * len(time))
+        states = np.array([self._initial_state] * len(time))
         for ti in range(1, len(time)):
             dt = self.__initial_time_step
             if dt is None or dt > time[ti] - time[ti - 1]:
