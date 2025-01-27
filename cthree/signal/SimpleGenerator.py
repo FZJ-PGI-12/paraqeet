@@ -445,7 +445,6 @@ class PWCGenerator(Generator):
 
         # shape = jnp.reshape(inphase + 1j * quadrature, (-1,1))
 
-
         return shape
 
     def generateSignalGradient(self, t: np.ndarray) -> Array:
@@ -481,7 +480,7 @@ class PWCGenerator(Generator):
         if self._isOptimised(self.__inphase):
             grads.append(env)
         if self._isOptimised(self.__quadrature):
-            grads.append(-env)
+            grads.append(1j * env)
 
         if len(grads) > 0:
             grads_stack = jnp.stack(grads)
@@ -518,6 +517,6 @@ class PWCGenerator(Generator):
         if self._isOptimised(self.__inphase):
             grads.append(env)
         if self._isOptimised(self.__quadrature):
-            grads.append(env)
+            grads.append(1j * env)
 
         return jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,))
