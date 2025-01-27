@@ -240,5 +240,5 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         states, grads = self.__propagation.gradient(time=self._times)
         final_state = states[-1]
         f = jnp.vdot(self.__targetState, final_state)
-        grads = jnp.real(f.conj() * grads + grads.conj() * f).flatten()
+        grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
         return self._fid(f), grads  # shape scalar, (n_parameters,)
