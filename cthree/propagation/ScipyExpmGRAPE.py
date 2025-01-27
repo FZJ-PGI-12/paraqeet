@@ -141,7 +141,7 @@ class ScipyExpmGRAPE(ScipyExpm):
             return psis_t, psis_t
 
         def BackwardPropagation(lamdas_t, index):
-            lamdas_t = lamdas_t @ Us[index]
+            lamdas_t = lamdas_t @ Us[-index-1]
             return lamdas_t, lamdas_t
 
         psis_t, psis_list = scan(ForwardPropagation, psis_t, steps_arr)

@@ -429,10 +429,14 @@ class PWCGenerator(Generator):
             Returns the signal vector.
 
         """
+        tlist = self.__tlist
         t = jnp.array(t, ndmin=1)
         inphase = self.__inphase.getValue()
         quadrature = self.__quadrature.getValue()
-        tlist = self.__tlist
+        if self.__multiplyFlatTop:
+            env = self.__computeEnvelope(tlist)
+            inphase *= env
+            quadrature *= env
         shape = jnp.squeeze(
             vmap(self.__PWCSignal, in_axes=(None, None, None, 0))(
                 inphase, quadrature, tlist, t
@@ -441,8 +445,7 @@ class PWCGenerator(Generator):
 
         # shape = jnp.reshape(inphase + 1j * quadrature, (-1,1))
 
-        # if self.__multiplyFlatTop:
-        #     shape *= self.__computeEnvelope(t)
+
         return shape
 
     def generateSignalGradient(self, t: np.ndarray) -> Array:
@@ -466,8 +469,9 @@ class PWCGenerator(Generator):
         grads = []
 
         if self.__multiplyFlatTop:
-            # env = 1/self.__computeEnvelope(t)
-            env = jnp.ones_like(t)
+            env = self.__computeEnvelope(t)
+            # env = jnp.ones_like(t)
+
         else:
             env = jnp.ones_like(t)
 
