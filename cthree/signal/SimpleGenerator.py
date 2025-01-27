@@ -467,9 +467,12 @@ class PWCGenerator(Generator):
         t = jnp.array(t, ndmin=1)
 
         grads = []
+        tlist = self.__tlist
 
         if self.__multiplyFlatTop:
-            env = self.__computeEnvelope(t)
+            smoothing = self.__computeEnvelope(tlist)
+            index = jnp.argmin(jnp.abs(tlist - t))
+            env = smoothing[index]
             # env = jnp.ones_like(t)
 
         else:
@@ -478,10 +481,10 @@ class PWCGenerator(Generator):
         if self._isOptimised(self.__inphase):
             grads.append(env)
         if self._isOptimised(self.__quadrature):
-            grads.append(env)
+            grads.append(-env)
 
         if len(grads) > 0:
-            grads_stack = jnp.stack(grads, axis=1)
+            grads_stack = jnp.stack(grads)
         else:
             grads_stack = jnp.empty((t.shape[0], 0))
         return grads_stack
@@ -503,9 +506,12 @@ class PWCGenerator(Generator):
             PWC signal gradients.
         """
         grads = []
+        tlist = self.__tlist
 
         if self.__multiplyFlatTop:
-            env = self.__computeEnvelope(t)
+            smoothing = self.__computeEnvelope(tlist)
+            index = jnp.argmin(jnp.abs(tlist - t))
+            env = smoothing[index]
         else:
             env = 1
 
