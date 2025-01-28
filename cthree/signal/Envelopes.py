@@ -187,7 +187,7 @@ class ConstantEnvelope(Envelope):
             Subclasses derived from this class must implement this method.
 
         """
-        return jnp.squeeze(jnp.where(t < t_final, amp, 0.0))
+        return jnp.squeeze(jnp.where(t <= t_final, amp, 0.0))
 
     def computeOutput(self, t: np.ndarray) -> Array:
         """Compute the constant signal envelope at different times.
@@ -411,11 +411,9 @@ class FlatTopGaussianEnvelope(Envelope):
 
         grads = []
         if self._isOptimised(self.amplitude):
-            dc_dAmp = self._evaluate(np.array(1.0), t_final, t)
-            grads.append(self.amplitude.getScale() * dc_dAmp)
+            grads.append(self._evaluate(np.array(1.0), t_final, t))
         if self._isOptimised(self.t_final):
-            dc_tFinal = self._evaluateTFinalGrad(amp, t_final, t)
-            grads.append(self.t_final.getScale() * dc_tFinal)
+            grads.append(self._evaluateTFinalGrad(amp, t_final, t))
         return (
             jnp.stack(grads, axis=1)
             if len(grads) > 0

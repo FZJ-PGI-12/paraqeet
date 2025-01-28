@@ -79,7 +79,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
         self._saveBwdPropagatedStates = saveBwdPropagatedStates
 
-    def setSchirmerDerivative(self, schirmerDerivative: bool):
+    def useSchirmerDerivative(self, schirmerDerivative: bool):
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
         Parameters
@@ -141,7 +141,7 @@ class ScipyExpmGRAPE(ScipyExpm):
             return psis_t, psis_t
 
         def BackwardPropagation(lamdas_t, index):
-            lamdas_t = lamdas_t @ Us[index]
+            lamdas_t = lamdas_t @ Us[-index-1]
             return lamdas_t, lamdas_t
 
         psis_t, psis_list = scan(ForwardPropagation, psis_t, steps_arr)
@@ -226,14 +226,17 @@ class ScipyExpmGRAPE(ScipyExpm):
         init_state = jnp.array(self._initialState, dtype=jnp.complex128)
         dt = time[1] - time[0]
 
+        timeGrid = time[:-1] + dt / 2
+
         eom_func = self._model.getMatrixEOM
-        eom = eom_func(time + dt / 2) * dt
+        eom = eom_func(timeGrid) * dt
 
         Us = vmap(self._exponentiate, in_axes=(0,))(eom)
 
         psis = self._propagateInTime(
-            Us, init_state, jnp.arange(0, len(time), 1)
+            Us, init_state, jnp.arange(0, len(timeGrid), 1)
         )
+        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         return psis
 
     def gradient(self, time: np.ndarray) -> np.ndarray:
@@ -262,8 +265,10 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         dt = time[1] - time[0]
 
-        hams = eom_func(time + dt / 2) * dt
-        dH_dps = jnp.array(grad_func(time + dt / 2)) * dt
+        timeGrid = time[:-1] + dt / 2
+
+        hams = eom_func(timeGrid) * dt
+        dH_dps = jnp.array(grad_func(timeGrid)) * dt
 
         Ugrads = []
         n_params = dH_dps.shape[1]
@@ -284,26 +289,31 @@ class ScipyExpmGRAPE(ScipyExpm):
         Ugrads = jnp.stack(Ugrads, axis=1)
 
         psis, lamdas = self._ForwardAndBackwardPropagation(
-            Us, init_state, target_state, jnp.arange(0, len(time), 1)
+            Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
+        )
+
+        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
+        lamdas = jnp.concat(
+            [jnp.expand_dims(target_state, axis=0), lamdas], axis=0
         )
 
         lamdas = jnp.flip(lamdas, axis=0)
 
         if self._saveBwdPropagatedStates:
+            # Save lamdas as kets
             self._bwdPropagatedStates = jnp.transpose(
                 lamdas.conj(), axes=(0, 2, 1)
             )
 
-        # TODO - Shift indices accordingly before doing the overlap
         grads = []
         for i in range(n_params):
             grad = vmap(
                 self.__sandwichOpValues, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
-                Ugrads[1:, i, ...],  # type: ignore
+                Ugrads[:, i, ...],  # type: ignore
                 psis[:-1],
-            )  # TODO - CHECK
+            )
             grad = jnp.squeeze(grad)
-            grads.append(jnp.insert(grad, 0, grad[0]))
+            grads.append(grad)
         return psis, jnp.array(grads)
