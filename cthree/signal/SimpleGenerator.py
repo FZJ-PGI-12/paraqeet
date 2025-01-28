@@ -160,7 +160,7 @@ class CosGenerator(Generator):
         if self._isOptimised(lo_freq):
             gradients = jnp.append(
                 gradients,
-                jnp.expand_dims(0.5j * t * sig * lo_freq.getScale(), 1),
+                jnp.expand_dims(0.5j * t * sig, 1),
                 axis=1,
             )
 
@@ -168,7 +168,7 @@ class CosGenerator(Generator):
         if self._isOptimised(self.__phase):
             gradients = jnp.append(
                 gradients,
-                jnp.expand_dims(-0.5j * sig * self.__phase.getScale(), 1),
+                jnp.expand_dims(-0.5j * sig, 1),
                 axis=1,
             )
         return gradients
@@ -215,15 +215,13 @@ class CosGenerator(Generator):
         # Collect LO gradients
         lo_freq = self.__lo.getParameters()[0]
         if self._isOptimised(lo_freq):
-            gradients = jnp.append(
-                gradients, 0.5j * t * sig * lo_freq.getScale(), axis=0
-            )
+            gradients = jnp.append(gradients, 0.5j * t * sig, axis=0)
 
         # Collect gradient of Phase
         if self._isOptimised(self.__phase):
             gradients = jnp.append(
                 gradients,
-                -0.5j * sig * self.__phase.getScale(),
+                -0.5j * sig,
                 axis=0,
             )
         return gradients

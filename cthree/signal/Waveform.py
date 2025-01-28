@@ -145,19 +145,6 @@ class Waveform(Optimisable):
         if self._gradientFunction is not None:
             grads = jnp.stack(self._gradientFunction(*param_values, t), axis=1)
 
-            parameter_scales = jnp.array(
-                [param.getScale() for param in self._optimisableParameters]
-            )
-
-            if len(self._gradArgNums) > 1:
-                parameter_scales = jnp.reshape(
-                    parameter_scales, (1,) + parameter_scales.shape
-                )
-                grads = jnp.squeeze(grads) * parameter_scales
-            else:
-                grads = jnp.squeeze(grads) * parameter_scales
-                grads = jnp.reshape(grads, (-1, 1))
-
         return grads
 
     def computeTimeGradient(self, t: np.ndarray) -> Array:
@@ -285,9 +272,7 @@ class LocalOscillator(Waveform):
 
         grads = jnp.empty((t.shape[0], 0))
         if self._isOptimised(self.__lo_freq):
-            dc_dFreq = 1j * t * self._evaluate(freq, t)
-            grads = self.__lo_freq.getScale() * dc_dFreq
-            grads = jnp.reshape(grads, (-1, 1))
+            grads = jnp.reshape(1j * t * self._evaluate(freq, t), (-1, 1))
 
         return grads
 
@@ -464,7 +449,6 @@ class DRAGMixer(Waveform):
         """
         deltas = [self.__getToneDelta(tone) for tone in self.__envs]
         delta_values = [delta.getValue() for delta in deltas]
-        delta_scales = [delta.getScale() for delta in deltas]
 
         gradients = jnp.zeros(shape=(t.shape[0], 0))
 
@@ -477,10 +461,8 @@ class DRAGMixer(Waveform):
         for i, tone in enumerate(self.__envs):
             if self._isOptimised(deltas[i]):
                 grad = (
-                    1j
-                    * (delta_values[i] ** 2)
-                    * tone.computeTimeGradient(t)
-                    * delta_scales[i]
+                    1j * (delta_values[i] ** 2) * tone.computeTimeGradient(t)
+                    # * delta_scales[i]
                 )
                 grad = jnp.expand_dims(grad, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)
