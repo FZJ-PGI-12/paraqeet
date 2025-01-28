@@ -139,12 +139,10 @@ class Waveform(Optimisable):
         params = self.getParameters()
         param_values = [param.getValue() for param in params]
         t = jnp.array(t, ndmin=1)
-
         grads = jnp.empty((t.shape[0], 0))
-
         if self._gradientFunction is not None:
             grads = jnp.stack(self._gradientFunction(*param_values, t), axis=1)
-
+            grads = jnp.squeeze(grads, -1)
         return grads
 
     def computeTimeGradient(self, t: np.ndarray) -> Array:
@@ -334,9 +332,7 @@ class DRAGMixer(Waveform):
         return params
 
     @staticmethod
-    def __add_deltas(
-        envelopeTones: list[Waveform], deltas: list[Quantity]
-    ) -> None:
+    def __add_deltas(envelopeTones: list[Waveform], deltas: list[Quantity]) -> None:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
 
         Parameters
