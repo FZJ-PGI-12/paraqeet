@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 from cthree.exceptions import IncompatibleOptimisationMap
-from cthree.optimisation_Map import OptimisationMap
+from cthree.optimisation_map import OptimisationMap
 from cthree.optimisers.optimiser import OptimisationResult
 from cthree.optimisers.scipy_optimiser import ScipyOptimiser
 from cthree.measurement.measurement import Measurement
@@ -24,14 +24,12 @@ class ScipyOptimiserGradient(ScipyOptimiser):
     _method: str
     __gradCache: np.ndarray  # of shape (n_parameters,)
 
-    def __init__(
-        self, measure: Measurement, optimisables: OptimisationMap
-    ) -> None:
+    def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
         super().__init__(measure, optimisables)
-        params = self._optimisables.getAllParameters()
+        params = self._optimisables.get_all_parameters()
         scales = []
         for p in params:
-            scales.extend([p.getScale()] * p.getLength())
+            scales.extend([p.get_scale()] * p.get_length())
         self.__scales = np.stack(scales)
 
     def optimise(self) -> OptimisationResult:
