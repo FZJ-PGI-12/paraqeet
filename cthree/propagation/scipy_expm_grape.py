@@ -139,7 +139,7 @@ class ScipyExpmGRAPE(ScipyExpm):
             return psis_t, psis_t
 
         def backward_propagation(lamdas_t, index):
-            lamdas_t = lamdas_t @ Us[-index-1]
+            lamdas_t = lamdas_t @ Us[-index - 1]
             return lamdas_t, lamdas_t
 
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
@@ -231,9 +231,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Us = vmap(self._exponentiate, in_axes=(0,))(eom)
 
-        psis = self._propagate_in_time(
-            Us, init_state, jnp.arange(0, len(timeGrid), 1)
-        )
+        psis = self._propagate_in_time(Us, init_state, jnp.arange(0, len(timeGrid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         return psis
 
@@ -284,12 +282,12 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Ugrads = jnp.stack(Ugrads, axis=1)
 
-        psis, lamdas = self._forward_and_backward_propagation(Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1))
+        psis, lamdas = self._forward_and_backward_propagation(
+            Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
+        )
 
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-        lamdas = jnp.concat(
-            [jnp.expand_dims(target_state, axis=0), lamdas], axis=0
-        )
+        lamdas = jnp.concat([jnp.expand_dims(target_state, axis=0), lamdas], axis=0)
 
         lamdas = jnp.flip(lamdas, axis=0)
 

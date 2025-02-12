@@ -2,14 +2,12 @@
 
 import numpy as np
 import jax.numpy as jnp
-from jax import Array, jit, vmap
-from jax.scipy.special import erf
+from jax import Array
 
 
 from cthree.quantity import Quantity
 from cthree.signal.waveform import Waveform, LocalOscillator
 from cthree.signal.generator import Generator
-from cthree.signal.envelopes import Envelope
 
 
 class IQMixer(Generator):
