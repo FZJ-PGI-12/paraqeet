@@ -3,18 +3,18 @@
 import numpy as np
 import pytest
 
-from cthree.OptimisationMap import OptimisationMap
-from cthree.Quantity import Quantity
-from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.measurement.UnitaryFidelity import UnitaryFidelity
-from cthree.model.ClosedModel import ClosedModel
-from cthree.model.GeneratorDrive import GeneratorDrive
-from cthree.model.Qubit import Qubit
-from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
-from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
-from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
-from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.optimisation_map import OptimisationMap
+from cthree.quantity import Quantity
+from cthree.measurement.state_transfer_fidelity import StateTransferFidelity
+from cthree.measurement.unitary_fidelity import UnitaryFidelity
+from cthree.model.closed_system import ClosedSystem
+from cthree.model.drive_operator import DriveOperator
+from cthree.model.qubit import Qubit
+from cthree.optimisers.scipy_optimiser import ScipyOptimiser
+from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
+from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from cthree.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9
@@ -25,14 +25,14 @@ RES = 100e9
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
     env = FlatTopGaussianEnvelope()
-    env.t_final.setValue(T_FINAL)
+    env.t_final.set_value(T_FINAL)
     return env
 
 
 @pytest.fixture
 def gen(tone):
     """Generate a cosine tone."""
-    gen = CosGenerator(envelopes=[tone])
+    gen = IQMixer(envelopes=[tone])
     return gen
 
 
@@ -43,9 +43,9 @@ def prop(gen):
     By piecewise exponentation with the scipy package.
 
     """
-    drive = GeneratorDrive(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, isLongitudinal=False)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive])
-    model = ClosedModel(controlled_qubit)
+    model = ClosedSystem(controlled_qubit)
     return ScipyExpmGOAT(model=model, res=RES)
 
 
@@ -56,8 +56,8 @@ def states(prop):
     target = np.array([0.0, 1])
     return StateTransferFidelity(
         propagation=prop,
-        initialState=init,
-        targetState=target,
+        initial_state=init,
+        target_state=target,
         times=np.array([0.0, T_FINAL]),
     )
 
@@ -66,7 +66,7 @@ def states(prop):
 def gates(prop):
     """Compare the propagator with a gate via the L2 norm."""
     xGate = np.array([[0.0, 1], [1, 0.0]])
-    prop.setInitialState(np.identity(2))
+    prop.set_initial_state(np.identity(2))
     return UnitaryFidelity(
         propagation=prop,
         gate=xGate,
@@ -77,9 +77,9 @@ def gates(prop):
 @pytest.fixture
 def optMap(gen):
     """Create an optimisation map."""
-    params = gen.getParameters()
-    params[0].setValue(0.5 * np.pi / T_FINAL)
-    params[2].setValue(1.01 * FREQ)
+    params = gen.get_parameters()
+    params[0].set_value(0.5 * np.pi / T_FINAL)
+    params[2].set_value(1.01 * FREQ)
     optmap = OptimisationMap()
     # Not optimizing t_final
     optmap.add(gen, [params[0], params[2], params[3]])

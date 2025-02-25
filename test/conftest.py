@@ -5,9 +5,9 @@ import pytest
 import numpy as np
 from scipy.stats import unitary_group
 
-from cthree.Quantity import Quantity
-from test.model.DummyModel import DummyModel
-from test.model.EmptyHamiltonian import EmptyHamiltonian
+from cthree.quantity import Quantity
+from test.model.dummy_model import DummyModel
+from test.model.empty_hamiltonian import EmptyHamiltonian
 
 LEN_SIG = 20
 
@@ -43,7 +43,7 @@ def model():
 
 
 @pytest.fixture
-def randomState():
+def random_state():
     """Return a random state generating method.
 
     Generates random normalised states for a given dimension.
@@ -58,7 +58,7 @@ def randomState():
 
 
 @pytest.fixture
-def randomMatrix():
+def random_matrix():
     """Return a random matrix generating method.
 
     Generates random matrix for given dimensions n and m.
@@ -75,7 +75,7 @@ def randomMatrix():
 
 
 @pytest.fixture
-def randomUnitaryMatrix():
+def random_unitary_matrix():
     """Return a random unitary matrix generating method.
 
     Generates random unitary matrices for a given dimension.
@@ -89,7 +89,7 @@ def randomUnitaryMatrix():
 
 
 @pytest.fixture
-def randomBasisVectors():
+def random_basis_vectors():
     """Return a random basis vector generating method.
 
     Generates N vectors, each with 0 everywhere except a 1 at a random index.
@@ -109,7 +109,7 @@ def randomBasisVectors():
 
 @pytest.fixture
 # helper functions
-def randomQuantity(randomQuantityForValues):
+def random_quantity(random_quantity_for_values):
     """Generate a quantity with N positive and negative numbers.
 
     Each quantity is with the same order of magnitude
@@ -120,13 +120,13 @@ def randomQuantity(randomQuantityForValues):
     def _method(N: int):
         magnitude = np.power(10.0, np.random.randint(-10, 10))
         values = (2 * np.random.random(N) - 1) * magnitude
-        return randomQuantityForValues(values)
+        return random_quantity_for_values(values)
 
     return _method
 
 
 @pytest.fixture
-def randomQuantityForValues(randomLimitsForQuantity):
+def random_quantity_for_values(random_limits_for_quantity):
     """Generate a quantity from the given array of values.
 
     Generates while making sure that the limits are set correctly.
@@ -134,16 +134,14 @@ def randomQuantityForValues(randomLimitsForQuantity):
     """
 
     def _method(values: np.array):
-        limits = randomLimitsForQuantity(values)
-        return Quantity(
-            values, min_value=limits[0], max_value=limits[1], unit=""
-        )
+        limits = random_limits_for_quantity(values)
+        return Quantity(values, min_value=limits[0], max_value=limits[1], unit="")
 
     return _method
 
 
 @pytest.fixture
-def randomLimitsForQuantity():
+def random_limits_for_quantity():
     """Return random limits for quantities.
 
     Returns random but valid minimum and maximum values

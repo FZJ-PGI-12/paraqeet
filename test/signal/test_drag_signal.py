@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
-from cthree.signal.Envelopes import (
+from cthree.signal.envelopes import (
     FlatTopGaussianEnvelope,
     GaussEnvelope,
     ZeroEnvelope,
 )
-from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.Waveform import DRAGMixer
+from cthree.signal.iq_mixer import IQMixer
+from cthree.signal.waveform import DRAGMixer
 
 LEN_SIG = 1001
 
@@ -29,7 +29,7 @@ def gen():
     """Return DRAG signal generator object."""
     tone = GaussEnvelope()
     drag_tone = DRAGMixer(tone)
-    return CosGenerator(envelopes=[drag_tone])
+    return IQMixer(envelopes=[drag_tone])
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def zeroGen():
     """Return a zero tone DRAG generator object."""
     tone = ZeroEnvelope()
     drag_tone = DRAGMixer(tone)
-    return CosGenerator(envelopes=[drag_tone])
+    return IQMixer(envelopes=[drag_tone])
 
 
 @pytest.fixture
@@ -57,59 +57,57 @@ def flattop():
     """Return a FlatTop signal with DRAG."""
     tone = FlatTopGaussianEnvelope()
     drag_tone = DRAGMixer(tone)
-    return CosGenerator(envelopes=[drag_tone])
+    return IQMixer(envelopes=[drag_tone])
 
 
 @pytest.fixture
-def genMultipleTones():
+def gen_multiple_tones():
     """Return a multiple tone DRAG generator."""
     tone1 = GaussEnvelope()
-    params1 = tone1.getParameters()
+    params1 = tone1.get_parameters()
     drag_tone1 = DRAGMixer(tone1)
 
     tone2 = GaussEnvelope()
-    params2 = tone2.getParameters()
+    params2 = tone2.get_parameters()
     drag_tone2 = DRAGMixer(tone2)
     return (
-        CosGenerator(envelopes=[drag_tone1, drag_tone2]),
+        IQMixer(envelopes=[drag_tone1, drag_tone2]),
         np.concatenate((params1, params2)),
     )
 
 
 def test_constant_env(zeroGen, time_samples):
     """Test the values of a DRAG signal using a constant envelope."""
-    assert np.all(
-        zeroGen.generateSignal(time_samples) == np.zeros_like(time_samples)
-    )
+    assert np.all(zeroGen.generate_signal(time_samples) == np.zeros_like(time_samples))
 
 
 def test_gen(gen, time_samples) -> None:
     """Computes a sample signal and checks vectorized generation."""
-    sig = gen.generateSignal(time_samples)
+    sig = gen.generate_signal(time_samples)
     assert len(sig) == LEN_SIG
 
 
-def test_getParameters(genMultipleTones):
+def test_getParameters(gen_multiple_tones):
     """Test if the expected amount of parameters is present.
 
     If multiple tones define the total envelope, the signal needs to have the
     sum of all parameters of the envelope tones plus 4 parameters.
 
     """
-    gen, all_params = genMultipleTones
-    params = gen.getParameters()
+    gen, all_params = gen_multiple_tones
+    params = gen.get_parameters()
     assert len(params) == len(all_params) + 4
 
 
 def test_gradient_shape(gen, time_samples):
     """Test the length of the signal gradient."""
-    gen.setOptimisableParameters(gen.getParameters())
-    grads = gen.generateSignalGradient(time_samples)
+    gen.set_optimisable_parameters(gen.get_parameters())
+    grads = gen.generate_signal_gradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]
 
 
 def test_gradient_flattop(flattop, time_samples):
     """Test the length of the gradient of flattop signal."""
-    flattop.setOptimisableParameters(flattop.getParameters())
-    grads = flattop.generateSignalGradient(time_samples)
+    flattop.set_optimisable_parameters(flattop.get_parameters())
+    grads = flattop.generate_signal_gradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]

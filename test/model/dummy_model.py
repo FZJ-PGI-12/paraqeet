@@ -1,0 +1,58 @@
+"""Class definition of the Dummy model for testing."""
+
+import numpy as np
+
+from cthree.quantity import Quantity
+from cthree.model.hamiltonian import Hamiltonian
+from cthree.model.equation_of_motion import EquationOfMotion
+
+
+class DummyModel(EquationOfMotion):
+    """Dummy model class to construct derived model classes.
+
+    Parameters
+    ----------
+    hamiltonian : cthree.model.hamiltonian
+        Class object for a matrix representation of a Hamiltonian.
+    """
+
+    def __init__(self, hamiltonian: Hamiltonian):
+        super().__init__(hamiltonian)
+
+    def get_parameters(self) -> list[Quantity]:
+        """Get parameters of the system.
+
+        Returns
+        -------
+        list[cthree.quantity]
+            List of parameters of the system.
+
+        """
+        pass
+
+    def get_matrix(self, time: np.ndarray) -> np.ndarray:
+        """Get the matrix representation of the equations of motion.
+
+        Parameters
+        ----------
+        time : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returns the matrix equations of motion.
+
+        """
+        return -1.0j * self._hamiltonian.get_matrix(time)
+
+    def gradient(self, t) -> list[np.ndarray]:
+        """Compute the gradient of getMatrixEOM.
+
+        Parameters
+        ----------
+        t : numpy.ndarray
+            One-dimensional vector of timestamps.
+
+        """
+        return [-1.0j * h for h in self._hamiltonian.gradient(t)]

@@ -4,8 +4,8 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from test.DummyDevice import FlatTopGaussianEnvelopeAD
+from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from test.dummy_device import FlatTopGaussianEnvelopeAD
 
 time = jnp.linspace(0, 10e-6, 100)
 
@@ -16,7 +16,7 @@ def tone():
 
     Returns
     -------
-    cthree.signal.Envelopes.Envelope
+    cthree.signal.envelopes.Envelope
         A Flat top Gaussian Envelope
     """
     return FlatTopGaussianEnvelope()
@@ -28,13 +28,13 @@ def toneAD():
 
     Returns
     -------
-    cthree.signal.Envelopes.Envelope
+    cthree.signal.envelopes.Envelope
         A Flat top Gaussian Envelope without gradients defined
     """
     return FlatTopGaussianEnvelopeAD()
 
 
-def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
+def random_entries_from_list(elements: jnp.array, num: int = None) -> jnp.array:
     """Get random entries from an array of elements.
 
     Parameters
@@ -58,9 +58,7 @@ def randomEntriesFromList(elements: jnp.array, num: int = None) -> jnp.array:
 
 def test_values(tone, toneAD):
     """Test values from the AD signal."""
-    assert toneAD.computeOutput(time) == pytest.approx(
-        tone.computeOutput(time), rel=1e-6
-    )
+    assert toneAD.compute_output(time) == pytest.approx(tone.compute_output(time), rel=1e-6)
 
 
 def test_gradients(tone, toneAD):
@@ -69,42 +67,30 @@ def test_gradients(tone, toneAD):
     grad_toneAD = []
 
     # Pick a random number of parameters from the tones
-    numParams = np.random.randint(0, len(tone.getParameters()))
+    numParams = np.random.randint(0, len(tone.get_parameters()))
     for t in time:
-        tone.setOptimisableParameters(
-            randomEntriesFromList(tone.getParameters(), numParams)
-        )
-        toneAD.setOptimisableParameters(
-            randomEntriesFromList(toneAD.getParameters(), numParams)
-        )
+        tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), numParams))
+        toneAD.set_optimisable_parameters(random_entries_from_list(toneAD.get_parameters(), numParams))
 
-        grad_toneAD.append(toneAD.computeGradient(t))
-        grad_tone.append(tone.computeGradient(t))
+        grad_toneAD.append(toneAD.compute_gradient(t))
+        grad_tone.append(tone.compute_gradient(t))
 
-    assert jnp.array(grad_toneAD) == pytest.approx(
-        jnp.array(grad_tone), rel=1e-6
-    )
+    assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
 
 
 def test_gradients_vectorized(tone, toneAD):
     """Test vectorized generation of analytic and AD signal gradients."""
-    numParams = np.random.randint(0, len(tone.getParameters()))
+    numParams = np.random.randint(0, len(tone.get_parameters()))
 
-    toneAD.setOptimisableParameters(
-        randomEntriesFromList(toneAD.getParameters(), numParams)
-    )
-    grad_toneAD = toneAD.computeGradient(time)
-    tone.setOptimisableParameters(
-        randomEntriesFromList(tone.getParameters(), numParams)
-    )
-    grad_tone = tone.computeGradient(time)
-    assert jnp.array(grad_toneAD) == pytest.approx(
-        jnp.array(grad_tone), rel=1e-6
-    )
+    toneAD.set_optimisable_parameters(random_entries_from_list(toneAD.get_parameters(), numParams))
+    grad_toneAD = toneAD.compute_gradient(time)
+    tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), numParams))
+    grad_tone = tone.compute_gradient(time)
+    assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
 
 
 def test_gradients_shape(tone):
     """Test the signal gradient shape."""
-    tone.setOptimisableParameters(randomEntriesFromList(tone.getParameters()))
-    grads = tone.computeGradient(time)
+    tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters()))
+    grads = tone.compute_gradient(time)
     assert grads.shape[0] == time.shape[0]

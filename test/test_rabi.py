@@ -3,9 +3,9 @@
 import pytest
 from numpy.testing import assert_almost_equal
 
-from cthree.OptimisationMap import OptimisationMap
-from cthree.measurement.RabiExperiment import RabiExperiment
-from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
+from cthree.optimisation_map import OptimisationMap
+from cthree.measurement.rabi_experiment import RabiExperiment
+from cthree.optimisers.scipy_optimiser import ScipyOptimiser
 
 
 FREQ = 4.8e9
@@ -16,7 +16,7 @@ RABI_NAME = "Analytic Rabi Model"
 def opt(rabi):
     """Create optimisation map with Rabi model."""
     optmap = OptimisationMap()
-    optmap.add(rabi, rabi.getParameters())
+    optmap.add(rabi, rabi.get_parameters())
     return ScipyOptimiser(rabi, optmap)
 
 
@@ -42,5 +42,5 @@ def test_rabi(opt) -> None:
 def test_find_resonance(rabi, opt) -> None:
     """Check for resonance."""
     opt.optimise()
-    params = rabi.getParameters()
-    assert_almost_equal(FREQ / 1e9, params[1].getValue() / 1e9, decimal=4)
+    params = rabi.get_parameters()
+    assert_almost_equal(FREQ / 1e9, params[1].get_value() / 1e9, decimal=4)

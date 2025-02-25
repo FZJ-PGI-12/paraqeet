@@ -3,37 +3,35 @@
 import pytest
 import numpy as np
 
-from cthree.OptimisationMap import OptimisationMap
-from cthree.Quantity import Quantity
-from cthree.measurement.StateTransferFidelity import StateTransferFidelity
-from cthree.model.GeneratorDrive import GeneratorDrive
-from cthree.model.Qubit import Qubit
-from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
-from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
-from cthree.optimisers.CMAEsOptimiser import CMAEsOptimiser
-from cthree.optimisers.BayesianOptimiser import BayesianOptimiser
+from cthree.optimisation_map import OptimisationMap
+from cthree.quantity import Quantity
+from cthree.measurement.state_transfer_fidelity import StateTransferFidelity
+from cthree.model.drive_operator import DriveOperator
+from cthree.model.qubit import Qubit
+from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
+from cthree.optimisers.scipy_optimiser import ScipyOptimiser
+from cthree.optimisers.cmaes_optimiser import CMAEsOptimiser
+from cthree.optimisers.bayesian_optimiser import BayesianOptimiser
 
-from cthree.model.ClosedModel import ClosedModel
+from cthree.model.closed_system import ClosedSystem
 
-from cthree.signal.SimpleGenerator import CosGenerator
-from cthree.signal.Envelopes import ConstantEnvelope
+from cthree.signal.iq_mixer import IQMixer
+from cthree.signal.envelopes import ConstantEnvelope
 
 
 tone = ConstantEnvelope()
-gen = CosGenerator(envelopes=[tone])
-params = gen.getParameters()
+gen = IQMixer(envelopes=[tone])
+params = gen.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
 t_final = 10e-9
 
-params[0].setValue(0.8 * np.pi / t_final)
-params[2].setValue(1.01 * FREQ)
+params[0].set_value(0.8 * np.pi / t_final)
+params[2].set_value(1.01 * FREQ)
 
-drive = GeneratorDrive(gen, isLongitudinal=False)
-controlled_qubit = Qubit(
-    frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive]
-)
-model = ClosedModel(controlled_qubit)
+drive = DriveOperator(gen, isLongitudinal=False)
+controlled_qubit = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
+model = ClosedSystem(controlled_qubit)
 
 prop = ScipyExpmGOAT(model, res=100e9)
 
@@ -41,8 +39,8 @@ init = np.array([[1.0], [0]])
 target = np.array([[0.0], [1]])
 zeroone = StateTransferFidelity(
     propagation=prop,
-    initialState=init,
-    targetState=target,
+    initial_state=init,
+    target_state=target,
     times=np.array([0.0, t_final]),
 )
 
@@ -85,6 +83,6 @@ def test_cma(cma_opt: CMAEsOptimiser) -> None:
 
 def test_baysian(bay_opt: BayesianOptimiser) -> None:
     """Check that the optimization goes below threshold."""
-    bay_opt.setIterations(200)
+    bay_opt.set_iterations(200)
     res = bay_opt.optimise()
     assert res.value < 1e-3

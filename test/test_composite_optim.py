@@ -3,21 +3,21 @@
 import pytest
 import numpy as np
 
-from cthree.model.GeneratorDrive import GeneratorDrive
-from cthree.optimisers.ScipyOptimiser import ScipyOptimiser
-from cthree.signal.Envelopes import FlatTopGaussianEnvelope
-from cthree.signal.SimpleGenerator import CosGenerator
+from cthree.model.drive_operator import DriveOperator
+from cthree.optimisers.scipy_optimiser import ScipyOptimiser
+from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from cthree.signal.iq_mixer import IQMixer
 
-from cthree.OptimisationMap import OptimisationMap
-from cthree.Quantity import Quantity
-from cthree.measurement.UnitaryFidelity import UnitaryFidelity
-from cthree.model.Coupling import Coupling
-from cthree.optimisers.ScipyOptimiserGradient import ScipyOptimiserGradient
-from cthree.propagation.ScipyExpmGOAT import ScipyExpmGOAT
+from cthree.optimisation_map import OptimisationMap
+from cthree.quantity import Quantity
+from cthree.measurement.unitary_fidelity import UnitaryFidelity
+from cthree.model.coupling import Coupling
+from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
 
-from cthree.model.ClosedModel import ClosedModel
-from cthree.model.CompositeHamiltonian import CompositeHamiltonian
-from cthree.model.Transmon import Transmon
+from cthree.model.closed_system import ClosedSystem
+from cthree.model.composite_hamiltonian import CompositeHamiltonian
+from cthree.model.transmon import Transmon
 
 FREQ1 = 5.5e9 * 2 * np.pi
 ANHARM1 = -240e6 * 2 * np.pi
@@ -64,7 +64,7 @@ def coupledTransmons(tone):
     tone1 = tone(191e6, T_FINAL)
     tone2 = tone(9.18e6, T_FINAL)
 
-    generator1 = CosGenerator(
+    generator1 = IQMixer(
         envelopes=[tone1],
         frequency=Quantity(
             freq1 * 2 * np.pi,
@@ -79,9 +79,9 @@ def coupledTransmons(tone):
             unit="rad",
         ),
     )
-    drive1 = GeneratorDrive(generator1, isLongitudinal=False)
+    drive1 = DriveOperator(generator1, isLongitudinal=False)
 
-    generator2 = CosGenerator(
+    generator2 = IQMixer(
         envelopes=[tone2],
         frequency=Quantity(
             freq2 * 2 * np.pi,
@@ -96,31 +96,23 @@ def coupledTransmons(tone):
             unit="rad",
         ),
     )
-    drive2 = GeneratorDrive(generator2, isLongitudinal=False)
+    drive2 = DriveOperator(generator2, isLongitudinal=False)
 
     transmon1 = Transmon(
         dimension=3,
-        frequency=Quantity(
-            FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"
-        ),
-        anharmonicity=Quantity(
-            ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"
-        ),
+        frequency=Quantity(FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"),
+        anharmonicity=Quantity(ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"),
         drives=[drive1],
     )
     transmon2 = Transmon(
         dimension=3,
-        frequency=Quantity(
-            FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"
-        ),
-        anharmonicity=Quantity(
-            ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"
-        ),
+        frequency=Quantity(FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"),
+        anharmonicity=Quantity(ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"),
         drives=[drive2],
     )
     coupling = Coupling(
         [transmon1, transmon2],
-        isLongitudinal=False,
+        is_longitudinal=False,
         coefficient=Quantity(
             COUPLINGSTR,
             np.array(0.8 * COUPLINGSTR),
@@ -129,26 +121,24 @@ def coupledTransmons(tone):
         ),
     )
     hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
-    model = ClosedModel(hamiltonian)
+    model = ClosedSystem(hamiltonian)
     prop = ScipyExpmGOAT(model=model, res=RES)
 
     X = np.array([[0.0, 1], [1, 0.0]])
     Z = np.array([[1, 0], [0.0, -1]])
     ZX = np.exp(1j * np.pi / 4) * np.kron(Z, X)
-    CRGate = np.array(
-        [[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]]
-    )
+    CRGate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 
     CRGate = ZX @ CRGate
-    prop.setInitialState(np.identity(9))
+    prop.set_initial_state(np.identity(9))
     gateFid = UnitaryFidelity(
         propagation=prop,
         gate=CRGate,
         times=np.array([0.0, T_FINAL]),
     )
-    gateFid.restrictSubsystems([3, 3], [2, 2])
+    gateFid.restrict_subsystems([3, 3], [2, 2])
 
-    tone1Amp = tone1.getParameters()[0]
+    tone1Amp = tone1.get_parameters()[0]
 
     optmap = OptimisationMap()
     optmap.add(tone1, [tone1Amp])
@@ -160,7 +150,7 @@ def opt(coupledTransmons):
     """Return Scipy optimiser from coupled transmons."""
     measure, optmap = coupledTransmons
     opt = ScipyOptimiser(measure, optimisables=optmap)
-    opt.setOptions({"maxiter": 5})
+    opt.set_options({"maxiter": 5})
     return opt
 
 
@@ -169,7 +159,7 @@ def gradOpt(coupledTransmons):
     """Return Scipy optimiser gradient."""
     measure, optmap = coupledTransmons
     opt = ScipyOptimiserGradient(measure, optimisables=optmap)
-    opt.setOptions({"maxiter": 2})
+    opt.set_options({"maxiter": 2})
     return opt
 
 
