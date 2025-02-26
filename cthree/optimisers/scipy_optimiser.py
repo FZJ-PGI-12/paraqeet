@@ -35,7 +35,13 @@ class ScipyOptimiser(Optimiser):
         self._method = "L-BFGS-B"
         self._callback = None
 
-    def set_method(self, method: str):
+    @property
+    def method(self) -> str:
+        """Returns the currently selected optimisation method."""
+        return self._method
+
+    @method.setter
+    def method(self, method: str) -> None:
         """Select method from scipy.optimize.minimize.
 
         See Also
@@ -55,10 +61,16 @@ class ScipyOptimiser(Optimiser):
         self._options.update(opts)
 
     def update_option(self, key, val):
-        """Update the options for the system."""
-        self._options.update(key, val)
+        """Updates one option for the system."""
+        self._options[key] = val
 
-    def set_callback(self, cbfun: Callable) -> None:
+    @property
+    def callback(self) -> Callable | None:
+        """Returns the callback function."""
+        return self._callback
+
+    @callback.setter
+    def callback(self, cbfun: Callable) -> None:
         """Set the callback function for the optimiser.
 
         Parameters

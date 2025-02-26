@@ -42,7 +42,7 @@ class CMAEsOptimiser(Optimiser):
     """
 
     _options: dict
-    callback: Callable | None
+    _callback: Callable | None
 
     def __init__(
         self,
@@ -59,17 +59,25 @@ class CMAEsOptimiser(Optimiser):
             "spread": 0.1,
             "bounds": [-1.0, 1],
         }
-        self.set_callback(callback)
+        self.callback = callback
 
-    def get_options(self) -> dict:
+    @property
+    def options(self) -> dict:
         """Get options from the system."""
         return self._options
 
-    def set_options(self, opts):
+    @options.setter
+    def options(self, opts) -> None:
         """Set options for the system."""
         self._options.update(opts)
 
-    def set_callback(self, cbfun: Callable) -> None:
+    @property
+    def callback(self) -> Callable | None:
+        """Returns the current callback function."""
+        return self._callback
+
+    @callback.setter
+    def callback(self, cbfun: Callable) -> None:
         """Set the callback function for the optimiser.
 
         Parameters

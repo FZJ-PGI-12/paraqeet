@@ -18,10 +18,6 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
     """
 
-    _measure: Measurement
-    _opt_idxs: list[int]
-    _options: dict
-    _method: str
     __gradCache: np.ndarray  # of shape (n_parameters,)
 
     def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
@@ -74,7 +70,6 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         if self._logger:
             self._logger.stop(str(result))
 
-        self._rawResult = result
         return OptimisationResult(
             status=(OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED),
             value=result.fun,
