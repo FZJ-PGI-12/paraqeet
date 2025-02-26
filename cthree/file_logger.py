@@ -24,9 +24,15 @@ class FileLogger(Logger):
     __resultFile: str
 
     def __init__(self, logdir: str = ".") -> None:
-        self.set_log_dir(logdir)
+        self.logdir = logdir
 
-    def set_log_dir(self, logdir: str):
+    @property
+    def logdir(self) -> str:
+        """Returns the current log directory."""
+        return self.__logdir
+
+    @logdir.setter
+    def logdir(self, logdir: str):
         """Set the destination log directory.
 
         Stores both the log and the result files.
