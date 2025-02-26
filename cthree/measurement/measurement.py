@@ -3,6 +3,7 @@
 from abc import abstractmethod
 
 import numpy as np
+from jax._src.basearray import ArrayLike
 
 from cthree.optimisable import Optimisable
 
@@ -24,6 +25,7 @@ class Measurement(Optimisable):
     __input_dimensions: list[int] | None = None
     __output_dimensions: list[int] | None = None
     __projector: np.ndarray | None = None
+    _times: ArrayLike | None = None
 
     def __init__(self, times: np.ndarray | None = None):
         self._times = times
