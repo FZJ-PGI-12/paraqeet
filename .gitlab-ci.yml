@@ -29,7 +29,7 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install pytest-cov mypy mypy-gitlab-code-quality
+  - pip install pytest-cov mypy mypy-gitlab-code-quality nbval
   - pip install -r requirements.txt
   - pip install -e .
 
@@ -61,6 +61,10 @@ codequality:
 formatting-and-linting:
   script:
     - ruff check --output-format=gitlab .
+
+examples:
+  script:
+    - pytest --nbval examples/*.ipynb
 
 # pages:
 #   script:
