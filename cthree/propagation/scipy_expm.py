@@ -35,15 +35,17 @@ class ScipyExpm(StatePropagation):
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model)
-        self.set_resolution(res)
+        self.resolution = res
 
-    def set_resolution(self, res: float):
-        """Set the resolution of the propagation."""
-        self._res = res
-
-    def get_resolution(self) -> float:
+    @property
+    def resolution(self) -> float:
         """Get the resolution of the system."""
         return self._res
+
+    @resolution.setter
+    def resolution(self, res: float):
+        """Set the resolution of the propagation."""
+        self._res = res
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of optimisable parameters of the system.
