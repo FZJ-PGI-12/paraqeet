@@ -30,8 +30,8 @@ def test_resolution(expm):
     for i in range(10):
         propagation = expm(dimension=np.random.randint(2, 100), res=3)
         resolution = np.random.randint(1, 1000)
-        propagation.set_resolution(resolution)
-        assert propagation.get_resolution() == resolution
+        propagation.resolution = resolution
+        assert propagation.resolution == resolution
 
 
 def test_state_dimension_vector(random_state, expm, ts):

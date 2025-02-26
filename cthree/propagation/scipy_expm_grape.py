@@ -49,8 +49,6 @@ class ScipyExpmGRAPE(ScipyExpm):
         matrix exponential. If false, use frechet derivative.
     """
 
-    _res: float
-    _initial_state: np.ndarray = None
     _target_state: np.ndarray = None
     _save_bwd_propagated_states: bool = False
     _bwd_propagated_states: np.ndarray = None
@@ -59,7 +57,13 @@ class ScipyExpmGRAPE(ScipyExpm):
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
 
-    def set_target_state(self, targetState: np.ndarray):
+    @property
+    def target_state(self) -> np.ndarray:
+        """Returns the current target state for backward propagation."""
+        return self._target_state
+
+    @target_state.setter
+    def target_state(self, targetState: np.ndarray) -> None:
         """Set target state for backward propagation.
 
         Parameters
@@ -69,7 +73,13 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
         self._target_state = targetState
 
-    def set_save_bwd_propagated_states(self, saveBwdPropagatedStates: bool):
+    @property
+    def save_bwd_propagated_states(self) -> bool:
+        """Returns whether backward propagated states are saved."""
+        return self._save_bwd_propagated_states
+
+    @save_bwd_propagated_states.setter
+    def save_bwd_propagated_states(self, saveBwdPropagatedStates: bool) -> None:
         """Flag to save backwards propagated target state result.
 
         Parameters
@@ -79,7 +89,13 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
         self._save_bwd_propagated_states = saveBwdPropagatedStates
 
-    def use_schirmer_derivative(self, schirmerDerivative: bool):
+    @property
+    def use_schirmer_derivative(self) -> bool:
+        """Returns whether the Schirmer method is used to compute the derivative of the unitary operator."""
+        return self._schirmer_derivative
+
+    @use_schirmer_derivative.setter
+    def use_schirmer_derivative(self, schirmerDerivative: bool) -> None:
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
         Parameters

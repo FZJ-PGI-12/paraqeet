@@ -25,7 +25,6 @@ class RungeKutta(StatePropagation):
     """
 
     __initial_time_step: float
-    _initial_state: np.ndarray
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)
