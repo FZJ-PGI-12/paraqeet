@@ -19,7 +19,7 @@ class OptimisationResult:
         The optimisation finished without a clear success or failure.
         This is used by algorithms that do not necessarily converge towards a
         solution.
-    STATUS_SUCESS : int
+    STATUS_SUCCESS : int
         The optimisation successfully found an optimum.
     STATUS_FAILED : int
         The optimisation failed to converge.
@@ -112,9 +112,15 @@ class Optimiser:
     ):
         self._measure = measure
         self._logger = logger
-        self.set_optimisables(optimisables)
+        self.optimisables = optimisables
 
-    def set_logger(self, logger: Logger):
+    @property
+    def logger(self) -> Logger | None:
+        """Returns the current logger that is being used by this optimiser, or None if no logger was set yet."""
+        return self._logger
+
+    @logger.setter
+    def logger(self, logger: Logger):
         """Set the logger for the optimiser object.
 
         Parameters
@@ -124,7 +130,8 @@ class Optimiser:
         """
         self._logger = logger
 
-    def get_optimisables(self) -> OptimisationMap:
+    @property
+    def optimisables(self) -> OptimisationMap:
         """Return the optimisation map that this optimiser uses.
 
         Parameters that can be optimised need to be added to this map.
@@ -137,7 +144,8 @@ class Optimiser:
         """
         return self._optimisables
 
-    def set_optimisables(self, opt: OptimisationMap) -> None:
+    @optimisables.setter
+    def optimisables(self, opt: OptimisationMap) -> None:
         """Set optimisable options (via Map).
 
         Registers optimisables and their length to keep track of vector
