@@ -35,7 +35,6 @@ class StateTransferFidelity(Measurement):
 
     _initial_state: ArrayLike
     _target_state: ArrayLike
-    _times: ArrayLike
     _propagation: Propagation
 
     def __init__(
@@ -186,7 +185,6 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     """
 
-    _times: jnp.ndarray
     _propagation: Propagation
 
     def measure_with_gradient(self) -> tuple[Array, Array]:
