@@ -328,7 +328,7 @@ class DRAGMixer(Waveform):
         params = list()
         for tone in self.__envs:
             params += tone.get_parameters()
-            params += [self.__getToneDelta(tone)]
+            params += [self.__get_tone_delta(tone)]
         return params
 
     @staticmethod
@@ -361,7 +361,7 @@ class DRAGMixer(Waveform):
             )
 
     @staticmethod
-    def __getToneDelta(tone: Waveform) -> Quantity:
+    def __get_tone_delta(tone: Waveform) -> Quantity:
         """Return a list of deltas for each tone.
 
         Returns
@@ -408,7 +408,7 @@ class DRAGMixer(Waveform):
         np.ndarray
             Returns a vector carrier signal.
         """
-        deltas = [self.__getToneDelta(tone).get_value() for tone in self.__envs]
+        deltas = [self.__get_tone_delta(tone).get_value() for tone in self.__envs]
         return self._evaluate(t, *deltas)
 
     def set_optimisable_parameters(self, params: list[Quantity]) -> None:
@@ -443,7 +443,7 @@ class DRAGMixer(Waveform):
         jnp.ndarray
             Array of gradients wrt each parameter for each time point.
         """
-        deltas = [self.__getToneDelta(tone) for tone in self.__envs]
+        deltas = [self.__get_tone_delta(tone) for tone in self.__envs]
         delta_values = [delta.get_value() for delta in deltas]
 
         gradients = jnp.zeros(shape=(t.shape[0], 0))
@@ -456,10 +456,7 @@ class DRAGMixer(Waveform):
         # Collect gradients wrt deltas
         for i, tone in enumerate(self.__envs):
             if self._is_optimised(deltas[i]):
-                grad = (
-                    1j * (delta_values[i] ** 2) * tone.compute_time_gradient(t)
-                    # * delta_scales[i]
-                )
+                grad = 1j * (delta_values[i] ** 2) * tone.compute_time_gradient(t)
                 grad = jnp.expand_dims(grad, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)
 
