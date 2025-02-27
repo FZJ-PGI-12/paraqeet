@@ -44,6 +44,10 @@ dev = [
 test = [
   "pytest>=7.2.0",
 ]
+testNB = [
+  "pytest>=7.2.0",
+  "matplotlib>=3.10.0",
+]
 gpu = [
   "jax[cuda12]>=0.4.20",
 ]

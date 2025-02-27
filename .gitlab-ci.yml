@@ -35,7 +35,7 @@ before_script:
   - source venv/bin/activate
   - pip install pytest-cov mypy mypy-gitlab-code-quality nbval
   - pip install -r requirements.txt
-  - pip install -e .
+  - pip install -e ."[testNB]"
 
 test:
   stage: tests
