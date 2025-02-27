@@ -456,7 +456,7 @@ class DRAGMixer(Waveform):
         # Collect gradients wrt deltas
         for i, tone in enumerate(self.__envs):
             if self._is_optimised(deltas[i]):
-                grad = 1j * (delta_values[i] ** 2) * tone.compute_time_gradient(t)
+                grad = 1j / (delta_values[i] ** 2) * tone.compute_time_gradient(t)
                 grad = jnp.expand_dims(grad, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)
 
