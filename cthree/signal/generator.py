@@ -5,7 +5,6 @@ from abc import abstractmethod
 import numpy as np
 
 from cthree.optimisable import Optimisable
-from cthree.signal.waveform import Waveform
 
 
 class Generator(Optimisable):
@@ -19,9 +18,6 @@ class Generator(Optimisable):
     are put through via a mixer device to produce an effective modulated signal.
 
     """
-
-    __chains: dict[str, dict[str, list[str]]] = {}
-    __devices: list[Waveform]
 
     @abstractmethod
     def generate_signal(self, times: np.ndarray) -> np.ndarray:
