@@ -57,14 +57,12 @@ class PWCGenerator(Generator):
         self.__set_inphase_and_quadrature()
         self.__t_final = self.__tlist[-1]
 
-
     def __compute_envelope(self, t):
         t_final = self.__t_final
         ramp_time = t_final / 25
         rampUp = 1 + erf((t - 2 * t_final / 20) / ramp_time)
         rampDown = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
         return rampUp * rampDown / 4
-
 
     @property
     def tlist(self) -> np.ndarray:
@@ -88,7 +86,7 @@ class PWCGenerator(Generator):
         """
         self.__tlist = tlist
         self.__set_inphase_and_quadrature()
-    
+
     @property
     def multiply_flat_top(self) -> bool:
         """Flag to multiply the pulse with a FlatTop.
@@ -219,11 +217,7 @@ class PWCGenerator(Generator):
             env = self.__compute_envelope(tlist)
             inphase *= env
             quadrature *= env
-        shape = jnp.squeeze(
-            vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(
-                inphase, quadrature, tlist, t
-            )
-        )
+        shape = jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, quadrature, tlist, t))
         return shape
 
     def generate_signal_gradient(self, t: np.ndarray) -> Array:
@@ -264,7 +258,7 @@ class PWCGenerator(Generator):
         else:
             grads_stack = jnp.empty((t.shape[0], 0))
         return grads_stack
-    
+
     def generate_signal_gradient_one_time(self, t: float) -> Array:
         """Return signal gradient wrt inphase and quadrature.
 
