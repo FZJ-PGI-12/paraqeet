@@ -20,7 +20,8 @@ class RotatingFrameDrive(Drive):
     def __init__(self, signal_generator: Generator):
         self.__signal_generator = signal_generator
 
-    def getGenerator(self) -> Generator:
+    @property
+    def generator(self) -> Generator:
         """Get the signal generator from the system.
 
         Returns
