@@ -7,7 +7,7 @@ Install with `pip install .` in the top folder.
 # TODO:
 ## Models
 
-- Schrödinger
+- ~~Schrödinger~~
 - SSE
 - Lindblad
 - generalised Lindblad (positive rates)
@@ -20,9 +20,9 @@ Install with `pip install .` in the top folder.
 
 ## Solvers
 
-- Euler
-- RK
-- Scipy Expm
+- ~~Euler~~
+- ~~RK~~
+- ~~Scipy Expm~~
 - Monte-Carlo wave function (MCWF)
 - Non-markovian quantum jumps (NMQJ)
 - Non-markovian stochastic trajectories (MNST)
