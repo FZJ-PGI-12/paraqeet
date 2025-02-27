@@ -110,7 +110,7 @@ class CompositeHamiltonian(Hamiltonian):
         for coupling in self.__couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
-            indices = [self.__subsystems.index(s) for s in coupling.get_subsystems()]
+            indices = [self.__subsystems.index(s) for s in coupling.subsystems]
             subMatrices = coupling.get_matrices_one_time(t)
             for term in subMatrices:
                 matrix += self.__tensor_product_with_identity(term, indices)
@@ -165,7 +165,7 @@ class CompositeHamiltonian(Hamiltonian):
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
         for coupling in self.__couplings:
-            indices = [self.__subsystems.index(s) for s in coupling.get_subsystems()]
+            indices = [self.__subsystems.index(s) for s in coupling.subsystems]
             couplingGradient = coupling.gradient_one_time(t)
             for term in couplingGradient:
                 for g in term:

@@ -30,7 +30,8 @@ class DriveOperator(Drive):
         self.__generator = generator
         self.__isLongitudinal = isLongitudinal
 
-    def getGenerator(self) -> Generator:
+    @property
+    def generator(self) -> Generator:
         """Get the signal generator from the system.
 
         Returns

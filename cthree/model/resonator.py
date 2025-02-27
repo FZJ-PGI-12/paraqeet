@@ -43,11 +43,13 @@ class Resonator(Hamiltonian):
         """Get the dimension of the resonator."""
         return self.__dimension
 
-    def get_frequency(self) -> Quantity:
+    @property
+    def frequency(self) -> Quantity:
         """Get the frequency of the resonator."""
         return self.__frequency
 
-    def set_frequency(self, frequency: Quantity) -> None:
+    @frequency.setter
+    def frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the resonator."""
         self.__frequency = frequency
 

@@ -40,11 +40,13 @@ class Qubit(Hamiltonian):
         )
         self.__drift = 0.5 * jnp.diag(jnp.array([1.0, -1.0]))
 
-    def get_frequency(self) -> Quantity:
+    @property
+    def frequency(self) -> Quantity:
         """Get the frequency of the qubit."""
         return self.__frequency
 
-    def set_frequency(self, frequency: Quantity) -> None:
+    @frequency.setter
+    def frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the qubit."""
         self.__frequency = frequency
 
