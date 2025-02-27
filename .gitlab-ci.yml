@@ -24,16 +24,21 @@ cache:
     - venv
     - .mypy_cache
 
+stages:
+  - codestyle
+  - tests
+
 before_script:
   - python --version  # For debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install pytest-cov mypy mypy-gitlab-code-quality
+  - pip install pytest-cov mypy mypy-gitlab-code-quality nbval
   - pip install -r requirements.txt
-  - pip install -e .
+  - pip install -e ."[testNB]"
 
 test:
+  stage: tests
   script:
     - pytest test --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
@@ -47,6 +52,7 @@ test:
         path: coverage.xml
 
 codequality:
+  stage: codestyle
   script:
     - pip install mypy mypy-gitlab-code-quality
     - mypy cthree --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
@@ -59,8 +65,14 @@ codequality:
   allow_failure: true
 
 formatting-and-linting:
+  stage: codestyle
   script:
     - ruff check --output-format=gitlab .
+
+examples:
+  stage: tests
+  script:
+    - pytest --nbval-lax examples/*.ipynb
 
 # pages:
 #   script:
