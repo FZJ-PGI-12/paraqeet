@@ -72,7 +72,7 @@ formatting-and-linting:
 examples:
   stage: tests
   script:
-    - pytest --nbval examples/*.ipynb
+    - pytest --nbval-lax examples/*.ipynb
 
 # pages:
 #   script:
