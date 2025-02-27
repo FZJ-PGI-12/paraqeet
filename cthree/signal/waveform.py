@@ -460,6 +460,4 @@ class DRAGMixer(Waveform):
                 grad = jnp.expand_dims(grad, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)
 
-        gradients = jnp.append(gradients, grads, axis=1)
-
         return jnp.array(gradients)
