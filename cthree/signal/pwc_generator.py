@@ -1,11 +1,12 @@
 from cthree.quantity import Quantity
+from cthree.signal.envelopes import Envelope
 from cthree.signal.generator import Generator
-from cthree.signal.waveform import Waveform
 
 
 import jax.numpy as jnp
 import numpy as np
 from jax import Array, jit, vmap
+from jax.scipy.special import erf
 
 
 from functools import partial
@@ -34,20 +35,34 @@ class PWCGenerator(Generator):
 
     """
 
-    __envs: list[Waveform]
+    __envs: list[Envelope]
     __tlist: np.ndarray
     __inphase: Quantity
     __quadrature: Quantity
     _optimisable_parameters: list[Quantity] = []
+    __multiply_flat_top: bool = False
 
     def __init__(
         self,
-        envelopes: list[Waveform] | None,
+        envelopes: list[Envelope] | None,
         tlist: np.ndarray,
     ):
         self.__envs = envelopes or []
         self.__tlist = tlist
+
+        # Choose the center point as time grid
+        dt = tlist[1] - tlist[0]
+        self.__tlist = tlist[:-1] + dt / 2
+
         self.__set_inphase_and_quadrature()
+        self.__t_final = self.__tlist[-1]
+
+    def __compute_envelope(self, t):
+        t_final = self.__t_final
+        ramp_time = t_final / 25
+        rampUp = 1 + erf((t - 2 * t_final / 20) / ramp_time)
+        rampDown = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
+        return rampUp * rampDown / 4
 
     @property
     def tlist(self) -> np.ndarray:
@@ -70,6 +85,35 @@ class PWCGenerator(Generator):
             Array of time points at which envelope is discritized.
         """
         self.__tlist = tlist
+        self.__set_inphase_and_quadrature()
+
+    @property
+    def multiply_flat_top(self) -> bool:
+        """Flag to multiply the pulse with a FlatTop.
+
+        This can be used to make the start and end values zeros and force the
+        PWC pulse to change smoothly.
+
+        Returns
+        -------
+        multiply_flat_top : bool
+            Flag value for multiply_flat_top.
+        """
+        return self.__multiply_flat_top
+
+    @multiply_flat_top.setter
+    def multiply_flat_top(self, multiply_flat_top: bool) -> None:
+        """Set flag to multiply the pulse with a FlatTop.
+
+        This can be used to make the start and end values zeros and force the
+        PWC pulse to change smoothly.
+
+        Parameters
+        ----------
+        multiply_flat_top : bool
+            Flag value for multiply_flat_top.
+        """
+        self.__multiply_flat_top = multiply_flat_top
         self.__set_inphase_and_quadrature()
 
     def __set_inphase_and_quadrature(self) -> None:
@@ -165,11 +209,16 @@ class PWCGenerator(Generator):
             Returns the signal vector.
 
         """
+        tlist = self.__tlist
         t = jnp.array(t, ndmin=1)
         inphase = self.__inphase.get_value()
         quadrature = self.__quadrature.get_value()
-        tlist = self.__tlist
-        return jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, quadrature, tlist, t))
+        if self.__multiply_flat_top:
+            env = self.__compute_envelope(tlist)
+            inphase *= env
+            quadrature *= env
+        shape = jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, quadrature, tlist, t))
+        return shape
 
     def generate_signal_gradient(self, t: np.ndarray) -> Array:
         """Return signal gradient wrt inphase and quadrature.
@@ -190,16 +239,25 @@ class PWCGenerator(Generator):
         t = jnp.array(t, ndmin=1)
 
         grads = []
+        tlist = self.__tlist
 
-        inphase_scale = self.__inphase.get_scale()
-        quadrature_scale = self.__quadrature.get_scale()
+        if self.__multiply_flat_top:
+            smoothing = self.__compute_envelope(tlist)
+            index = jnp.argmin(jnp.abs(tlist - t))
+            env = smoothing[index]
+        else:
+            env = jnp.ones_like(t)
 
         if self._is_optimised(self.__inphase):
-            grads.append(jnp.ones_like(t) * inphase_scale)
+            grads.append(env)
         if self._is_optimised(self.__quadrature):
-            grads.append(jnp.ones_like(t) * quadrature_scale)
+            grads.append(1j * env)
 
-        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+        if len(grads) > 0:
+            grads_stack = jnp.stack(grads)
+        else:
+            grads_stack = jnp.empty((t.shape[0], 0))
+        return grads_stack
 
     def generate_signal_gradient_one_time(self, t: float) -> Array:
         """Return signal gradient wrt inphase and quadrature.
@@ -218,13 +276,18 @@ class PWCGenerator(Generator):
             PWC signal gradients.
         """
         grads = []
+        tlist = self.__tlist
 
-        inphase_scale = self.__inphase.get_scale()
-        quadrature_scale = self.__quadrature.get_scale()
+        if self.__multiply_flat_top:
+            smoothing = self.__compute_envelope(tlist)
+            index = jnp.argmin(jnp.abs(tlist - t))
+            env = smoothing[index]
+        else:
+            env = 1
 
         if self._is_optimised(self.__inphase):
-            grads.append(inphase_scale)
+            grads.append(env)
         if self._is_optimised(self.__quadrature):
-            grads.append(quadrature_scale)
+            grads.append(1j * env)
 
         return jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,))
