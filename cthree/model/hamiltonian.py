@@ -136,7 +136,8 @@ class Hamiltonian(Optimisable):
         """
         raise NotImplementedError()
 
-    def get_drives(self) -> list[Drive]:
+    @property
+    def drives(self) -> list[Drive]:
         """Return the list of Drives of the system.
 
         Returns

@@ -30,6 +30,7 @@ class WeightedSumGoal(Measurement):
     __weights: np.ndarray
 
     def __init__(self, measurements: list[Measurement], weights: np.ndarray):
+        super().__init__(None)
         self.__measurements = measurements
         self.__weights = weights
         if len(measurements) != len(weights):

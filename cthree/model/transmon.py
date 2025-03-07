@@ -55,19 +55,23 @@ class Transmon(Hamiltonian):
         """Get the dimension of the Transmon system."""
         return self.__dimension
 
-    def get_frequency(self) -> Quantity:
+    @property
+    def frequency(self) -> Quantity:
         """Get the frequency of the Transmon system."""
         return self.__frequency
 
-    def set_frequency(self, frequency: Quantity) -> None:
+    @frequency.setter
+    def frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the Transmon system."""
         self.__frequency = frequency
 
-    def get_anharmonicity(self) -> Quantity:
+    @property
+    def anharmonicity(self) -> Quantity:
         """Get the anharmonicity of the Transmon system."""
         return self.__anharmonicity
 
-    def set_anharmonicity(self, anharmonicity: Quantity) -> None:
+    @anharmonicity.setter
+    def anharmonicity(self, anharmonicity: Quantity) -> None:
         """Set the anharmonicity of the Transmon system."""
         self.__anharmonicity = anharmonicity
 

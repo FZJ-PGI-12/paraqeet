@@ -18,9 +18,6 @@ from cthree.propagation.scipy_expm import ScipyExpm
 class ScipyExpmGOAT(ScipyExpm):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
-    _res: float
-    _initial_state: np.ndarray = None
-
     def _create_super_state(self, psi: jnp.ndarray, dpsis: jnp.ndarray):
         """Create a state for the system state and also for gradient vectors.
 

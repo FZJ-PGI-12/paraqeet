@@ -99,7 +99,7 @@ def coupled_transmons(transmon):
         transmon1 = transmon.get(dim1)
         transmon2 = transmon.get(dim2)
 
-        couplingStr = np.abs(transmon1.get_frequency().get_value() - transmon2.get_frequency().get_value()) * 0.05
+        couplingStr = np.abs(transmon1.frequency.get_value() - transmon2.frequency.get_value()) * 0.05
         coupling = Coupling(
             [transmon1, transmon2],
             is_longitudinal=False,

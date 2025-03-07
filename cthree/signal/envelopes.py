@@ -33,6 +33,9 @@ class Envelope(Waveform):
 
     """
 
+    __amplitude: Quantity
+    __t_final: Quantity
+
     def __init__(
         self,
         amplitude: Quantity | None = None,

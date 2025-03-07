@@ -55,7 +55,7 @@ class RotatingFrameCoupling(Coupling):
 
     def __coupling_operators(self) -> list[np.ndarray]:
         """Return the annhilation operator."""
-        dimensions = [s.dimension() for s in self.get_subsystems()]
+        dimensions = [s.dimension() for s in self.subsystems]
         annihilationOp = [np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1)) for dim in dimensions]
         if len(annihilationOp) > 1:
             annihilationOp[1] = annihilationOp[1].conj().T

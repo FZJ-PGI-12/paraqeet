@@ -16,13 +16,13 @@ class BayesianOptimiser(Optimiser):
 
     See Also
     --------
-    http://bayesian-optimization.github.io/BayesianOptimization/index.html
+    https://bayesian-optimization.github.io/BayesianOptimization/index.html
 
     Parameters
     ----------
     measure : cthree.measurement.measurement
         The measure to be optimised.
-    Optimisables : cthree.optimisation_map
+    optimisables : cthree.optimisation_map
         All optimisable parameters.
     initialSamples : int, default=10
         Number of iterations before the explorations starts the exploration
@@ -48,19 +48,23 @@ class BayesianOptimiser(Optimiser):
         self.__initial_samples = initialSamples
         self.__iterations = iterations
 
-    def get_initial_samples(self) -> int:
+    @property
+    def initial_samples(self) -> int:
         """Get the initial samples fed to the system."""
         return self.__initial_samples
 
-    def set_initial_samples(self, initialSamples: int):
+    @initial_samples.setter
+    def initial_samples(self, initialSamples: int) -> None:
         """Set the initial samples for the system."""
         self.__initial_samples = initialSamples
 
-    def get_iterations(self) -> int:
+    @property
+    def iterations(self) -> int:
         """Get the iterations of the system."""
         return self.__iterations
 
-    def set_iterations(self, iterations: int):
+    @iterations.setter
+    def iterations(self, iterations: int) -> None:
         """Set the iterations of the system."""
         self.__iterations = iterations
 
