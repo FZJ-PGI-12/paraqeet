@@ -5,6 +5,7 @@ from __future__ import annotations  # necessary for type hints
 import copy
 from typing import Self
 from collections.abc import Callable
+from sys import float_info
 
 import numpy as np
 
@@ -332,6 +333,12 @@ class Quantity:
 
     def __set_value(self, value) -> None:
         """Set value for the parameter."""
+        if np.any(self.__scale < float_info.epsilon):
+            raise ValueError(
+                f"The range between the minimum ({self.__to_string(self.get_min_value())}) "
+                f"and maximum ({self.__to_string(self.get_max_value())}) values is too "
+                f"small. Consider changing the bounds or use reduced units."
+            )
         if isinstance(value, np.ndarray):
             val = value.astype(np.float64)
         else:
@@ -341,12 +348,9 @@ class Quantity:
         if np.any(np.abs(tmp) > 1.0):
             print("Error: ", val, self.get_min_value(), self.get_max_value())
             raise ValueError(
-                f"Value \
-                    {self.__to_string(val)}{self.__unit} \
-                        out of bounds for quantity with "
-                f"min_val: \
-                    {self.__to_string(self.get_min_value())}{self.__unit} and "
-                f"max_val: {self.__to_string(self.get_max_value())}{self.__unit}",
+                f"Value {self.__to_string(val)} out of bounds for quantity with "
+                f"min_val: {self.__to_string(self.get_min_value())} and "
+                f"max_val: {self.__to_string(self.get_max_value())}",
             )
         self.__value = tmp
 

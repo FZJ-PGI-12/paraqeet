@@ -167,6 +167,22 @@ def testOutOfBounds():
         num.set_value(7)
 
 
+def testRangeTooSmall():
+    """Test if a too small range raises an exception."""
+    r = np.random.random()
+
+    with pytest.raises(Exception):
+        Quantity(r, r, r)
+    with pytest.raises(Exception):
+        Quantity(r + 1e-10, r, r + 1e-20)
+
+    num = Quantity(r, r - 1, r + 1)
+    with pytest.raises(Exception):
+        num.set_limits(r, r)
+    with pytest.raises(Exception):
+        num.set_value_and_limits(r, r, r)
+
+
 def testArithmetic(five, three):
     """Test arithmetic special methods for scalar quantities."""
     testing.assert_almost_equal(five + three, 8)
