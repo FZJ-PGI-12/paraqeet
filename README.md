@@ -1,7 +1,7 @@
 # Yet Another Quantum package (YAQ) - For Gradient Based Quantum Optimal Control
 
-[![pipeline status](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/pipeline.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/commits/main)
-[![coverage](https://jugit.fz-juelich.de/pgi-12-external/c3-update/main/coverage.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/commits/main)
+[![pipeline status](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/pipeline.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/pipelines)
+[![coverage](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/coverage.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/graphs/main/charts)
 
 Choose a pulse parametrisation, simulate a quantum system, and optimise. 
 
