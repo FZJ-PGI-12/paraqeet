@@ -112,3 +112,11 @@ class Qubit(Hamiltonian):
             derivatives = jnp.append(derivatives, H, axis=0)
 
         return derivatives
+
+    def get_decay_rates(self) -> list[float]:
+        """Get Decay rates."""
+        raise NotImplementedError()
+
+    def get_collapseops(self) -> list[jnp.ndarray]:
+        """Get collapse operators."""
+        raise NotImplementedError()
