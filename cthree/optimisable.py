@@ -94,4 +94,4 @@ class Optimisable:
             True if parameter is optimised.
 
         """
-        return param in self._optimisable_parameters
+        return id(param) in [id(opt_param) for opt_param in self._optimisable_parameters]
