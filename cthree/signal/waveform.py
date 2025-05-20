@@ -414,7 +414,7 @@ class DRAGMixer(Waveform):
     def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimised.
 
-        Also add the indices to `__gradArgNums` to compute the gradients.
+        Also add the indices to `__grad_arg_nums` to compute the gradients.
 
         Parameters
         ----------
