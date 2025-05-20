@@ -283,3 +283,14 @@ class Hamiltonian(Optimisable):
 
         """
         return M.reshape((1,) + M.shape).repeat(num, axis=0)
+
+    def get_collapseops(self) -> list[tuple[float, jnp.ndarray]]:
+        """
+        Return a list tuples of decay rates and collapse operators for each subsystem.
+
+        Returns
+        -------
+        List[Tuple[float, jnp.ndarray]]
+            List of collapse operators
+        """
+        raise NotImplementedError()
