@@ -14,7 +14,7 @@ name = "cthree"
 version = "2.0"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [{name="PGI-12"}]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -23,7 +23,7 @@ classifiers = [
   "Operating System :: MacOS",
   "Operating System :: Microsoft :: Windows :: Windows 10",
   "Operating System :: Unix",
-  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -60,7 +60,7 @@ gpu = [
 
 # mypy configurations
 [tool.mypy]
-python_version = ">=3.11"
+python_version = ">=3.12"
 warn_return_any = true
 warn_unused_configs = true
 
