@@ -41,7 +41,7 @@ class UnitaryFidelity(Measurement):
         propagation: Propagation,
         gate: np.ndarray,
         times: np.ndarray,
-        basis_states: np.ndarray = None,
+        basis_states: np.ndarray | None = None,
     ):
         super().__init__()
         self.__propagation = propagation

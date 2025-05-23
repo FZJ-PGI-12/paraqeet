@@ -66,7 +66,7 @@ class Quantity:
     __twoPi: bool
     __dependent: bool
     __dependencies: list
-    __relation: Callable
+    __relation: Callable | None
     __dependents: list
 
     def __init__(

@@ -31,7 +31,7 @@ class Logger:
         """
         self._counter += 1
 
-    def stop(self, result_message: str = None):
+    def stop(self, result_message: str | None = None):
         """Template function to stop logging and set end of log parameters.
 
         Parameters

@@ -39,7 +39,7 @@ class OptimisationMap:
     def add(
         self,
         optimisable: Optimisable,
-        optimisable_quantities: list[Quantity] = None,
+        optimisable_quantities: list[Quantity] | None = None,
     ):
         """Add an optimisable object and a list of its quantities to the map.
 

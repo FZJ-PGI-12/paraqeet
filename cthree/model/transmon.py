@@ -41,7 +41,7 @@ class Transmon(Hamiltonian):
         dimension: int,
         frequency: Quantity,
         anharmonicity: Quantity,
-        drives: list[Drive] = None,
+        drives: list[Drive] | None = None,
     ):
         super().__init__(drives=drives)
         self.__dimension = dimension

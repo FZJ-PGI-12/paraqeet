@@ -14,7 +14,7 @@ class Optimisable:
 
     """
 
-    _name: str = None
+    _name: str | None = None
     _optimisable_parameters: list[Quantity] = []
 
     @abstractmethod
