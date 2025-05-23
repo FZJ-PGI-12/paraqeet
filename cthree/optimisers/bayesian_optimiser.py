@@ -107,12 +107,13 @@ class BayesianOptimiser(Optimiser):
         # Use the actual names and the non-reduced values
         # for the return value
         result = {params[i].get_name(): params[i].get_value() for i in range(len(bestValues))}
+        result["fun"] = 1 - optimiser.max["target"]
         if self._logger:
             self._logger.stop(str(result))
 
         return OptimisationResult(
             status=OptimisationResult.STATUS_FINISHED,
-            value=float(1 - result["fun"]),
+            value=float(result["fun"]),
             iterations=self.__iterations + self.__initial_samples,
             raw_result=optimiser.max,
         )
