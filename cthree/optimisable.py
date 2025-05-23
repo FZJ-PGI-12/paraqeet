@@ -64,7 +64,7 @@ class Optimisable:
     def set_optimisable_parameters(self, params: list[Quantity]) -> None:
         """Set which parameters shall be considered during optimisation.
 
-        All quantities that are not in the response of getParameters will
+        All quantities that are not in the response of get_parameters will
         be filtered out. This function is called by the optimiser before
         gradient based optimisation to tell the layers which gradients to
         compute.
@@ -85,7 +85,7 @@ class Optimisable:
 
         Parameters
         ----------
-        param : cthree.quantity
+        param : cthree.Quantity
             Input parameter to be checked for whether it is optimised.
 
         Returns

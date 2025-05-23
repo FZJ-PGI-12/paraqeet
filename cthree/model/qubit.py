@@ -18,7 +18,7 @@ class Qubit(Hamiltonian):
 
     Parameters
     ----------
-    frequency : cthree.quantity
+    frequency : cthree.Quantity
         Frequency for characterizing the qubit.
     drives : List[cthree.model.Drive], optional
         List of time-dependent drives.
