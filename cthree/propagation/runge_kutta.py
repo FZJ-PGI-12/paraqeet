@@ -24,7 +24,7 @@ class RungeKutta(StatePropagation):
 
     """
 
-    __initial_time_step: float
+    __initial_time_step: float | None
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)

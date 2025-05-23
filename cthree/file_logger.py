@@ -76,7 +76,7 @@ class FileLogger(Logger):
             log.write("\n")
             log.flush()
 
-    def stop(self, result_message: str = None):
+    def stop(self, result_message: str | None = None):
         """Stop logging and end the log file with the run information.
 
         Parameters

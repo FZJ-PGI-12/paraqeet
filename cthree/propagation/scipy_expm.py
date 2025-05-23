@@ -31,7 +31,7 @@ class ScipyExpm(StatePropagation):
     """
 
     _res: float
-    _initial_state: np.ndarray = None
+    _initial_state: np.ndarray | None = None
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model)

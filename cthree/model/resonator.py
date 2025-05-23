@@ -32,7 +32,7 @@ class Resonator(Hamiltonian):
     __annihilation_op: jnp.ndarray
     __numOp: jnp.ndarray
 
-    def __init__(self, dimension: int, frequency: Quantity, drives: list[Drive] = None):
+    def __init__(self, dimension: int, frequency: Quantity, drives: list[Drive] | None = None):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency

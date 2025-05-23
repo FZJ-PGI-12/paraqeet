@@ -49,16 +49,16 @@ class ScipyExpmGRAPE(ScipyExpm):
         matrix exponential. If false, use frechet derivative.
     """
 
-    _target_state: np.ndarray = None
+    _target_state: np.ndarray | None = None
     _save_bwd_propagated_states: bool = False
-    _bwd_propagated_states: np.ndarray = None
+    _bwd_propagated_states: np.ndarray | None = None
     _schirmer_derivative: bool = False
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
 
     @property
-    def target_state(self) -> np.ndarray:
+    def target_state(self) -> np.ndarray | None:
         """Returns the current target state for backward propagation."""
         return self._target_state
 

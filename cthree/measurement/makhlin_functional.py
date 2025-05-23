@@ -37,7 +37,7 @@ class MakhlinFunctional(Measurement):
         self,
         propagation: Propagation,
         times: np.ndarray,
-        ideal_invariants: np.ndarray = None,
+        ideal_invariants: np.ndarray | None = None,
     ):
         super().__init__(times=times)
         self.__propagation = propagation
