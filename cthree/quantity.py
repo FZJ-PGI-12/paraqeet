@@ -292,7 +292,7 @@ class Quantity:
         """
         self.__set_value(self.__relation(*[qty.get_value() for qty in self.__dependencies]))
 
-    def get_value(self) -> np.array:
+    def get_value(self) -> np.ndarray:
         """Get value of the parameter."""
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
