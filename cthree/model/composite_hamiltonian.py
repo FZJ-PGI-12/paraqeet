@@ -40,7 +40,7 @@ class CompositeHamiltonian(Hamiltonian):
         self.__subsystems = subsystems
         self.__couplings = couplings
         self.__dimensions = [s.dimension() for s in subsystems]
-        self.__total_dimension = np.prod(self.__dimensions)
+        self.__total_dimension = int(np.prod(self.__dimensions))
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
