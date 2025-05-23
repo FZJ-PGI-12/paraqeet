@@ -5,7 +5,7 @@ import numpy as np
 from cthree.quantity import Quantity
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
-from cthree.exceptions import IncompatibleLayersException
+from cthree.exceptions import IncompatibleLayersException, ConfigurationException
 
 
 class MakhlinFunctional(Measurement):
@@ -69,6 +69,9 @@ class MakhlinFunctional(Measurement):
             4x4 operator is not received.
 
         """
+        if self._times is None:
+            raise ConfigurationException("Time array was not specified")
+
         U = self.__propagation.propagate(self._times)[-1]
         U = self._preprocess_matrix(U)
         if U.shape != (4, 4):

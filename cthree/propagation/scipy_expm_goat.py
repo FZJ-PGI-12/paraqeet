@@ -11,7 +11,7 @@ from jax.lax import scan
 import numpy as np
 import jax.numpy as jnp
 
-
+from cthree.exceptions import ConfigurationException
 from cthree.propagation.scipy_expm import ScipyExpm
 
 
@@ -94,6 +94,9 @@ class ScipyExpmGOAT(ScipyExpm):
             First dimension is time, second dimension is the parameter.
 
         """
+        if self._initial_state is None:
+            raise ConfigurationException("Initial state is not set")
+
         n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initial_state.shape[0]
         psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
