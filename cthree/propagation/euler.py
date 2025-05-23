@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from cthree.exceptions import ConfigurationException
 from cthree.quantity import Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
@@ -52,6 +53,9 @@ class Euler(StatePropagation):
             Results of the Euler propagation.
 
         """
+        if self._initial_state is None:
+            raise ConfigurationException("Initial state is not set")
+
         equationsOfMotion = self._model.get_matrix(time)
 
         dt = time[1:] - time[0:-1]

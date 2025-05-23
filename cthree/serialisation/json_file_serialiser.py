@@ -1,5 +1,6 @@
 import json
 
+from cthree.exceptions import SerialisationException
 from cthree.serialisation.serialiser import Serialiser
 
 
@@ -24,6 +25,9 @@ class JSONFileSerialiser(Serialiser):
         """Loads and returns the data from JSON file"""
         with open(self.__file) as f:
             data = json.load(f)
+            if not isinstance(data, dict):
+                raise SerialisationException("File does not contain a dictionary.")
+
             if self.__COMMENT_KEY in data:
                 del data[self.__COMMENT_KEY]
             return data
