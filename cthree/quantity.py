@@ -67,25 +67,27 @@ class Quantity:
 
     def __init__(
         self,
-        value: np.array,
-        min_value: np.ndarray,
-        max_value: np.ndarray,
+        value: np.ndarray | float,
+        min_value: np.ndarray | float,
+        max_value: np.ndarray | float,
         unit: str = "",
         name: str = "",
         two_pi: bool = False,
     ):
         if value is None or max_value is None or min_value is None:
-            raise Exception("value, minimum, and maximum must be not null")
+            raise IncompatibleQuantityException("value, minimum, and maximum must be not null")
 
         self.__unit = unit
         self.__name = name
         self.__scale = np.array(0)
         self.__twoPi = two_pi
 
-        if np.shape(value) == ():
-            value = np.array([value])
-        else:
-            value = np.array(value)
+        value = np.array([value]) if np.shape(value) == () else np.array(value)
+        min_value = np.array([min_value]) if np.shape(min_value) == () else np.array(min_value)
+        max_value = np.array([max_value]) if np.shape(max_value) == () else np.array(max_value)
+
+        if value.shape != min_value.shape or value.shape != max_value.shape:
+            raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
 
         self.__shape = value.shape
         self.__length = int(np.prod(value.shape))
