@@ -123,18 +123,19 @@ class PWCGenerator(Generator):
             env += dev.compute_output(self.__tlist)
 
         max_abs = jnp.max(jnp.abs(env))
+        bound = 2 * max_abs * jnp.ones_like(self.__tlist)
 
         self.__inphase = Quantity(
             jnp.real(env),
-            min_value=-2 * max_abs,
-            max_value=2 * max_abs,
+            min_value=-bound,
+            max_value=bound,
             unit="Hz",
             name="Inphase",
         )
         self.__quadrature = Quantity(
             jnp.imag(env),
-            min_value=-2 * max_abs,
-            max_value=2 * max_abs,
+            min_value=-bound,
+            max_value=bound,
             unit="Hz",
             name="Quadrature",
         )
