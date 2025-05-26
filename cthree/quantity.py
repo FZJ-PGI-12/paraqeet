@@ -82,18 +82,17 @@ class Quantity:
         self.__scale = np.array(0)
         self.__twoPi = two_pi
 
-        value = np.array([value]) if np.shape(value) == () else np.array(value)
-        min_value = np.array([min_value]) if np.shape(min_value) == () else np.array(min_value)
-        max_value = np.array([max_value]) if np.shape(max_value) == () else np.array(max_value)
-
+        value = self.__fix_parameter_types(value)
+        min_value = self.__fix_parameter_types(min_value)
+        max_value = self.__fix_parameter_types(max_value)
         if value.shape != min_value.shape or value.shape != max_value.shape:
             raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
 
         self.__shape = value.shape
         self.__length = int(np.prod(value.shape))
 
-        self.__offset = np.array(min_value)
-        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        self.__offset = min_value
+        self.__scale = np.abs(max_value - min_value)
 
         # if this quantity is dependent on/calculated from other quantities
         self.__dependent = False
@@ -106,6 +105,12 @@ class Quantity:
         self.__dependents = list()
 
         self.set_value(value)
+
+    @staticmethod
+    def __fix_parameter_types(param: np.ndarray | float) -> np.ndarray:
+        """Makes sure that the parameter is a numpy array of type np.float64. Floats are wrapped into a 1d-array"""
+        p = np.array([param]) if np.shape(param) == () else np.array(param)
+        return p.astype(np.float64)
 
     @property
     def dependencies(self) -> list[Quantity]:
@@ -309,7 +314,7 @@ class Quantity:
         """
         return np.reshape(self.__value, (-1, 1))
 
-    def set_value(self, value) -> None:
+    def set_value(self, value: np.ndarray | float) -> None:
         """Set the value of this quantity.
 
         Value needs to be within the range of 'min_value' and 'max_value'.
@@ -322,7 +327,8 @@ class Quantity:
         Raises
         ------
         ValueError
-            If the value is not within the range of 'min_value' and 'max_value'.
+            If the value is not within the range of 'min_value' and 'max_value', if the shape of the value is different
+            from 'min_value' or 'max_value', or if this is a dependent quantity
 
         """
         if self.__dependent:
@@ -333,7 +339,7 @@ class Quantity:
 
         self.__set_value(value)
 
-    def __set_value(self, value) -> None:
+    def __set_value(self, value: np.ndarray | float) -> None:
         """Set value for the parameter."""
         if np.any(self.__scale < float_info.epsilon):
             raise ValueError(
@@ -341,10 +347,10 @@ class Quantity:
                 f"and maximum ({self.__to_string(self.get_max_value())}) values is too "
                 f"small. Consider changing the bounds or use reduced units."
             )
-        if isinstance(value, np.ndarray):
-            val = value.astype(np.float64)
-        else:
-            val = np.array(value).astype(np.float64)
+        val = self.__fix_parameter_types(value)
+        if val.shape != self.__shape:
+            raise IncompatibleQuantityException("The new value must have the same shape as the old value")
+
         tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
         if np.any(np.abs(tmp) > 1.0):
@@ -360,10 +366,11 @@ class Quantity:
         for qty in self.__dependents:
             qty.update()
 
-    def set_reduced_value(self, value) -> None:
+    def set_reduced_value(self, value: np.ndarray | float) -> None:
         """Set reduced value limit for parameter."""
-        if np.shape(value) == ():
-            value = np.array([value])
+        value = self.__fix_parameter_types(value)
+        if value.shape != self.__shape:
+            raise IncompatibleQuantityException("The new value must have the same shape as the old value")
         self.__value = value
 
     def get_min_value(self) -> np.ndarray:
@@ -382,7 +389,7 @@ class Quantity:
         """Get length of parameter."""
         return self.__length
 
-    def set_limits(self, min_value, max_value) -> None:
+    def set_limits(self, min_value: np.ndarray | float, max_value: np.ndarray | float) -> None:
         """Set the allowed minimum and maximum of this quantity.
 
         Parameters
@@ -394,18 +401,31 @@ class Quantity:
 
         """
         oldValue = self.get_value()
-        self.__offset = np.array(min_value)
-        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        min_value = self.__fix_parameter_types(min_value)
+        max_value = self.__fix_parameter_types(max_value)
+        if min_value.shape != oldValue.shape or max_value.shape != oldValue.shape:
+            raise IncompatibleQuantityException("The boundaries must have the same shape as the value")
+
+        self.__offset = min_value
+        self.__scale = np.abs(max_value - min_value)
         # the value is based on offset and scale and needs to be updated
         self.__set_value(oldValue)
 
-    def set_value_and_limits(self, value, min_value, max_value) -> None:
+    def set_value_and_limits(
+        self, value: np.ndarray | float, min_value: np.ndarray | float, max_value: np.ndarray | float
+    ) -> None:
         """
         This can be used to set the value and the limits to new values at the same time. This function does not raise
         an exception if the new value is outside of the old limits.
         """
-        self.__offset = np.array(min_value)
-        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        value = self.__fix_parameter_types(value)
+        min_value = self.__fix_parameter_types(min_value)
+        max_value = self.__fix_parameter_types(max_value)
+        if min_value.shape != value.shape or max_value.shape != value.shape:
+            raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
+
+        self.__offset = min_value
+        self.__scale = np.abs(max_value - min_value)
         self.__set_value(value)
 
     def get_name(self) -> str:
@@ -605,7 +625,7 @@ class Quantity:
 
     def __array__(self):
         """Magic method for representation into array."""
-        return np.array(self.get_value())
+        return self.get_value()
 
     def __len__(self):
         """Magic method for calculation of length."""
