@@ -20,6 +20,10 @@ class Quantity:
     between -1 and 1. The conversion is given by
     scale * (value + 1) / 2 + offset
 
+    For convenience, the constructor and setter functions accept primitive floats. However, these will be converted into
+    numpy arrays internally, such that scalar values are represented by arrays of shape (1,). All getter functions only
+    return numpy arrays.
+
     Note on python's operators: equality checks `q == p` and `q != p` check
     for the values of the quantities q and p. For vector or matrix quantities,
     these check if all values are equal. If you want to be sure that two
@@ -108,7 +112,10 @@ class Quantity:
 
     @staticmethod
     def __fix_parameter_types(param: np.ndarray | float) -> np.ndarray:
-        """Makes sure that the parameter is a numpy array of type np.float64. Floats are wrapped into a 1d-array"""
+        """
+        Makes sure that the parameter is a numpy array of type np.float64. Primitive floats are wrapped into a
+        1d-array
+        """
         p = np.array([param]) if np.shape(param) == () else np.array(param)
         return p.astype(np.float64)
 
