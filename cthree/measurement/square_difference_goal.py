@@ -75,6 +75,6 @@ class SquareDifferenceGoal(Measurement):
 
         for meas_a, meas_b in itertools.combinations(measurements, 2):
             sumSquareDiff += (meas_a[0] - meas_b[0]) ** 2
-            grads = 2*(meas_a[0] - meas_b[0])*(meas_a[1] - meas_b[1])
+            grads += 2*(meas_a[0] - meas_b[0])*(meas_a[1] - meas_b[1])
 
         return sumSquareDiff, grads
