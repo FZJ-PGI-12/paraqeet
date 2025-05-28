@@ -1,12 +1,14 @@
 """Class definition of a Drive optimisable model."""
 
+from abc import ABC
+
 import jax.numpy as jnp
 from jax import vmap
 
 from cthree.optimisable import Optimisable
 
 
-class Drive(Optimisable):
+class Drive(Optimisable, ABC):
     """Represents a time-dependent drive on a subsystem.
 
     This can for example be a microwave or flux drive.
