@@ -7,7 +7,6 @@ from cthree.model.equation_of_motion import EquationOfMotion
 import numpy as np
 
 from cthree.propagation.propagation import Propagation
-from cthree.quantity import Quantity
 
 
 class StatePropagation(Propagation, ABC):
@@ -26,9 +25,6 @@ class StatePropagation(Propagation, ABC):
 
     def __init__(self, model: EquationOfMotion):
         super().__init__(model)
-
-    def get_parameters(self) -> list[Quantity]:
-        return []
 
     def set_initial_state(self, state: np.ndarray):
         """Set the initial state for the propagation.

@@ -42,6 +42,7 @@ class WeightedSumGoal(Measurement):
             raise UserWarning("Supplied weights are not normalized.")
 
     def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
         return []
 
     def measure(self) -> np.ndarray:

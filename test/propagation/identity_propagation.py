@@ -47,4 +47,5 @@ class IdentityPropagation(Propagation):
         return np.array([self.__state] * len(time))
 
     def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
         return []

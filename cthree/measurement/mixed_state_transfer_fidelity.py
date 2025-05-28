@@ -48,6 +48,7 @@ class MixedStateTransferFidelity(Measurement):
         self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
 
     def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
         return []
 
     def measure(self) -> np.ndarray:
