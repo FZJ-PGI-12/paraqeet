@@ -39,4 +39,5 @@ class EmptyHamiltonian(Hamiltonian):
         return np.zeros((len(t), self.__dimension, self.__dimension))
 
     def get_parameters(self) -> list[Quantity]:
+        """ """
         return []

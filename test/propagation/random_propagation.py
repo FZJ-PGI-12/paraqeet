@@ -41,6 +41,7 @@ class RandomPropagation(Propagation):
         self.update()
 
     def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
         return []
 
     def set_initial_state(self, state: np.ndarray):
