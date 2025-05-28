@@ -3,6 +3,7 @@
 import numpy as np
 
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 
 class EmptyHamiltonian(Hamiltonian):
@@ -36,3 +37,6 @@ class EmptyHamiltonian(Hamiltonian):
 
         """
         return np.zeros((len(t), self.__dimension, self.__dimension))
+
+    def get_parameters(self) -> list[Quantity]:
+        return []
