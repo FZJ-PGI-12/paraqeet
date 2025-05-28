@@ -72,7 +72,12 @@ formatting-and-linting:
 examples:
   stage: tests
   script:
-    - pytest --nbval-lax examples/*.ipynb
+    - pytest --nbval-lax --junitxml=report.xml examples/*.ipynb
+  artifacts:
+    when: always
+    expire_in: 7 days
+    reports:
+      junit: report.xml
 
 # pages:
 #   script:
