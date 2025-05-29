@@ -41,7 +41,7 @@ before_script:
 test:
   stage: tests
   script:
-    - pytest test -n 8 --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
+    - pytest test -n 16 --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
@@ -73,12 +73,12 @@ formatting-and-linting:
 examples:
   stage: tests
   script:
-    - pytest -n 8 --dist=loadscope --nbval-lax --junitxml=report.xml examples/*.ipynb
+    - pytest -n 8 --dist=loadscope --nbval-lax --junitxml=notebooks.xml examples/*.ipynb
   artifacts:
     when: always
     expire_in: 7 days
     reports:
-      junit: report.xml
+      junit: notebooks.xml
 
 build-docs:
   stage: docs
