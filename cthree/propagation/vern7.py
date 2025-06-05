@@ -17,7 +17,7 @@ from jax.lax import scan, dynamic_slice_in_dim
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7Open(StatePropagation):
+class Vern7(StatePropagation):
     """
     Propagate state by solving the Lindblad master equation by using ODE solver.
 
@@ -61,15 +61,15 @@ class Vern7Open(StatePropagation):
         return []
 
     @staticmethod
-    def __commutator(A: jnp.ndarray, B: jnp.ndarray):
+    def _commutator(A: jnp.ndarray, B: jnp.ndarray):
         return jnp.matmul(A, B) - jnp.matmul(B, A)
 
     @staticmethod
-    def __anti_commutator(A: jnp.ndarray, B: jnp.ndarray):
+    def _anti_commutator(A: jnp.ndarray, B: jnp.ndarray):
         return jnp.matmul(A, B) + jnp.matmul(B, A)
 
     @staticmethod
-    def __dagger(op: jnp.ndarray):
+    def _dagger(op: jnp.ndarray):
         return op.conj().T
 
     def _construct_times(self, time, ti):
@@ -85,7 +85,7 @@ class Vern7Open(StatePropagation):
         return times, dt
 
     @staticmethod
-    def __interpolate_time(times, dt):
+    def _interpolate_time(times, dt):
         times_interp = jnp.concatenate(
             [
                 times,
@@ -102,29 +102,29 @@ class Vern7Open(StatePropagation):
         )
         return jnp.sort(times_interp)
 
-    def __lindblad_step(self, rho, h, cols):
-        del_rho = -1j * self.__commutator(h, rho)
+    def _lindblad_step(self, rho, h, cols):
+        del_rho = -1j * self._commutator(h, rho)
         for col in cols:
-            del_rho += jnp.matmul(jnp.matmul(col, rho), self.__dagger(col))
-            del_rho -= 0.5 * self.__anti_commutator(jnp.matmul(self.__dagger(col), col), rho)
+            del_rho += jnp.matmul(jnp.matmul(col, rho), self._dagger(col))
+            del_rho -= 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), rho)
         return del_rho
 
     @partial(jit, static_argnums=(0,))
-    def __vern7_one_step(self, rho, h, col):
-        k1 = self.__lindblad_step(rho, h[0], col)
-        k2 = self.__lindblad_step(rho + (1 / 200) * k1, h[1], col)
-        k3 = self.__lindblad_step(rho + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
-        k4 = self.__lindblad_step(
+    def _vern7_one_step(self, rho, h, col):
+        k1 = self._lindblad_step(rho, h[0], col)
+        k2 = self._lindblad_step(rho + (1 / 200) * k1, h[1], col)
+        k3 = self._lindblad_step(rho + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
+        k4 = self._lindblad_step(
             rho + (49 / 1200) * k1 + (49 / 400) * k3,
             h[3],
             col,
         )
-        k5 = self.__lindblad_step(
+        k5 = self._lindblad_step(
             rho + (2454451729 / 3841600000) * k1 + (-9433712007 / 3841600000) * k3 + (4364554539 / 1920800000) * k4,
             h[4],
             col,
         )
-        k6 = self.__lindblad_step(
+        k6 = self._lindblad_step(
             rho
             + (-6187101755456742839167388910402379177523537620 / 2324599620333464857202963610201679332423082271) * k1
             + (27569888999279458303270493567994248533230000 / 2551701010245296220859455115479340650299761) * k3
@@ -133,7 +133,7 @@ class Vern7Open(StatePropagation):
             h[5],
             col,
         )
-        k7 = self.__lindblad_step(
+        k7 = self._lindblad_step(
             rho
             + (11272026205260557297236918526339 / 1857697188743815510261537500000) * k1
             + (-48265918242888069 / 1953194276993750) * k3
@@ -144,7 +144,7 @@ class Vern7Open(StatePropagation):
             h[6],
             col,
         )
-        k10 = self.__lindblad_step(
+        k10 = self._lindblad_step(
             rho
             + (-511858190895337044664743508805671 / 11367030248263048398341724647960) * k1
             + (2822037469238841750 / 15064746656776439) * k3
@@ -182,7 +182,7 @@ class Vern7Open(StatePropagation):
         """
 
         def propagate_body(rhos_t, index):
-            rhos_t = self.__vern7_one_step(
+            rhos_t = self._vern7_one_step(
                 rhos_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
                 col,
@@ -243,7 +243,7 @@ class Vern7Open(StatePropagation):
         for ti in range(1, len(time)):
             rhos_t = rhos[ti - 1]
             times, dt = self._construct_times(time, ti)
-            times_interp = self.__interpolate_time(times, dt)
+            times_interp = self._interpolate_time(times, dt)
             eom, cols = eom_func(times_interp + dt / 2)
             rhos_t = self._propagate_in_time(
                 rhos_t,
