@@ -68,22 +68,6 @@ class ScipyExpmGRAPE(ScipyExpm):
         self._target_state = targetState
 
     @property
-    def save_bwd_propagated_states(self) -> bool:
-        """Returns whether backward propagated states are saved."""
-        return self._save_bwd_propagated_states
-
-    @save_bwd_propagated_states.setter
-    def save_bwd_propagated_states(self, saveBwdPropagatedStates: bool) -> None:
-        """Flag to save backwards propagated target state result.
-
-        Parameters
-        ----------
-        saveBwdPropagatedStates : bool
-            Save the states if True.
-        """
-        self._save_bwd_propagated_states = saveBwdPropagatedStates
-
-    @property
     def use_schirmer_derivative(self) -> bool:
         """Returns whether the Schirmer method is used to compute the derivative of the unitary operator."""
         return self._schirmer_derivative
