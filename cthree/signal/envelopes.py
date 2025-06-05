@@ -27,7 +27,7 @@ class Envelope(Waveform):
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
-    _gradArgNums: tuple[int, ...]
+    _grad_arg_nums: tuple[int, ...]
         The identifying indices of which parameters to calculate the gradient
         with respect to.
 
@@ -59,7 +59,7 @@ class Envelope(Waveform):
         )
 
         self._gradientFunction: Callable | None = None
-        self._gradArgNums: tuple[int, ...] = ()
+        self._grad_arg_nums: tuple[int, ...] = ()
 
     def get_parameters(self):
         """Get a list of parameters of the envelope.
@@ -167,7 +167,7 @@ class ConstantEnvelope(Envelope):
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
-    _gradArgNums: tuple[int, ...]
+    _grad_arg_nums: tuple[int, ...]
         The identifying indices of which parameters to calculate the gradient
         with respect to.
 
@@ -241,7 +241,7 @@ class ZeroEnvelope(ConstantEnvelope):
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
-    _gradArgNums: tuple[int, ...]
+    _grad_arg_nums: tuple[int, ...]
         The identifying indices of which parameters to calculate the gradient
         with respect to.
 
@@ -262,7 +262,7 @@ class FlatTopGaussianEnvelope(Envelope):
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
-    _gradArgNums: tuple[int, ...]
+    _grad_arg_nums: tuple[int, ...]
         The identifying indices of which parameters to calculate the gradient
         with respect to.
 
@@ -443,7 +443,7 @@ class GaussEnvelope(Envelope):
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
-    _gradArgNums: tuple[int, ...]
+    _grad_arg_nums: tuple[int, ...]
         The identifying indices of which parameters to calculate the gradient
         with respect to.
 

@@ -23,7 +23,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
-    _gradArgNums: tuple[int, ...]
+    _grad_arg_nums: tuple[int, ...]
         The identifying indices of which parameters to calculate the gradient
         with respect to.
 
