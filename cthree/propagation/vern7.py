@@ -1,4 +1,4 @@
-"""Class definition of the 7th-order Verner ODE solver for open quantum system."""
+"""Class definition of the fixed time-step 7th-order Verner ODE solver. Adapted from Julia DiffEq Vern7."""
 
 from functools import partial
 
@@ -6,6 +6,8 @@ import numpy as np
 import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException
+from cthree.model.closed_system import ClosedSystem
+from cthree.model.open_system import OpenSystem
 from cthree.quantity import Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
@@ -19,10 +21,9 @@ jax.config.update("jax_enable_x64", True)
 
 class Vern7(StatePropagation):
     """
-    Propagate state by solving the Lindblad master equation by using ODE solver.
+    Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
-    Implements Vern7 ODE Solver algorithm non adaptive version.
-    It has a fixed step size right now.
+    Implements Vern7 ODE Solver algorithm non adaptive (fixed time-step) version.
     """
 
     _res: float
@@ -39,6 +40,12 @@ class Vern7(StatePropagation):
         """
         super().__init__(model)
         self.resolution = res
+        if isinstance(model, ClosedSystem):
+            self.step_function = self._schrodinger_step
+        elif isinstance(model, OpenSystem):
+            self.step_function = self._lindblad_step
+        else:
+            raise NotImplementedError(f"Step function currently not implemented for {type(model)}.")
 
     @property
     def resolution(self) -> float:
@@ -102,29 +109,32 @@ class Vern7(StatePropagation):
         )
         return jnp.sort(times_interp)
 
-    def _lindblad_step(self, rho, h, cols):
-        del_rho = -1j * self._commutator(h, rho)
+    def _lindblad_step(self, rho: Array, h: Array, cols: Array):
+        del_rho = self._commutator(h, rho)
         for col in cols:
             del_rho += jnp.matmul(jnp.matmul(col, rho), self._dagger(col))
             del_rho -= 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), rho)
         return del_rho
 
+    def _schrodinger_step(self, psi: Array, h: Array, cols: Array):
+        return jnp.matmul(h, psi)
+
     @partial(jit, static_argnums=(0,))
     def _vern7_one_step(self, rho, h, col):
-        k1 = self._lindblad_step(rho, h[0], col)
-        k2 = self._lindblad_step(rho + (1 / 200) * k1, h[1], col)
-        k3 = self._lindblad_step(rho + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
-        k4 = self._lindblad_step(
+        k1 = self.step_function(rho, h[0], col)
+        k2 = self.step_function(rho + (1 / 200) * k1, h[1], col)
+        k3 = self.step_function(rho + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
+        k4 = self.step_function(
             rho + (49 / 1200) * k1 + (49 / 400) * k3,
             h[3],
             col,
         )
-        k5 = self._lindblad_step(
+        k5 = self.step_function(
             rho + (2454451729 / 3841600000) * k1 + (-9433712007 / 3841600000) * k3 + (4364554539 / 1920800000) * k4,
             h[4],
             col,
         )
-        k6 = self._lindblad_step(
+        k6 = self.step_function(
             rho
             + (-6187101755456742839167388910402379177523537620 / 2324599620333464857202963610201679332423082271) * k1
             + (27569888999279458303270493567994248533230000 / 2551701010245296220859455115479340650299761) * k3
@@ -133,7 +143,7 @@ class Vern7(StatePropagation):
             h[5],
             col,
         )
-        k7 = self._lindblad_step(
+        k7 = self.step_function(
             rho
             + (11272026205260557297236918526339 / 1857697188743815510261537500000) * k1
             + (-48265918242888069 / 1953194276993750) * k3
@@ -144,7 +154,7 @@ class Vern7(StatePropagation):
             h[6],
             col,
         )
-        k10 = self._lindblad_step(
+        k10 = self.step_function(
             rho
             + (-511858190895337044664743508805671 / 11367030248263048398341724647960) * k1
             + (2822037469238841750 / 15064746656776439) * k3
@@ -193,7 +203,7 @@ class Vern7(StatePropagation):
         return rhos_t
 
     def propagate(self, time: Array):
-        """Return the solution of the equation of motion for open system using vern7 ODE solver.
+        """Return the solution of the equation of motion for open/closed system using vern7 ODE solver.
 
         Loop over all desired times in time at set resolution.
 
@@ -222,35 +232,25 @@ class Vern7(StatePropagation):
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         eom_func = self._model.get_matrix
 
-        # Verify if `OpenSystem._ode_propagation` is set to `True`.
+        # Verify if `model.ode_propagation` is set to `True`.
         # ode_propgation returns hamiltonian and collapse operators separately.
         eom_parts = eom_func(jnp.array([0]))
         if len(eom_parts) != 2:
-            raise ConfigurationException(
-                "Please set `OpenSystem.__ode_propagation` to `True` for this propagation method."
-            )
+            raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
-        # Checking if initial state is a density matrix
-        # Checking shapes at index 1 as index 0 can also be the "batch dimension"
-        dim_generator = eom_parts[0].shape[1]
-        if init_state.shape[1] != dim_generator:
-            raise ConfigurationException(
-                "Size mismatch between initial state and Hamiltonain. Initial state has to be a density matrix."
-            )
-
-        rhos = [init_state]
+        states = [init_state]
 
         for ti in range(1, len(time)):
-            rhos_t = rhos[ti - 1]
+            state_t = states[ti - 1]
             times, dt = self._construct_times(time, ti)
             times_interp = self._interpolate_time(times, dt)
             eom, cols = eom_func(times_interp + dt / 2)
-            rhos_t = self._propagate_in_time(
-                rhos_t,
+            state_t = self._propagate_in_time(
+                state_t,
                 eom * dt,
                 cols * jnp.sqrt(dt),
                 jnp.arange(0, len(times), 1),
             )
-            rhos.append(rhos_t)
+            states.append(state_t)
 
-        return jnp.array(rhos)
+        return jnp.array(states)
