@@ -40,18 +40,12 @@ class ScipyExpmGRAPE(ScipyExpm):
         Initial state for forward propagation.
     _target_state: np.ndarray = None
         Target state for backward propagation.
-    _save_bwd_propagated_states: bool = False
-        Flag for saving backward propgated state. Saved if True.
-    _bwd_propagated_states: np.ndarray = None
-        If `_saveBwdPropagatedStates` is True, save the bwd propagated states.
     _schirmer_derivative: bool = False
         If true, compute the gradient by Schirmer Derivative/Method of auxillary
         matrix exponential. If false, use frechet derivative.
     """
 
     _target_state: np.ndarray = None
-    _save_bwd_propagated_states: bool = False
-    _bwd_propagated_states: np.ndarray = None
     _schirmer_derivative: bool = False
 
     def __init__(self, model: EquationOfMotion, res: float):
@@ -306,10 +300,6 @@ class ScipyExpmGRAPE(ScipyExpm):
         lamdas = jnp.concat([jnp.expand_dims(target_state, axis=0), lamdas], axis=0)
 
         lamdas = jnp.flip(lamdas, axis=0)
-
-        if self._save_bwd_propagated_states:
-            # Save lamdas as kets
-            self._bwd_propagated_states = jnp.transpose(lamdas.conj(), axes=(0, 2, 1))
 
         grads = []
         for i in range(n_params):
