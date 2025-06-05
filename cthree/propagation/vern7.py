@@ -109,33 +109,33 @@ class Vern7(StatePropagation):
         )
         return jnp.sort(times_interp)
 
-    def _lindblad_step(self, rho: Array, h: Array, cols: Array):
-        del_rho = self._commutator(h, rho)
+    def _lindblad_step(self, state: Array, h: Array, cols: Array):
+        del_rho = self._commutator(h, state)
         for col in cols:
-            del_rho += jnp.matmul(jnp.matmul(col, rho), self._dagger(col))
-            del_rho -= 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), rho)
+            del_rho += jnp.matmul(jnp.matmul(col, state), self._dagger(col))
+            del_rho -= 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), state)
         return del_rho
 
-    def _schrodinger_step(self, psi: Array, h: Array, cols: Array):
-        return jnp.matmul(h, psi)
+    def _schrodinger_step(self, state: Array, h: Array, cols: Array):
+        return jnp.matmul(h, state)
 
     @partial(jit, static_argnums=(0,))
-    def _vern7_one_step(self, rho, h, col):
-        k1 = self.step_function(rho, h[0], col)
-        k2 = self.step_function(rho + (1 / 200) * k1, h[1], col)
-        k3 = self.step_function(rho + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
+    def _vern7_one_step(self, state, h, col):
+        k1 = self.step_function(state, h[0], col)
+        k2 = self.step_function(state + (1 / 200) * k1, h[1], col)
+        k3 = self.step_function(state + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
         k4 = self.step_function(
-            rho + (49 / 1200) * k1 + (49 / 400) * k3,
+            state + (49 / 1200) * k1 + (49 / 400) * k3,
             h[3],
             col,
         )
         k5 = self.step_function(
-            rho + (2454451729 / 3841600000) * k1 + (-9433712007 / 3841600000) * k3 + (4364554539 / 1920800000) * k4,
+            state + (2454451729 / 3841600000) * k1 + (-9433712007 / 3841600000) * k3 + (4364554539 / 1920800000) * k4,
             h[4],
             col,
         )
         k6 = self.step_function(
-            rho
+            state
             + (-6187101755456742839167388910402379177523537620 / 2324599620333464857202963610201679332423082271) * k1
             + (27569888999279458303270493567994248533230000 / 2551701010245296220859455115479340650299761) * k3
             + (-37368161901278864592027018689858091583238040000 / 4473131870960004275166624817435284159975481033) * k4
@@ -144,7 +144,7 @@ class Vern7(StatePropagation):
             col,
         )
         k7 = self.step_function(
-            rho
+            state
             + (11272026205260557297236918526339 / 1857697188743815510261537500000) * k1
             + (-48265918242888069 / 1953194276993750) * k3
             + (26726983360888651136155661781228 / 1308381343805114800955157615625) * k4
@@ -155,7 +155,7 @@ class Vern7(StatePropagation):
             col,
         )
         k10 = self.step_function(
-            rho
+            state
             + (-511858190895337044664743508805671 / 11367030248263048398341724647960) * k1
             + (2822037469238841750 / 15064746656776439) * k3
             + (-23523744880286194122061074624512868000 / 152723005449262599342117017051789699) * k4
@@ -169,8 +169,8 @@ class Vern7(StatePropagation):
             h[8],
             col,
         )
-        rho_new = (
-            rho
+        state_new = (
+            state
             + (117807213929927 / 2640907728177740) * k1
             + (4758744518816629500000 / 17812069906509312711137) * k4
             + (1730775233574080000000000 / 7863520414322158392809673) * k5
@@ -182,25 +182,25 @@ class Vern7(StatePropagation):
             + (40977117022675781250 / 178949401077111131341) * k7
             + (2152106665253777 / 106040260335225546) * k10
         )
-        return rho_new
+        return state_new
 
     @partial(jit, static_argnums=(0,))
-    def _propagate_in_time(self, rhos_t, eom, col, steps_arr):
+    def _propagate_in_time(self, state_t, eom, col, steps_arr):
         """
         Propagate from `time[ti] to time[ti+1]`.
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
         """
 
-        def propagate_body(rhos_t, index):
-            rhos_t = self._vern7_one_step(
-                rhos_t,
+        def propagate_body(state_t, index):
+            state_t = self._vern7_one_step(
+                state_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
                 col,
             )
-            return rhos_t, rhos_t
+            return state_t, state_t
 
-        rhos_t, _ = scan(propagate_body, rhos_t, steps_arr)
-        return rhos_t
+        state_t, _ = scan(propagate_body, state_t, steps_arr)
+        return state_t
 
     def propagate(self, time: Array):
         """Return the solution of the equation of motion for open/closed system using vern7 ODE solver.
