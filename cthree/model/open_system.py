@@ -41,7 +41,7 @@ class OpenSystem(EquationOfMotion):
     ):
         super().__init__(hamiltonian)
         self.__sparse_superop = sparse_superop
-        self._ode_propagation = ode_propagation
+        self.ode_propagation = ode_propagation
 
     @property
     def sparse_superop(self) -> bool:
@@ -73,6 +73,11 @@ class OpenSystem(EquationOfMotion):
     def ode_propagation(self, ode_propagation: bool) -> None:
         self._ode_propagation = ode_propagation
 
+        if ode_propagation:
+            self._get_matrix_method = self.__get_ode_propagation_eom
+        else:
+            self._get_matrix_method = vmap(self.__create_lindbladian_superop)
+
     def get_parameters(self) -> list[Quantity]:
         """Get a list of optimisable parameters.
 
@@ -95,7 +100,7 @@ class OpenSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_collapseops()
 
-    def __get_ode_propgation_eom(self, time: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def __get_ode_propagation_eom(self, time: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Return the coherent and incoherent EOM parts seperately.
         Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
@@ -114,7 +119,7 @@ class OpenSystem(EquationOfMotion):
         ham_eom = self._hamiltonian.get_matrix(time)
         rates_and_cols = self.get_collapseops()
         cols = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
-        return ham_eom, jnp.array(cols, dtype=jnp.complex128)
+        return -1j * ham_eom, jnp.array(cols, dtype=jnp.complex128)
 
     def __create_hamiltonian_superop(self, t):
         """Create the Hamiltonian superoperator for one time point `t`."""
@@ -161,11 +166,7 @@ class OpenSystem(EquationOfMotion):
         np.ndarray
             RHS with dimension [t, n, n]  with t: time, n: hilbert space
         """
-        if self.ode_propagation:
-            eom = self.__get_ode_propgation_eom(time)
-        else:
-            eom = vmap(self.__create_lindbladian_superop)(time)
-        return eom
+        return self._get_matrix_method(time)
 
     @staticmethod
     @jit

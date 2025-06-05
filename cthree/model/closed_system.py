@@ -5,6 +5,7 @@ from cthree.model.hamiltonian import Hamiltonian
 from cthree.model.equation_of_motion import EquationOfMotion
 
 import numpy as np
+import jax.numpy as jnp
 
 
 class ClosedSystem(EquationOfMotion):
@@ -19,8 +20,29 @@ class ClosedSystem(EquationOfMotion):
 
     """
 
-    def __init__(self, hamiltonian: Hamiltonian):
+    def __init__(self, hamiltonian: Hamiltonian, ode_propagation: bool = False):
         super().__init__(hamiltonian)
+        self.ode_propagation = ode_propagation
+
+    @property
+    def ode_propagation(self) -> bool:
+        """Flag to set method of propagation to ODE.
+
+        Returns
+        -------
+        bool
+            Flag to use ODE propagation.
+        """
+        return self._ode_propagation
+
+    @ode_propagation.setter
+    def ode_propagation(self, ode_propagation: bool) -> None:
+        self._ode_propagation = ode_propagation
+
+        if ode_propagation:
+            self._get_matrix_method = self.__get_ode_propagation_eom
+        else:
+            self._get_matrix_method = self.__get_eom
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of optimisable parameters.
@@ -32,6 +54,34 @@ class ClosedSystem(EquationOfMotion):
 
         """
         return self._hamiltonian.get_parameters()
+
+    def __get_eom(self, time: np.ndarray) -> np.ndarray:
+        """Get the matrix equations of motion.
+
+        Computes the right hand side of the Schrödinger equation
+        without multiplying the state.
+        Used for unitary solvers.
+
+        Parameters
+        ----------
+        time : numpy.ndarray
+            Vector of time samples.
+
+        Returns
+        -------
+        numpy.ndarray
+            RHS with dimension [t, n, n]  with 't' as time
+            and 'n' as Hilbert space dimension.
+
+        """
+        return -1.0j * self._hamiltonian.get_matrix(time)
+
+    def __get_ode_propagation_eom(self, time: np.ndarray) -> np.ndarray:
+        """Get the matrix equations of motion for ODE solver.
+
+        Here we return an empty array for the collapse operator.
+        """
+        return -1.0j * self._hamiltonian.get_matrix(time), jnp.empty((1,), dtype=jnp.complex128)
 
     def get_matrix(self, time: np.ndarray) -> np.ndarray:
         """Get the matrix equations of motion.
@@ -52,7 +102,7 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._hamiltonian.get_matrix(time)
+        return self._get_matrix_method(time)
 
     def gradient(self, t) -> np.ndarray:
         """Compute the gradient of getMatrix.
