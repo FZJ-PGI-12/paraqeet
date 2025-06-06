@@ -47,6 +47,8 @@ class Vern7(StatePropagation):
         else:
             raise NotImplementedError(f"Step function currently not implemented for {type(model)}.")
 
+        # TODO - Add checks for `initial_state` shapes for the two cases
+
     @property
     def resolution(self) -> float:
         """Get the resolution of the system."""
