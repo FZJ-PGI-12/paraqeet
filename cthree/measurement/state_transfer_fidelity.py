@@ -201,3 +201,55 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         f = jnp.vdot(self._target_state, final_state)
         grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
         return self._fid(f), grads  # shape scalar, (n_parameters,)
+
+
+class StateTransferFidelityOpenGRAPE(StateTransferFidelity):
+    """Fidelity measure that compares overlap of the initial and final state.
+
+    For GRAPE the optimisable parameters are vector quantities.
+
+    Parameters
+    ----------
+    propagation : cthree.measurement.Propagation
+        Abstract base class for any implementation that can solve
+        the equation of motion.
+    initial_state : jax.typing.ArrayLike
+        Initial state.
+    target_state : jax.typing.ArrayLike
+        Target state.
+    times : jax.typing.ArrayLike
+        One-dimensional vector of timestamps.
+
+    """
+
+    _propagation: Propagation
+
+    def measure(self):
+        """Measure overlap between initial and target density matrices.
+
+        Returns
+        -------
+        jax.typing.ArrayLike
+            Overlap between initial and target state in a JAX ArrayLike format.
+
+        """
+        states = self._propagation.propagate(time=self._times)
+        states = self._preprocess_vector(states)
+        final_state = states[-1]
+        f = jnp.linalg.trace(jnp.matmul(self._target_state, final_state))
+        return jnp.real(f)
+
+    def measure_with_gradient(self) -> tuple[Array, Array]:
+        """Compute function value and corresponding gradient.
+
+        Returns
+        -------
+        Tuple[jax.Array, jax.Array]
+            Tuple of function value and gradient of shape (n_parameters,).
+
+        """
+        states, grads = self._propagation.gradient(time=self._times)
+        final_state = states[-1]
+        f = jnp.linalg.trace(jnp.matmul(self._target_state, final_state))
+        gradients = jnp.linalg.trace(grads)
+        return jnp.real(f), jnp.real(gradients).flatten()  # shape scalar, (n_parameters,)
