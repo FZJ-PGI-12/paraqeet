@@ -191,7 +191,7 @@ class OpenSystem(EquationOfMotion):
     def gradient(self, time) -> np.ndarray:
         """Compute the gradient of get_matrix."""
         if self.ode_propagation:
-            raise NotImplementedError()
+            grads = -1j * self._hamiltonian.gradient(time)
         else:
             grads = vmap(self.__create_lindbladian_grad_superop)(time)
         return grads
