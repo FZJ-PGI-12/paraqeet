@@ -104,7 +104,7 @@ class Vern7GRAPE(Vern7):
         def backward_propagation(lamdas_t, index):
             lamdas_t = self._vern7_one_step(
                 lamdas_t,
-                dynamic_slice_in_dim(eom, start_index=-9 * index - 1, slice_size=9, axis=0),
+                dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
                 col,
             )
             return lamdas_t, lamdas_t
@@ -112,6 +112,7 @@ class Vern7GRAPE(Vern7):
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
 
         self.step_function = self.__reverse_step_function
+        eom = (-1) * jnp.flip(eom, axis=0)
         lamdas_t, lamdas_list = scan(backward_propagation, lamdas_t, steps_arr)
 
         return psis_list, lamdas_list
@@ -126,6 +127,8 @@ class Vern7GRAPE(Vern7):
         the backward propagation states.
 
         This propagation method assumes a PWC pulse as input.
+
+        Note: This method only computes the first order gradients right now.
         """
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
