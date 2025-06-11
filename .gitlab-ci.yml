@@ -34,7 +34,7 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install pytest-xdist mypy mypy-gitlab-code-quality nbval
+  - pip install pytest-cov pytest-xdist mypy mypy-gitlab-code-quality nbval
   - pip install -r requirements.txt
   - pip install -e ."[testNB]"
 
