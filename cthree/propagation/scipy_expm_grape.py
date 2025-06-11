@@ -65,6 +65,22 @@ class ScipyExpmGRAPE(ScipyExpm):
         targetState : np.ndarray
             Target state.
         """
+        # For open system convert Density Matrix to Vectorized form.
+        if self.is_open:
+            # Compare the shapes of target state with the generator of time translation
+            dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
+            # Comparing dim 1 as 0 can be batch dimension
+            if targetState.shape[1] == jnp.sqrt(dim_generator):
+                # check if it is a square matrix. Check the last 2 dimensions are equal.
+                if targetState.shape[-1] == targetState.shape[-2]:
+                    # This is a density matrix
+                    targetState = self._convert_dm_to_vec(targetState)
+                else:
+                    raise ConfigurationException(
+                        f"Obtained a state vector of shape {targetState.shape} as target state. "
+                        + "For open system propagation expected a density matrix or vectorized density matrix "
+                        "as the target state."
+                    )
         self._target_state = targetState
 
     @property
@@ -263,7 +279,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         Ugrads = []
         n_params = dH_dps.shape[1]
 
-        dim = init_state.shape[0]
+        dim = hams.shape[-1]
 
         if self._schirmer_derivative:
             exponentiating_function = self._exponentiate_schirmer
@@ -296,4 +312,9 @@ class ScipyExpmGRAPE(ScipyExpm):
             )
             grad = jnp.squeeze(grad)
             grads.append(grad)
+
+        # if open system convert back the vectorized density matrices to matrix shape
+        if self.is_open:
+            psis = jnp.array(psis)
+            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, jnp.sqrt(dim))
         return psis, jnp.array(grads)

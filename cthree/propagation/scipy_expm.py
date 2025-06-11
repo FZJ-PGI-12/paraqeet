@@ -90,6 +90,26 @@ class ScipyExpm(StatePropagation):
             dt = times[1] - times[0]
         return times, dt
 
+    def set_initial_state(self, state):
+        """Set initial state."""
+        # For open system convert Density Matrix to Vectorized form.
+        if self.is_open:
+            # Compare the shapes of inital state with the generator of time translation
+            dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
+            # Comparing dim 1 as 0 can be batch dimension
+            if state.shape[1] == jnp.sqrt(dim_generator):
+                # check if it is a square matrix. Check the last 2 dimensions are equal.
+                if state.shape[-1] == state.shape[-2]:
+                    # This is a density matrix
+                    state = self._convert_dm_to_vec(state)
+                else:
+                    raise ConfigurationException(
+                        f"Obtained a state vector of shape {state.shape} as initial state. "
+                        + "For open system propagation expected a density matrix or vectorized density matrix "
+                        "as the initial state."
+                    )
+        self._initial_state = jnp.array(state, dtype=jnp.complex128)
+
     @staticmethod
     def _convert_dm_to_vec(state_dm):
         """Helper function to convert a density matrix to vectorized form."""
@@ -181,18 +201,6 @@ class ScipyExpm(StatePropagation):
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
 
         eom_func = self._model.get_matrix
-        open_system = False
-
-        # For open system convert DM to Vec
-        # TODO - Check for the case of batched vectors if this still works
-        dim_generator = eom_func(jnp.array([0])).shape[1]
-        if init_state.shape[0] != dim_generator:
-            # Compare the shapes of inital state with the generator of time translation
-            if init_state.shape[0] == jnp.sqrt(dim_generator):
-                # This is a density matrix
-                open_system = True
-                dim = init_state.shape[0]
-                init_state = self._convert_dm_to_vec(init_state)
 
         psi = [init_state]
         for ti in range(1, len(time)):
@@ -203,7 +211,8 @@ class ScipyExpm(StatePropagation):
             psi.append(psis_t)
 
         # if open system convert back the vectorized density matrices to matrix shape
-        if open_system:
+        if self.is_open:
+            dim = jnp.sqrt(eom.shape[-1])
             psi = jnp.array(psi)
             psi = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psi, dim)
         return jnp.array(psi)
