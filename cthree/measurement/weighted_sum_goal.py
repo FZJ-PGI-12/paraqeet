@@ -62,15 +62,15 @@ class WeightedSumGoal(Measurement):
 
         """
         measurements = [m.measure() for m in self.__measurements]
-        sumMeas = 0
+        sum_meas = 0
         for ii, w in enumerate(self.__weights):
-            sumMeas += w * measurements[ii]
+            sum_meas += w * measurements[ii]
         if self.__weight_sum_of_squares is not None:
-            sumSquareDiff = 0
+            sum_square_diff = 0
             for meas_a, meas_b in itertools.combinations(measurements, 2):
-                sumSquareDiff += (meas_a - meas_b) ** 2
-            sumMeas += self.__weight_sum_of_squares*sumSquareDiff
-        return sumMeas
+                sum_square_diff += (meas_a - meas_b) ** 2
+            sum_meas += self.__weight_sum_of_squares*sum_square_diff
+        return sum_meas
 
     def measure_normalised(self) -> np.ndarray:
         """Sum of weighted measurements from normalized measurements.
@@ -82,15 +82,15 @@ class WeightedSumGoal(Measurement):
 
         """
         measurements = [m.measure_normalised() for m in self.__measurements]
-        sumMeas = 0
+        sum_meas = 0
         for ii, w in enumerate(self.__weights):
-            sumMeas += w * measurements[ii]
+            sum_meas += w * measurements[ii]
         if self.__weight_sum_of_squares is not None:
-            sumSquareDiff = 0
+            sum_square_diff = 0
             for meas_a, meas_b in itertools.combinations(measurements, 2):
-                sumSquareDiff += (meas_a - meas_b) ** 2
-            sumMeas += self.__weight_sum_of_squares*sumSquareDiff
-        return float(sumMeas)
+                sum_square_diff += (meas_a - meas_b) ** 2
+            sum_meas += self.__weight_sum_of_squares*sum_square_diff
+        return float(sum_meas)
 
     def measure_with_gradient(self) -> tuple[jnp.ndarray, jnp.ndarray]:
         """Sum of weighted measurements from gradient-ized measurements.
@@ -104,18 +104,18 @@ class WeightedSumGoal(Measurement):
 
         """
         measurements = [m.measure_with_gradient() for m in self.__measurements]
-        sumMeas = jnp.array(0)
-        sumGrads = jnp.zeros_like(measurements[0][1])
+        sum_meas = jnp.array(0)
+        sum_grads = jnp.zeros_like(measurements[0][1])
         for ii, w in enumerate(self.__weights):
-            sumMeas += w * measurements[ii][0]
-            sumGrads += w * measurements[ii][1]
+            sum_meas += w * measurements[ii][0]
+            sum_grads += w * measurements[ii][1]
         if self.__weight_sum_of_squares is not None:
-            sumSquareDiff = jnp.array(0)
-            gradsDiff = jnp.zeros_like(measurements[0][1])
+            sum_square_diff = jnp.array(0)
+            grads_diff = jnp.zeros_like(measurements[0][1])
 
             for meas_a, meas_b in itertools.combinations(measurements, 2):
-                sumSquareDiff += (meas_a[0] - meas_b[0]) ** 2
-                gradsDiff += 2*(meas_a[0] - meas_b[0])*(meas_a[1] - meas_b[1])
-            sumMeas += self.__weight_sum_of_squares*sumSquareDiff
-            sumGrads += self.__weight_sum_of_squares*gradsDiff
-        return sumMeas, sumGrads
+                sum_square_diff += (meas_a[0] - meas_b[0]) ** 2
+                grads_diff += 2*(meas_a[0] - meas_b[0])*(meas_a[1] - meas_b[1])
+            sum_meas += self.__weight_sum_of_squares*sum_square_diff
+            sum_grads += self.__weight_sum_of_squares*grads_diff
+        return sum_meas, sum_grads
