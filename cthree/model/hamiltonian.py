@@ -1,5 +1,7 @@
 """Class definition for a matrix representation of a Hamiltonian."""
 
+from abc import ABC
+
 import jax.numpy as jnp
 from jax import vmap
 
@@ -8,7 +10,7 @@ from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 
 
-class Hamiltonian(Optimisable):
+class Hamiltonian(Optimisable, ABC):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines

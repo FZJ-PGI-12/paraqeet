@@ -5,6 +5,7 @@ import jax.numpy as jnp
 
 from cthree.measurement.measurement import Measurement
 from cthree.exceptions import ConfigurationException
+from cthree.quantity import Quantity
 
 
 class WeightedSumGoal(Measurement):
@@ -39,6 +40,10 @@ class WeightedSumGoal(Measurement):
             )
         if not np.isclose(sum(weights), 1.0):
             raise UserWarning("Supplied weights are not normalized.")
+
+    def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
+        return []
 
     def measure(self) -> np.ndarray:
         """Sum of plain weighted measurements.
