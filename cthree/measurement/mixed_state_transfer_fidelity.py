@@ -6,6 +6,7 @@ import scipy.linalg as sclin
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
 from cthree.exceptions import IncompatibleLayersException
+from cthree.quantity import Quantity
 
 
 class MixedStateTransferFidelity(Measurement):
@@ -45,6 +46,10 @@ class MixedStateTransferFidelity(Measurement):
 
         # store the sqrt of the density matrix to simplify the measurement
         self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
+
+    def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
+        return []
 
     def measure(self) -> np.ndarray:
         """Measure overlap between initial and final state of density matrices.

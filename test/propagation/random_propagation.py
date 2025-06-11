@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import unitary_group
 
 from cthree.propagation.propagation import Propagation
+from cthree.quantity import Quantity
 
 
 class RandomPropagation(Propagation):
@@ -38,6 +39,10 @@ class RandomPropagation(Propagation):
         self.__createMatrices = generateMatrices
         self.__autoUpdate = autoUpdate
         self.update()
+
+    def get_parameters(self) -> list[Quantity]:
+        """Returns an empty list."""
+        return []
 
     def set_initial_state(self, state: np.ndarray):
         """Set the initial state of the system.
