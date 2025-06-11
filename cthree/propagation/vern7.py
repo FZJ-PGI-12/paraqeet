@@ -6,8 +6,6 @@ import numpy as np
 import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException
-from cthree.model.closed_system import ClosedSystem
-from cthree.model.open_system import OpenSystem
 from cthree.quantity import Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
@@ -40,14 +38,22 @@ class Vern7(StatePropagation):
         """
         super().__init__(model)
         self.resolution = res
-        if isinstance(model, ClosedSystem):
-            self.step_function = self._schrodinger_step
-        elif isinstance(model, OpenSystem):
+
+        if self.is_open:
             self.step_function = self._lindblad_step
         else:
-            raise NotImplementedError(f"Step function currently not implemented for {type(model)}.")
+            self.step_function = self._schrodinger_step
 
-        # TODO - Add checks for `initial_state` shapes for the two cases
+    def set_initial_state(self, state):
+        """Set initial state."""
+        # For open system check if initial state is a density matrixs.
+        if self.is_open:
+            if state.shape[-1] != state.shape[-2]:
+                raise ConfigurationException(
+                    f"Obtained a state vector of shape {state.shape} as initial state. "
+                    + "For open system propagation expected a density matrix as the initial state."
+                )
+        self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
     @property
     def resolution(self) -> float:

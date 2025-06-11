@@ -39,12 +39,11 @@ class Vern7GRAPE(Vern7):
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
-        if isinstance(model, ClosedSystem):
-            self.__reverse_step_function = self._reverse_schrodinger_step
-        elif isinstance(model, OpenSystem):
+
+        if self.is_open:
             self.__reverse_step_function = self._reverse_lindblad_step
         else:
-            raise NotImplementedError(f"Step function currently not implemented for {type(model)}.")
+            self.__reverse_step_function = self._reverse_schrodinger_step
 
     @property
     def target_state(self) -> np.ndarray:
@@ -60,6 +59,14 @@ class Vern7GRAPE(Vern7):
         targetState : np.ndarray
             Target state.
         """
+        # For open system check if target state is a density matrixs.
+        if self.is_open:
+            if targetState.shape[-1] != targetState.shape[-2]:
+                raise ConfigurationException(
+                    f"Obtained a state vector of shape {targetState.shape} as target state. "
+                    + "For open system propagation expected a density matrix as the target state."
+                )
+
         self._target_state = targetState
 
     def _reverse_schrodinger_step(self, state: Array, h: Array, cols: Array):
