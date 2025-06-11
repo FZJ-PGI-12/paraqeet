@@ -79,7 +79,7 @@ class ScipyExpmGRAPE(ScipyExpm):
                     raise ConfigurationException(
                         f"Obtained a state vector of shape {targetState.shape} as target state. "
                         + "For open system propagation expected a density matrix or vectorized density matrix "
-                        "as the target state."
+                        + "as the target state."
                     )
         self._target_state = targetState
 

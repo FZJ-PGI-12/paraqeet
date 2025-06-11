@@ -106,7 +106,7 @@ class ScipyExpm(StatePropagation):
                     raise ConfigurationException(
                         f"Obtained a state vector of shape {state.shape} as initial state. "
                         + "For open system propagation expected a density matrix or vectorized density matrix "
-                        "as the initial state."
+                        + "as the initial state."
                     )
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
