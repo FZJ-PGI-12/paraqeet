@@ -14,7 +14,7 @@ name = "cthree"
 version = "2.0"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "3.12"
 authors = [{name="PGI-12"}]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -109,12 +109,10 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "test/*" = ["D"] # pydocstyle is not important in the tests
+"doc/*" = ["D"] # ignore pydocstyle
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
-
-[tool.ruff.lint.per-file-ignores]
-"doc/*" = ["D"] # ignore pydocstyle
 
 [tool.sphinx-pyproject]
 extensions = [
