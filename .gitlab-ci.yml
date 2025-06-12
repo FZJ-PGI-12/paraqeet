@@ -27,6 +27,7 @@ cache:
 stages:
   - codestyle
   - tests
+  - docs
 
 before_script:
   - python --version  # For debugging
@@ -79,14 +80,18 @@ examples:
     reports:
       junit: notebooks.xml
 
-# pages:
-#   script:
-#     - pip install sphinx sphinx-rtd-theme
-#     - cd doc
-#     - make html
-#     - mv build/html/ ../public/
-#   artifacts:
-#     paths:
-#       - public
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+build-docs:
+  stage: docs
+  script:
+    - apt-get update
+    - apt-get install -y pandoc
+    - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
+    - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
+    - cd doc
+    - make html
+    - mv _build/html/ ../public/
+  artifacts:
+    paths:
+      - public
+  #rules:
+  #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
