@@ -27,6 +27,7 @@ cache:
 stages:
   - codestyle
   - tests
+  - docs
 
 before_script:
   - python --version  # For debugging
@@ -56,18 +57,22 @@ codequality:
   script:
     - pip install mypy mypy-gitlab-code-quality
     - mypy cthree --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
-    - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > codequality.json
+    - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > mypy-report.json
   artifacts:
     when: always
     expire_in: 7 days
     reports:
-      codequality: codequality.json
+      codequality: mypy-report.json
   allow_failure: true
 
 formatting-and-linting:
   stage: codestyle
   script:
-    - ruff check --output-format=gitlab .
+    - ruff check --output-format=gitlab . > ruff-report.json
+  artifacts:
+    reports:
+      codequality: ruff-report.json
+  allow_failure: true
 
 examples:
   stage: tests
@@ -79,14 +84,18 @@ examples:
     reports:
       junit: notebooks.xml
 
-# pages:
-#   script:
-#     - pip install sphinx sphinx-rtd-theme
-#     - cd doc
-#     - make html
-#     - mv build/html/ ../public/
-#   artifacts:
-#     paths:
-#       - public
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+build-docs:
+  stage: docs
+  script:
+    - apt-get update
+    - apt-get install -y pandoc
+    - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
+    - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
+    - cd doc
+    - make html
+    - mv _build/html/ ../public/
+  artifacts:
+    paths:
+      - public
+  #rules:
+  #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

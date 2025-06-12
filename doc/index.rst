@@ -1,13 +1,8 @@
-.. c3 documentation master file, created by
-   sphinx-quickstart on Tue Aug 25 10:24:31 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-===========================================================================
-
 .. toctree::
-   :maxdepth: 4
-   :caption: API documentation:
+    :maxdepth: 4
+    :caption: API documentation:
+    :glob:
+
 
 ===================================================================================
 :math:`C^3` -  An integrated tool-set for control, calibration and characterization
@@ -22,6 +17,13 @@ The :math:`C^3` software package provides tools to simulate and interact with ex
 When combined in sequence, these three procedures represent a recipe for system characterization.
 
 *Note: This documentation is work-in-progress.*
+
+.. toctree::
+   :maxdepth: 4
+   :caption: Examples:
+   :glob:
+   
+   notebooks/*
 
 .. toctree::
    :maxdepth: 4
