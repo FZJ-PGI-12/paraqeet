@@ -22,7 +22,8 @@ class Quantity:
 
     For convenience, the constructor and setter functions accept primitive floats. However, these will be converted into
     numpy arrays internally, such that scalar values are represented by arrays of shape (1,). All getter functions only
-    return numpy arrays.
+    return numpy arrays. If the value is an array and min/max are floats, the latter will be considered constant bounds
+    for all value and will be converted into constant arrays.
 
     Note on python's operators: equality checks `q == p` and `q != p` check
     for the values of the quantities q and p. For vector or matrix quantities,
@@ -37,10 +38,9 @@ class Quantity:
         Value of the quantity
     min_value : numpy.array(numpy.float64) or numpy.float64
         Minimum this quantity is allowed to take.
-        If this is null, a default interval around the value will be chosen.
+        If this is a float, it will be a default interval around the value will be chosen.
     max_value : numpy.array(numpy.float64) or numpy.float64
         Maximum this quantity is allowed to take.
-        If this is null, a default interval around the value will be chosen.
     unit : str
         physical unit
     name : str
@@ -89,6 +89,15 @@ class Quantity:
         value = self.__fix_parameter_types(value)
         min_value = self.__fix_parameter_types(min_value)
         max_value = self.__fix_parameter_types(max_value)
+
+        # If value is an array and the bounds are floats, the same bounds are used for all values. The floats are
+        # converted into constant arrays.
+        if len(value) > 1 and len(min_value) == 1:
+            min_value = min_value * np.ones_like(value)
+        if len(value) > 1 and len(max_value) == 1:
+            max_value = max_value * np.ones_like(value)
+
+        # Values and bounds that are arrays of different length can not be handled
         if value.shape != min_value.shape or value.shape != max_value.shape:
             raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
 
@@ -410,6 +419,15 @@ class Quantity:
         oldValue = self.get_value()
         min_value = self.__fix_parameter_types(min_value)
         max_value = self.__fix_parameter_types(max_value)
+
+        # If value is an array but the new bounds are floats, the same new bounds are used for all values. The floats
+        # are converted into constant arrays.
+        if len(oldValue) > 1 and len(min_value) == 1:
+            min_value = min_value * np.ones_like(oldValue)
+        if len(oldValue) > 1 and len(max_value) == 1:
+            max_value = max_value * np.ones_like(oldValue)
+
+        # Values and bounds that are arrays of different length can not be handled
         if min_value.shape != oldValue.shape or max_value.shape != oldValue.shape:
             raise IncompatibleQuantityException("The boundaries must have the same shape as the value")
 
@@ -428,6 +446,15 @@ class Quantity:
         value = self.__fix_parameter_types(value)
         min_value = self.__fix_parameter_types(min_value)
         max_value = self.__fix_parameter_types(max_value)
+
+        # If value is an array and the bounds are floats, the same bounds are used for all values. The floats are
+        # converted into constant arrays.
+        if len(value) > 1 and len(min_value) == 1:
+            min_value = min_value * np.ones_like(value)
+        if len(value) > 1 and len(max_value) == 1:
+            max_value = max_value * np.ones_like(value)
+
+        # Values and bounds that are arrays of different length can not be handled
         if min_value.shape != value.shape or max_value.shape != value.shape:
             raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
 
