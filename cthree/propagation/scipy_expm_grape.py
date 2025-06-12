@@ -316,5 +316,5 @@ class ScipyExpmGRAPE(ScipyExpm):
         # if open system convert back the vectorized density matrices to matrix shape
         if self.is_open:
             psis = jnp.array(psis)
-            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, jnp.sqrt(dim))
+            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return psis, jnp.array(grads)

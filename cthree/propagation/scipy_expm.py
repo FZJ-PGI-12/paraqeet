@@ -212,7 +212,7 @@ class ScipyExpm(StatePropagation):
 
         # if open system convert back the vectorized density matrices to matrix shape
         if self.is_open:
-            dim = jnp.sqrt(eom.shape[-1])
+            dim = int(jnp.sqrt(eom.shape[-1]))
             psi = jnp.array(psi)
             psi = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psi, dim)
         return jnp.array(psi)
