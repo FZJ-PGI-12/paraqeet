@@ -133,7 +133,7 @@ def random_quantity_for_values(random_limits_for_quantity):
 
     """
 
-    def _method(values: np.array):
+    def _method(values: np.ndarray):
         limits = random_limits_for_quantity(values)
         return Quantity(values, min_value=limits[0], max_value=limits[1], unit="")
 
@@ -149,7 +149,7 @@ def random_limits_for_quantity():
 
     """
 
-    def _method(values: np.array):
+    def _method(values: np.ndarray):
         if len(values.shape) == 0:
             # scalar quantity
             if values == 0.0:
@@ -179,5 +179,18 @@ def random_limits_for_quantity():
                     min_values[i] = np.random.random() * v
                     max_values[i] = (np.random.random() + 1) * v
             return min_values, max_values
+
+    return _method
+
+
+@pytest.fixture
+def random_from_list():
+    """Returns one or more random values from the given list, excluding specific values from the list."""
+
+    def _method(selectFrom: np.ndarray, excluded: np.ndarray | float, numSelected: int = 1):
+        if np.isscalar(excluded):
+            excluded = np.array([excluded])
+        selectable = np.delete(selectFrom, excluded)
+        return np.random.choice(selectable)
 
     return _method
