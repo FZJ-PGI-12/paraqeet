@@ -57,18 +57,22 @@ codequality:
   script:
     - pip install mypy mypy-gitlab-code-quality
     - mypy cthree --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
-    - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > codequality.json
+    - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > mypy-report.json
   artifacts:
     when: always
     expire_in: 7 days
     reports:
-      codequality: codequality.json
+      codequality: mypy-report.json
   allow_failure: true
 
 formatting-and-linting:
   stage: codestyle
   script:
-    - ruff check --output-format=gitlab .
+    - ruff check --output-format=gitlab . > ruff-report.json
+  artifacts:
+    reports:
+      codequality: ruff-report.json
+  allow_failure: true
 
 examples:
   stage: tests
