@@ -1,6 +1,5 @@
 """Class definition of the Bayesian Optimiser model."""
 
-import numpy as np
 from bayes_opt import BayesianOptimization
 
 from cthree.optimisation_map import OptimisationMap
@@ -100,14 +99,15 @@ class BayesianOptimiser(Optimiser):
 
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
-        bestValues = optimiser.max["params"]
+
+        bestValues = optimiser.max["params"]  # type: ignore
         for i, param in enumerate(params):
             param.set_reduced_value(bestValues[str(i)])
 
         # Use the actual names and the non-reduced values
         # for the return value
         result = {params[i].get_name(): params[i].get_value() for i in range(len(bestValues))}
-        result["fun"] = 1 - optimiser.max["target"]
+        result["fun"] = 1 - optimiser.max["target"]  # type: ignore
         if self._logger:
             self._logger.stop(str(result))
 
@@ -118,7 +118,7 @@ class BayesianOptimiser(Optimiser):
             raw_result=optimiser.max,
         )
 
-    def _set_parameters_and_measure(self, **kwargs) -> np.ndarray:
+    def _set_parameters_and_measure(self, **kwargs) -> float:
         """Update the parameter values and returns the measurement result.
 
         Internal callback.
@@ -144,4 +144,4 @@ class BayesianOptimiser(Optimiser):
 
         if self._logger:
             self._logger.log(log, fidelity)
-        return fidelity
+        return float(fidelity.item())

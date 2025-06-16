@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.optimize import minimize
 
+from cthree.quantity import yaqArray
 from cthree.exceptions import IncompatibleOptimisationMap
 from cthree.optimisation_map import OptimisationMap
 from cthree.optimisers.optimiser import OptimisationResult
@@ -18,7 +19,8 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
     """
 
-    __gradCache: np.ndarray  # of shape (n_parameters,)
+    __gradCache: yaqArray  # of shape (n_parameters,)
+    __scales: yaqArray
 
     def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
         super().__init__(measure, optimisables)
@@ -105,10 +107,10 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         infid = 1 - fun
         if self._logger:
-            self._logger.log(log, float(infid))
+            self._logger.log(log, infid)
         return 1 - fun
 
-    def _lookup_jac(self, values) -> np.ndarray:
+    def _lookup_jac(self, values) -> yaqArray:
         """Update the parameter values.
 
         Return the gradient of a measurement result.

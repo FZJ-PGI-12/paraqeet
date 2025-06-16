@@ -1,8 +1,8 @@
 """Class definition of the Makhlin functional."""
 
-import numpy as np
+import jax.numpy as np
 
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, yaqArray
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
 from cthree.exceptions import IncompatibleLayersException, ConfigurationException
@@ -31,7 +31,7 @@ class MakhlinFunctional(Measurement):
     """
 
     __propagation: Propagation
-    __ideal_invariants: np.ndarray
+    __ideal_invariants: np.ndarray | None
 
     def __init__(
         self,
@@ -54,7 +54,7 @@ class MakhlinFunctional(Measurement):
         """
         return []
 
-    def measure(self) -> np.ndarray:
+    def measure(self) -> yaqArray:
         """Measure distance of the propagator to a perfect entangler.
 
         Returns
@@ -78,11 +78,11 @@ class MakhlinFunctional(Measurement):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self.__makhlin_invariants(U)
         if self.__ideal_invariants is not None:
-            return np.linalg.norm(gs - self.__ideal_invariants)
+            return np.linalg.norm(gs - self.__ideal_invariants)  # type: ignore
         else:
             return np.abs(gs[2] * np.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
-    def __makhlin_invariants(self, U: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def __makhlin_invariants(self, U: yaqArray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute the Makhlin invariants for a matrix U.
 
         Returns a tuple with the three invariants g1, g2 and g3.
@@ -99,14 +99,14 @@ class MakhlinFunctional(Measurement):
 
         """
         # transform to bell basis
-        Q = np.matrix(
+        Q = np.array(
             [[1, 0, 0, 1j], [0, 1j, 1, 0], [0, 1j, -1, 0], [1, 0, 0, -1j]],
         )
         det = np.linalg.det(U)
         # Normalize the determinant to be sensitive to leakage, non-unitarity.
         if det != 0.0:
             det /= np.abs(det)
-        U_B = (Q.H @ U @ Q) / 2
+        U_B = (Q.T.conj() @ U @ Q) / 2
         m = U_B.T @ U_B
         tr = np.trace(m @ m)
         trSq = np.trace(m) ** 2 / det

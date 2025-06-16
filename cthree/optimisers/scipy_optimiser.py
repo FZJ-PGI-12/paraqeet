@@ -86,6 +86,9 @@ class ScipyOptimiser(Optimiser):
 
         Performs the actual optimisation.
 
+        Since the search parameters are dimensionless and bound by [-1, 1], we set the bounds of the scipy minimize
+        module to -1, and 1 explicitely in each search dimension.
+
         Returns
         -------
         cthree.optimisers.optimiser.OptimisationResult
@@ -101,12 +104,12 @@ class ScipyOptimiser(Optimiser):
         # Collect the initial values of all parameters
         init = []
         for qty in self._optimisables.get_all_parameters():
-            init.append(qty.get_reduced_value())
+            init.append(qty.get_reduced_value())  # reduced values are between [-1, 1]
 
         opt_res = minimize(
             fun=self._set_parameters_and_measure,
             x0=np.concatenate(init).flatten(),
-            bounds=[(-1, 1)] * self._opt_idxs[-1],
+            bounds=[(-1, 1)] * len(self._opt_idxs),  # len(.) gives the number of parameters
             method=self._method,
             options=self._options,
             callback=self._callback,
@@ -147,5 +150,5 @@ class ScipyOptimiser(Optimiser):
         infid = 1 - self._measure.measure_normalised()
 
         if self._logger:
-            self._logger.log(log, float(infid))
+            self._logger.log(log, infid.item())
         return infid

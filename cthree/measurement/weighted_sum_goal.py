@@ -1,8 +1,8 @@
 """Class definition of the Weighted Sum Goal model."""
 
-import numpy as np
 import jax.numpy as jnp
 
+from cthree.quantity import yaqArray
 from cthree.measurement.measurement import Measurement
 from cthree.exceptions import ConfigurationException
 from cthree.quantity import Quantity
@@ -28,24 +28,24 @@ class WeightedSumGoal(Measurement):
     """
 
     __measurements: list[Measurement]
-    __weights: np.ndarray
+    __weights: jnp.ndarray
 
-    def __init__(self, measurements: list[Measurement], weights: np.ndarray):
-        super().__init__(None)
+    def __init__(self, measurements: list[Measurement], weights: jnp.ndarray):
+        super().__init__(jnp.array(0.0))
         self.__measurements = measurements
         self.__weights = weights
         if len(measurements) != len(weights):
             raise ConfigurationException(
                 f"Incompatible number of measurements {len(measurements)}" " and weights {len(weights)}"
             )
-        if not np.isclose(sum(weights), 1.0):
+        if not jnp.isclose(sum(weights), 1.0):
             raise UserWarning("Supplied weights are not normalized.")
 
     def get_parameters(self) -> list[Quantity]:
         """Returns an empty list."""
         return []
 
-    def measure(self) -> np.ndarray:
+    def measure(self) -> yaqArray:
         """Sum of plain weighted measurements.
 
         Returns
@@ -55,12 +55,12 @@ class WeightedSumGoal(Measurement):
 
         """
         measurements = [m.measure() for m in self.__measurements]
-        sumMeas = 0
+        sumMeas = jnp.array(0.0)
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii]
         return sumMeas
 
-    def measure_normalised(self) -> np.ndarray:
+    def measure_normalised(self) -> yaqArray:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -70,12 +70,12 @@ class WeightedSumGoal(Measurement):
 
         """
         measurements = [m.measure_normalised() for m in self.__measurements]
-        sumMeas = 0
+        sumMeas = jnp.array(0.0)
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii]
-        return float(sumMeas)
+        return sumMeas
 
-    def measure_with_gradient(self) -> tuple[jnp.ndarray, jnp.ndarray]:
+    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns

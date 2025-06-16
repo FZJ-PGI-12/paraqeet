@@ -1,15 +1,14 @@
 """The class definition of state transfer fidelity model."""
 
 from collections.abc import Callable
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, yaqArray
 
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
 
 import jax
 import jax.numpy as jnp
-from jax import Array, grad, jit
-from jax.typing import ArrayLike
+from jax import grad, jit
 
 import warnings
 
@@ -33,16 +32,16 @@ class StateTransferFidelity(Measurement):
 
     """
 
-    _initial_state: ArrayLike
-    _target_state: ArrayLike
+    _initial_state: yaqArray
+    _target_state: yaqArray
     _propagation: Propagation
 
     def __init__(
         self,
         propagation: Propagation,
-        initial_state: ArrayLike,
-        target_state: ArrayLike,
-        times: ArrayLike,
+        initial_state: yaqArray,
+        target_state: yaqArray,
+        times: jnp.ndarray,
     ):
         super().__init__(times=times)
         self._propagation = propagation
@@ -60,10 +59,10 @@ class StateTransferFidelity(Measurement):
         self._propagation.set_initial_state(self._initial_state)
 
     @staticmethod
-    def _fid(overlap):
+    def _fid(overlap: yaqArray) -> yaqArray:
         return jnp.abs(overlap) ** 2
 
-    def measure(self) -> ArrayLike:
+    def measure(self) -> yaqArray:
         """Measure overlap between initial and target state.
 
         Returns
@@ -75,10 +74,10 @@ class StateTransferFidelity(Measurement):
         states = self._propagation.propagate(time=self._times)
         states = self._preprocess_vector(states)
         final_state = states[-1]
-        f = jnp.vdot(self._target_state, final_state)
-        return self._fid(f)
+        state_overlaps = jnp.vdot(self._target_state, final_state)
+        return self._fid(state_overlaps)
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -131,14 +130,14 @@ class StateTransferFidelityAD(StateTransferFidelity):
     def __init__(
         self,
         propagation: Propagation,
-        initial_state: ArrayLike,
-        target_state: ArrayLike,
-        times: ArrayLike,
+        initial_state: yaqArray,
+        target_state: yaqArray,
+        times: jnp.ndarray,
     ):
         super().__init__(propagation, initial_state, target_state, times)
         self.__gradient_function = None
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -187,7 +186,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     _propagation: Propagation
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
         """Compute function value and corresponding gradient.
 
         Returns
