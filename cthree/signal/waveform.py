@@ -3,6 +3,7 @@
 from abc import abstractmethod
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -11,7 +12,7 @@ from jax import grad, vmap, jit
 from jax.typing import ArrayLike as Array
 
 from cthree.optimisable import Optimisable
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, yaqArray
 
 jax.config.update("jax_enable_x64", True)
 
@@ -23,10 +24,7 @@ class Waveform(Optimisable):
     _grad_arg_nums: tuple[int, ...] = ()
 
     def _compute_gradient_function(
-        self,
-        signalFunction: Callable,
-        argnums: tuple[int, ...],
-        vmap_axes: tuple[int, ...],
+        self, signalFunction: Callable, argnums: tuple[int, ...], vmap_axes: tuple[int | None, ...]
     ):
         """Return a compute gradient function from the signal function.
 
@@ -78,7 +76,7 @@ class Waveform(Optimisable):
             self._gradient_function = None
 
     @abstractmethod
-    def _evaluate(self, *args, **kwargs):
+    def _evaluate(self, *args, **kwargs) -> yaqArray:
         """Evaluate the output of the system.
 
         Abstract method.
@@ -92,13 +90,13 @@ class Waveform(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def compute_output(self, t: np.ndarray) -> np.ndarray:
+    def compute_output(self, t: np.ndarray | float) -> yaqArray:
         """Compute the output.
 
         Parameters
         ----------
-        t : numpy.ndarray
-            One-dimensional vector of timestamps.
+        t : numpy.ndarray or float
+            One-dimensional vector of timestamps or a single value.
 
         Returns
         -------
@@ -113,7 +111,7 @@ class Waveform(Optimisable):
         """
         raise NotImplementedError()
 
-    def compute_gradient(self, t: np.ndarray) -> np.ndarray:
+    def compute_gradient(self, t: np.ndarray) -> yaqArray:
         """Compute the gradient of the `_evaluate` method.
 
         Uses Automatic differentiation.
@@ -138,10 +136,10 @@ class Waveform(Optimisable):
         """
         params = self.get_parameters()
         param_values = [param.get_value() for param in params]
-        t = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(t, ndmin=1)
         grads = jnp.empty((t.shape[0], 0))
         if self._gradient_function is not None:
-            grads = jnp.stack(self._gradient_function(*param_values, t), axis=1)
+            grads = jnp.stack(self._gradient_function(*param_values, t_arr), axis=1)
             grads = jnp.squeeze(grads, -1)
         return grads
 
@@ -159,9 +157,9 @@ class Waveform(Optimisable):
             Returns a vector signals time derivative.
 
         """
-        t = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(t, ndmin=1)
         envTimeGradFun = grad(self.compute_output, argnums=0)
-        envTimeGrad = vmap(envTimeGradFun, in_axes=(0,))(t)
+        envTimeGrad = vmap(envTimeGradFun, in_axes=(0,))(t_arr)
         return jnp.squeeze(envTimeGrad)
 
 
@@ -220,7 +218,7 @@ class LocalOscillator(Waveform):
         self.__lo_freq = frequency
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, freq: np.ndarray, t: np.ndarray) -> Array:
+    def _evaluate(self, freq: np.ndarray, t: np.ndarray) -> yaqArray:  # type: ignore
         """Calculate the unscaled carrier signal.
 
         Parameters
@@ -237,7 +235,7 @@ class LocalOscillator(Waveform):
         """
         return jnp.exp(1j * freq * t)
 
-    def compute_output(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: np.ndarray | float) -> yaqArray:
         """Evaluate a carrier signal from an input time vector.
 
         Parameters
@@ -250,9 +248,9 @@ class LocalOscillator(Waveform):
         np.ndarray
             Returns a vector carrier signal.
         """
-        return self._evaluate(self.__lo_freq.get_value(), t)
+        return self._evaluate(self.__lo_freq.get_value(), t)  # type: ignore
 
-    def compute_gradient(self, t: np.ndarray) -> Array:
+    def compute_gradient(self, t: np.ndarray) -> yaqArray:
         """Return the gradient wrt to frequency of carrier signal.
 
         Parameters
@@ -266,15 +264,15 @@ class LocalOscillator(Waveform):
             Gradient of tone wrt to frequency.
         """
         freq = self.__lo_freq.get_value()
-        t = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
         if self._is_optimised(self.__lo_freq):
-            grads = jnp.reshape(1j * t * self._evaluate(freq, t), (-1, 1))
+            grads = jnp.reshape(1j * t_arr * self._evaluate(freq, t_arr), (-1, 1))
 
         return grads
 
-    def compute_time_gradient(self, t: np.ndarray) -> Array:
+    def compute_time_gradient(self, t: np.ndarray) -> yaqArray:
         """Compute a signals time derivative.
 
         Parameters
@@ -284,12 +282,13 @@ class LocalOscillator(Waveform):
 
         Returns
         -------
-        np.ndarray
+        np.ndarray or JitWrapped
             Returns a vector signals time derivative.
 
         """
         freq = self.__lo_freq.get_value()
-        return 1j * t * self._evaluate(freq, t)
+        # returns JitWrapped
+        return 1j * t * self._evaluate(freq, t)  # type: ignore
 
 
 class DRAGMixer(Waveform):
@@ -352,7 +351,7 @@ class DRAGMixer(Waveform):
             env_tone.__setattr__(
                 "_" + env_tone.__class__.__name__ + "__delta",
                 Quantity(
-                    deltas[ii] if deltas else np.array(-200e6 * 2 * np.pi),
+                    deltas[ii].get_value() if deltas else np.array(-200e6 * 2 * np.pi),
                     min_value=np.array(-3 * 200e6 * 2 * np.pi),
                     max_value=np.array(-0.1 * 200e6 * 2 * np.pi),
                     unit="Hz",
@@ -361,7 +360,7 @@ class DRAGMixer(Waveform):
             )
 
     @staticmethod
-    def __get_tone_delta(tone: Waveform) -> Quantity:
+    def __get_tone_delta(tone: Waveform) -> Any:
         """Return a list of deltas for each tone.
 
         Returns
@@ -371,7 +370,7 @@ class DRAGMixer(Waveform):
         """
         return tone.__getattribute__("_" + tone.__class__.__name__ + "__delta")
 
-    def _evaluate(self, t, *deltas) -> Array:
+    def _evaluate(self, t, *deltas) -> yaqArray:
         """Compute the DRAG Envelope using deltas.
 
         Explicit function depending on deltas to compute gradients using AD.
@@ -395,7 +394,7 @@ class DRAGMixer(Waveform):
             total_env += env - 1.0j / delta * env_grad
         return jnp.squeeze(total_env)
 
-    def compute_output(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: np.ndarray | float) -> yaqArray:
         """Evaluate a carrier signal from an input time vector.
 
         Parameters
@@ -425,7 +424,7 @@ class DRAGMixer(Waveform):
         for tone in self.__envs:
             tone.set_optimisable_parameters(params)
 
-    def compute_gradient(self, t: np.ndarray) -> Array:
+    def compute_gradient(self, t: np.ndarray) -> yaqArray:
         """Generate gradient of the signal for an array of time.
 
         Collect and return the parameter gradients from the Tone and the carrier
