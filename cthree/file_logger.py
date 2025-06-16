@@ -2,11 +2,10 @@
 
 import os
 import json
-import numpy as np
 
 
 from cthree.logger import Logger
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, yaqArray
 
 
 class FileLogger(Logger):
@@ -53,7 +52,7 @@ class FileLogger(Logger):
         """Start logging."""
         super().start()
 
-    def log(self, params: list[Quantity], infidelity: np.ndarray):
+    def log(self, params: list[Quantity], infidelity: yaqArray):
         """Write the formatted parameters and the goal to the log file.
 
         Parameters

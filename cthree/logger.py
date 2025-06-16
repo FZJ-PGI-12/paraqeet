@@ -1,9 +1,8 @@
 """Class definition of the Logger model."""
 
 from datetime import datetime
-import numpy as np
 
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, yaqArray
 
 
 class Logger:
@@ -18,7 +17,7 @@ class Logger:
         self._start_time = datetime.now()
         self._counter = 0
 
-    def log(self, params: list[Quantity], infid: np.ndarray):
+    def log(self, params: list[Quantity], infidelity: yaqArray):
         """Template function to direct what happens at each log call.
 
         Parameters
