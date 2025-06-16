@@ -8,8 +8,9 @@ from collections.abc import Callable
 from sys import float_info
 
 import numpy as np
-
 from cthree.exceptions import IncompatibleQuantityException
+
+type yaqArray = np.typing.NDArray[np.float64]
 
 
 class Quantity:
@@ -60,9 +61,9 @@ class Quantity:
     __length: int
     __shape: tuple
     # internal representation of the value
-    __value: np.ndarray
-    __offset: np.ndarray
-    __scale: np.ndarray
+    __value: yaqArray
+    __offset: yaqArray
+    __scale: yaqArray
     __twoPi: bool
     __dependent: bool
     __dependencies: list
@@ -71,9 +72,9 @@ class Quantity:
 
     def __init__(
         self,
-        value: np.ndarray | float,
-        min_value: np.ndarray | float,
-        max_value: np.ndarray | float,
+        value: yaqArray | float,
+        min_value: yaqArray | float,
+        max_value: yaqArray | float,
         unit: str = "",
         name: str = "",
         two_pi: bool = False,
@@ -315,11 +316,11 @@ class Quantity:
         """
         self.__set_value(self.__relation(*[qty.get_value() for qty in self.__dependencies]))
 
-    def get_value(self) -> np.ndarray:
+    def get_value(self) -> yaqArray:
         """Get value of the parameter."""
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
-    def get_reduced_value(self) -> np.ndarray:
+    def get_reduced_value(self) -> yaqArray:
         """Return the value in the reduced representation.
 
         Returns
@@ -389,15 +390,15 @@ class Quantity:
             raise IncompatibleQuantityException("The new value must have the same shape as the old value")
         self.__value = value
 
-    def get_min_value(self) -> np.ndarray:
+    def get_min_value(self) -> yaqArray:
         """Get minimum value of parameter."""
         return self.__offset
 
-    def get_max_value(self) -> np.ndarray:
+    def get_max_value(self) -> yaqArray:
         """Get maximum value of parameter."""
         return self.__scale + self.__offset
 
-    def get_scale(self) -> np.ndarray:
+    def get_scale(self) -> yaqArray:
         """Get scale of parameter."""
         return self.__scale
 
@@ -578,7 +579,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() < other.get_value()
+        return self.get_value().item() < other.get_value().item()
 
     def __le__(self, other) -> bool:
         """Magic method for representation of less-equal operation.
@@ -600,7 +601,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() <= other
+        return self.get_value().item() <= other.get_value().item()
 
     def __eq__(self, other) -> bool:
         """Magic method for representation of equality operation."""
@@ -634,7 +635,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() >= other
+        return self.get_value().item() >= other.get_value().item()
 
     def __gt__(self, other) -> bool:
         """Magic method for representation of greater-than operation.
@@ -655,7 +656,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() > other
+        return self.get_value().item() > other.get_value().item()
 
     def __array__(self):
         """Magic method for representation into array."""
@@ -703,10 +704,10 @@ class Quantity:
         """Human readable representation of the parameters set to optimise."""
         return self.__to_string(self.get_value())
 
-    def __to_string(self, val):
+    def __to_string(self, val: yaqArray):
         """Represent parameter as custom defined string value."""
         ret = ""
-        for entry in np.nditer(val):
+        for entry in val:
             if self.__unit != "":
                 if self.__twoPi:
                     ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi "
