@@ -197,7 +197,7 @@ def testToArray(random_quantity_for_values) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(values)
-        testing.assert_array_almost_equal(np.array(q), values)
+        testing.assert_array_almost_equal(np.asarray(q), values)
 
 
 # comparison
