@@ -8,9 +8,10 @@ from collections.abc import Callable
 from sys import float_info
 
 import numpy as np
+import jax
 from cthree.exceptions import IncompatibleQuantityException
 
-type yaqArray = np.typing.NDArray[np.float64]
+type yaqArray = np.typing.NDArray[np.float64] | jax.Array
 
 
 class Quantity:
@@ -102,8 +103,8 @@ class Quantity:
         if value.shape != min_value.shape or value.shape != max_value.shape:
             raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
 
-        self.__shape = value.shape
-        self.__length = int(np.prod(value.shape))
+        self.__shape = value_np.shape
+        self.__length = int(np.prod(value_np.shape))
 
         self.__offset = min_value
         self.__scale = np.abs(max_value - min_value)
@@ -119,6 +120,15 @@ class Quantity:
         self.__dependents = list()
 
         self.set_value(value)
+
+    @staticmethod
+    def __fix_parameter_types(param: np.ndarray | float) -> np.ndarray:
+        """
+        Makes sure that the parameter is a numpy array of type np.float64. Primitive floats are wrapped into a
+        1d-array
+        """
+        p = np.array([param]) if np.shape(param) == () else np.array(param)
+        return p.astype(np.float64)
 
     @staticmethod
     def __fix_parameter_types(param: np.ndarray | float) -> np.ndarray:
