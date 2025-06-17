@@ -94,23 +94,24 @@ class ScipyExpm(StatePropagation):
         """Set initial state."""
         # For open system convert Density Matrix to Vectorized form.
         if self.is_open:
-            # check shape of input state
-            if len(state.shape) == 1:  # An (n,) array
-                state = jnp.reshape(state, (-1, 1))
-            # Compare the shapes of inital state with the generator of time translation
-            dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
-            # Comparing dim 1 as 0 can be batch dimension
-            if state.shape[1] == jnp.sqrt(dim_generator):
-                # check if it is a square matrix. Check the last 2 dimensions are equal.
-                if state.shape[-1] == state.shape[-2]:
-                    # This is a density matrix
-                    state = self._convert_dm_to_vec(state)
-                else:
-                    raise ConfigurationException(
-                        f"Obtained a state vector of shape {state.shape} as initial state. "
-                        + "For open system propagation expected a density matrix or vectorized density matrix "
-                        + "as the initial state."
-                    )
+            try:
+                if len(state.shape) == 1:  # An (n,) array
+                    state = jnp.reshape(state, (-1, 1))
+                # Compare the shapes of inital state with the generator of time translation
+                dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
+                # Comparing dim -2 as 0 can be batch dimension
+                if state.shape[-2] == jnp.sqrt(dim_generator):
+                    # check if it is a square matrix. Check the last 2 dimensions are equal.
+                    if state.shape[-1] == state.shape[-2]:
+                        # This is a density matrix
+                        state = self._convert_dm_to_vec(state)
+            except Exception as e:
+                raise ConfigurationException(
+                    f"Obtained a state vector of shape {state.shape} as initial state. "
+                    + "For open system propagation expected a density matrix or vectorized density matrix "
+                    + "as the initial state.\n"
+                    + f"Raised exception: `{e}`"
+                )
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
     @staticmethod
