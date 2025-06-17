@@ -1,11 +1,11 @@
 """Class definition of the file logger object."""
 
-import os
 import json
+import os
 
-
+from jax import Array
 from cthree.logger import Logger
-from cthree.quantity import Quantity, yaqArray
+from cthree.quantity import Quantity
 
 
 class FileLogger(Logger):
@@ -52,7 +52,7 @@ class FileLogger(Logger):
         """Start logging."""
         super().start()
 
-    def log(self, params: list[Quantity], infidelity: yaqArray):
+    def log(self, params: list[Quantity], infidelity: Array):
         """Write the formatted parameters and the goal to the log file.
 
         Parameters
