@@ -29,7 +29,14 @@ class Qubit(Hamiltonian):
     __annihilationOp: jnp.ndarray
     __drift: jnp.array
 
-    def __init__(self, frequency: Quantity, drives: list[Drive] = None):
+    def __init__(
+        self,
+        frequency: Quantity,
+        drives: list[Drive] = None,
+        t1: Quantity = None,
+        temp: Quantity = None,
+        t2star: Quantity = None,
+    ):
         super().__init__(drives)
         self.__frequency = frequency
         self.__annihilationOp = jnp.array(
@@ -39,6 +46,9 @@ class Qubit(Hamiltonian):
             ]
         )
         self.__drift = 0.5 * jnp.diag(jnp.array([1.0, -1.0]))
+        self.__t1 = t1
+        self.__temp = temp
+        self.__t2star = t2star
 
     @property
     def frequency(self) -> Quantity:
@@ -49,6 +59,36 @@ class Qubit(Hamiltonian):
     def frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the qubit."""
         self.__frequency = frequency
+
+    @property
+    def t1(self) -> Quantity:
+        """Get the t1 of the resonator."""
+        return self.__t1
+
+    @t1.setter
+    def t1(self, t1: Quantity) -> None:
+        """Set the t1 of the resonator."""
+        self.__t1 = t1
+
+    @property
+    def temp(self) -> Quantity:
+        """Get the temp of the resonator."""
+        return self.__temp
+
+    @temp.setter
+    def temp(self, temp: Quantity) -> None:
+        """Set the temp of the resonator."""
+        self.__temp = temp
+
+    @property
+    def t2star(self) -> Quantity:
+        """Get the t2star of the resonator."""
+        return self.__t2star
+
+    @t2star.setter
+    def t2star(self, t2star: Quantity) -> None:
+        """Set the t2star of the resonator."""
+        self.__t2star = t2star
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
@@ -114,9 +154,24 @@ class Qubit(Hamiltonian):
         return derivatives
 
     def get_decay_rates(self) -> list[float]:
-        """Get Decay rates."""
-        raise NotImplementedError()
+        """Return decay rate for T1, T2star and Temp respectively."""
+        if (self.t1 is None) or (self.t2star is None) or (self.temp is None):
+            raise Exception("Specify values of T1, T2star and Temp for Open system simulations.")
+
+        gamma = 1 / self.t1.get_value()
+        gamma_t2star = 0.5 / self.t2star.get_value()
+
+        hbar_over_kb = 7.638232582257738e-12
+        beta = hbar_over_kb / (self.temp.get_value())
+        nbar = jnp.exp(-beta * 5e9)  # inserting typical qubit freq here. TODO - CHECK
+        gamma_temp = gamma * nbar
+        gamma_t1 = gamma * (nbar + 1)
+        return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_collapseops(self) -> list[jnp.ndarray]:
-        """Get collapse operators."""
-        raise NotImplementedError()
+        """Return a list tuples of decay rates and collapse operators for each subsystem."""
+        gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
+        col_t1 = self.__annihilationOp
+        col_temp = self.__annihilationOp.T
+        col_t2star = 2 * jnp.matmul(self.__annihilationOp.T, self.__annihilationOp)
+        return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]
