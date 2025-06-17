@@ -23,10 +23,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
     def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
         super().__init__(measure, optimisables)
         params = self._optimisables.get_all_parameters()
-        scales = []
-        for p in params:
-            scales.extend([p.get_scale()] * p.get_length())
-        self.__scales = np.stack(scales)
+        self.__scales = np.array([p.get_scale() for p in params]).flatten()
 
     def optimise(self) -> OptimisationResult:
         """Optimise via the Scipy optimizer gradient model.
