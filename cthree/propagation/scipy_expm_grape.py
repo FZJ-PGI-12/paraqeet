@@ -67,20 +67,21 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
         # For open system convert Density Matrix to Vectorized form.
         if self.is_open:
-            # Compare the shapes of target state with the generator of time translation
-            dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
-            # Comparing dim 1 as 0 can be batch dimension
-            if targetState.shape[1] == jnp.sqrt(dim_generator):
-                # check if it is a square matrix. Check the last 2 dimensions are equal.
-                if targetState.shape[-1] == targetState.shape[-2]:
-                    # This is a density matrix
-                    targetState = self._convert_dm_to_vec(targetState)
-                else:
-                    raise ConfigurationException(
-                        f"Obtained a state vector of shape {targetState.shape} as target state. "
-                        + "For open system propagation expected a density matrix or vectorized density matrix "
-                        + "as the target state."
-                    )
+            if len(targetState.shape) != 1:  # Not a (n,) array
+                # Compare the shapes of target state with the generator of time translation
+                dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
+                # Comparing dim 1 as 0 can be batch dimension
+                if targetState.shape[1] == jnp.sqrt(dim_generator):
+                    # check if it is a square matrix. Check the last 2 dimensions are equal.
+                    if targetState.shape[-1] == targetState.shape[-2]:
+                        # This is a density matrix
+                        targetState = self._convert_dm_to_vec(targetState)
+                    else:
+                        raise ConfigurationException(
+                            f"Obtained a state vector of shape {targetState.shape} as target state. "
+                            + "For open system propagation expected a density matrix or vectorized density matrix "
+                            + "as the target state."
+                        )
         self._target_state = targetState
 
     @property
