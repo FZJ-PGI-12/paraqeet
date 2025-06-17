@@ -3,15 +3,15 @@
 from __future__ import annotations  # necessary for type hints
 
 import copy
-from typing import Self
 from collections.abc import Callable
 from sys import float_info
+from typing import Self
 
 import numpy as np
-import jax
-from cthree.exceptions import IncompatibleQuantityException
+import jax.numpy as jnp
+from jax import Array
 
-type yaqArray = np.typing.NDArray[np.float64] | jax.Array
+from cthree.exceptions import IncompatibleQuantityException
 
 
 class Quantity:
@@ -60,11 +60,11 @@ class Quantity:
     __unit: str
     __name: str
     __length: int
-    __shape: tuple
+    __shape: tuple[int, ...]
     # internal representation of the value
-    __value: yaqArray
-    __offset: yaqArray
-    __scale: yaqArray
+    __value: Array
+    __offset: Array
+    __scale: Array
     __twoPi: bool
     __dependent: bool
     __dependencies: list
@@ -73,9 +73,9 @@ class Quantity:
 
     def __init__(
         self,
-        value: yaqArray | float,
-        min_value: yaqArray | float,
-        max_value: yaqArray | float,
+        value: Array | float,
+        min_value: Array | float,
+        max_value: Array | float,
         unit: str = "",
         name: str = "",
         two_pi: bool = False,
@@ -85,7 +85,7 @@ class Quantity:
 
         self.__unit = unit
         self.__name = name
-        self.__scale = np.array(0)
+        self.__scale = jnp.array(0)
         self.__twoPi = two_pi
 
         value = self.__fix_parameter_types(value)
@@ -215,8 +215,8 @@ class Quantity:
 
         """
         quantities = quantities if isinstance(quantities, list) else [quantities]
-        min_val = np.min([qty.get_min_value() for qty in quantities])
-        max_val = np.max([qty.get_max_value() for qty in quantities])
+        min_val = jnp.min(jnp.asarray([qty.get_min_value() for qty in quantities]))
+        max_val = jnp.max(jnp.asarray([qty.get_max_value() for qty in quantities]))
 
         if name is None:
             name = "relation_of"
@@ -326,11 +326,11 @@ class Quantity:
         """
         self.__set_value(self.__relation(*[qty.get_value() for qty in self.__dependencies]))
 
-    def get_value(self) -> yaqArray:
+    def get_value(self) -> Array:
         """Get value of the parameter."""
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
-    def get_reduced_value(self) -> yaqArray:
+    def get_reduced_value(self) -> Array:
         """Return the value in the reduced representation.
 
         Returns
@@ -339,7 +339,7 @@ class Quantity:
             Value from the reduced representation.
 
         """
-        return np.reshape(self.__value, (-1, 1))
+        return jnp.reshape(self.__value, (-1, 1))
 
     def set_value(self, value: np.ndarray | float) -> None:
         """Set the value of this quantity.
@@ -368,7 +368,7 @@ class Quantity:
 
     def __set_value(self, value: np.ndarray | float) -> None:
         """Set value for the parameter."""
-        if np.any(self.__scale < float_info.epsilon):
+        if jnp.any(self.__scale < float_info.epsilon):
             raise ValueError(
                 f"The range between the minimum ({self.__to_string(self.get_min_value())}) "
                 f"and maximum ({self.__to_string(self.get_max_value())}) values is too "
@@ -380,7 +380,7 @@ class Quantity:
 
         tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
-        if np.any(np.abs(tmp) > 1.0):
+        if jnp.any(jnp.abs(tmp) > 1.0):
             print("Error: ", val, self.get_min_value(), self.get_max_value())
             raise ValueError(
                 f"Value {self.__to_string(val)} out of bounds for quantity with "
@@ -400,15 +400,15 @@ class Quantity:
             raise IncompatibleQuantityException("The new value must have the same shape as the old value")
         self.__value = value
 
-    def get_min_value(self) -> yaqArray:
+    def get_min_value(self) -> Array:
         """Get minimum value of parameter."""
         return self.__offset
 
-    def get_max_value(self) -> yaqArray:
+    def get_max_value(self) -> Array:
         """Get maximum value of parameter."""
         return self.__scale + self.__offset
 
-    def get_scale(self) -> yaqArray:
+    def get_scale(self) -> Array:
         """Get scale of parameter."""
         return self.__scale
 
@@ -543,13 +543,13 @@ class Quantity:
     def __pow__(self, other) -> Quantity:
         """Magic method for exponentiation by operand."""
         out_val = copy.deepcopy(self)
-        out_val.set_value(np.float_power(self.get_value(), other))
+        out_val.set_value(jnp.float_power(self.get_value(), other))
         return out_val
 
     def __rpow__(self, other) -> Quantity:
         """Magic method for exponentiation by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.set_value(np.float_power(other, self.get_value()))
+        out_val.set_value(jnp.float_power(other, self.get_value()))
         return out_val
 
     def __truediv__(self, other) -> Quantity:
@@ -670,7 +670,15 @@ class Quantity:
 
     def __array__(self):
         """Magic method for representation into array."""
-        return self.get_value()
+        return np.array(self.get_value())
+
+    def __jax_array__(self):
+        """Magic method for representation into array."""
+        return jnp.array(self.get_value())
+
+    def __jax_array__(self):
+        """Magic method for representation into array."""
+        return jnp.array(self.get_value())
 
     def __len__(self):
         """Magic method for calculation of length."""
@@ -714,7 +722,7 @@ class Quantity:
         """Human readable representation of the parameters set to optimise."""
         return self.__to_string(self.get_value())
 
-    def __to_string(self, val: yaqArray):
+    def __to_string(self, val: Array):
         """Represent parameter as custom defined string value."""
         ret = ""
         for entry in val:
