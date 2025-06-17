@@ -28,7 +28,7 @@ class Qubit(Hamiltonian):
 
     __frequency: Quantity
     __annihilationOp: Array
-    __drift: jnp.array
+    __drift: Array
 
     def __init__(self, frequency: Quantity, drives: list[Drive] | None = None):
         super().__init__(drives)
