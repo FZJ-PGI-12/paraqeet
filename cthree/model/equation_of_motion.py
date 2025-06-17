@@ -2,11 +2,11 @@
 
 from abc import abstractmethod
 
+from jax import Array
+
+from cthree.model.hamiltonian import Hamiltonian
 from cthree.optimisable import Optimisable
 from cthree.quantity import Quantity
-from cthree.model.hamiltonian import Hamiltonian
-
-import numpy as np
 
 
 class EquationOfMotion(Optimisable):
@@ -45,7 +45,7 @@ class EquationOfMotion(Optimisable):
         """
         raise NotImplementedError()
 
-    def get_right_hand_side(self, time: np.ndarray, state: np.ndarray) -> np.ndarray:
+    def get_right_hand_side(self, time: Array, state: Array) -> Array:
         """Return the right-hand side of the equations of motion.
 
         The format depends on the implementation and could for example
@@ -66,7 +66,7 @@ class EquationOfMotion(Optimisable):
         return self.get_matrix(time) @ state
 
     @abstractmethod
-    def get_matrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: Array) -> Array:
         """Abstract method to get the prefactor matrix.
 
         Parameters

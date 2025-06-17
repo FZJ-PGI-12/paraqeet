@@ -2,12 +2,13 @@
 
 from collections.abc import Callable
 
-import numpy as np
-from scipy.optimize import minimize
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.optimisers.optimiser import Optimiser, OptimisationResult
+from scipy.optimize import minimize
+import numpy as np
+from jax import Array
 from cthree.measurement.measurement import Measurement
+from cthree.optimisation_map import OptimisationMap
+from cthree.optimisers.optimiser import OptimisationResult, Optimiser
 
 
 class ScipyOptimiser(Optimiser):
@@ -126,7 +127,7 @@ class ScipyOptimiser(Optimiser):
             raw_result=opt_res,
         )
 
-    def _set_parameters_and_measure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> Array:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
@@ -150,5 +151,5 @@ class ScipyOptimiser(Optimiser):
         infid = 1 - self._measure.measure_normalised()
 
         if self._logger:
-            self._logger.log(log, infid.item())
+            self._logger.log(log, infid)
         return infid

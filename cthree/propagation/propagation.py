@@ -2,11 +2,10 @@
 
 from abc import abstractmethod
 
-from cthree.quantity import yaqArray
-from cthree.optimisable import Optimisable
-from cthree.model.equation_of_motion import EquationOfMotion
+from jax import Array
 
-import jax.numpy as jnp
+from cthree.model.equation_of_motion import EquationOfMotion
+from cthree.optimisable import Optimisable
 
 
 class Propagation(Optimisable):
@@ -26,7 +25,7 @@ class Propagation(Optimisable):
     def __init__(self, model: EquationOfMotion):
         self._model = model
 
-    def set_initial_state(self, state: yaqArray):
+    def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
 
         Propagation implementations that do not need the state should not
@@ -46,7 +45,7 @@ class Propagation(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def propagate(self, time: jnp.ndarray) -> yaqArray:
+    def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
 
         The first dimension of the result will always be the time.
@@ -72,7 +71,7 @@ class Propagation(Optimisable):
         """
         raise NotImplementedError()
 
-    def gradient(self, time: jnp.ndarray) -> tuple[yaqArray, yaqArray]:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute this part of the chain rule for a gradient trace.
 
         Computes the result of the propagation wrt model.

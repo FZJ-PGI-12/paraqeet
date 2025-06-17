@@ -2,10 +2,9 @@
 
 from abc import ABC
 
+from jax import Array
+
 from cthree.model.equation_of_motion import EquationOfMotion
-
-import numpy as np
-
 from cthree.propagation.propagation import Propagation
 
 
@@ -21,12 +20,12 @@ class StatePropagation(Propagation, ABC):
 
     """
 
-    _initial_state: np.ndarray | None = None
+    _initial_state: Array | None = None
 
     def __init__(self, model: EquationOfMotion):
         super().__init__(model)
 
-    def set_initial_state(self, state: np.ndarray):
+    def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
 
         Subclasses can access the state in the _initial_sate field.

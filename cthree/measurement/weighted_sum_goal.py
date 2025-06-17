@@ -1,8 +1,9 @@
 """Class definition of the Weighted Sum Goal model."""
 
 import jax.numpy as jnp
+from jax import Array
 
-from cthree.quantity import yaqArray
+from cthree.exceptions import ConfigurationException
 from cthree.measurement.measurement import Measurement
 from cthree.exceptions import ConfigurationException
 from cthree.quantity import Quantity
@@ -28,9 +29,9 @@ class WeightedSumGoal(Measurement):
     """
 
     __measurements: list[Measurement]
-    __weights: jnp.ndarray
+    __weights: Array
 
-    def __init__(self, measurements: list[Measurement], weights: jnp.ndarray):
+    def __init__(self, measurements: list[Measurement], weights: Array):
         super().__init__(jnp.array(0.0))
         self.__measurements = measurements
         self.__weights = weights
@@ -45,7 +46,7 @@ class WeightedSumGoal(Measurement):
         """Returns an empty list."""
         return []
 
-    def measure(self) -> yaqArray:
+    def measure(self) -> Array:
         """Sum of plain weighted measurements.
 
         Returns
@@ -60,7 +61,7 @@ class WeightedSumGoal(Measurement):
             sumMeas += w * measurements[ii]
         return sumMeas
 
-    def measure_normalised(self) -> yaqArray:
+    def measure_normalised(self) -> Array:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -75,12 +76,12 @@ class WeightedSumGoal(Measurement):
             sumMeas += w * measurements[ii]
         return sumMeas
 
-    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
+    def measure_with_gradient(self) -> tuple[Array, Array]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the weighted sum wrt to gradients.
         jax.numpy.ndarray
             Returns the sum of gradients.

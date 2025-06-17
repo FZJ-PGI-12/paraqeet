@@ -1,12 +1,15 @@
 """Class definition of the CMA-Es Optimiser model."""
 
 from collections.abc import Callable
-from cthree.file_logger import Logger
-from cthree.optimisation_map import OptimisationMap
-from cthree.measurement.measurement import Measurement
-from cthree.optimisers.optimiser import Optimiser, OptimisationResult
-import numpy as np
+
 import cma.evolution_strategy as cma
+import numpy as np
+from jax import Array
+
+from cthree.file_logger import Logger
+from cthree.measurement.measurement import Measurement
+from cthree.optimisation_map import OptimisationMap
+from cthree.optimisers.optimiser import OptimisationResult, Optimiser
 
 
 class CMAEsOptimiser(Optimiser):
@@ -196,7 +199,7 @@ class CMAEsOptimiser(Optimiser):
             raw_result=es.result,
         )
 
-    def _set_parameters_and_measure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> Array:
         """Update the parameter values and return the measurement result.
 
         Internal callback.

@@ -1,16 +1,16 @@
 """The class definition of state transfer fidelity model."""
 
+import warnings
 from collections.abc import Callable
-from cthree.quantity import Quantity, yaqArray
+
+import jax.numpy as jnp
+from jax import Array, grad, jit
 
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
+from cthree.quantity import Quantity
 
 import jax
-import jax.numpy as jnp
-from jax import grad, jit
-
-import warnings
 
 jax.config.update("jax_enable_x64", True)
 
@@ -32,16 +32,16 @@ class StateTransferFidelity(Measurement):
 
     """
 
-    _initial_state: yaqArray
-    _target_state: yaqArray
+    _initial_state: Array
+    _target_state: Array
     _propagation: Propagation
 
     def __init__(
         self,
         propagation: Propagation,
-        initial_state: yaqArray,
-        target_state: yaqArray,
-        times: jnp.ndarray,
+        initial_state: Array,
+        target_state: Array,
+        times: Array,
     ):
         super().__init__(times=times)
         self._propagation = propagation
@@ -59,15 +59,15 @@ class StateTransferFidelity(Measurement):
         self._propagation.set_initial_state(self._initial_state)
 
     @staticmethod
-    def _fid(overlap: yaqArray) -> yaqArray:
+    def _fid(overlap: Array) -> Array:
         return jnp.abs(overlap) ** 2
 
-    def measure(self) -> yaqArray:
+    def measure(self) -> Array:
         """Measure overlap between initial and target state.
 
         Returns
         -------
-        jax.typing.ArrayLike
+        jax.Array
             Overlap between initial and target state in a JAX ArrayLike format.
 
         """
@@ -77,12 +77,12 @@ class StateTransferFidelity(Measurement):
         state_overlaps = jnp.vdot(self._target_state, final_state)
         return self._fid(state_overlaps)
 
-    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
+    def measure_with_gradient(self) -> tuple[Array, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
@@ -130,14 +130,14 @@ class StateTransferFidelityAD(StateTransferFidelity):
     def __init__(
         self,
         propagation: Propagation,
-        initial_state: yaqArray,
-        target_state: yaqArray,
-        times: jnp.ndarray,
+        initial_state: Array,
+        target_state: Array,
+        times: Array,
     ):
         super().__init__(propagation, initial_state, target_state, times)
         self.__gradient_function = None
 
-    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
+    def measure_with_gradient(self) -> tuple[Array, Array]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -145,7 +145,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
@@ -186,12 +186,12 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     _propagation: Propagation
 
-    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
+    def measure_with_gradient(self) -> tuple[Array, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """

@@ -1,11 +1,11 @@
 """Class definition of the unitary fidelity model."""
 
+from jax import Array
 import jax.numpy as jnp
 
-
-from cthree.quantity import Quantity, yaqArray
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
+from cthree.quantity import Quantity
 
 
 class UnitaryFidelity(Measurement):
@@ -31,16 +31,16 @@ class UnitaryFidelity(Measurement):
 
     """
 
-    __basis_states: yaqArray | None
-    __target_costates: yaqArray
+    __basis_states: Array | None
+    __target_costates: Array
     __propagation: Propagation
 
     def __init__(
         self,
         propagation: Propagation,
-        gate: yaqArray,
-        times: jnp.ndarray,
-        basis_states: yaqArray | None = None,
+        gate: Array,
+        times: Array,
+        basis_states: Array | None = None,
     ):
         super().__init__(times)
         self.__propagation = propagation
@@ -63,7 +63,7 @@ class UnitaryFidelity(Measurement):
         return []
 
     @staticmethod
-    def __fid(overlaps: yaqArray) -> yaqArray:
+    def __fid(overlaps: Array) -> Array:
         """Gate fidelity from state overlaps.
 
         Parameters
@@ -79,7 +79,7 @@ class UnitaryFidelity(Measurement):
         """
         return jnp.abs(jnp.average(overlaps)) ** 2
 
-    def measure(self) -> yaqArray:
+    def measure(self) -> Array:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -95,7 +95,7 @@ class UnitaryFidelity(Measurement):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self.__fid(jnp.asarray(overlaps))
 
-    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
+    def measure_with_gradient(self) -> tuple[Array, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns
@@ -123,7 +123,7 @@ class UnitaryFidelity(Measurement):
         fid = self.__fid(jnp.asarray(overlaps))
         return fid, jnp.array(dF_dp)  # shape scalar, (n_parameters,)
 
-    def set_ideal_gate(self, gate: yaqArray):
+    def set_ideal_gate(self, gate: Array):
         """Compute target states for the L2 norm.
 
         Parameters

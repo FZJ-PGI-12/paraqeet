@@ -5,11 +5,11 @@ Uses the GOAT optimisation method.
 """
 
 from functools import partial
+
+import jax.numpy as jnp
+
 from jax import Array, jit
 from jax.lax import scan
-
-import numpy as np
-import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException
 from cthree.propagation.scipy_expm import ScipyExpm
@@ -18,7 +18,7 @@ from cthree.propagation.scipy_expm import ScipyExpm
 class ScipyExpmGOAT(ScipyExpm):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
-    def _create_super_state(self, psi: jnp.ndarray, dpsis: jnp.ndarray):
+    def _create_super_state(self, psi: Array, dpsis: Array):
         """Create a state for the system state and also for gradient vectors.
 
         Parameters
@@ -30,7 +30,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns a super state created from the state and the differential.
 
         """
@@ -53,7 +53,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian for the GOAT optimisation method.
 
         """
@@ -80,7 +80,7 @@ class ScipyExpmGOAT(ScipyExpm):
         psis_t, _ = scan(propagateBody, psis_t, steps_arr)
         return psis_t
 
-    def gradient(self, time: np.ndarray) -> tuple[Array, Array]:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
@@ -90,7 +90,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             First dimension is time, second dimension is the parameter.
 
         """

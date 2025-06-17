@@ -1,10 +1,10 @@
 """Class definition of the Generator Drive model."""
 
-import numpy as np
+from jax import Array
 import jax.numpy as jnp
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
+from cthree.quantity import Quantity
 from cthree.signal.generator import Generator
 
 
@@ -53,7 +53,7 @@ class DriveOperator(Drive):
         """
         return self.__generator.get_parameters()
 
-    def _compute_matrix(self, a: np.ndarray) -> np.ndarray:
+    def _compute_matrix(self, a: Array) -> Array:
         """Return the operator for the longitudinal or transverse drive.
 
         Parameters
@@ -63,13 +63,13 @@ class DriveOperator(Drive):
 
         Returns
         -------
-        np.ndarray
+        Array
             Returns the operator for the longitudinal or transverse drive.
 
         """
         return (jnp.conjugate(a.T) @ a) if self.__isLongitudinal else (jnp.conjugate(a.T) + a)
 
-    def get_matrix_one_time(self, a: jnp.ndarray, t: np.ndarray) -> jnp.ndarray:
+    def get_matrix_one_time(self, a: Array, t: Array) -> Array:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -92,7 +92,7 @@ class DriveOperator(Drive):
         matrix = self._compute_matrix(a)
         return signal * matrix
 
-    def gradient_one_time(self, a: jnp.ndarray, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, a: Array, t: float) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the

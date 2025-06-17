@@ -1,12 +1,12 @@
 """Class definition for a mixed state transfer fidelity model."""
 
-import jax.numpy as np
+from jax import Array
+import jax.numpy as jnp
 import jax.scipy.linalg as sclin
 
-from cthree.quantity import yaqArray
+from cthree.exceptions import IncompatibleLayersException
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
-from cthree.exceptions import IncompatibleLayersException
 from cthree.quantity import Quantity
 
 
@@ -29,16 +29,16 @@ class MixedStateTransferFidelity(Measurement):
 
     """
 
-    __target_state: np.ndarray
-    __target_state_sqrt: yaqArray
+    __target_state: Array
+    __target_state_sqrt: Array
     __propagation: Propagation
-    __times: np.ndarray
+    __times: Array
 
     def __init__(
         self,
         propagation: Propagation,
-        targetState: np.ndarray,
-        times: np.ndarray,
+        targetState: Array,
+        times: Array,
     ):
         self.__propagation = propagation
         self.__target_state = targetState
@@ -51,7 +51,7 @@ class MixedStateTransferFidelity(Measurement):
         """Returns an empty list."""
         return []
 
-    def measure(self) -> yaqArray:
+    def measure(self) -> Array:
         """Measure overlap between initial and final state of density matrices.
 
         Returns
@@ -76,4 +76,4 @@ class MixedStateTransferFidelity(Measurement):
 
         # density matrix
         product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
-        return np.abs(np.trace(sclin.sqrtm(product))) ** 2
+        return jnp.abs(jnp.trace(sclin.sqrtm(product))) ** 2

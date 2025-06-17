@@ -1,10 +1,11 @@
 """Coupling Hamiltonian in the rotating frame of drive."""
 
-from cthree.quantity import Quantity
+import jax.numpy as jnp
+from jax import Array
+
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
-import numpy as np
-import jax.numpy as jnp
+from cthree.quantity import Quantity
 
 
 class RotatingFrameCoupling(Coupling):
@@ -53,15 +54,15 @@ class RotatingFrameCoupling(Coupling):
         """
         return [self._coefficient, self.__diff_freq]
 
-    def __coupling_operators(self) -> list[np.ndarray]:
+    def __coupling_operators(self) -> list[Array]:
         """Return the annhilation operator."""
         dimensions = [s.dimension() for s in self.subsystems]
-        annihilationOp = [np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1)) for dim in dimensions]
+        annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
         if len(annihilationOp) > 1:
             annihilationOp[1] = annihilationOp[1].conj().T
         return annihilationOp
 
-    def get_matrices_one_time(self, t: float) -> list[np.ndarray]:
+    def get_matrices_one_time(self, t: float) -> list[Array]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -90,7 +91,7 @@ class RotatingFrameCoupling(Coupling):
         annihilationOp_conj = [a.conj().T for a in annihilationOp]
         return [annihilationOp, annihilationOp_conj]
 
-    def gradient_one_time(self, t) -> list[list[np.ndarray]]:
+    def gradient_one_time(self, t) -> list[list[Array]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling

@@ -1,10 +1,11 @@
 """Class definition of the Drive Hamiltonian in the rotating frame of drive."""
 
-from jax.numpy import ndarray
 import jax.numpy as jnp
+from jax.numpy import ndarray
+from jax import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
+from cthree.quantity import Quantity
 from cthree.signal.generator import Generator
 
 
@@ -43,7 +44,7 @@ class RotatingFrameDrive(Drive):
         """
         return self.__signal_generator.get_parameters()
 
-    def get_matrix_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         r"""Implement drive in the rotating frame of drive.
 
         Drive Hamiltonian is implemented as
@@ -54,7 +55,7 @@ class RotatingFrameDrive(Drive):
 
         Parameters
         ----------
-        annihilation_operator: jnp.ndarray
+        annihilation_operator: Array
             Annihilation operator of the subsystem
         t: float
             One time step

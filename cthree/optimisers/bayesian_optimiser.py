@@ -2,9 +2,9 @@
 
 from bayes_opt import BayesianOptimization
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.optimisers.optimiser import Optimiser, OptimisationResult
 from cthree.measurement.measurement import Measurement
+from cthree.optimisation_map import OptimisationMap
+from cthree.optimisers.optimiser import OptimisationResult, Optimiser
 
 
 class BayesianOptimiser(Optimiser):
@@ -100,14 +100,14 @@ class BayesianOptimiser(Optimiser):
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
 
-        bestValues = optimiser.max["params"]  # type: ignore
+        bestValues = optimiser.max["params"]
         for i, param in enumerate(params):
             param.set_reduced_value(bestValues[str(i)])
 
         # Use the actual names and the non-reduced values
         # for the return value
         result = {params[i].get_name(): params[i].get_value() for i in range(len(bestValues))}
-        result["fun"] = 1 - optimiser.max["target"]  # type: ignore
+        result["fun"] = 1 - optimiser.max["target"]
         if self._logger:
             self._logger.stop(str(result))
 

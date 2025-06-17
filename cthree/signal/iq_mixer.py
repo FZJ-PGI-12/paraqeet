@@ -1,13 +1,11 @@
 """Class definition for the Sinusoidal generator model."""
 
-import numpy as np
 import jax.numpy as jnp
 from jax import Array
 
-
-from cthree.quantity import Quantity, yaqArray
-from cthree.signal.waveform import Waveform, LocalOscillator
+from cthree.quantity import Quantity
 from cthree.signal.generator import Generator
+from cthree.signal.waveform import LocalOscillator, Waveform
 
 
 class IQMixer(Generator):
@@ -38,9 +36,9 @@ class IQMixer(Generator):
         self.__lo = LocalOscillator(frequency=frequency)
 
         self.__phase = phase or Quantity(
-            np.array(0.0),
-            min_value=np.array(-np.pi),
-            max_value=np.array(np.pi),
+            jnp.array(0.0),
+            min_value=jnp.array(-jnp.pi),
+            max_value=jnp.array(jnp.pi),
             unit="rad",
             name="Phase",
         )
@@ -77,7 +75,7 @@ class IQMixer(Generator):
 
         self.__lo.set_optimisable_parameters(params)
 
-    def __complex_signal(self, t: np.ndarray | float) -> Array:
+    def __complex_signal(self, t: Array | float) -> Array:
         """Generate a signal for time(s) 't'.
 
         Doesnt take real value now for ease of gradient computation.
@@ -89,7 +87,7 @@ class IQMixer(Generator):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the signal vector.
 
         """
@@ -100,7 +98,7 @@ class IQMixer(Generator):
         sig = sig * jnp.exp(-1j * self.__phase.get_value())
         return sig
 
-    def generate_signal(self, times: np.ndarray) -> yaqArray:
+    def generate_signal(self, times: Array) -> Array:
         """Generate a signal for time(s) 't'.
 
         Parameters
@@ -110,7 +108,7 @@ class IQMixer(Generator):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the signal vector.
 
         """
@@ -139,7 +137,7 @@ class IQMixer(Generator):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the signal gradient vector.
 
         """
@@ -173,7 +171,7 @@ class IQMixer(Generator):
             )
         return gradients
 
-    def generate_signal_gradient_one_time(self, time: float) -> yaqArray:
+    def generate_signal_gradient_one_time(self, time: Array) -> Array:
         """Return the gradients from all devices at the given time.
 
         Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
@@ -196,7 +194,7 @@ class IQMixer(Generator):
 
         Returns
         -------
-        jax.Array
+        Array
             Return the gradients from all devices at one time.
 
         """
@@ -207,7 +205,7 @@ class IQMixer(Generator):
 
         # Collect gradients for envelopes
         for dev in self.__envs:
-            grad = jnp.squeeze(dev.compute_gradient(np.asarray(time)).conj(), axis=0)
+            grad = jnp.squeeze(dev.compute_gradient(time).conj(), axis=0)
             if grad.size != 0:
                 grad *= lo_out * phase_fac
             gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=0)

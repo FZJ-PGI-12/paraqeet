@@ -3,11 +3,11 @@
 from abc import ABC
 
 import jax.numpy as jnp
-from jax import vmap
+from jax import Array, vmap
 
+from cthree.model.drive import Drive
 from cthree.optimisable import Optimisable
 from cthree.quantity import Quantity
-from cthree.model.drive import Drive
 
 
 class Hamiltonian(Optimisable, ABC):
@@ -45,7 +45,7 @@ class Hamiltonian(Optimisable, ABC):
         """
         raise NotImplementedError()
 
-    def get_matrix(self, t: jnp.ndarray) -> jnp.ndarray:
+    def get_matrix(self, t: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         The default implementation calls getMatrixOneTime for each time step.
@@ -59,14 +59,14 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian of shape [t, n, n]  with 't' as time and 'n' as the
             Hilbert space dimension.
 
         """
         return vmap(self.get_matrix_one_time)(t)
 
-    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: float) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
@@ -76,7 +76,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian of shape [n, n]  with `n` as the Hilbert space
             dimension.
 
@@ -88,7 +88,7 @@ class Hamiltonian(Optimisable, ABC):
         """
         raise NotImplementedError()
 
-    def gradient(self, t: jnp.ndarray) -> jnp.ndarray:
+    def gradient(self, t: Array) -> Array:
         """Return the gradient of the system.
 
         Returns the gradient of the matrix representation of the Hamiltonian
@@ -107,14 +107,14 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian of shape [t, p, n, n]  with 't' as time, 'p' as number
             of parameters and 'n' as Hilbert space dimension.
 
         """
         return vmap(self.gradient_one_time)(t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Return the one-time gradient of the system.
 
         Return the gradient of the matrix representation of the Hamiltonian
@@ -131,7 +131,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian of shape [p, n, n]  with 'p' as the number
             of parameters and 'n' as the Hilbert space dimension.
 
@@ -163,7 +163,7 @@ class Hamiltonian(Optimisable, ABC):
             params += d.get_parameters()
         return params
 
-    def _get_drive_matrix(self, annihilation_operator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+    def _get_drive_matrix(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations for
@@ -180,13 +180,13 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the sum of all drives in matrix form.
 
         """
         return vmap(self._get_drive_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def _get_drive_matrix_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def _get_drive_matrix_one_time(self, annihilation_operator: Array, t: float) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -201,7 +201,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the sum of all drives in matrix form.
 
         """
@@ -211,7 +211,7 @@ class Hamiltonian(Optimisable, ABC):
             M += drive.get_matrix_one_time(annihilation_operator, t)
         return M
 
-    def _get_drive_gradients(self, annihilation_operator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+    def _get_drive_gradients(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -226,7 +226,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of all drives.
 
         """
@@ -237,7 +237,7 @@ class Hamiltonian(Optimisable, ABC):
             allGrads = jnp.append(allGrads, grads, axis=1)
         return allGrads
 
-    def _get_drive_gradients_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def _get_drive_gradients_one_time(self, annihilation_operator: Array, t: float) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -252,7 +252,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of all drives.
 
         """
@@ -264,7 +264,7 @@ class Hamiltonian(Optimisable, ABC):
         return allGrads
 
     @staticmethod
-    def _repeat(M: jnp.ndarray, num: int) -> jnp.ndarray:
+    def _repeat(M: Array, num: int) -> Array:
         """Repeat the matrix across time steps.
 
         Utility function that repeats the matrix M for each timestep
@@ -280,7 +280,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Repeated matrix for each time step specified.
 
         """

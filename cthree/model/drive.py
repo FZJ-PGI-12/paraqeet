@@ -2,8 +2,7 @@
 
 from abc import ABC
 
-import jax.numpy as jnp
-from jax import vmap
+from jax import vmap, Array
 
 from cthree.optimisable import Optimisable
 
@@ -15,7 +14,7 @@ class Drive(Optimisable, ABC):
 
     """
 
-    def get_matrix(self, annihilation_operator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+    def get_matrix(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -32,7 +31,7 @@ class Drive(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
 
@@ -44,7 +43,7 @@ class Drive(Optimisable, ABC):
         """
         return vmap(self.get_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def get_matrix_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, annihilation_operator: Array, t: float) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -59,7 +58,7 @@ class Drive(Optimisable, ABC):
 
         Returns
         -------
-        np.ndarray
+        Array
             Matrix of shape [n, n]  with `n` as the Hilbert space dimension.
 
         Raises
@@ -70,7 +69,7 @@ class Drive(Optimisable, ABC):
         """
         raise NotImplementedError()
 
-    def gradient(self, annihilation_operator: jnp.ndarray, t: jnp.ndarray) -> jnp.ndarray:
+    def gradient(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradient of the system.
 
         Returns the gradient of the matrix representation of the Hamiltonian
@@ -85,7 +84,7 @@ class Drive(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Array of shape [t, p, n, n] with 't' as time, 'p' as number of
             parameters and 'n' as the Hilbert space dimension.
 
@@ -97,7 +96,7 @@ class Drive(Optimisable, ABC):
         """
         return vmap(self.gradient_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def gradient_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, annihilation_operator: Array, t: float) -> Array:
         """Get the one-time gradient of the system.
 
         Returns the gradient of the matrix representation of the
@@ -112,7 +111,7 @@ class Drive(Optimisable, ABC):
 
         Returns
         -------
-        np.ndarray
+        Array
             Array of shape [p, n, n] with 'p' as the number
             of parameters and 'n' as the  Hilbert space dimension.
 
@@ -125,7 +124,7 @@ class Drive(Optimisable, ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def _repeat(M: jnp.ndarray, num: int) -> jnp.ndarray:
+    def _repeat(M: Array, num: int) -> Array:
         """Repeats the matrix M for each timestep in the times array.
 
         Returns an array with shape [t, n, m] where 't' is the
@@ -140,7 +139,7 @@ class Drive(Optimisable, ABC):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Repeated matrix for further computation.
 
         """

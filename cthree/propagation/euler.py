@@ -1,11 +1,12 @@
 """Class definition of the Euler propagation model."""
 
-import numpy as np
+from jax import Array
+import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException
-from cthree.quantity import Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
+from cthree.quantity import Quantity
 
 
 class Euler(StatePropagation):
@@ -37,7 +38,7 @@ class Euler(StatePropagation):
         """
         return []
 
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: Array) -> Array:
         """Calulate the first order Euler propagation.
 
         Performs the actual propagation calculation.
@@ -59,12 +60,8 @@ class Euler(StatePropagation):
         equationsOfMotion = self._model.get_matrix(time)
 
         dt = time[1:] - time[0:-1]
-        shape1 = (len(time),)
-        shape2 = self._initial_state.shape
-        shape = shape1 + shape2
-        states = np.zeros(shape=shape, dtype=np.complex128)
-        states[0] = self._initial_state
-        for i in range(len(dt) - 1):
-            states[i + 1] = states[i] + dt[i] * equationsOfMotion[i] @ states[i]
+        states = [self._initial_state]
+        for i in range(len(dt)):
+            states.append(states[-1] + dt[i] * equationsOfMotion[i] @ states[-1])
 
-        return states
+        return jnp.array(states)  # Jax arrays are immutable, so listing and then packing for return

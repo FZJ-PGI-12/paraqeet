@@ -2,8 +2,8 @@
 
 from abc import abstractmethod
 
-from cthree.quantity import yaqArray
 import jax.numpy as jnp
+from jax import Array
 
 from cthree.optimisable import Optimisable
 
@@ -24,14 +24,14 @@ class Measurement(Optimisable):
     # Fields for tracing and projecting before the measurement
     __input_dimensions: list[int] | None = None
     __output_dimensions: list[int] | None = None
-    __projector: jnp.ndarray | None = None
-    _times: jnp.ndarray
+    __projector: Array | None = None
+    _times: Array
 
-    def __init__(self, times: jnp.ndarray):
+    def __init__(self, times: Array):
         self._times = times
 
     @abstractmethod
-    def measure(self) -> yaqArray:
+    def measure(self) -> Array:
         """Measure the observable and returns the value.
 
         Abstract Method. This function must be implemented by subclasses.
@@ -50,7 +50,7 @@ class Measurement(Optimisable):
         """
         raise NotImplementedError()
 
-    def measure_normalised(self) -> yaqArray:
+    def measure_normalised(self) -> Array:
         """Measure the normalised observable.
 
         Returns the value between 0 and 1, 1 representing the perfect result.
@@ -65,7 +65,7 @@ class Measurement(Optimisable):
         """
         return self.measure()
 
-    def measure_with_gradient(self) -> tuple[yaqArray, yaqArray]:
+    def measure_with_gradient(self) -> tuple[Array, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measureNormalised()
@@ -142,7 +142,7 @@ class Measurement(Optimisable):
                 P = jnp.kron(P, jnp.eye(dimIn, dim2, dtype=jnp.float64))
             self.__projector = P
 
-    def _preprocess_matrix(self, operator: yaqArray) -> yaqArray:
+    def _preprocess_matrix(self, operator: Array) -> Array:
         """Perform any preprocessing on the "operator" that was registered.
 
         Operator could be unitary matrices, density matrices.
@@ -164,7 +164,7 @@ class Measurement(Optimisable):
             operator = self.__projector.T @ operator @ self.__projector
         return operator
 
-    def _preprocess_vector(self, states: yaqArray) -> yaqArray:
+    def _preprocess_vector(self, states: Array) -> Array:
         """Perform any preprocessing on the "states" that were registered.
 
         States could be a single state or batch of state vectors.

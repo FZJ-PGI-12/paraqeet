@@ -173,9 +173,9 @@ class OptimisationMap:
             "unit": string,
             "shape": tuple[int, ...],
             "twoPi": bool,
-            "value': np.ndarray,
-            "min": np.ndarray,
-            "max": np.ndarray,
+            "value': Array,
+            "min": Array,
+            "max": Array,
           }
         }
 
