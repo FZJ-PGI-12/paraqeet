@@ -1,7 +1,7 @@
 """Class definition of a random measurement model for testing."""
 
 import numpy as np
-
+from jax import Array
 from cthree.quantity import Quantity
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
@@ -21,7 +21,7 @@ class RandomMeasurement(Measurement):
 
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, times: np.ndarray):
+    def __init__(self, propagation: Propagation, times: Array):
         super().__init__(times=times)
         self.__propagation = propagation
 
@@ -36,7 +36,7 @@ class RandomMeasurement(Measurement):
         """
         return []
 
-    def measure(self) -> np.ndarray:
+    def measure(self) -> Array:
         """Return the result of measurement.
 
         Returns

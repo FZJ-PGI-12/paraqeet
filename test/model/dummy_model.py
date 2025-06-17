@@ -1,6 +1,6 @@
 """Class definition of the Dummy model for testing."""
 
-import numpy as np
+from jax import Array
 
 from cthree.quantity import Quantity
 from cthree.model.hamiltonian import Hamiltonian
@@ -30,7 +30,7 @@ class DummyModel(EquationOfMotion):
         """
         pass
 
-    def get_matrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: Array) -> Array:
         """Get the matrix representation of the equations of motion.
 
         Parameters
@@ -46,7 +46,7 @@ class DummyModel(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian.get_matrix(time)
 
-    def gradient(self, t) -> list[np.ndarray]:
+    def gradient(self, t) -> list[Array]:
         """Compute the gradient of getMatrixEOM.
 
         Parameters

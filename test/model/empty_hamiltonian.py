@@ -1,7 +1,7 @@
 """Class definition of the empty Hamiltonian for testing."""
 
 import numpy as np
-
+from jax import Array
 from cthree.model.hamiltonian import Hamiltonian
 from cthree.quantity import Quantity
 
@@ -22,7 +22,7 @@ class EmptyHamiltonian(Hamiltonian):
 
         self.__dimension = dimension
 
-    def get_matrix(self, t: np.ndarray) -> np.ndarray:
+    def get_matrix(self, t: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters

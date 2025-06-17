@@ -1,7 +1,9 @@
 """Test the random propagation model."""
 
 import numpy as np
+import jax.numpy as jnp
 from scipy.stats import unitary_group
+from jax import Array
 
 from cthree.propagation.propagation import Propagation
 from cthree.quantity import Quantity
@@ -26,7 +28,7 @@ class RandomPropagation(Propagation):
     __dimension: int
     __createMatrices: bool
     __autoUpdate: bool
-    __state: np.ndarray
+    __state: Array
 
     def __init__(
         self,
@@ -44,7 +46,7 @@ class RandomPropagation(Propagation):
         """Returns an empty list."""
         return []
 
-    def set_initial_state(self, state: np.ndarray):
+    def set_initial_state(self, state: Array):
         """Set the initial state of the system.
 
         Set it to the given state.
@@ -57,7 +59,7 @@ class RandomPropagation(Propagation):
         """
         pass
 
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: Array) -> Array:
         """Propagate the system through time.
 
         Parameters
@@ -73,7 +75,7 @@ class RandomPropagation(Propagation):
         """
         if self.__autoUpdate:
             self.update()
-        return np.array([self.__state] * len(time))
+        return jnp.array([self.__state] * len(time))
 
     def update(self) -> None:
         """Update the state on propagation.
@@ -85,11 +87,11 @@ class RandomPropagation(Propagation):
         if self.__createMatrices:
             # generate a random density matrix by rotating a
             # random diagonal matrix
-            rho = np.diag(np.random.random(self.__dimension))
-            rho /= np.trace(rho)
+            rho = jnp.diag(np.random.random(self.__dimension))
+            rho /= jnp.trace(rho)
             U = unitary_group.rvs(self.__dimension)
-            self.__state = np.conjugate(U.T) @ rho @ U
+            self.__state = jnp.conjugate(U.T) @ rho @ U
         else:
             # generate a random state vector
             state = np.random.random((self.__dimension, 1)) + 1j * np.random.random((self.__dimension, 1))
-            self.__state = state / np.sqrt(np.vdot(state, state))
+            self.__state = state / jnp.sqrt(jnp.vdot(state, state))

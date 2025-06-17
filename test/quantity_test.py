@@ -1,5 +1,6 @@
 """Test the quantity object."""
 
+from jax import Array
 import numpy as np
 import numpy.testing as testing
 import pytest
@@ -197,7 +198,7 @@ def testToArray(random_quantity_for_values) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(values)
-        testing.assert_array_almost_equal(np.asarray(q), values)
+        testing.assert_array_almost_equal(np.asarray(q.get_value()), values)
 
 
 # comparison
@@ -325,7 +326,7 @@ def testIsScalarOrVector(random_quantity):
             assert not q2.is_scalar()
 
 
-def __generateRandomMatrix(N: int) -> np.ndarray:
+def __generateRandomMatrix(N: int) -> Array:
     """Generate a random matrix of size `N` by `N`.
 
     Parameters
