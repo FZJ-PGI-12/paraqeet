@@ -617,13 +617,13 @@ class Quantity:
         """Magic method for representation of equality operation."""
         if self.__shape != other.__shape:
             return False
-        return all(self.get_value() == other)
+        return all(self.get_value() == other.get_value())
 
     def __ne__(self, other) -> bool:
         """Magic method for representation of not-equal operation."""
         if self.__shape != other.__shape:
             return True
-        return any(self.get_value() != other)
+        return any(self.get_value() != other.get_value())
 
     def __ge__(self, other) -> bool:
         """Magic method for representation of greater-equal operation.
