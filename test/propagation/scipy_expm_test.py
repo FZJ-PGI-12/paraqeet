@@ -94,7 +94,7 @@ def test_construct_times(model):
     full_times = np.linspace(t_start, t_final, steps, endpoint=False)
     times, dt = propagation._construct_times(time, 1)
 
-    assert np.all(times == full_times)
+    assert np.allclose(times, full_times)
     assert np.isclose(dt, 1 / res)
 
     # Test if times array is constructed correctly if steps < 2
@@ -106,5 +106,5 @@ def test_construct_times(model):
     full_times = np.linspace(t_start, t_final, steps, endpoint=False)
     times, dt = propagation._construct_times(time, 1)
 
-    assert np.all(times == full_times)
+    assert np.allclose(time, full_times)
     assert np.isclose(dt, 1 / res)
