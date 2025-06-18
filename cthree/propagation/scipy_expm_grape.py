@@ -65,13 +65,19 @@ class ScipyExpmGRAPE(ScipyExpm):
         targetState : np.ndarray
             Target state.
         """
+        # Verify if `model.ode_propagation` is set to `False`.
+        # ode_propgation returns hamiltonian and collapse operators separately.
+        eom = self._model.get_matrix(jnp.array([0]))
+        if len(eom) == 2:
+            raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
+
         # For open system convert Density Matrix to Vectorized form.
         if self.is_open:
             try:
                 if len(targetState.shape) == 1:  # An (n,) array
                     targetState = jnp.reshape(targetState, (-1, 1))
                 # Compare the shapes of target state with the generator of time translation
-                dim_generator = self._model.get_matrix(jnp.array([0])).shape[1]
+                dim_generator = eom.shape[1]
                 # Comparing dim -2 as 0 can be batch dimension
                 if targetState.shape[-2] == jnp.sqrt(dim_generator):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
