@@ -5,7 +5,7 @@ Uses the GOAT optimisation method.
 """
 
 from functools import partial
-from jax import Array, jit
+from jax import Array, jit, vmap
 from jax.lax import scan
 
 import numpy as np
@@ -112,4 +112,11 @@ class ScipyExpmGOAT(ScipyExpm):
             psis_t = self._propagate_gradient(n_params, psis_t, eom, grads, jnp.arange(0, len(times), 1))
             psi.append(psis_t[0:dim])
             dpsis.append(jnp.array([psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]))
+
+        if self.is_open:
+            dim = int(jnp.sqrt(eom.shape[-1]))
+            psi = jnp.array(psi)
+            dpsis = jnp.array(dpsis)
+            psi = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psi, dim)
+            dpsis = vmap(vmap(self._convert_vec_to_dm, in_axes=(0, None)), in_axes=(0, None))(dpsis, dim)
         return jnp.array(psi), jnp.array(dpsis)
