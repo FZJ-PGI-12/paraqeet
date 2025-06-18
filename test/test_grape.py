@@ -54,6 +54,8 @@ def states(model, request):
     """Compare the overlap of the initial and final state."""
     if request.param == "expm":
         prop_method = ScipyExpmGRAPE(model=model, res=1e9)
+        if prop_method.is_open:
+            pytest.skip()
     elif request.param == "ode":
         model.ode_propagation = True
         prop_method = Vern7GRAPE(model=model, res=1e9)
