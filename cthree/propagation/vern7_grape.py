@@ -7,9 +7,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException
-from cthree.model.closed_system import ClosedSystem
 from cthree.model.equation_of_motion import EquationOfMotion
-from cthree.model.open_system import OpenSystem
 from cthree.propagation.vern7 import Vern7
 
 import jax
@@ -176,12 +174,10 @@ class Vern7GRAPE(Vern7):
 
         n_params = dH_dps.shape[1]
         for i in range(n_params):
-            if isinstance(self._model, ClosedSystem):
-                fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
-            elif isinstance(self._model, OpenSystem):
+            if self.is_open:
                 fwd_prop_state = vmap(self._commutator, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
             else:
-                raise NotImplementedError(f"Gradient function currently not implemented for {type(self._model)}.")
+                fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
 
             grad = vmap(jnp.matmul, in_axes=(0, 0))(lamdas[1:], fwd_prop_state)
             grad = jnp.squeeze(grad)
