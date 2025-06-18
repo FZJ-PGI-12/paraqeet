@@ -18,6 +18,7 @@ from jax.scipy.linalg import expm, expm_frechet
 
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.exceptions import ConfigurationException
+from cthree.model.open_system import OpenSystem
 from cthree.propagation.scipy_expm import ScipyExpm
 
 import jax
@@ -167,6 +168,40 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         return psis_list, lamdas_list
 
+    @partial(jit, static_argnums=(0,))
+    def _forward_and_backward_propagation_open(
+        self,
+        Us,
+        Us_rev,
+        psis_t,
+        lamdas_t,
+        steps_arr,
+    ):
+        """Forward propagate inital state and backward propagate target state.
+
+        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+
+        Parameters
+        ----------
+        psis_t : np.ndarray
+            Forward propagated state
+        lamdas_t : np.ndarray
+            Backward propagated state
+        """
+
+        def forward_propagation(psis_t, index):
+            psis_t = Us[index] @ psis_t
+            return psis_t, psis_t
+
+        def backward_propagation(lamdas_t, index):
+            lamdas_t = Us_rev[index] @ lamdas_t
+            return lamdas_t, lamdas_t
+
+        psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
+        lamdas_t, lamdas_list = scan(backward_propagation, lamdas_t, steps_arr)
+
+        return psis_list, lamdas_list
+
     @staticmethod
     @partial(jit, static_argnums=(0,))
     def _exponentiate_frechet(dim, ham, dh_dp):
@@ -261,23 +296,7 @@ class ScipyExpmGRAPE(ScipyExpm):
             psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return psis
 
-    def gradient(self, time: np.ndarray) -> np.ndarray:
-        """Compute gradients using GRAPE.
-
-        Compute the forward propagation of the initial state and
-        the backward propagation of the target state.
-
-        Psis represent the forward propagation and lamdas represent
-        the backward propagation states.
-
-        This propagation method assumes a PWC pulse as input.
-        """
-        if self._initial_state is None:
-            raise ConfigurationException("Initial state is not set")
-
-        if self._target_state is None:
-            raise ConfigurationException("Target state is not set")
-
+    def __gradient_closed_system(self, time: np.ndarray):
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
@@ -329,8 +348,75 @@ class ScipyExpmGRAPE(ScipyExpm):
             grad = jnp.squeeze(grad)
             grads.append(grad)
 
-        # if open system convert back the vectorized density matrices to matrix shape
-        if self.is_open:
-            psis = jnp.array(psis)
-            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return psis, jnp.array(grads)
+
+    def __gradient_open_systems(self, time: np.ndarray):
+        init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
+        target_state = jnp.array(self._target_state, dtype=jnp.complex128)
+
+        eom_func = self._model.get_matrix
+        grad_func = self._model.gradient
+
+        dt = time[1] - time[0]
+        timeGrid = time[:-1] + dt / 2
+
+        hams = eom_func(timeGrid) * dt
+        Us = vmap(self._exponentiate, in_axes=(0,))(hams)
+
+        dim = hams.shape[-2]
+
+        if isinstance(self._model, OpenSystem):
+            eom_rev = self._model._get_matrix_reverse(timeGrid) * dt
+        else:
+            raise ConfigurationException("Use `OpenSystem` for this gradient method.")
+        Us_rev = vmap(self._exponentiate, in_axes=(0,))(eom_rev)
+        Us_rev = jnp.flip(Us_rev, axis=0)
+
+        psis, lamdas = self._forward_and_backward_propagation_open(
+            Us, Us_rev, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
+        )
+
+        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
+        lamdas = jnp.concat([jnp.expand_dims(target_state, axis=0), lamdas], axis=0)
+
+        lamdas = jnp.flip(lamdas, axis=0)
+        lamdas = vmap(self._convert_vec_to_dm, in_axes=(0, None))(lamdas, int(jnp.sqrt(dim)))
+
+        dH_dps = jnp.array(grad_func(timeGrid)) * dt
+        n_params = dH_dps.shape[1]
+
+        grads = []
+        for i in range(n_params):
+            fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
+            fwd_prop_state = vmap(self._convert_vec_to_dm, in_axes=(0, None))(fwd_prop_state, int(jnp.sqrt(dim)))
+
+            grad = vmap(jnp.matmul, in_axes=(0, 0))(lamdas[1:], fwd_prop_state)
+            grad = jnp.squeeze(grad)
+            grads.append(grad)
+
+        psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
+        return psis, jnp.array(grads)
+
+    def gradient(self, time: np.ndarray) -> np.ndarray:
+        """Compute gradients using GRAPE.
+
+        Compute the forward propagation of the initial state and
+        the backward propagation of the target state.
+
+        Psis represent the forward propagation and lamdas represent
+        the backward propagation states.
+
+        This propagation method assumes a PWC pulse as input.
+        """
+        if self._initial_state is None:
+            raise ConfigurationException("Initial state is not set")
+
+        if self._target_state is None:
+            raise ConfigurationException("Target state is not set")
+
+        if self.is_open:
+            psis, grads = self.__gradient_open_systems(time)
+        else:
+            psis, grads = self.__gradient_closed_system(time)
+
+        return psis, grads
