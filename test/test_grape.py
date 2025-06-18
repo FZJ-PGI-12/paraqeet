@@ -11,7 +11,7 @@ from cthree.model.closed_system import ClosedSystem
 from cthree.model.open_system import OpenSystem
 from cthree.model.rotating_frame_drive import RotatingFrameDrive
 from cthree.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from cthree.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE, StateTransferFidelityOpenGRAPE
+from cthree.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from cthree.optimisation_map import OptimisationMap
 from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
 from cthree.propagation.vern7_grape import Vern7GRAPE
@@ -70,21 +70,12 @@ def states(model, request):
     prop_method.set_initial_state(init)
     prop_method.target_state = target
 
-    if prop_method.is_open:
-        mes = StateTransferFidelityOpenGRAPE(
-            propagation=prop_method,
-            initial_state=init,
-            target_state=target,
-            times=TLIST,
-        )
-    else:
-        mes = StateTransferFidelityGRAPE(
-            propagation=prop_method,
-            initial_state=init,
-            target_state=target,
-            times=TLIST,
-        )
-    return mes
+    return StateTransferFidelityGRAPE(
+        propagation=prop_method,
+        initial_state=init,
+        target_state=target,
+        times=TLIST,
+    )
 
 
 @pytest.fixture
