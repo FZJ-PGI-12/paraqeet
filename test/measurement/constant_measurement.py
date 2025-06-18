@@ -29,7 +29,7 @@ class ConstantMeasurement(Measurement):
         self,
         propagation: Propagation,
         value: Array = jnp.array(1.0),
-        times: Array | None = None,
+        times: Array = jnp.array(0.0),
     ):
         super().__init__(times=times)
         self.__propagation = propagation

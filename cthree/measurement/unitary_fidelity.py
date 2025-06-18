@@ -63,7 +63,7 @@ class UnitaryFidelity(Measurement):
         return []
 
     @staticmethod
-    def __fid(overlaps: Array) -> Array:
+    def __fid(overlaps: Array) -> float:
         """Gate fidelity from state overlaps.
 
         Parameters
@@ -73,13 +73,13 @@ class UnitaryFidelity(Measurement):
 
         Returns
         -------
-        numpy.ndarray
-            Gate fidelity as a Numpy ndarray.
+        float
+            Gate fidelity as a single float.
 
         """
-        return jnp.abs(jnp.average(overlaps)) ** 2
+        return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    def measure(self) -> Array:
+    def measure_normalised_scalar(self) -> float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -95,7 +95,7 @@ class UnitaryFidelity(Measurement):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self.__fid(jnp.asarray(overlaps))
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns

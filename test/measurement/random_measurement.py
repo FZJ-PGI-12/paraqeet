@@ -36,7 +36,7 @@ class RandomMeasurement(Measurement):
         """
         return []
 
-    def measure(self) -> Array:
+    def measure_normalised_scalar(self) -> float:
         """Return the result of measurement.
 
         Returns

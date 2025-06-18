@@ -5,7 +5,6 @@ from jax import Array
 
 from cthree.exceptions import ConfigurationException
 from cthree.measurement.measurement import Measurement
-from cthree.exceptions import ConfigurationException
 from cthree.quantity import Quantity
 
 
@@ -61,7 +60,7 @@ class WeightedSumGoal(Measurement):
             sumMeas += w * measurements[ii]
         return sumMeas
 
-    def measure_normalised(self) -> Array:
+    def measure_normalised(self) -> float:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -70,13 +69,13 @@ class WeightedSumGoal(Measurement):
             Returns the normalized weighted sum.
 
         """
-        measurements = [m.measure_normalised() for m in self.__measurements]
-        sumMeas = jnp.array(0.0)
+        measurements = [m.measure_normalised_scalar() for m in self.__measurements]
+        sumMeas = 0.0
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii]
         return sumMeas
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns
@@ -88,7 +87,7 @@ class WeightedSumGoal(Measurement):
 
         """
         measurements = [m.measure_with_gradient() for m in self.__measurements]
-        sumMeas = jnp.array(0)
+        sumMeas = 0.0
         sumGrads = jnp.zeros_like(measurements[0][1])
         for ii, w in enumerate(self.__weights):
             sumMeas += w * measurements[ii][0]

@@ -4,7 +4,6 @@ from collections.abc import Callable
 
 import cma.evolution_strategy as cma
 import numpy as np
-from jax import Array
 
 from cthree.file_logger import Logger
 from cthree.measurement.measurement import Measurement
@@ -199,7 +198,7 @@ class CMAEsOptimiser(Optimiser):
             raw_result=es.result,
         )
 
-    def _set_parameters_and_measure(self, values) -> Array:
+    def _set_parameters_and_measure(self, values) -> float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
@@ -220,7 +219,7 @@ class CMAEsOptimiser(Optimiser):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.measure_normalised()
+        infid = 1 - self._measure.measure_normalised_scalar()
 
         if self._logger:
             self._logger.log(log, infid)

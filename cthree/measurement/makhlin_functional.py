@@ -79,7 +79,7 @@ class MakhlinFunctional(Measurement):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self.__makhlin_invariants(U)
         if self.__ideal_invariants is not None:
-            return jnp.linalg.norm(gs - self.__ideal_invariants)
+            return jnp.array(jnp.linalg.norm(gs - self.__ideal_invariants))
         else:
             return jnp.abs(gs[2] * jnp.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 

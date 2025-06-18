@@ -1,6 +1,5 @@
 """Class definition of the Logger model."""
 
-from jax import Array
 from datetime import datetime
 
 from cthree.quantity import Quantity
@@ -18,14 +17,14 @@ class Logger:
         self._start_time = datetime.now()
         self._counter = 0
 
-    def log(self, params: list[Quantity], infidelity: Array):
+    def log(self, params: list[Quantity], infidelity: float):
         """Template function to direct what happens at each log call.
 
         Parameters
         ----------
         params : List[cthree.Quantity]
             List of parameters to be logged.
-        infid : numpy.ndarray
+        infid : float
             Goal value to be logged.
 
         """

@@ -1,5 +1,6 @@
 """Class definition for the Scipy optimiser gradient model."""
 
+import numpy as np
 import jax.numpy as jnp
 from jax import Array
 from scipy.optimize import minimize
@@ -77,7 +78,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             raw_result=result,
         )
 
-    def _set_parameters_and_measure(self, values) -> Array:
+    def _set_parameters_and_measure(self, values) -> float:
         """Update the parameter values and return measurement result.
 
         Returns the measurement result including gradient.
@@ -99,7 +100,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         """
         log = []
         params = self._optimisables.get_all_parameters()
-        for index, val in enumerate(jnp.split(values, self._opt_idxs[:-1])):
+        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
         fun, grad = self._measure.measure_with_gradient()

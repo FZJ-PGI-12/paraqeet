@@ -50,12 +50,12 @@ class Measurement(Optimisable):
         """
         raise NotImplementedError()
 
-    def measure_normalised(self) -> Array:
+    def measure_normalised_scalar(self) -> float:
         """Measure the normalised observable.
 
-        Returns the value between 0 and 1, 1 representing the perfect result.
+        Returns a scalar value between 0 and 1, 1 representing the perfect result.
         This function must be implemented by subclasses,
-        unless identical to self.measure().
+        unless identical to self.measure_scalar().
 
         Returns
         -------
@@ -63,9 +63,16 @@ class Measurement(Optimisable):
             Returns a Numpy ndarray if implemented by a subclass.
 
         """
-        return self.measure()
+        return self.measure_scalar()
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_scalar(self) -> float:
+        """Measure the observable.
+
+        Returns a scalar value. This function must be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measureNormalised()
@@ -73,8 +80,8 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        Tuple[numpy.ndarray, numpy.ndarray]
-            Tuple of function value and gradient of shape (n_parameters,)
+        Tuple[float, numpy.ndarray]
+            Tuple of function value as bare float and gradient of shape (n_parameters,)
 
         Raises
         ------

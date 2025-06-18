@@ -5,7 +5,6 @@ from collections.abc import Callable
 
 from scipy.optimize import minimize
 import numpy as np
-from jax import Array
 from cthree.measurement.measurement import Measurement
 from cthree.optimisation_map import OptimisationMap
 from cthree.optimisers.optimiser import OptimisationResult, Optimiser
@@ -127,7 +126,7 @@ class ScipyOptimiser(Optimiser):
             raw_result=opt_res,
         )
 
-    def _set_parameters_and_measure(self, values) -> Array:
+    def _set_parameters_and_measure(self, values) -> float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
@@ -148,7 +147,7 @@ class ScipyOptimiser(Optimiser):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.measure_normalised()
+        infid = 1 - self._measure.measure_normalised_scalar()
 
         if self._logger:
             self._logger.log(log, infid)

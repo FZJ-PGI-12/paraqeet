@@ -3,7 +3,6 @@
 import json
 import os
 
-from jax import Array
 from cthree.logger import Logger
 from cthree.quantity import Quantity
 
@@ -52,14 +51,14 @@ class FileLogger(Logger):
         """Start logging."""
         super().start()
 
-    def log(self, params: list[Quantity], infidelity: Array):
+    def log(self, params: list[Quantity], infidelity: float):
         """Write the formatted parameters and the goal to the log file.
 
         Parameters
         ----------
         params : List[cthree.Logger]
             List of parameters to be written to the log file.
-        infidelity : numpy.ndarray
+        infidelity : float
             Goal value to be written to the log file.
 
         """

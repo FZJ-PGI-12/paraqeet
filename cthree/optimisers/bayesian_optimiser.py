@@ -5,6 +5,7 @@ from bayes_opt import BayesianOptimization
 from cthree.measurement.measurement import Measurement
 from cthree.optimisation_map import OptimisationMap
 from cthree.optimisers.optimiser import OptimisationResult, Optimiser
+from cthree.exceptions import ConfigurationException
 
 
 class BayesianOptimiser(Optimiser):
@@ -99,6 +100,8 @@ class BayesianOptimiser(Optimiser):
 
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
+        if not optimiser.max:
+            raise ConfigurationException("BaysianOptimization has no max field.")
 
         bestValues = optimiser.max["params"]
         for i, param in enumerate(params):
@@ -140,8 +143,8 @@ class BayesianOptimiser(Optimiser):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        fidelity = self._measure.measure_normalised()
+        fidelity = self._measure.measure_normalised_scalar()
 
         if self._logger:
             self._logger.log(log, fidelity)
-        return float(fidelity.item())
+        return fidelity

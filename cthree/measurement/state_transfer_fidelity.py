@@ -59,10 +59,10 @@ class StateTransferFidelity(Measurement):
         self._propagation.set_initial_state(self._initial_state)
 
     @staticmethod
-    def _fid(overlap: Array) -> Array:
-        return jnp.abs(overlap) ** 2
+    def _fid(overlap: Array) -> float:
+        return float(jnp.abs(jnp.average(overlap)) ** 2)
 
-    def measure(self) -> Array:
+    def measure_normalised_scalar(self) -> float:
         """Measure overlap between initial and target state.
 
         Returns
@@ -77,7 +77,7 @@ class StateTransferFidelity(Measurement):
         state_overlaps = jnp.vdot(self._target_state, final_state)
         return self._fid(state_overlaps)
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -137,7 +137,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         super().__init__(propagation, initial_state, target_state, times)
         self.__gradient_function = None
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -145,7 +145,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
         Returns
         -------
-        Tuple[Array, Array]
+        Tuple[float, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
@@ -186,7 +186,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     _propagation: Propagation
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
