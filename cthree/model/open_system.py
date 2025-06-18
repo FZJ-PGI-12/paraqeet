@@ -151,6 +151,30 @@ class OpenSystem(EquationOfMotion):
         colSuperop = self.__create_collapse_superop()
         return hamSuperop + colSuperop
 
+    def _get_matrix_reverse(self, time: np.ndarray) -> np.ndarray:
+        return vmap(self.__create_lindbladian_superop_reverse)(time)
+
+    def __create_lindbladian_superop_reverse(self, t):
+        """Create the Lindbladian superoperator for one time point `t`."""
+        hamSuperop = self.__create_hamiltonian_superop(t)
+        colSuperop = self.__create_collapse_superop_reverse()
+        return hamSuperop - colSuperop
+
+    def __create_collapse_superop_reverse(self):
+        """Create the superoperator due to the collapse part. This is time independent."""
+        dim = self._hamiltonian.dimension()
+        identityop = jnp.eye(dim)
+        superop = jnp.zeros((dim**2, dim**2), dtype=jnp.float64)
+        rates_and_cols = self._hamiltonian.get_collapseops()
+        for rate, col in rates_and_cols:
+            superop = rate * jnp.kron(col.T, col.T.conj())
+            superop -= rate / 2 * jnp.kron(jnp.matmul(col.T, col.conj()), identityop)
+            superop -= rate / 2 * jnp.kron(identityop, jnp.matmul(col.conj().T, col))
+
+        if self.sparse_superop:
+            superop = sparse.BCOO.fromdense(superop)
+        return superop
+
     def get_matrix(self, time: np.ndarray) -> np.ndarray:
         """
         Computes the right hand side of the Schrödinger equation without multiplying the state. Used for unitary
@@ -182,16 +206,10 @@ class OpenSystem(EquationOfMotion):
         superop = term1 + term2
         return superop
 
-    def __create_lindbladian_grad_superop(self, t):
-        """Create the Gradient Lindbladian superoperator for one time point `t`."""
-        hamGradSuperop = self.__create_hamiltonian_grad_superop(t)
-        colSuperop = self.__create_collapse_superop()
-        return hamGradSuperop + colSuperop
-
     def gradient(self, time) -> np.ndarray:
         """Compute the gradient of get_matrix."""
         if self.ode_propagation:
             grads = -1j * self._hamiltonian.gradient(time)
         else:
-            grads = vmap(self.__create_lindbladian_grad_superop)(time)
+            grads = vmap(self.__create_hamiltonian_grad_superop)(time)
         return grads
