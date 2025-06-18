@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from cthree.propagation.propagation import Propagation
+from cthree.propagation.state_propagation import StatePropagation
 from cthree.quantity import Quantity
 
 
-class IdentityPropagation(Propagation):
+class IdentityPropagation(StatePropagation):
     """Mock identity propagation implementation.
 
     Returns the initial state as the target state.
@@ -16,7 +16,6 @@ class IdentityPropagation(Propagation):
 
     def __init__(self):
         super().__init__(None)
-        self.is_open = False
 
     def set_initial_state(self, state: np.ndarray):
         """Set the initial state of the system.
