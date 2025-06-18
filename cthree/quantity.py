@@ -580,7 +580,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value().item() < other.get_value().item()
+        return bool(self.get_value().item() < other.get_value().item())
 
     def __le__(self, other) -> bool:
         """Magic method for representation of less-equal operation.
@@ -602,7 +602,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value().item() <= other.get_value().item()
+        return bool(self.get_value().item() <= other.get_value().item())
 
     def __eq__(self, other) -> bool:
         """Magic method for representation of equality operation."""
@@ -636,7 +636,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value().item() >= other.get_value().item()
+        return bool(self.get_value().item() >= other.get_value().item())
 
     def __gt__(self, other) -> bool:
         """Magic method for representation of greater-than operation.
@@ -657,7 +657,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value().item() > other.get_value().item()
+        return bool(self.get_value().item() > other.get_value().item())
 
     def __array__(self):
         """Magic method for representation into array."""
