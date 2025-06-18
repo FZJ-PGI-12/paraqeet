@@ -247,6 +247,12 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         psis = self._propagate_in_time(Us, init_state, jnp.arange(0, len(timeGrid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
+
+        # if open system convert back the vectorized density matrices to matrix shape
+        dim = eom.shape[-2]
+        if self.is_open:
+            psis = jnp.array(psis)
+            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return psis
 
     def gradient(self, time: np.ndarray) -> np.ndarray:
@@ -283,7 +289,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         Ugrads = []
         n_params = dH_dps.shape[1]
 
-        dim = hams.shape[-1]
+        dim = hams.shape[-2]
 
         if self._schirmer_derivative:
             exponentiating_function = self._exponentiate_schirmer
