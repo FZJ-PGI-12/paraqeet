@@ -69,10 +69,10 @@ def openResonator():
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
         drives=[drive],
         dimension=DIMS,
-        t1=T1,
-        t2star=T2STAR,
-        temp=TEMP,
     )
+    resonator.t1 = T1
+    resonator.temp = TEMP
+    resonator.t2star = T2STAR
     model = OpenSystem(resonator)
 
     return model
