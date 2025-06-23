@@ -95,16 +95,7 @@ class Quantity:
         min_value_fixed = self.__fix_parameter_types(min_value)
         max_value_fixed = self.__fix_parameter_types(max_value)
 
-        # If value is an array and the bounds are floats, the same bounds are used for all values. The floats are
-        # converted into constant arrays.
-        if not np.isscalar(value) and np.isscalar(min_value_fixed):
-            min_value_fixed = jnp.array(min_value_fixed * np.ones_like(value))
-        if not np.isscalar(value) and np.isscalar(max_value_fixed):
-            max_value_fixed = jnp.array(max_value_fixed * np.ones_like(value))
-
-        # Values and bounds that are arrays of different length can not be handled
-        if value_fixed.shape != max_value_fixed.shape or value_fixed.shape != max_value_fixed.shape:
-            raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
+        min_value_fixed, min_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
 
         self.__shape = value_fixed.shape
         self.__length = int(np.prod(value_fixed.shape))
@@ -123,6 +114,21 @@ class Quantity:
         self.__dependents = list()
 
         self.set_value(value)
+
+    @staticmethod
+    def __fix_shapes(value: Array, min_value: Array, max_value: Array) -> tuple[Array, Array]:
+        # If value is an array and the bounds are floats, the same bounds are used for all values. The floats are
+        # converted into constant arrays.
+        if not np.size(value) == 1 and np.size(min_value) == 1:
+            min_value = jnp.array(min_value * np.ones_like(value))
+        if not np.size(value) == 1 and np.size(max_value) == 1:
+            max_value = jnp.array(max_value * np.ones_like(value))
+
+        # Values and bounds that are arrays of different length can not be handled
+        if value.shape != min_value.shape or value.shape != max_value.shape:
+            raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
+
+        return min_value, min_value
 
     @staticmethod
     def __fix_parameter_types(param: Array | float) -> Array:
@@ -425,16 +431,7 @@ class Quantity:
         min_value_fixed = self.__fix_parameter_types(min_value)
         max_value_fixed = self.__fix_parameter_types(max_value)
 
-        # If value is an array but the new bounds are floats, the same new bounds are used for all values. The floats
-        # are converted into constant arrays.
-        if len(oldValue) > 1 and np.isscalar(min_value_fixed):
-            min_value_fixed = jnp.array(min_value_fixed * np.ones_like(oldValue))
-        if len(oldValue) > 1 and np.isscalar(max_value_fixed):
-            max_value_fixed = jnp.array(max_value_fixed * np.ones_like(oldValue))
-
-        # Values and bounds that are arrays of different length can not be handled
-        if min_value_fixed.shape != oldValue.shape or max_value_fixed.shape != oldValue.shape:
-            raise IncompatibleQuantityException("The boundaries must have the same shape as the value")
+        min_value_fixed, min_value_fixed = self.__fix_shapes(oldValue, min_value_fixed, min_value_fixed)
 
         self.__offset = min_value_fixed
         self.__scale = np.abs(max_value_fixed - min_value_fixed)
@@ -446,7 +443,14 @@ class Quantity:
         This can be used to set the value and the limits to new values at the same time. This function does not raise
         an exception if the new value is outside of the old limits.
         """
-        self.set_limits(min_value, max_value)
+        value_fixed = self.__fix_parameter_types(value)
+        min_value_fixed = self.__fix_parameter_types(min_value)
+        max_value_fixed = self.__fix_parameter_types(max_value)
+
+        min_value_fixed, min_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, min_value_fixed)
+
+        self.__offset = min_value_fixed
+        self.__scale = np.abs(max_value_fixed - min_value_fixed)
         self.__set_value(value)
 
     def get_name(self) -> str:
