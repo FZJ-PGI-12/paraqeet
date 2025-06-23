@@ -37,7 +37,7 @@ class Coupling(Optimisable):
 
     _subsystems: list[Hamiltonian]
     _coefficient: Quantity
-    _total_dims: Array
+    _total_dims: int
     __is_longitudinal: bool
     __useRWA: bool
 
@@ -123,7 +123,8 @@ class Coupling(Optimisable):
             the subsystem dimension.
 
         """
-        return vmap(self.get_matrices_one_time)(t)
+        # Technically, vmap returns "any" but we know the type of get_matrices_one_time is correct.
+        return vmap(self.get_matrices_one_time)(t)  # type:ignore
 
     def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
@@ -169,7 +170,8 @@ class Coupling(Optimisable):
             The rest is in the same shape as the result of getMatrices.
 
         """
-        return vmap(self.gradient_one_time)(t)
+        # Technically, vmap returns "any" but we know the type of gradient_one_time is correct.
+        return vmap(self.gradient_one_time)(t)  # type: ignore
 
     def __coupling_operators(self) -> list[list[Array]]:
         """Return coupling operators.
