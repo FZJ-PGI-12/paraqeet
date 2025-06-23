@@ -3,11 +3,11 @@
 from abc import ABC
 
 import jax.numpy as jnp
-from jax import Array, vmap
+from jax import vmap
 
 from cthree.model.drive import Drive
 from cthree.optimisable import Optimisable
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 
 
 class Hamiltonian(Optimisable, ABC):
@@ -59,24 +59,24 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Hamiltonian of shape [t, n, n]  with 't' as time and 'n' as the
             Hilbert space dimension.
 
         """
-        return vmap(self.get_matrix_one_time)(t)
+        return jnp.array(vmap(self.get_matrix_one_time)(t))
 
-    def get_matrix_one_time(self, t: float) -> Array:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        t : float
+        t : Array
             One time point.
 
         Returns
         -------
-        jax.Array
+        Array
             Hamiltonian of shape [n, n]  with `n` as the Hilbert space
             dimension.
 
@@ -186,7 +186,7 @@ class Hamiltonian(Optimisable, ABC):
         """
         return vmap(self._get_drive_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def _get_drive_matrix_one_time(self, annihilation_operator: Array, t: float) -> Array:
+    def _get_drive_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -237,7 +237,7 @@ class Hamiltonian(Optimisable, ABC):
             allGrads = jnp.append(allGrads, grads, axis=1)
         return allGrads
 
-    def _get_drive_gradients_one_time(self, annihilation_operator: Array, t: float) -> Array:
+    def _get_drive_gradients_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations

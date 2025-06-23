@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.model.hamiltonian import Hamiltonian
 from cthree.optimisable import Optimisable
@@ -88,7 +88,7 @@ class EquationOfMotion(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def gradient(self, t):
+    def gradient(self, t) -> Array:
         """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
 
         Parameters

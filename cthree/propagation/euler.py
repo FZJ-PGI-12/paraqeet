@@ -1,6 +1,6 @@
 """Class definition of the Euler propagation model."""
 
-from jax import Array
+from cthree.quantity import Array
 import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException

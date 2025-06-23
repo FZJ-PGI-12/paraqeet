@@ -1,11 +1,9 @@
 """Class definition of the Drive Hamiltonian in the rotating frame of drive."""
 
 import jax.numpy as jnp
-from jax.numpy import ndarray
-from jax import Array
 
 from cthree.model.drive import Drive
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 from cthree.signal.generator import Generator
 
 
@@ -57,13 +55,13 @@ class RotatingFrameDrive(Drive):
         ----------
         annihilation_operator: Array
             Annihilation operator of the subsystem
-        t: float
+        t: Array
             One time step
         """
         env = self.__signal_generator.generate_signal(jnp.array([t]))
         return env * annihilation_operator + jnp.conjugate(env) * annihilation_operator.conj().T
 
-    def gradient_one_time(self, annihilation_operator: ndarray, t: float) -> ndarray:
+    def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the

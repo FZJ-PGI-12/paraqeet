@@ -1,10 +1,10 @@
 from functools import partial
 
 import jax.numpy as jnp
-from jax import jit, vmap, Array
+from jax import jit, vmap
 from jax.scipy.special import erf
 
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 from cthree.signal.envelopes import Envelope
 from cthree.signal.generator import Generator
 
@@ -166,7 +166,7 @@ class PWCGenerator(Generator):
         inphase: Array,
         quadrature: Array,
         tlist: Array,
-        t: float,
+        t: Array,
     ) -> Array:
         """Generate a signal for a single time point 't'.
 

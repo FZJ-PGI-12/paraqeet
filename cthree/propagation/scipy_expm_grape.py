@@ -10,7 +10,8 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-from jax import Array, jit, vmap
+from cthree.quantity import Array
+from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm, expm_frechet
 
@@ -245,9 +246,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         psis = self._propagate_in_time(Us, init_state, jnp.arange(0, len(timeGrid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-        return psis
+        return jnp.array(psis)
 
-    def gradient(self, time: Array) -> Array:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -278,7 +279,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         hams = eom_func(timeGrid) * dt
         dH_dps = jnp.array(grad_func(timeGrid)) * dt
 
-        Ugrads = []
+        Ugrads_list = []
         n_params = dH_dps.shape[1]
 
         dim = init_state.shape[0]
@@ -290,9 +291,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         for i in range(n_params):
             Us, dUs = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dH_dps[:, i, ...])
-            Ugrads.append(dUs)
+            Ugrads_list.append(dUs)
 
-        Ugrads = jnp.stack(Ugrads, axis=1)
+        Ugrads = jnp.stack(Ugrads_list, axis=1)
 
         psis, lamdas = self._forward_and_backward_propagation(
             Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)

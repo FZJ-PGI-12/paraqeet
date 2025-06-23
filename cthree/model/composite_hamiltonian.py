@@ -1,11 +1,11 @@
 """Class definition of the composite Hamiltonian model."""
 
 import jax.numpy as jnp
-from jax import vmap, Array
+from jax import vmap
 import numpy as np
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 
 
 class CompositeHamiltonian(Hamiltonian):
@@ -143,7 +143,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        t: float
+        t: Array
             One time point.
 
         Returns

@@ -6,7 +6,8 @@ from functools import partial
 from typing import Any
 
 import jax.numpy as jnp
-from jax import Array, grad, jit, vmap
+from cthree.quantity import Array
+from jax import grad, jit, vmap
 
 from cthree.optimisable import Optimisable
 from cthree.quantity import Quantity

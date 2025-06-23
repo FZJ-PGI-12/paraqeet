@@ -1,6 +1,6 @@
 """Class definition of the Generator Drive model."""
 
-from jax import Array
+from cthree.quantity import Array
 import jax.numpy as jnp
 
 from cthree.model.drive import Drive
@@ -92,7 +92,7 @@ class DriveOperator(Drive):
         matrix = self._compute_matrix(a)
         return signal * matrix
 
-    def gradient_one_time(self, a: Array, t: float) -> Array:
+    def gradient_one_time(self, a: Array, t: Array) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the

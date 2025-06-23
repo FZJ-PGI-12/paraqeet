@@ -6,7 +6,8 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-from jax import Array, jit
+from cthree.quantity import Array
+from jax import jit
 from jax.scipy.special import erf
 
 from cthree.quantity import Quantity
@@ -428,7 +429,7 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluateTimeGrad(amp, t_final, t)
+        return jnp.array(self._evaluateTimeGrad(amp, t_final, t))
 
 
 class GaussEnvelope(Envelope):

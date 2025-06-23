@@ -2,7 +2,8 @@
 
 import jax
 import jax.numpy as jnp
-from jax import Array, vmap
+from cthree.quantity import Array
+from jax import vmap
 
 from cthree.model.hamiltonian import Hamiltonian
 from cthree.optimisable import Optimisable
@@ -51,7 +52,7 @@ class Coupling(Optimisable):
         self._coefficient = coefficient
         self.__is_longitudinal = is_longitudinal
         self.__useRWA = useRWA
-        self._total_dims = jnp.prod(jnp.array([s.dimension() for s in self.subsystems]))
+        self._total_dims = int(jnp.prod(jnp.array([s.dimension() for s in self.subsystems])))
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.

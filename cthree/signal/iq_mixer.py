@@ -1,7 +1,7 @@
 """Class definition for the Sinusoidal generator model."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.quantity import Quantity
 from cthree.signal.generator import Generator
@@ -75,7 +75,7 @@ class IQMixer(Generator):
 
         self.__lo.set_optimisable_parameters(params)
 
-    def __complex_signal(self, t: Array | float) -> Array:
+    def __complex_signal(self, t: Array) -> Array:
         """Generate a signal for time(s) 't'.
 
         Doesnt take real value now for ease of gradient computation.

@@ -4,7 +4,8 @@ import warnings
 from collections.abc import Callable
 
 import jax.numpy as jnp
-from jax import Array, grad, jit
+from cthree.quantity import Array
+from jax import grad, jit
 
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation

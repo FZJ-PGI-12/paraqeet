@@ -1,10 +1,8 @@
 """Class definition of a closed model."""
 
-from jax import Array
-
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.model.hamiltonian import Hamiltonian
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 
 
 class ClosedSystem(EquationOfMotion):

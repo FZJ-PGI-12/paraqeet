@@ -1,7 +1,7 @@
 """Class definition of the Makhlin functional."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.exceptions import ConfigurationException, IncompatibleLayersException
 from cthree.measurement.measurement import Measurement

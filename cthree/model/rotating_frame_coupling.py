@@ -1,7 +1,7 @@
 """Coupling Hamiltonian in the rotating frame of drive."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
@@ -62,7 +62,7 @@ class RotatingFrameCoupling(Coupling):
             annihilationOp[1] = annihilationOp[1].conj().T
         return annihilationOp
 
-    def get_matrices_one_time(self, t: float) -> list[Array]:
+    def get_matrices_one_time(self, t: Array) -> list[Array]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term

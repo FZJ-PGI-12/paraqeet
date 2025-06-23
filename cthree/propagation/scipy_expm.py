@@ -3,7 +3,8 @@
 from functools import partial
 
 import jax.numpy as jnp
-from jax import Array, jit
+from cthree.quantity import Array
+from jax import jit
 from jax.lax import scan
 from jax.scipy.linalg import expm
 

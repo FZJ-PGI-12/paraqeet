@@ -8,7 +8,8 @@ from functools import partial
 
 import jax.numpy as jnp
 
-from jax import Array, jit
+from cthree.quantity import Array
+from jax import jit
 from jax.lax import scan
 
 from cthree.exceptions import ConfigurationException
@@ -18,7 +19,7 @@ from cthree.propagation.scipy_expm import ScipyExpm
 class ScipyExpmGOAT(ScipyExpm):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
-    def _create_super_state(self, psi: Array, dpsis: Array):
+    def _create_super_state(self, psi: Array, dpsis: list[Array]):
         """Create a state for the system state and also for gradient vectors.
 
         Parameters

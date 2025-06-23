@@ -39,7 +39,7 @@ class RabiExperiment(Measurement):
         """
         return [self.__amp, self.__freq, self.__time]
 
-    def measure(self):
+    def measure_normalised_scalar(self):
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,

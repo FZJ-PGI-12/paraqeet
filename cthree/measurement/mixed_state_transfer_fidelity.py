@@ -1,6 +1,6 @@
 """Class definition for a mixed state transfer fidelity model."""
 
-from jax import Array
+from cthree.quantity import Array
 import jax.numpy as jnp
 import jax.scipy.linalg as sclin
 

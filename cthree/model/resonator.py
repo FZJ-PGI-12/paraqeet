@@ -1,7 +1,7 @@
 """Class definition of the Resonator Hamiltonian model."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
@@ -65,7 +65,7 @@ class Resonator(Hamiltonian):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def get_matrix_one_time(self, t: float) -> Array:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -82,7 +82,7 @@ class Resonator(Hamiltonian):
         H = self.__frequency.get_value() * self.__numOp
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: float) -> Array:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters

@@ -1,7 +1,7 @@
 """Class definition of a qubit model."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
@@ -73,7 +73,7 @@ class Qubit(Hamiltonian):
         """
         return 2
 
-    def get_matrix_one_time(self, t: float) -> Array:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -90,7 +90,7 @@ class Qubit(Hamiltonian):
         H = self.__frequency.get_value() * self.__drift
         return H + self._get_drive_matrix_one_time(self.__annihilationOp, t)
 
-    def gradient_one_time(self, t: float) -> Array:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters

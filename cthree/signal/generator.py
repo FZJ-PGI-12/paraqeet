@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.optimisable import Optimisable
 

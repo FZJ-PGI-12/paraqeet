@@ -1,7 +1,7 @@
 """Class definition of the Weighted Sum Goal model."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.exceptions import ConfigurationException
 from cthree.measurement.measurement import Measurement

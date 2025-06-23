@@ -1,11 +1,14 @@
 """Class definition of the unitary fidelity model."""
 
-from jax import Array
 import jax.numpy as jnp
 
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.propagation import Propagation
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
+
+import jax
+
+jax.config.update("jax_enable_x64", True)
 
 
 class UnitaryFidelity(Measurement):

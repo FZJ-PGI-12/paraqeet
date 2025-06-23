@@ -2,7 +2,8 @@
 
 from abc import ABC
 
-from jax import vmap, Array
+from jax import vmap
+from cthree.quantity import Array
 
 from cthree.optimisable import Optimisable
 
@@ -43,7 +44,7 @@ class Drive(Optimisable, ABC):
         """
         return vmap(self.get_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def get_matrix_one_time(self, annihilation_operator: Array, t: float) -> Array:
+    def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -96,7 +97,7 @@ class Drive(Optimisable, ABC):
         """
         return vmap(self.gradient_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
-    def gradient_one_time(self, annihilation_operator: Array, t: float) -> Array:
+    def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Get the one-time gradient of the system.
 
         Returns the gradient of the matrix representation of the

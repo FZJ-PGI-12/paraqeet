@@ -1,7 +1,7 @@
 """Class definition of the Transmon Hamiltonian model."""
 
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
@@ -107,7 +107,7 @@ class Transmon(Hamiltonian):
         H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonic_term
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: float) -> Array:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -125,12 +125,12 @@ class Transmon(Hamiltonian):
         gradients = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
-        grads = []
+        grads_list = []
         if self._is_optimised(self.__frequency):
-            grads.append(self.__numOp)
+            grads_list.append(self.__numOp)
         if self._is_optimised(self.__anharmonicity):
-            grads.append(self.__anharmonic_term)
-        grads = jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,) + self.__numOp.shape)
+            grads_list.append(self.__anharmonic_term)
+        grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__numOp.shape)
         gradients = jnp.append(gradients, grads, axis=0)
 
         return gradients
