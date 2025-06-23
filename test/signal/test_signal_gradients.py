@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
+from cthree.quantity import Array
 from cthree.signal.envelopes import FlatTopGaussianEnvelope
 from test.dummy_device import FlatTopGaussianEnvelopeAD
 
@@ -34,7 +35,7 @@ def toneAD():
     return FlatTopGaussianEnvelopeAD()
 
 
-def random_entries_from_list(elements: jnp.array, num: int = None) -> jnp.array:
+def random_entries_from_list(elements: Array, num: int = 0) -> Array:
     """Get random entries from an array of elements.
 
     Parameters

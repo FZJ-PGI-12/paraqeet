@@ -3,7 +3,7 @@
 import numpy as np
 import jax.numpy as jnp
 from scipy.stats import unitary_group
-from jax import Array
+from cthree.quantity import Array
 
 from cthree.propagation.propagation import Propagation
 from cthree.quantity import Quantity

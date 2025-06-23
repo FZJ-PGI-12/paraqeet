@@ -1,6 +1,5 @@
 """Test the quantity object."""
 
-from jax import Array
 import numpy as np
 import numpy.testing as testing
 import pytest
@@ -326,7 +325,7 @@ def testIsScalarOrVector(random_quantity):
             assert not q2.is_scalar()
 
 
-def __generateRandomMatrix(N: int) -> Array:
+def __generateRandomMatrix(N: int) -> np.ndarray:
     """Generate a random matrix of size `N` by `N`.
 
     Parameters
@@ -389,9 +388,9 @@ def testPersistence(random_quantity):
             # assert q == q2
             assert q.get_name() == q2.get_name()
             assert q.get_unit() == q2.get_unit()
-            testing.assert_almost_equal(q.get_min_value(), q2.get_min_value())
-            testing.assert_almost_equal(q.get_max_value(), q2.get_max_value())
-            testing.assert_almost_equal(q.get_reduced_value(), q2.get_reduced_value())
+            testing.assert_allclose(q.get_min_value(), q2.get_min_value())
+            testing.assert_allclose(q.get_max_value(), q2.get_max_value())
+            testing.assert_allclose(q.get_reduced_value(), q2.get_reduced_value())
             if N == 1:
                 assert q2.is_scalar()
             else:

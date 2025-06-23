@@ -5,7 +5,8 @@ from functools import partial
 import numpy as np
 import jax.numpy as jnp
 
-from jax import Array, jit
+from cthree.quantity import Array
+from jax import jit
 from jax.scipy.special import erf
 
 from cthree.signal.envelopes import Envelope
@@ -149,7 +150,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluate(amp, t_final, t)
+        return jnp.array(self._evaluate(amp, t_final, t))
 
     def compute_time_gradient(self, t: Array) -> Array:
         """Compute a signal envelopes time derivative.
@@ -166,4 +167,4 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluateTimeGrad(amp, t_final, t)
+        return jnp.array(self._evaluateTimeGrad(amp, t_final, t))

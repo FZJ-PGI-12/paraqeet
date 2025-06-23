@@ -153,8 +153,8 @@ def random_limits_for_quantity():
         if len(values.shape) == 0:
             # scalar quantity
             if values == 0.0:
-                min_value = -1
-                max_value = +1
+                min_value = np.array(-1.0)
+                max_value = np.array(+1.0)
             elif values < 0:
                 min_value = (np.random.random() + 1) * values
                 max_value = np.random.random() * values
