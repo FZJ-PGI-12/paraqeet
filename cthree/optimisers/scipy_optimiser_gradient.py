@@ -2,7 +2,7 @@
 
 import numpy as np
 import jax.numpy as jnp
-from jax import Array
+from cthree.quantity import Array
 from scipy.optimize import minimize
 
 from cthree.exceptions import IncompatibleOptimisationMap
