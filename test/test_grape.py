@@ -55,7 +55,7 @@ def states(model, request):
     if request.param == "expm":
         prop_method = ScipyExpmGRAPE(model=model, res=1e9)
         if prop_method.is_open:
-            pytest.skip()
+            pytest.skip("Currently, ScipyExpmGRAPE is not implemented for open system.")
     elif request.param == "ode":
         model.ode_propagation = True
         prop_method = Vern7GRAPE(model=model, res=1e9)
