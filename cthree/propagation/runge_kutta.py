@@ -1,13 +1,12 @@
 """Class definition for the Runge-Kutta Scipy propagation model."""
 
-import jax.numpy as jnp
-from jax import Array
+import numpy as np  # Using regular numpy for scipy interface
 from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from cthree.exceptions import ConfigurationException
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 
 
 class RungeKutta(StatePropagation):
@@ -29,7 +28,7 @@ class RungeKutta(StatePropagation):
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)
-        self._initial_state = None
+        self._initial_state: Array
         self.__initial_time_step = initial_time_step
 
     def get_parameters(self) -> list[Quantity]:
@@ -54,7 +53,7 @@ class RungeKutta(StatePropagation):
             Parameter value to be set as the initial state for the propagation.
 
         """
-        self._initial_state = jnp.reshape(state, (-1,))
+        self._initial_state = np.reshape(state, (-1,))
 
     def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
@@ -84,9 +83,9 @@ class RungeKutta(StatePropagation):
             raise ValueError("Runge-Kutta propagation needs at least two time steps")
 
         def callback(time, state):
-            column_state = jnp.reshape(state, (-1, 1))
-            return jnp.reshape(
-                self._model.get_right_hand_side(jnp.array([time]), column_state),
+            column_state = np.reshape(state, (-1, 1))
+            return np.reshape(
+                self._model.get_right_hand_side(np.array([time]), column_state),
                 (-1,),
             )
 
@@ -97,12 +96,13 @@ class RungeKutta(StatePropagation):
         for ti in range(1, len(time)):
             dt = self.__initial_time_step
             if dt is None or dt > time[ti] - time[ti - 1]:
-                dt = (time[ti] - time[ti - 1]) / 5
+                dt = float(time[ti] - time[ti - 1]) / 5
 
+            # This is the scipy implementation of RK45, which is compatible with (non-jax) numpy
             integrator = RK45(
                 fun=callback,
                 t0=time[ti - 1],
-                y0=jnp.reshape(states[-1], (-1,)),
+                y0=np.reshape(states[-1], (-1,)),
                 t_bound=time[ti],
                 first_step=dt,
                 vectorized=False,
@@ -111,4 +111,4 @@ class RungeKutta(StatePropagation):
             while integrator.status == "running":
                 integrator.step()
             states.append(integrator.y)
-        return jnp.array(states)
+        return np.array(states)
