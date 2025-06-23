@@ -141,7 +141,7 @@ def test_gradient_shape(coupling, time_samples):
     dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, isLongitudinal=False)
-    grads = np.array(coup.gradient(time_samples))
+    grads = coup.gradient(time_samples)
     for grad in grads:
         for term in grad:
             for i, ops in enumerate(term):
