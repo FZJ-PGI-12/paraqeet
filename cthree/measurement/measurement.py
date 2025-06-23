@@ -1,11 +1,9 @@
 """Class definition of the Measurement model."""
 
-from abc import abstractmethod
-
 import jax.numpy as jnp
-from jax import Array
 
 from cthree.optimisable import Optimisable
+from cthree.quantity import Array
 
 
 class Measurement(Optimisable):
@@ -30,17 +28,16 @@ class Measurement(Optimisable):
     def __init__(self, times: Array):
         self._times = times
 
-    @abstractmethod
-    def measure(self) -> Array:
+    def measure(self) -> Array | float:
         """Measure the observable and returns the value.
 
         Abstract Method. This function must be implemented by subclasses.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray or float
             This abstract method must return a Numpy ndarray when
-            implemented by subclasses.
+            implemented by subclasses. Might return multiple values.
 
         Raises
         ------
@@ -48,27 +45,27 @@ class Measurement(Optimisable):
             If a subclass does not implement the measure method, raise an error.
 
         """
-        raise NotImplementedError()
+        return self.measure_normalised_scalar()
+
+    def measure_scalar(self) -> float:
+        """Measure the observable.
+
+        Returns a scalar value. This function must be implemented by subclasses, unless identical to
+        self.measure_normalised_scalar().
+        """
+        return self.measure_normalised_scalar()
 
     def measure_normalised_scalar(self) -> float:
         """Measure the normalised observable.
 
-        Returns a scalar value between 0 and 1, 1 representing the perfect result.
-        This function must be implemented by subclasses,
-        unless identical to self.measure_scalar().
+        Returns a single scalar value between 0 and 1, 1 representing the perfect result, required for use with most
+        optimisations. This function must be implemented by subclasses.
 
         Returns
         -------
         numpy.ndarray
             Returns a Numpy ndarray if implemented by a subclass.
 
-        """
-        return self.measure_scalar()
-
-    def measure_scalar(self) -> float:
-        """Measure the observable.
-
-        Returns a scalar value. This function must be implemented by subclasses.
         """
         raise NotImplementedError()
 
