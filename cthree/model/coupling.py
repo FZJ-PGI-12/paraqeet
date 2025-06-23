@@ -146,10 +146,11 @@ class Coupling(Optimisable):
             result of getMatricesOneTime.
 
         """
+        coup_ops = self.__coupling_operators()
         if self._is_optimised(self._coefficient):
-            grads = [self.__coupling_operators()]
+            grads = [coup_ops]
         else:
-            grads = jnp.empty((0, self._total_dims, self._total_dims))
+            grads = [[[jnp.zeros_like(op) for op in sub] for sub in coup_ops]]
         return grads
 
     def gradient(self, t: Array) -> list[list[list[Array]]]:
