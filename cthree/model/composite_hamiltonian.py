@@ -156,10 +156,10 @@ class CompositeHamiltonian(Hamiltonian):
 
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
-        for i, subsystem in enumerate(self.__subsystems):
+        for one_index, subsystem in enumerate(self.__subsystems):
             subGradients = subsystem.gradient_one_time(t)
             for g in subGradients:
-                gradients.append(self.__tensor_product_with_identity([g], [i]))
+                gradients.append(self.__tensor_product_with_identity([g], [one_index]))
 
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
@@ -167,8 +167,8 @@ class CompositeHamiltonian(Hamiltonian):
             indices = [self.__subsystems.index(s) for s in coupling.subsystems]
             couplingGradient = coupling.gradient_one_time(t)
             for term in couplingGradient:
-                for g in term:
-                    gradients.append(self.__tensor_product_with_identity(g, indices))
+                for g_list in term:
+                    gradients.append(self.__tensor_product_with_identity(g_list, indices))
 
         return jnp.array(gradients)
 
@@ -198,7 +198,7 @@ class CompositeHamiltonian(Hamiltonian):
         # fill in M at the corresponding indices
         subMatrices = [jnp.eye(s.dimension()) for s in self.__subsystems]
         for i, k in enumerate(n):
-            subMatrices[k] = M[i]
+            subMatrices[k] = jnp.array(M[i])
 
         # Tensor product everything in subMatrices
         product = jnp.eye(1)

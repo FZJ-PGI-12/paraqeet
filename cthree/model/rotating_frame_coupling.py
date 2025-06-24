@@ -1,11 +1,10 @@
 """Coupling Hamiltonian in the rotating frame of drive."""
 
 import jax.numpy as jnp
-from cthree.quantity import Array
 
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 
 
 class RotatingFrameCoupling(Coupling):
@@ -55,12 +54,15 @@ class RotatingFrameCoupling(Coupling):
         return [self._coefficient, self.__diff_freq]
 
     def __coupling_operators(self) -> list[Array]:
-        """Return the annhilation operator."""
-        dimensions = [s.dimension() for s in self.subsystems]
-        annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
-        if len(annihilationOp) > 1:
-            annihilationOp[1] = annihilationOp[1].conj().T
-        return annihilationOp
+        """Return the annhilation operator. Special implementation for two subsystems."""
+        if len(self.subsystems) > 2:
+            raise NotImplementedError("No implementation for more than 2 subsystems.")
+        dim = self.subsystems[0].dimension()
+        annihilationOps = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
+        if len(self.subsystems) == 2:
+            dim = self.subsystems[1].dimension()
+            annihilationOps.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
+        return annihilationOps
 
     def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.

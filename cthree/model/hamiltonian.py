@@ -107,7 +107,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Hamiltonian of shape [t, p, n, n]  with 't' as time, 'p' as number
             of parameters and 'n' as Hilbert space dimension.
 
@@ -131,7 +131,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        list of Array
             Hamiltonian of shape [p, n, n]  with 'p' as the number
             of parameters and 'n' as the Hilbert space dimension.
 
@@ -180,7 +180,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the sum of all drives in matrix form.
 
         """
@@ -201,7 +201,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the sum of all drives in matrix form.
 
         """
@@ -226,7 +226,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the gradients of all drives.
 
         """
@@ -252,7 +252,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the gradients of all drives.
 
         """
@@ -280,7 +280,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        jax.Array
+        Array
             Repeated matrix for each time step specified.
 
         """
