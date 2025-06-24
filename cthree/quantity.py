@@ -95,7 +95,7 @@ class Quantity:
         min_value_fixed = self.__fix_parameter_types(min_value)
         max_value_fixed = self.__fix_parameter_types(max_value)
 
-        min_value_fixed, min_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
+        min_value_fixed, max_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
 
         self.__shape = value_fixed.shape
         self.__length = int(np.prod(value_fixed.shape))
@@ -128,7 +128,7 @@ class Quantity:
         if value.shape != min_value.shape or value.shape != max_value.shape:
             raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
 
-        return min_value, min_value
+        return min_value, max_value
 
     @staticmethod
     def __fix_parameter_types(param: Array | float) -> Array:
@@ -431,7 +431,7 @@ class Quantity:
         min_value_fixed = self.__fix_parameter_types(min_value)
         max_value_fixed = self.__fix_parameter_types(max_value)
 
-        min_value_fixed, min_value_fixed = self.__fix_shapes(oldValue, min_value_fixed, min_value_fixed)
+        min_value_fixed, max_value_fixed = self.__fix_shapes(oldValue, min_value_fixed, max_value_fixed)
 
         self.__offset = min_value_fixed
         self.__scale = np.abs(max_value_fixed - min_value_fixed)
@@ -447,11 +447,11 @@ class Quantity:
         min_value_fixed = self.__fix_parameter_types(min_value)
         max_value_fixed = self.__fix_parameter_types(max_value)
 
-        min_value_fixed, min_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, min_value_fixed)
+        min_value_fixed, max_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
 
         self.__offset = min_value_fixed
         self.__scale = np.abs(max_value_fixed - min_value_fixed)
-        self.__set_value(value)
+        self.__set_value(value_fixed)
 
     def get_name(self) -> str:
         """Return the symbol or description or this quantity.
