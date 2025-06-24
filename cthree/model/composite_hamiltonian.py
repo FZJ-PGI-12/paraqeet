@@ -168,7 +168,9 @@ class CompositeHamiltonian(Hamiltonian):
             couplingGradient = coupling.gradient_one_time(t)
             for term in couplingGradient:
                 for g_list in term:
-                    gradients.append(self.__tensor_product_with_identity(g_list, indices))
+                    grad = self.__tensor_product_with_identity(g_list, indices)
+                    if grad.size != 0:
+                        gradients.append(grad)
 
         return jnp.array(gradients)
 

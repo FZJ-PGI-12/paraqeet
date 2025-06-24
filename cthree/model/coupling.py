@@ -151,7 +151,7 @@ class Coupling(Optimisable):
         if self._is_optimised(self._coefficient):
             grads = [coup_ops]
         else:
-            grads = [[[jnp.zeros_like(op) for op in sub] for sub in coup_ops]]
+            grads = [[[jnp.empty((0, 0)) for _ in sub] for sub in coup_ops]]
         return grads
 
     def gradient(self, t: Array) -> list[list[list[Array]]]:
