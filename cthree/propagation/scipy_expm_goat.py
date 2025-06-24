@@ -19,7 +19,7 @@ from cthree.propagation.scipy_expm import ScipyExpm
 class ScipyExpmGOAT(ScipyExpm):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
-    def _create_super_state(self, psi: Array, dpsis: list[Array]):
+    def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
 
         Parameters
@@ -101,7 +101,7 @@ class ScipyExpmGOAT(ScipyExpm):
         n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initial_state.shape[0]
         psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
-        dpsis = [[jnp.zeros_like(self._initial_state, dtype=jnp.complex128)] * n_params]
+        dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
         eom_func = self._model.get_matrix
         grad_func = self._model.gradient
