@@ -1,11 +1,13 @@
 """Class definition of the composite Hamiltonian model."""
 
+import jax
 import jax.numpy as jnp
 from jax import vmap
 import numpy as np
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
 from cthree.quantity import Quantity, Array
+from cthree.exceptions import IncompatibleLayersException
 
 
 class CompositeHamiltonian(Hamiltonian):
@@ -159,6 +161,8 @@ class CompositeHamiltonian(Hamiltonian):
         for one_index, subsystem in enumerate(self.__subsystems):
             subGradients = subsystem.gradient_one_time(t)
             for g in subGradients:
+                if not isinstance(g, np.ndarray | jax.Array):
+                    raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
                 gradients.append(self.__tensor_product_with_identity([g], [one_index]))
 
         # Do the same for couplings, except that the tensor product
