@@ -133,9 +133,9 @@ class CompositeHamiltonian(Hamiltonian):
             Gradient for each time point in the input array of times.
 
         """
-        return vmap(self._gradientOneTime)(t)
+        return vmap(self._gradient_one_time)(t)
 
-    def _gradientOneTime(self, t: Array) -> Array:
+    def _gradient_one_time(self, t: Array) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
