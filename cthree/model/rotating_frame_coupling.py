@@ -58,7 +58,7 @@ class RotatingFrameCoupling(Coupling):
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")
         dim = self.subsystems[0].dimension()
-        annihilationOps = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
+        annihilationOps: list[Array] = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
         if len(self.subsystems) == 2:
             dim = self.subsystems[1].dimension()
             annihilationOps.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
