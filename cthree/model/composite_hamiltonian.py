@@ -213,7 +213,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         return product
 
-    def get_collapseops(self) -> list[tuple[float, np.ndarray]]:
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
         """
         Gather collapse operators from the subsystems and then tensor product them
         with identity to create the collapse operators of the right dimension.

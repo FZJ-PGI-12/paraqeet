@@ -1,11 +1,11 @@
 """Class definition of the 7th-order Verner ODE solver for GRAPE."""
 
 from functools import partial
-from jax import Array, jit, vmap
+from jax import jit, vmap
 from jax.lax import scan, dynamic_slice_in_dim
-import numpy as np
 import jax.numpy as jnp
 
+from cthree.quantity import Array
 from cthree.exceptions import ConfigurationException
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.vern7 import Vern7
@@ -27,13 +27,13 @@ class Vern7GRAPE(Vern7):
 
     _res: float
         Simulation resolution.
-    _initial_state: np.ndarray = None
+    _initial_state: Array = None
         Initial state for forward propagation.
-    _target_state: np.ndarray = None
+    _target_state: Array = None
         Target state for backward propagation.
     """
 
-    _target_state: np.ndarray = None
+    _target_state: Array | None = None
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
@@ -44,17 +44,17 @@ class Vern7GRAPE(Vern7):
             self.__reverse_step_function = self._reverse_schrodinger_step
 
     @property
-    def target_state(self) -> np.ndarray:
+    def target_state(self) -> Array | None:
         """Returns the current target state for backward propagation."""
         return self._target_state
 
     @target_state.setter
-    def target_state(self, targetState: np.ndarray) -> None:
+    def target_state(self, targetState: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
         ----------
-        targetState : np.ndarray
+        targetState : Array
             Target state.
         """
         # For open system check if target state is a density matrixs.
@@ -67,10 +67,10 @@ class Vern7GRAPE(Vern7):
 
         self._target_state = targetState
 
-    def _reverse_schrodinger_step(self, state: Array, h: Array, cols: Array):
+    def _reverse_schrodinger_step(self, state: Array, h: Array, cols: list[Array]):
         return jnp.matmul(state, h)
 
-    def _reverse_lindblad_step(self, state: Array, h: Array, cols: Array):
+    def _reverse_lindblad_step(self, state: Array, h: Array, cols: list[Array]):
         del_rho = self._commutator(h, state)
         for col in cols:
             del_rho -= jnp.matmul(jnp.matmul(self._dagger(col), state), col)
@@ -92,9 +92,9 @@ class Vern7GRAPE(Vern7):
 
         Parameters
         ----------
-        psis_t : np.ndarray
+        psis_t : Array
             Forward propagated state
-        lamdas_t : np.ndarray
+        lamdas_t : Array
             Backward propagated state
         """
 
@@ -122,7 +122,7 @@ class Vern7GRAPE(Vern7):
 
         return psis_list, lamdas_list
 
-    def gradient(self, time: np.ndarray) -> np.ndarray:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and

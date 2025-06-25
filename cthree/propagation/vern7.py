@@ -6,12 +6,12 @@ import numpy as np
 import jax.numpy as jnp
 
 from cthree.exceptions import ConfigurationException
-from cthree.quantity import Quantity
+from cthree.quantity import Quantity, Array
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
 
 import jax
-from jax import Array, jit
+from jax import jit
 from jax.lax import scan, dynamic_slice_in_dim
 
 jax.config.update("jax_enable_x64", True)
@@ -25,7 +25,7 @@ class Vern7(StatePropagation):
     """
 
     _res: float
-    _initial_state: np.ndarray | None = None
+    _initial_state: Array | None = None
 
     def __init__(self, model: EquationOfMotion, res: float):
         """
@@ -76,15 +76,15 @@ class Vern7(StatePropagation):
         return []
 
     @staticmethod
-    def _commutator(A: jnp.ndarray, B: jnp.ndarray):
+    def _commutator(A: Array, B: Array):
         return jnp.matmul(A, B) - jnp.matmul(B, A)
 
     @staticmethod
-    def _anti_commutator(A: jnp.ndarray, B: jnp.ndarray):
+    def _anti_commutator(A: Array, B: Array):
         return jnp.matmul(A, B) + jnp.matmul(B, A)
 
     @staticmethod
-    def _dagger(op: jnp.ndarray):
+    def _dagger(op: Array):
         return op.conj().T
 
     def _construct_times(self, time, ti):
@@ -92,7 +92,7 @@ class Vern7(StatePropagation):
         t0 = time[ti - 1]
         t1 = time[ti]
         steps = int(np.ceil((t1 - t0) * self._res))
-        times = np.linspace(t0, t1, steps, endpoint=False)
+        times = jnp.linspace(t0, t1, steps, endpoint=False)
         if steps < 2:
             dt = t1 - t0
         else:
@@ -117,14 +117,14 @@ class Vern7(StatePropagation):
         )
         return jnp.sort(times_interp)
 
-    def _lindblad_step(self, state: Array, h: Array, cols: Array):
+    def _lindblad_step(self, state: Array, h: Array, cols: list[Array]):
         del_rho = self._commutator(h, state)
         for col in cols:
             del_rho += jnp.matmul(jnp.matmul(col, state), self._dagger(col))
             del_rho -= 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), state)
         return del_rho
 
-    def _schrodinger_step(self, state: Array, h: Array, cols: Array):
+    def _schrodinger_step(self, state: Array, h: Array, cols: list[Array]):
         return jnp.matmul(h, state)
 
     @partial(jit, static_argnums=(0,))
@@ -210,7 +210,7 @@ class Vern7(StatePropagation):
         state_t, _ = scan(propagate_body, state_t, steps_arr)
         return state_t
 
-    def propagate(self, time: Array):
+    def propagate(self, time: Array) -> Array:
         """Return the solution of the equation of motion for open/closed system using vern7 ODE solver.
 
         Loop over all desired times in time at set resolution.

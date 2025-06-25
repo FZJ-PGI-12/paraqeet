@@ -292,7 +292,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        List[Tuple[float, Array]]
+        List[Tuple[Array, Array]]
             List of collapse operators
         """
         raise NotImplementedError()
