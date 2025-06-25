@@ -50,6 +50,7 @@ test:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+  tags: [heavy]
 
 codequality:
   stage: codestyle
