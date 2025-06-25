@@ -156,11 +156,11 @@ def random_limits_for_quantity():
                 min_value = np.array(-1.0)
                 max_value = np.array(+1.0)
             elif values < 0:
-                min_value = (np.random.random() + 1) * values
+                min_value = (np.random.random() + 1.1) * values
                 max_value = np.random.random() * values
             else:
                 min_value = np.random.random() * values
-                max_value = (np.random.random() + 1) * values
+                max_value = (np.random.random() + 1.1) * values
             return min_value, max_value
         else:
             # list quantity
@@ -173,11 +173,11 @@ def random_limits_for_quantity():
                     min_values[i] = -1
                     max_values[i] = +1
                 elif v < 0:
-                    min_values[i] = (np.random.random() + 1) * v
+                    min_values[i] = (np.random.random() + 1.1) * v
                     max_values[i] = np.random.random() * v
                 else:
                     min_values[i] = np.random.random() * v
-                    max_values[i] = (np.random.random() + 1) * v
+                    max_values[i] = (np.random.random() + 1.1) * v
             return min_values, max_values
 
     return _method
