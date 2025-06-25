@@ -162,7 +162,7 @@ class Vern7GRAPE(Vern7):
         dH_dps = jnp.array(grad_func(time[:-1] + dt / 2)) * dt
 
         psis, lamdas = self._forward_and_backward_propagation(
-            init_state, target_state, eom * dt, cols * jnp.sqrt(dt), jnp.arange(0, len(time[:-1]), 1)
+            init_state, target_state, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time[:-1]), 1)
         )
 
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)

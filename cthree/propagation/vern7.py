@@ -256,7 +256,7 @@ class Vern7(StatePropagation):
             state_t = self._propagate_in_time(
                 state_t,
                 eom * dt,
-                cols * jnp.sqrt(dt),
+                jnp.array(cols) * jnp.sqrt(dt),
                 jnp.arange(0, len(times), 1),
             )
             states.append(state_t)
