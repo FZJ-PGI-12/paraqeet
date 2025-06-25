@@ -1,60 +1,72 @@
-""" """
+"""Custom Hamiltonian wrapper for H(t)."""
 
-import jax.numpy as jnp
+from collections.abc import Callable
 from cthree.model.hamiltonian import Hamiltonian
 from cthree.quantity import Array, Quantity
-from cthree.signal.generator import Generator
+from jax import jacrev, vmap
 
 
 class CustomHamiltonian(Hamiltonian):
-    __drift_hamiltonian: Array
-    __drive: list
-    __generator: Generator
+    """Custom Hamiltonian class to simulate systems using a user defined Hamitonian function..
+
+    Here we expect a Hamiltonian function of the form `H(t, *parameters)`.
+    It is advised to make the Hamiltonian function vmap and jit compatible.
+    Furthermore, it is advised to write the Hamiltonian function in a way such that
+    it takes a single time point (scalar) as input and returns  a jax array of dimensions [n, n].
+
+    `parameters` is a list of Quantites that would be optimised.
+
+    Additionally, to optimise the parameters, one can either pass a gradient fuction.
+    In case a gradient function is not provided, the fallback implementation uses automatic differentiation.
+    To use automatic differentiation, one has to make sure that
+    the Hamiltonian function is compatibale with `jax.jacrev`.
+
+    To use open system simulation, provide a list of tuples of decay rates and corresponding collapse opearators.
+    """
+
+    __hamiltonian_function: Callable
+    __parameters: list[Quantity]
+    __gradient_function: Callable | None
+    __collapse_operators: list[tuple[Array, Array]] | None
 
     def __init__(
         self,
-        drift_hamiltonian: Array,
-        drive: Array,
-        generator: Generator,
+        hamiltonian_function: Callable,
+        parameters: list[Quantity],
+        gradient_function: Callable | None = None,
+        collapse_operators: list[tuple[Array, Array]] | None = None,
     ):
-        self.__drift_hamiltonian = drift_hamiltonian
-        self.__couplings = couplings
-        self.__drive = drive
-        self.__generator = generator
+        self.__hamiltonian_function = hamiltonian_function
+        self.__parameters = parameters
+        self.__gradient_function = gradient_function
+        self.__collapse_operators = collapse_operators
+
+    def get_parameters(self) -> list[Quantity]:
+        """Return a list of optimisable parameters."""
+        return self.__parameters
+
+    def get_matrix_one_time(self, t):
+        """Return Hamiltonian as a function of time for a single time point."""
+        return self.__hamiltonian_function(t, *self.__parameters)
 
     def get_matrix(self, t: Array) -> Array:
-        """
-        Return the matrix representation of the Hamiltonian.
-        NOTE - Works ONLY with MultiGenerator (from customGenerator)
+        """Return Hamiltonian as a function of time for an array of time."""
+        return vmap(self.__hamiltonian_function)(t, *self.__parameters)
 
-        Args:
-            t (Array): Vector of time samples
-
-        Returns:
-            Array: Hamiltonian of shape [t, n, n]  with t: time, n: hilbert space
-        """
-        sig = self.__generator.generate_signal(t)
-        drive = jnp.array(self.__drive)
-        return jnp.sum(jnp.array(self.__drift_hamiltonian), axis=0) + jnp.sum(
-            jnp.reshape(sig, sig.shape + (1, 1)) * jnp.expand_dims(drives, axis=1), axis=0
-        )
-
-    def getParameters(self) -> list[Quantity]:
-        return []
+    def gradient_one_time(self, t):
+        """Return the gradient as a function of time for a single time point."""
+        params = self.__parameters
+        if self.__gradient_function is None:
+            argnums = tuple(i + 1 for i in range(len(self.__parameters)))
+            grads = jacrev(self.__hamiltonian_function, argnums=argnums)(t, *params)
+        else:
+            grads = self.__gradient_function(t, *params)
+        return grads
 
     def gradient(self, t: Array) -> Array:
-        """
-        Return the gradient of each parameter as a list.
-        NOTE - Works ONLY with MultiGenerator (from customGenerator)
-        """
-        drives = jnp.array(self.__drive)
-        sig_grads = self.__generator.generate_signal_gradient(t)
-        grads = []
-        for i, sig_grad in enumerate(sig_grads):
-            ham_grad = jnp.reshape(sig_grad, sig_grad.shape + (1, 1)) * drives[i]
-            grads.append(ham_grad)
+        """Return Hamiltonian as a function of time for a single time point."""
+        return vmap(self.gradient_one_time)
 
-        all_grads = jnp.empty(shape=t.shape + (0,) + drives[0].shape)
-        for grad in grads:
-            all_grads = jnp.append(all_grads, grad, axis=1)
-        return all_grads
+    def get_collapseops(self):
+        """Return collapse operators."""
+        return self.__collapse_operators
