@@ -1,14 +1,13 @@
 """Class definition of an open system."""
 
-from cthree.quantity import Quantity
+from collections.abc import Callable
+from cthree.quantity import Array, Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.model.hamiltonian import Hamiltonian
 
-import numpy as np
-
 import jax.numpy as jnp
 from jax import vmap, jit
-from jax.experimental import sparse
+from jax.experimental.sparse import BCOO
 
 
 class OpenSystem(EquationOfMotion):
@@ -32,6 +31,7 @@ class OpenSystem(EquationOfMotion):
 
     _ode_propagation: bool
     __sparse_superop: bool
+    _get_matrix_method: Callable
 
     def __init__(
         self,
@@ -89,18 +89,18 @@ class OpenSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_parameters()
 
-    def get_collapseops(self) -> list[tuple[float, np.ndarray]]:
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Get a list of tuples of decay rates and collapse operators for each subsystem.
 
         Returns
         -------
-        list[tuple[float, np.ndarray]]
+        list[tuple[float, Array]]
             list of collapse operators
 
         """
         return self._hamiltonian.get_collapseops()
 
-    def __get_ode_propagation_eom(self, time: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def __get_ode_propagation_eom(self, time: Array) -> tuple[Array, list[Array]]:
         """
         Return the coherent and incoherent EOM parts seperately.
         Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
@@ -108,29 +108,29 @@ class OpenSystem(EquationOfMotion):
 
         Parameters
         ----------
-        time: np.ndarray
+        time: Array
             Vector of time samples
 
         Returns
         -------
-        tuple[np.ndarray, np.ndarray]
+        tuple[Array, Array]
              Hamiltonian EOM ([t, N, N] matrix) and the `m` collapse operators ([m, N^2, N^2] matrix)
         """
         ham_eom = self._hamiltonian.get_matrix(time)
         rates_and_cols = self.get_collapseops()
-        cols = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
-        return -1j * ham_eom, jnp.array(cols, dtype=jnp.complex128)
+        cols: list[Array] = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
+        return -1j * ham_eom, cols
 
-    def __create_hamiltonian_superop(self, t):
+    def __create_hamiltonian_superop(self, t) -> Array | BCOO:
         """Create the Hamiltonian superoperator for one time point `t`."""
         identityop = jnp.eye(self._hamiltonian.dimension())
         ham = self._hamiltonian.get_matrix_one_time(t)
         superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
         if self.sparse_superop:
-            superop = sparse.BCOO.fromdense(superop)
+            return BCOO.fromdense(superop)
         return superop
 
-    def __create_collapse_superop(self):
+    def __create_collapse_superop(self) -> Array | BCOO:
         """Create the superoperator due to the collapse part. This is time independent."""
         dim = self._hamiltonian.dimension()
         identityop = jnp.eye(dim)
@@ -142,52 +142,28 @@ class OpenSystem(EquationOfMotion):
             superop -= rate / 2 * jnp.kron(identityop, jnp.matmul(col.conj().T, col))
 
         if self.sparse_superop:
-            superop = sparse.BCOO.fromdense(superop)
+            return BCOO.fromdense(superop)
         return superop
 
-    def __create_lindbladian_superop(self, t):
+    def __create_lindbladian_superop(self, t) -> Array | BCOO:
         """Create the Lindbladian superoperator for one time point `t`."""
         hamSuperop = self.__create_hamiltonian_superop(t)
         colSuperop = self.__create_collapse_superop()
         return hamSuperop + colSuperop
 
-    def _get_matrix_reverse(self, time: np.ndarray) -> np.ndarray:
-        return vmap(self.__create_lindbladian_superop_reverse)(time)
-
-    def __create_lindbladian_superop_reverse(self, t):
-        """Create the Lindbladian superoperator for one time point `t`."""
-        hamSuperop = self.__create_hamiltonian_superop(t)
-        colSuperop = self.__create_collapse_superop_reverse()
-        return hamSuperop - colSuperop
-
-    def __create_collapse_superop_reverse(self):
-        """Create the superoperator due to the collapse part. This is time independent."""
-        dim = self._hamiltonian.dimension()
-        identityop = jnp.eye(dim)
-        superop = jnp.zeros((dim**2, dim**2), dtype=jnp.float64)
-        rates_and_cols = self._hamiltonian.get_collapseops()
-        for rate, col in rates_and_cols:
-            superop = rate * jnp.kron(col.T, col.T.conj())
-            superop -= rate / 2 * jnp.kron(jnp.matmul(col.T, col.conj()), identityop)
-            superop -= rate / 2 * jnp.kron(identityop, jnp.matmul(col.conj().T, col))
-
-        if self.sparse_superop:
-            superop = sparse.BCOO.fromdense(superop)
-        return superop
-
-    def get_matrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: Array):
         """
         Computes the right hand side of the Schrödinger equation without multiplying the state. Used for unitary
         solvers.
 
         Parameters
         ----------
-        time : np.ndarray
+        time : Array
             Vector of time samples
 
         Returns
         -------
-        np.ndarray
+        Array
             RHS with dimension [t, n, n]  with t: time, n: hilbert space
         """
         return self._get_matrix_method(time)
@@ -206,10 +182,10 @@ class OpenSystem(EquationOfMotion):
         superop = term1 + term2
         return superop
 
-    def gradient(self, time) -> np.ndarray:
+    def gradient(self, t) -> Array:
         """Compute the gradient of get_matrix."""
         if self.ode_propagation:
-            grads = -1j * self._hamiltonian.gradient(time)
+            grads = -1j * self._hamiltonian.gradient(t)
         else:
-            grads = vmap(self.__create_hamiltonian_grad_superop)(time)
+            grads = vmap(self.__create_hamiltonian_grad_superop)(t)
         return grads
