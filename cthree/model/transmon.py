@@ -134,12 +134,12 @@ class Transmon(Hamiltonian):
 
         Parameters
         ----------
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Vector of time samples.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             The repeated drive matrix.
 
         """
@@ -156,7 +156,7 @@ class Transmon(Hamiltonian):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the gradients of the drive.
 
         """

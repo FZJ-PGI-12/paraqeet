@@ -22,9 +22,9 @@ class MixedStateTransferFidelity(Measurement):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    targetState : numpy.ndarray
+    targetState : cthree.quantity.Array
         Final state of the density matrices.
-    times : numpy.ndarray
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -56,7 +56,7 @@ class MixedStateTransferFidelity(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        cthree.quantity.Array
             Overlap between initial and final state of density matrices.
 
         Raises

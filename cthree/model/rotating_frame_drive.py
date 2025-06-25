@@ -67,14 +67,14 @@ class RotatingFrameDrive(Drive):
 
         Parameters
         ----------
-        annihilation_operator : numpy.ndarray
+        annihilation_operator : Array
             Operator for longitudinal or transverse drive.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the shape-shifted gradient from the drive.
 
         """

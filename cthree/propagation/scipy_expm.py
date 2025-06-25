@@ -70,14 +70,14 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Array of timesteps.
         ti : int
             Snapshot of the time at a current step
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Array of timestamps in specified resolution.
         int
             Difference in time step.
@@ -144,17 +144,17 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        psis_t : jax.numpy.ndarray
+        psis_t : chtree.quantity.Array
             State/states at time 't'.
-        eom : jax.numpy.ndarray
+        eom : chtree.quantity.Array
             Equation of motion for a list of times.
-        steps_arr : jax.numpy.ndarray
+        steps_arr : chtree.quantity.Array
             Array from 0 to the length of the List of time, in steps of 1
             representing the iteration index.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the evolved state.
 
         """
@@ -174,14 +174,14 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        eom_matrix : jax.numpy.ndarray
+        eom_matrix : chtree.quantity.Array
             The equations of motion matrix.
-        psis_t : jax.numpy.ndarray
+        psis_t : chtree.quantity.Array
             State/states at time 't'.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the evolved state.
 
         """
@@ -194,7 +194,7 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -213,9 +213,12 @@ class ScipyExpm(StatePropagation):
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
 
-        eom_func = self._model.get_matrix
-
+        if self._model is not None:
+            eom_func = self._model.get_matrix
+        else:
+            raise ConfigurationException("No equation of motion is configured.")
         psis = [init_state]
+
         for ti in range(1, len(time)):
             times, dt = self._construct_times(time, ti)
             psis_t = psis[ti - 1]

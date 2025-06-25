@@ -49,7 +49,7 @@ class RungeKutta(StatePropagation):
 
         Parameters
         ----------
-        state : numpy.ndarray
+        state : Array
             Parameter value to be set as the initial state for the propagation.
 
         """
@@ -60,12 +60,12 @@ class RungeKutta(StatePropagation):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Any one-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the solution of the equations of motion.
 
         Raises

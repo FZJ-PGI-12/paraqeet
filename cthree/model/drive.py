@@ -25,14 +25,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             Operator of the subsystem to which this drive is attached
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Vector of time samples.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
 
@@ -78,14 +78,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             Operator of the subsystem to which this drive is attached.
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Vector of time samples.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Array of shape [t, p, n, n] with 't' as time, 'p' as number of
             parameters and 'n' as the Hilbert space dimension.
 
@@ -105,7 +105,7 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             Operator of the subsystem to which this drive is attached.
         t : float
             One time step.
@@ -133,14 +133,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        M : jax.numpy.ndarray
+        M : chtree.quantity.Array
             Input matrix for repetition.
         num : int
             Number of times of repetition.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Repeated matrix for further computation.
 
         """

@@ -139,12 +139,12 @@ class Envelope(Waveform):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Output of the computation.
 
         Raises
@@ -196,12 +196,12 @@ class ConstantEnvelope(Envelope):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Output of the computation.
 
         Raises
@@ -279,12 +279,12 @@ class FlatTopGaussianEnvelope(Envelope):
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -311,12 +311,12 @@ class FlatTopGaussianEnvelope(Envelope):
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -347,12 +347,12 @@ class FlatTopGaussianEnvelope(Envelope):
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -376,12 +376,12 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the output of the device.
 
         """
@@ -394,12 +394,12 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the gradient wrt dimensionless parameters.
 
         """
@@ -456,12 +456,12 @@ class GaussEnvelope(Envelope):
         ----------
         t_final : Array
             Duration of the signal to calculate the center of the gaussian from.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The unscaled gaussian signal.
         """
         sigma = t_final / 8
@@ -476,12 +476,12 @@ class GaussEnvelope(Envelope):
         ----------
         t_final : Array
             Duration of the signal to calculate the center of the gaussian from.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The unscaled gaussian signals time derivative.
         """
         sigma = t_final / 8

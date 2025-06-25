@@ -23,11 +23,11 @@ class StateTransferFidelity(Measurement):
     propagation : cthree.propagation.StatePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.Array
+    initial_state : cthree.quantity.Array
         Initial state.
-    target_state : jax.typing.Array
+    target_state : cthree.quantity.Array
         Target state.
-    times : jax.typing.Array
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -79,8 +79,8 @@ class StateTransferFidelity(Measurement):
 
         Returns
         -------
-        jax.Array
-            Overlap between initial and target state in a JAX Array format.
+        chtree.quantity.Array
+            Overlap between initial and target state in a JAX ArrayLike format.
 
         """
         states = self._propagation.propagate(time=self._times)
@@ -128,11 +128,11 @@ class StateTransferFidelityAD(StateTransferFidelity):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.Array
+    initial_state : cthree.quantity.Array
         Initial state.
-    target_state : jax.typing.Array
+    target_state : cthree.quantity.Array
         Target state.
-    times : jax.typing.Array
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -187,11 +187,11 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     propagation : cthree.propagation.StatePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.Array
+    initial_state : cthree.quantity.Array
         Initial state.
-    target_state : jax.typing.Array
+    target_state : cthree.quantity.Array
         Target state.
-    times : jax.typing.Array
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """

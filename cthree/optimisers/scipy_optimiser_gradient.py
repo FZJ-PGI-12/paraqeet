@@ -89,12 +89,12 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         Parameters
         ----------
-        values : numpy.ndarray
+        values : Array
             Parameter values for the update.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the inverse of the fidelity.
 
         """
@@ -119,12 +119,12 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         Parameters
         ----------
-        values : numpy.ndarray
+        values : Array
             Parameter values for the update.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the gradient of a measurement result.
 
         """

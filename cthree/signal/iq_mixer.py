@@ -82,7 +82,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -103,7 +103,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -132,7 +132,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns

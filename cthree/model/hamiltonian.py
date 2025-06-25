@@ -54,7 +54,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Vector of time samples.
 
         Returns
@@ -102,7 +102,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             Vector of time samples.
 
         Returns
@@ -173,9 +173,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             The annihilation operator.
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Vector of time samples.
 
         Returns
@@ -194,7 +194,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             The annihilation operator.
         t : float
             Vector of time samples.
@@ -219,9 +219,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             The annihilation operator.
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Vector of time samples.
 
         Returns
@@ -245,7 +245,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : jax.numpy.ndarray
+        annihilation_operator : chtree.quantity.Array
             The annihilation operator.
         t : float
             One time stamp.
@@ -273,7 +273,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        M : jax.numpy.ndarray
+        M : chtree.quantity.Array
             Matrix for repetition.
         num : int
             Number of repetitions.

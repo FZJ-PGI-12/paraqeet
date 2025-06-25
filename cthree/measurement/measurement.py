@@ -14,7 +14,7 @@ class Measurement(Optimisable):
 
     Parameters
     ----------
-    times: numpy.ndarray | None, optional
+    times: cthree.quantity.Array | None, optional
         One-dimensional vector of timestamps.
 
     """
@@ -35,8 +35,8 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        numpy.ndarray or float
-            This abstract method must return a Numpy ndarray when
+        cthree.quantity.Array or float
+            This abstract method must return a cthree.quantity.cthree.quantity.Array or a float when
             implemented by subclasses. Might return multiple values.
 
         Raises
@@ -63,8 +63,8 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        numpy.ndarray
-            Returns a Numpy ndarray if implemented by a subclass.
+        cthree.quantity.Array
+            Returns a cthree.quantity.cthree.quantity.Array if implemented by a subclass.
 
         """
         raise NotImplementedError()
@@ -77,7 +77,7 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        Tuple[float, numpy.ndarray]
+        Tuple[float, cthree.quantity.Array]
             Tuple of function value as bare float and gradient of shape (n_parameters,)
 
         Raises
@@ -155,12 +155,12 @@ class Measurement(Optimisable):
 
         Parameters
         ----------
-        operator : numpy.ndarray
+        operator : cthree.quantity.Array
             Takes an array of Propagator/ density matrices as input.
 
         Returns
         -------
-        numpy.ndarray
+        cthree.quantity.Array
             The modified propagator.
 
         """
@@ -177,12 +177,12 @@ class Measurement(Optimisable):
 
         Parameters
         ----------
-        states : numpy.ndarray
+        states : cthree.quantity.Array
             Single state or batch of state vectors.
 
         Returns
         -------
-        numpy.ndarray
+        cthree.quantity.Array
             The modified propagator.
 
         """

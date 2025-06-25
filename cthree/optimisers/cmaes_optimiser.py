@@ -205,12 +205,12 @@ class CMAEsOptimiser(Optimiser):
 
         Parameters
         ----------
-        values : numpy.ndarray
+        values : Array
             Values for the update of the parameters.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the inverse of the fidelity.
 
         """

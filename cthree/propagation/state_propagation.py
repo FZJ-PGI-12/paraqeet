@@ -45,7 +45,7 @@ class StatePropagation(Propagation, ABC):
 
         Parameters
         ----------
-        state : numpy.ndarray
+        state : Array
             Parameter value to be set as the initial state for the propagation.
 
         """

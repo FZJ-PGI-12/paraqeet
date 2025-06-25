@@ -133,7 +133,7 @@ class BayesianOptimiser(Optimiser):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the fidelity after setting the parameters.
 
         """

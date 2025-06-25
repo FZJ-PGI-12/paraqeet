@@ -95,12 +95,12 @@ class Waveform(Optimisable):
 
         Parameters
         ----------
-        t : numpy.ndarray or float
+        t : Array or float
             One-dimensional vector of timestamps or a single value.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Output of the computation.
 
         Raises
@@ -125,12 +125,12 @@ class Waveform(Optimisable):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the gradient array of the `_evaluate` method.
 
         """
@@ -223,14 +223,14 @@ class LocalOscillator(Waveform):
 
         Parameters
         ----------
-        freq : numpy.ndarray
+        freq : Array
             The frequency of the carrier signal
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The unscaled the carrier signal.
         """
         return jnp.exp(1j * freq * t)
@@ -384,7 +384,7 @@ class DRAGMixer(Waveform):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns a vector signal of the DRAG envelope.
         """
         total_env = jnp.zeros_like(t, dtype=jnp.complex128)

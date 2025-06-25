@@ -92,9 +92,9 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        List[List[jax.numpy.ndarray]]
+        List[List[chtree.quantity.Array]]
             The outer list are the coupling terms. The inner list contains
-            matrices for each subsystem. The matrices (ndarray) have the same
+            matrices for each subsystem. The matrices (cthree.quantity.Array) have the same
             shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
             with n the subsystem dimension.
 
@@ -111,14 +111,14 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             Array of times
 
         Returns
         -------
-        List[List[jax.numpy.ndarray]]
+        List[List[chtree.quantity.Array]]
             The outer list are the coupling terms. The inner list represents
-            the subsystems. The matrices (ndarray) have the same shape as the
+            the subsystems. The matrices (cthree.quantity.Array) have the same shape as the
             subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
             the subsystem dimension.
 
@@ -141,7 +141,7 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        List[List[List[jax.numpy.ndarray]]]
+        List[List[List[chtree.quantity.Array]]]
             The outer list represents the gradients with respect to
             all optimised parameters. The rest is in the same shape as the
             result of getMatricesOneTime.
@@ -159,12 +159,12 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t : jax.numpy.ndarray
+        t : chtree.quantity.Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        List[List[jax.numpy.ndarray]]
+        List[List[chtree.quantity.Array]]
             The outer list represents the gradients with respect to all
             optimised parameters.
             The rest is in the same shape as the result of getMatrices.

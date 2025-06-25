@@ -58,7 +58,7 @@ class RandomPropagation(Propagation):
 
         Parameters
         ----------
-        state : numpy.ndarray
+        state : Array
             Given state to set as the initial state.
 
         """
@@ -69,12 +69,12 @@ class RandomPropagation(Propagation):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the updated state of the system.
 
         """

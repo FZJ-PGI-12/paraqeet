@@ -65,12 +65,12 @@ class ClosedSystem(EquationOfMotion):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Vector of time samples.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             RHS with dimension [t, n, n]  with 't' as time
             and 'n' as Hilbert space dimension.
 
@@ -110,12 +110,12 @@ class ClosedSystem(EquationOfMotion):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             Vector of time samples.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the gradient of getMatrix.
 
         """

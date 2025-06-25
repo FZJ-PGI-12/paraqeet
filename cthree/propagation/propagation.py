@@ -20,9 +20,9 @@ class Propagation(Optimisable):
 
     """
 
-    _model: EquationOfMotion
+    _model: EquationOfMotion | None
 
-    def __init__(self, model: EquationOfMotion):
+    def __init__(self, model: EquationOfMotion | None):
         self._model = model
 
     def set_initial_state(self, state: Array):
@@ -33,7 +33,7 @@ class Propagation(Optimisable):
 
         Parameters
         ----------
-        state : numpy.ndarray
+        state : Array
             Parameter value to be set as the initial state for the propagation.
 
         Raises
@@ -55,12 +55,12 @@ class Propagation(Optimisable):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Any one-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the solution of the equations of motion.
 
         Raises
@@ -82,12 +82,12 @@ class Propagation(Optimisable):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Any one-dimensional vector of timestamps.
 
         Returns
         -------
-        Tuple[numpy.ndarray, numpy.ndarray]
+        Tuple[Array Array]
             Computes part of the chain rune for a gradient trace.
 
         Raises

@@ -15,7 +15,7 @@ class WeightedSumGoal(Measurement):
     ----------
     measurements : List[cthree.measurement.Measurement]
         List of measurements.
-    weights : numpy.ndarray
+    weights : Array
         List of weights.
 
     Raises
@@ -50,7 +50,7 @@ class WeightedSumGoal(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the plain weighted sum.
 
         """
@@ -65,7 +65,7 @@ class WeightedSumGoal(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the normalized weighted sum.
 
         """
@@ -80,9 +80,9 @@ class WeightedSumGoal(Measurement):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the weighted sum wrt to gradients.
-        jax.numpy.ndarray
+        chtree.quantity.Array
             Returns the sum of gradients.
 
         """
