@@ -30,8 +30,8 @@ class Resonator(Hamiltonian):
 
     __dimension: int
     __frequency: Quantity
-    __annihilation_op: jnp.ndarray
-    __numOp: jnp.ndarray
+    __annihilation_op: Array
+    __numOp: Array
     __t1: Quantity | None
     __temp: Quantity | None
     __t2star: Quantity | None
@@ -150,7 +150,7 @@ class Resonator(Hamiltonian):
 
         return derivatives
 
-    def get_decay_rates(self) -> list[float]:
+    def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""
         if (self.t1 is None) or (self.t2star is None) or (self.temp is None):
             raise Exception("Specify values of T1, T2star and Temp for Open system simulations.")
@@ -165,7 +165,7 @@ class Resonator(Hamiltonian):
         gamma_t1 = gamma * (nbar + 1)  # TODO - Check this part
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_collapseops(self) -> list[tuple[float, Array]]:
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
         """
         Return a list tuples of decay rates and collapse operators for each subsystem.
 

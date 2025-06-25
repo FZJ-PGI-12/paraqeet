@@ -1,5 +1,6 @@
 """Class definition of a closed model."""
 
+from collections.abc import Callable
 import jax.numpy as jnp
 from cthree.quantity import Quantity, Array
 from cthree.model.hamiltonian import Hamiltonian
@@ -17,6 +18,8 @@ class ClosedSystem(EquationOfMotion):
         Matrix representation of a Hamiltonian.
 
     """
+
+    _get_matrix_method: Callable
 
     def __init__(self, hamiltonian: Hamiltonian, ode_propagation: bool = False):
         super().__init__(hamiltonian)
@@ -81,7 +84,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian.get_matrix(time), jnp.empty((1,), dtype=jnp.complex128)
 
-    def get_matrix(self, time: Array) -> Array | tuple[Array, Array]:
+    def get_matrix(self, time: Array):
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation

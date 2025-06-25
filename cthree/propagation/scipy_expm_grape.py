@@ -42,7 +42,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         matrix exponential. If false, use frechet derivative.
     """
 
-    _target_state: Array = None
+    _target_state: Array | None = None
     _schirmer_derivative: bool = False
 
     def __init__(self, model: EquationOfMotion, res: float):
@@ -290,9 +290,9 @@ class ScipyExpmGRAPE(ScipyExpm):
         if self.is_open:
             psis = jnp.array(psis)
             psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
-        return psis
+        return jnp.array(psis)
 
-    def __gradient_closed_system(self, time: Array):
+    def __gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
@@ -346,59 +346,13 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         return psis, jnp.array(grads)
 
-    def __gradient_open_systems(self, time: Array):
+    def __gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
         raise NotImplementedError(
             "Currently ScipyExpmGRAPE is not supported for open system optimisation."
-            + " Use Vern7GRAPE as an alternative."
+            + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
         )
 
-        # init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
-        # target_state = jnp.array(self._target_state, dtype=jnp.complex128)
-
-        # eom_func = self._model.get_matrix
-        # grad_func = self._model.gradient
-
-        # dt = time[1] - time[0]
-        # timeGrid = time[:-1] + dt / 2
-
-        # hams = eom_func(timeGrid) * dt
-        # Us = vmap(self._exponentiate, in_axes=(0,))(hams)
-
-        # dim = hams.shape[-2]
-
-        # if isinstance(self._model, OpenSystem):
-        #     eom_rev = self._model._get_matrix_reverse(timeGrid) * dt
-        # else:
-        #     raise ConfigurationException("Use `OpenSystem` for this gradient method.")
-        # Us_rev = vmap(self._exponentiate, in_axes=(0,))(eom_rev)
-        # Us_rev = jnp.flip(Us_rev, axis=0)
-
-        # psis, lamdas = self._forward_and_backward_propagation_open(
-        #     Us, Us_rev, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
-        # )
-
-        # psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-        # lamdas = jnp.concat([jnp.expand_dims(target_state, axis=0), lamdas], axis=0)
-
-        # lamdas = jnp.flip(lamdas, axis=0)
-        # lamdas = vmap(self._convert_vec_to_dm, in_axes=(0, None))(lamdas, int(jnp.sqrt(dim)))
-
-        # dH_dps = jnp.array(grad_func(timeGrid)) * dt
-        # n_params = dH_dps.shape[1]
-
-        # grads = []
-        # for i in range(n_params):
-        #     fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
-        #     fwd_prop_state = vmap(self._convert_vec_to_dm, in_axes=(0, None))(fwd_prop_state, int(jnp.sqrt(dim)))
-
-        #     grad = vmap(jnp.matmul, in_axes=(0, 0))(lamdas[1:], fwd_prop_state)
-        #     grad = jnp.squeeze(grad)
-        #     grads.append(grad)
-
-        # psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
-        # return psis, jnp.array(grads)
-
-    def gradient(self, time: Array) -> Array:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and

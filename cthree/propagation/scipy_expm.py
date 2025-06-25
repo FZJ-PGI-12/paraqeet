@@ -124,12 +124,12 @@ class ScipyExpm(StatePropagation):
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
     @staticmethod
-    def _convert_dm_to_vec(state_dm):
+    def _convert_dm_to_vec(state_dm: Array) -> jnp.ndarray:
         """Helper function to convert a density matrix to vectorized form."""
         return jnp.reshape(jnp.transpose(state_dm), (-1, 1))
 
     @staticmethod
-    def _convert_vec_to_dm(state_vec, dim):
+    def _convert_vec_to_dm(state_vec: Array, dim: int) -> jnp.ndarray:
         """Helper function to convert a Vectorized density matrix to matrix form."""
         return jnp.transpose(jnp.reshape(state_vec, (dim, dim)))
 
@@ -215,17 +215,17 @@ class ScipyExpm(StatePropagation):
 
         eom_func = self._model.get_matrix
 
-        psi = [init_state]
+        psis = [init_state]
         for ti in range(1, len(time)):
             times, dt = self._construct_times(time, ti)
-            psis_t = psi[ti - 1]
+            psis_t = psis[ti - 1]
             eom = eom_func(times + dt / 2) * dt
             psis_t = self._propagate_in_time(psis_t, eom, jnp.arange(0, len(times), 1))
-            psi.append(psis_t)
+            psis.append(psis_t)
 
+        psis_arr = jnp.array(psis)
         # if open system convert back the vectorized density matrices to matrix shape
         if self.is_open:
             dim = int(jnp.sqrt(eom.shape[-1]))
-            psi = jnp.array(psi)
-            psi = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psi, dim)
-        return jnp.array(psi)
+            psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
+        return psis_arr

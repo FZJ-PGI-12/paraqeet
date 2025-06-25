@@ -74,7 +74,7 @@ class StateTransferFidelity(Measurement):
     def _overlap_dm(target_state, final_state):
         return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
-    def measure(self) -> Array:
+    def measure_normalised_scalar(self) -> float:
         """Measure overlap between initial and target state.
 
         Returns
