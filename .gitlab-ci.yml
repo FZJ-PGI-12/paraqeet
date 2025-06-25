@@ -50,6 +50,7 @@ test:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+  tags: [heavy, docker]
 
 codequality:
   stage: codestyle
@@ -63,6 +64,7 @@ codequality:
     reports:
       codequality: mypy-report.json
   allow_failure: true
+  tags: [docker]
 
 formatting-and-linting:
   stage: codestyle
@@ -72,6 +74,8 @@ formatting-and-linting:
     reports:
       codequality: ruff-report.json
   allow_failure: true
+  tags: [docker]
+
 
 examples:
   stage: tests
@@ -82,6 +86,8 @@ examples:
     expire_in: 7 days
     reports:
       junit: notebooks.xml
+  tags: [docker, c64]
+  
 
 build-docs:
   stage: docs
@@ -96,5 +102,6 @@ build-docs:
   artifacts:
     paths:
       - public
+  tags: [docker]
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

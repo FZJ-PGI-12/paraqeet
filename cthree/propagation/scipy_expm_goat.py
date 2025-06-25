@@ -5,12 +5,12 @@ Uses the GOAT optimisation method.
 """
 
 from functools import partial
+from jax import jit, vmap
+from jax.lax import scan
 
 import jax.numpy as jnp
 
 from cthree.quantity import Array
-from jax import jit
-from jax.lax import scan
 
 from cthree.exceptions import ConfigurationException
 from cthree.propagation.scipy_expm import ScipyExpm
@@ -100,7 +100,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initial_state.shape[0]
-        psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
+        psis = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
         eom_func = self._model.get_matrix
@@ -108,12 +108,20 @@ class ScipyExpmGOAT(ScipyExpm):
 
         for ti in range(1, len(time)):
             times, dt = self._construct_times(time, ti)
-            psis_t = self._create_super_state(psi[-1], dpsis[-1])
+            psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
             eom = eom_func(times + dt / 2) * dt
             grads = jnp.array(grad_func(times + dt / 2)) * dt
 
-            psis_t = self._propagate_gradient(n_params, psis_t, eom, grads, jnp.arange(0, len(times), 1))
-            psi.append(psis_t[0:dim])
-            dpsis.append(jnp.array([psis_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]))
-        return jnp.array(psi), jnp.array(dpsis)
+            psi_t = self._propagate_gradient(n_params, psi_t, eom, grads, jnp.arange(0, len(times), 1))
+            psis.append(jnp.array(psi_t[0:dim]))
+            dpsis.append(jnp.array([psi_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]))
+
+        psis_arr = jnp.array(psis)
+        dpsis_arr = jnp.array(dpsis)
+
+        if self.is_open:
+            dim = int(jnp.sqrt(eom.shape[-1]))
+            psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
+            dpsis_arr = vmap(vmap(self._convert_vec_to_dm, in_axes=(0, None)), in_axes=(0, None))(dpsis_arr, dim)
+        return psis_arr, dpsis_arr

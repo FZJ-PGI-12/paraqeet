@@ -40,7 +40,7 @@ class RotatingFrameDrive(Drive):
             List of optimizable parameters of the system.
 
         """
-        return self.__signal_generator.get_parameters()
+        return self.generator.get_parameters()
 
     def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         r"""Implement drive in the rotating frame of drive.
@@ -49,8 +49,6 @@ class RotatingFrameDrive(Drive):
         \\big\\{ \\Omega a + \\Omega^* a^\\dagger \\big\\}
         Where \\Omega is the envelope (without the LO).
 
-        TODO - Chcek this calculation
-
         Parameters
         ----------
         annihilation_operator: Array
@@ -58,7 +56,7 @@ class RotatingFrameDrive(Drive):
         t: Array
             One time step
         """
-        env = self.__signal_generator.generate_signal(jnp.array([t]))
+        env = self.generator.generate_signal(jnp.array([t]))
         return env * annihilation_operator + jnp.conjugate(env) * annihilation_operator.conj().T
 
     def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
@@ -80,5 +78,5 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        envGrad = self.__signal_generator.generate_signal_gradient(jnp.array([t])).reshape((-1, 1, 1))
+        envGrad = self.generator.generate_signal_gradient(jnp.array([t])).reshape((-1, 1, 1))
         return envGrad * annihilation_operator + jnp.conjugate(envGrad) * annihilation_operator.conj().T

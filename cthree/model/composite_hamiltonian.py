@@ -212,3 +212,15 @@ class CompositeHamiltonian(Hamiltonian):
             product = jnp.kron(product, m)
 
         return product
+
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
+        """
+        Gather collapse operators from the subsystems and then tensor product them
+        with identity to create the collapse operators of the right dimension.
+        """
+        all_collapse_ops = []
+        for n, subsystem in enumerate(self.__subsystems):
+            rates_and_cols = subsystem.get_collapseops()
+            for rate, col_op in rates_and_cols:
+                all_collapse_ops.append((rate, self.__tensor_product_with_identity([col_op], [n])))
+        return all_collapse_ops
