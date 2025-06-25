@@ -28,14 +28,14 @@ class CustomHamiltonian(Hamiltonian):
     To use open system simulation, provide a list of tuples of decay rates and corresponding collapse opearators.
     """
 
-    __hamiltonian_function: Callable[[float, Any], Array]
+    __hamiltonian_function: Callable[[Array, Any], Array]
     __parameters: list[Quantity]
     __gradient_functions: list[Callable] | None
     __collapse_operators: list[tuple[Array, Array]] | None
 
     def __init__(
         self,
-        hamiltonian_function: Callable[[float, Any], Array],
+        hamiltonian_function: Callable[[Array, Any], Array],
         parameters: list[Quantity],
         gradient_functions: list[Callable] | None = None,
         collapse_operators: list[tuple[Array, Array]] | None = None,
@@ -58,10 +58,11 @@ class CustomHamiltonian(Hamiltonian):
         params = [p.get_value()[0] for p in self.__parameters]
         return self.__hamiltonian_function(t, *params)
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_matrix(self, time: Array) -> Array:
         """Return Hamiltonian as a function of time for an array of time."""
         params = [p.get_value()[0] for p in self.__parameters]
-        return vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))(t, *params)
+        matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
+        return matrix_fun(time, *params)
 
     def gradient_one_time(self, t):
         """Return the gradient as a function of time for a single time point."""
@@ -73,7 +74,7 @@ class CustomHamiltonian(Hamiltonian):
 
     def gradient(self, t: Array) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
-        return vmap(self.gradient_one_time, in_axes=(0,))(t)
+        return jnp.array(vmap(self.gradient_one_time, in_axes=(0,))(t))
 
     def get_collapseops(self):
         """Return collapse operators."""
