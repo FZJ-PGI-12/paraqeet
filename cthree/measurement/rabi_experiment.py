@@ -47,7 +47,7 @@ class RabiExperiment(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        cthree.quantity.Array
             Result of a general Rabi oscillation.
 
         """

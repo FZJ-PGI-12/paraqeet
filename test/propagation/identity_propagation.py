@@ -24,7 +24,7 @@ class IdentityPropagation(Propagation):
 
         Parameters
         ----------
-        state : numpy.ndarray
+        state : Array
             Given state to be set as the initial state.
 
         """
@@ -35,12 +35,12 @@ class IdentityPropagation(Propagation):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the propagated values of the state across timestamps.
 
         """

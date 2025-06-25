@@ -27,12 +27,12 @@ class EmptyHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The matrix representation of the Hamiltonian.
 
         """

@@ -24,14 +24,14 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Parameters
         ----------
-        psi : jax.numpy.ndarray
+        psi : chtree.quantity.Array
             State of the system.
-        dpsis : jax.numpy.ndarray
+        dpsis : chtree.quantity.Array
             Differential of state.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns a super state created from the state and the differential.
 
         """
@@ -47,14 +47,14 @@ class ScipyExpmGOAT(ScipyExpm):
         ----------
         n_params : int
             Number of parameters.
-        eom : jax.numpy.ndarray
+        eom : chtree.quantity.Array
             Equations of motion in matrix form.
-        grads : jax.numpy.ndarray
+        grads : chtree.quantity.Array
             Gradients of the system at a particular step.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Hamiltonian for the GOAT optimisation method.
 
         """
@@ -86,7 +86,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Array of timesteps.
 
         Returns
@@ -97,7 +97,8 @@ class ScipyExpmGOAT(ScipyExpm):
         """
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
-
+        if self._model is None:
+            raise ConfigurationException("No equation of motion is configured.")
         n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initial_state.shape[0]
         psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]

@@ -21,12 +21,12 @@ class UnitaryFidelity(Measurement):
     ----------
     propagation : cthree.propagation.propagation
         Implementation of EOM solver.
-    gate : numpy.ndarray
+    gate : Array
         Matrix representation of target gate.
-    times : numpy.ndarray
+    times : Array
         List of times to compare. Should have length 2.
         More is allowed, but only the first and last are used.
-    basis_states : numpy.ndarray, optional
+    basis_states : Array optional
         List of basis states.
         If set the ideal and actual gate are applied to these states
         and their pairwise overlap computed, equivalent to the L2 trace norm.
@@ -87,7 +87,7 @@ class UnitaryFidelity(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             L2 norm of the last time step compared to the ideal gate.
 
         """
@@ -103,7 +103,7 @@ class UnitaryFidelity(Measurement):
 
         Returns
         -------
-        Tuple[numpy.ndarray, numpy.ndarray]
+        Tuple[Array Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
@@ -131,7 +131,7 @@ class UnitaryFidelity(Measurement):
 
         Parameters
         ----------
-        gate : numpy.ndarray
+        gate : Array
             Target state computation via this gate.
 
         """

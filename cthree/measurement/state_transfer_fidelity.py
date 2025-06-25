@@ -24,11 +24,11 @@ class StateTransferFidelity(Measurement):
     propagation : cthree.measurement.Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.ArrayLike
+    initial_state : cthree.quantity.Array
         Initial state.
-    target_state : jax.typing.ArrayLike
+    target_state : cthree.quantity.Array
         Target state.
-    times : jax.typing.ArrayLike
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -68,7 +68,7 @@ class StateTransferFidelity(Measurement):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Overlap between initial and target state in a JAX ArrayLike format.
 
         """
@@ -117,11 +117,11 @@ class StateTransferFidelityAD(StateTransferFidelity):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.ArrayLike
+    initial_state : cthree.quantity.Array
         Initial state.
-    target_state : jax.typing.ArrayLike
+    target_state : cthree.quantity.Array
         Target state.
-    times : jax.typing.ArrayLike
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -176,11 +176,11 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     propagation : cthree.measurement.Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.ArrayLike
+    initial_state : cthree.quantity.Array
         Initial state.
-    target_state : jax.typing.ArrayLike
+    target_state : cthree.quantity.Array
         Target state.
-    times : jax.typing.ArrayLike
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
 
     """

@@ -58,7 +58,7 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a : numpy.ndarray
+        a : Array
             Operator for computation.
 
         Returns
@@ -77,14 +77,14 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a : numpy.ndarray
+        a : Array
             Operator for longitudinal or transverse drive.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the shape-shifted coefficient from the drive.
 
         """
@@ -100,14 +100,14 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a : numpy.ndarray
+        a : Array
             Operator for longitudinal or transverse drive.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the shape-shifted gradient from the drive.
 
         """

@@ -97,7 +97,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Hamiltonian of shape [n, n] with 'n' as the Hilbert space
             dimension.
 
@@ -189,14 +189,14 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        M : List[jax.numpy.ndarray]
+        M : List[chtree.quantity.Array]
             List of Matrices for tensor product
         n : List[int]
             List of indices for the each M_i
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Tensor product of M_i's with I's.
 
         """

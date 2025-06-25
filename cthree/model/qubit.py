@@ -83,7 +83,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             The repeated drive matrix.
 
         """
@@ -100,7 +100,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the gradients of the drive.
 
         """

@@ -133,12 +133,12 @@ class ScipyOptimiser(Optimiser):
 
         Parameters
         ----------
-        values : numpy.ndarray
+        values : Array
             Parameter values for the update.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the measurement result.
 
         """

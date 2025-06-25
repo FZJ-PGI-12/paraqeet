@@ -15,7 +15,7 @@ class RandomMeasurement(Measurement):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation
         that can solve the equation of motion.
-    times : numpy.ndarray
+    times : Array
         One-dimensional vector of timestamps.
     """
 
@@ -41,8 +41,8 @@ class RandomMeasurement(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The result of the measurement.
 
         """
-        return np.random.random()
+        return float(np.random.random())

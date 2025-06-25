@@ -75,7 +75,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             The drive matrix at a single timestamp.
 
         """
@@ -92,7 +92,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the gradients of the drive.
 
         """

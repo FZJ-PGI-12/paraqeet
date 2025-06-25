@@ -51,7 +51,7 @@ class ConstantMeasurement(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The value of the measurement.
 
         """

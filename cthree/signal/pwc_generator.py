@@ -198,7 +198,7 @@ class PWCGenerator(Generator):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns

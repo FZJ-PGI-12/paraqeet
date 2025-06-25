@@ -25,12 +25,12 @@ class Generator(Optimisable):
 
         Parameters
         ----------
-        times : numpy.ndarray
+        times : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the scalar signal vector.
 
         Raises
@@ -51,12 +51,12 @@ class Generator(Optimisable):
 
         Parameters
         ----------
-        times : numpy.ndarray
+        times : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the signal gradient vector.
 
         Raises
@@ -80,7 +80,7 @@ class Generator(Optimisable):
 
         Returns
         -------
-        numpy.ndarray
+        Array
 
         Raises
         ------

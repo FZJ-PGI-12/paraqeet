@@ -42,12 +42,12 @@ class FlatTopGaussianEnvelopeAD(Envelope):
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -74,12 +74,12 @@ class FlatTopGaussianEnvelopeAD(Envelope):
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -110,12 +110,12 @@ class FlatTopGaussianEnvelopeAD(Envelope):
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.Array
+        chtree.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -139,12 +139,12 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the output of the device.
 
         """

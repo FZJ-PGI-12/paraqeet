@@ -54,12 +54,12 @@ class EquationOfMotion(Optimisable):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Any one-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The right-hand side of the equation of motion at each time stamp.
 
         """
@@ -71,12 +71,12 @@ class EquationOfMotion(Optimisable):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Any one-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns matrix equations of motion.
 
         Raises

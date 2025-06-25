@@ -45,19 +45,21 @@ class Euler(StatePropagation):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             Vector of time samples.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Results of the Euler propagation.
 
         """
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
-
-        equationsOfMotion = self._model.get_matrix(time)
+        if self._model is not None:
+            equationsOfMotion = self._model.get_matrix(time)
+        else:
+            raise ConfigurationException("No equation of motion is configured.")
 
         dt = time[1:] - time[0:-1]
         states = [self._initial_state]

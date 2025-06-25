@@ -335,7 +335,7 @@ def __generateRandomMatrix(N: int) -> np.ndarray:
 
     Returns
     -------
-    numpy.ndarray
+    Array
         Returns a randomly generated `N` by `N` matrix.
 
     """

@@ -39,12 +39,12 @@ class Quantity:
 
     Parameters
     ----------
-    value : numpy.array(numpy.float64) | numpy.float64
+    value : cthree.quantity.Array | float
         Value of the quantity
-    min_value : numpy.array(numpy.float64) or numpy.float64
+    min_value : cthree.quantity.Array | float
         Minimum this quantity is allowed to take.
         If this is a float, it will be a default interval around the value will be chosen.
-    max_value : numpy.array(numpy.float64) or numpy.float64
+    max_value : cthree.quantity.Array | float
         Maximum this quantity is allowed to take.
     unit : str
         physical unit
@@ -55,8 +55,8 @@ class Quantity:
 
     Raises
     ------
-    Exception
-        If the value, minimum or maximum is null, raise an Exception.
+    IncompatibleQuantityException
+        If misconfigured by the user, e.g., bounds are not given or the wrong shape.
 
     """
 
@@ -303,7 +303,7 @@ class Quantity:
         other = other if isinstance(other, list) else [other]
 
         if not all(qty.get_unit() == self.get_unit() for qty in other) and checkUnits:
-            raise ValueError(
+            raise IncompatibleQuantityException(
                 "Not all Quantities in the relation have the same units. "
                 "This may lead to unintentional physical errors. "
                 "Set 'checkUnits=False' if this behavior is wanted."
@@ -335,7 +335,7 @@ class Quantity:
 
         Returns
         -------
-        numpy.ndarray
+        cthree.quantity.Array
             Value from the reduced representation.
 
         """

@@ -35,12 +35,12 @@ class DummyModel(EquationOfMotion):
 
         Parameters
         ----------
-        time : numpy.ndarray
+        time : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             Returns the matrix equations of motion.
 
         """
@@ -51,7 +51,7 @@ class DummyModel(EquationOfMotion):
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         """

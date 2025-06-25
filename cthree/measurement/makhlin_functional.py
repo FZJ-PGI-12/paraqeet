@@ -24,9 +24,9 @@ class MakhlinFunctional(Measurement):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    times : numpy.ndarray
+    times : cthree.quantity.Array
         One-dimensional vector of timestamps.
-    ideal_invariants : numpy.ndarray, optional
+    ideal_invariants : cthree.quantity.Array optional
         One-dimensional vector of ideal Makhlin invariants.
 
     """
@@ -60,7 +60,7 @@ class MakhlinFunctional(Measurement):
 
         Returns
         -------
-        numpy.ndarray
+        cthree.quantity.Array
             Distance of propagator.
 
         Raises
@@ -90,13 +90,13 @@ class MakhlinFunctional(Measurement):
 
         Parameters
         ----------
-        U: numpy.ndarray
+        U: cthree.quantity.Array
             Input matrix for computing the Makhlin invariants of.
 
         Returns
         -------
-        Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
-            Returns a tuple of 3 Numpy ndarrays as invariants g1, g2 and g3.
+        Tuple[cthree.quantity.Array, cthree.quantity.Array, cthree.quantity.Array]
+            Returns a tuple of 3 Numpy cthree.quantity.Array as invariants g1, g2 and g3.
 
         """
         # transform to bell basis
