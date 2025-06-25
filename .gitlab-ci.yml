@@ -86,7 +86,7 @@ examples:
     expire_in: 7 days
     reports:
       junit: notebooks.xml
-  tags: [docker]
+  tags: [docker, c64]
   
 
 build-docs:
