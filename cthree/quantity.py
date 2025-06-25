@@ -303,7 +303,7 @@ class Quantity:
         other = other if isinstance(other, list) else [other]
 
         if not all(qty.get_unit() == self.get_unit() for qty in other) and checkUnits:
-            raise IncompatibleQuantityException(
+            raise ValueError(
                 "Not all Quantities in the relation have the same units. "
                 "This may lead to unintentional physical errors. "
                 "Set 'checkUnits=False' if this behavior is wanted."
