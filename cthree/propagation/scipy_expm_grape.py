@@ -37,18 +37,12 @@ class ScipyExpmGRAPE(ScipyExpm):
         Initial state for forward propagation.
     _target_state: Array = None
         Target state for backward propagation.
-    _save_bwd_propagated_states: bool = False
-        Flag for saving backward propgated state. Saved if True.
-    _bwd_propagated_states: Array = None
-        If `_saveBwdPropagatedStates` is True, save the bwd propagated states.
     _schirmer_derivative: bool = False
         If true, compute the gradient by Schirmer Derivative/Method of auxillary
         matrix exponential. If false, use frechet derivative.
     """
 
     _target_state: Array | None = None
-    _save_bwd_propagated_states: bool = False
-    _bwd_propagated_states: Array | None = None
     _schirmer_derivative: bool = False
 
     def __init__(self, model: EquationOfMotion, res: float):
@@ -68,23 +62,35 @@ class ScipyExpmGRAPE(ScipyExpm):
         targetState : Array
             Target state.
         """
+        # Verify if `model.ode_propagation` is set to `False`.
+        # ode_propgation returns hamiltonian and collapse operators separately.
+        if self._model is None:
+            raise ConfigurationException("No equation of motion is configured.")
+        eom = self._model.get_matrix(jnp.array([0]))
+        if len(eom) == 2:
+            raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
+
+        # For open system convert Density Matrix to Vectorized form.
+        if self.is_open:
+            try:
+                if len(targetState.shape) == 1:  # An (n,) array
+                    targetState = jnp.reshape(targetState, (-1, 1))
+                # Compare the shapes of target state with the generator of time translation
+                dim_generator = eom.shape[1]
+                # Comparing dim -2 as 0 can be batch dimension
+                if targetState.shape[-2] == jnp.sqrt(dim_generator):
+                    # check if it is a square matrix. Check the last 2 dimensions are equal.
+                    if targetState.shape[-1] == targetState.shape[-2]:
+                        # This is a density matrix
+                        targetState = self._convert_dm_to_vec(targetState)
+            except Exception as e:
+                raise ConfigurationException(
+                    f"Obtained a state vector of shape {targetState.shape} as target state. "
+                    + "For open system propagation expected a density matrix or vectorized density matrix "
+                    + "as the target state.\n"
+                    + f"Raised exception: `{e}`"
+                )
         self._target_state = targetState
-
-    @property
-    def save_bwd_propagated_states(self) -> bool:
-        """Returns whether backward propagated states are saved."""
-        return self._save_bwd_propagated_states
-
-    @save_bwd_propagated_states.setter
-    def save_bwd_propagated_states(self, saveBwdPropagatedStates: bool) -> None:
-        """Flag to save backwards propagated target state result.
-
-        Parameters
-        ----------
-        saveBwdPropagatedStates : bool
-            Save the states if True.
-        """
-        self._save_bwd_propagated_states = saveBwdPropagatedStates
 
     @property
     def use_schirmer_derivative(self) -> bool:
@@ -153,6 +159,40 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         def backward_propagation(lamdas_t, index):
             lamdas_t = lamdas_t @ Us[-index - 1]
+            return lamdas_t, lamdas_t
+
+        psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
+        lamdas_t, lamdas_list = scan(backward_propagation, lamdas_t, steps_arr)
+
+        return psis_list, lamdas_list
+
+    @partial(jit, static_argnums=(0,))
+    def _forward_and_backward_propagation_open(
+        self,
+        Us,
+        Us_rev,
+        psis_t,
+        lamdas_t,
+        steps_arr,
+    ):
+        """Forward propagate inital state and backward propagate target state.
+
+        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+
+        Parameters
+        ----------
+        psis_t : Array
+            Forward propagated state
+        lamdas_t : Array
+            Backward propagated state
+        """
+
+        def forward_propagation(psis_t, index):
+            psis_t = Us[index] @ psis_t
+            return psis_t, psis_t
+
+        def backward_propagation(lamdas_t, index):
+            lamdas_t = Us_rev[index] @ lamdas_t
             return lamdas_t, lamdas_t
 
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
@@ -249,25 +289,15 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         psis = self._propagate_in_time(Us, init_state, jnp.arange(0, len(timeGrid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
+
+        # if open system convert back the vectorized density matrices to matrix shape
+        dim = eom.shape[-2]
+        if self.is_open:
+            psis = jnp.array(psis)
+            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return jnp.array(psis)
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
-        """Compute gradients using GRAPE.
-
-        Compute the forward propagation of the initial state and
-        the backward propagation of the target state.
-
-        Psis represent the forward propagation and lamdas represent
-        the backward propagation states.
-
-        This propagation method assumes a PWC pulse as input.
-        """
-        if self._initial_state is None:
-            raise ConfigurationException("Initial state is not set")
-
-        if self._target_state is None:
-            raise ConfigurationException("Target state is not set")
-
+    def __gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
@@ -288,7 +318,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         Ugrads_list = []
         n_params = dH_dps.shape[1]
 
-        dim = init_state.shape[0]
+        dim = hams.shape[-2]
 
         if self._schirmer_derivative:
             exponentiating_function = self._exponentiate_schirmer
@@ -310,10 +340,6 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         lamdas = jnp.flip(lamdas, axis=0)
 
-        if self._save_bwd_propagated_states:
-            # Save lamdas as kets
-            self._bwd_propagated_states = jnp.transpose(lamdas.conj(), axes=(0, 2, 1))
-
         grads = []
         for i in range(n_params):
             grad = vmap(
@@ -325,4 +351,35 @@ class ScipyExpmGRAPE(ScipyExpm):
             )
             grad = jnp.squeeze(grad)
             grads.append(grad)
+
         return psis, jnp.array(grads)
+
+    def __gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
+        raise NotImplementedError(
+            "Currently ScipyExpmGRAPE is not supported for open system optimisation."
+            + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
+        )
+
+    def gradient(self, time: Array) -> tuple[Array, Array]:
+        """Compute gradients using GRAPE.
+
+        Compute the forward propagation of the initial state and
+        the backward propagation of the target state.
+
+        Psis represent the forward propagation and lamdas represent
+        the backward propagation states.
+
+        This propagation method assumes a PWC pulse as input.
+        """
+        if self._initial_state is None:
+            raise ConfigurationException("Initial state is not set")
+
+        if self._target_state is None:
+            raise ConfigurationException("Target state is not set")
+
+        if self.is_open:
+            psis, grads = self.__gradient_open_systems(time)
+        else:
+            psis, grads = self.__gradient_closed_system(time)
+
+        return psis, grads

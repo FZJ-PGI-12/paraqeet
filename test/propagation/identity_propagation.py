@@ -2,11 +2,11 @@
 
 import jax.numpy as jnp
 from cthree.quantity import Array
-from cthree.propagation.propagation import Propagation
+from cthree.propagation.state_propagation import StatePropagation
 from cthree.quantity import Quantity
 
 
-class IdentityPropagation(Propagation):
+class IdentityPropagation(StatePropagation):
     """Mock identity propagation implementation.
 
     Returns the initial state as the target state.

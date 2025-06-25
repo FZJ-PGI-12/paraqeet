@@ -66,8 +66,8 @@ def test_fails_on_different_lengths(random_from_list):
         for _ in range(20):
             minShape = random_from_list(np.arange(100), N)
             minValues = 0.9 * np.random.rand(minShape) * np.min(values)
-            maxShape = random_from_list(np.arange(100), N)
-            maxValues = 1.1 * np.random.rand(maxShape) * np.max(values)
+            maxShape = random_from_list(np.arange(100), np.array([N, minShape]))
+            maxValues = (1.0 + 0.1 * np.random.rand(maxShape)) * np.max(values)
 
             # In the constructor
             with pytest.raises(IncompatibleQuantityException):
@@ -339,7 +339,7 @@ def __generateRandomMatrix(N: int) -> np.ndarray:
         Returns a randomly generated `N` by `N` matrix.
 
     """
-    magnitude = np.power(10.0, np.random.randint(-10, 10))
+    magnitude: float = np.power(10.0, np.random.randint(-10, 10))
     return (2 * np.random.random((N, N)) - 1) * magnitude
 
 
