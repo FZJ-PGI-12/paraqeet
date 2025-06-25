@@ -66,7 +66,7 @@ def test_fails_on_different_lengths(random_from_list):
         for _ in range(20):
             minShape = random_from_list(np.arange(100), N)
             minValues = 0.9 * np.random.rand(minShape) * np.min(values)
-            maxShape = random_from_list(np.arange(100), N)
+            maxShape = random_from_list(np.arange(100), np.array([N, minShape]))
             maxValues = (1.0 + 0.1 * np.random.rand(maxShape)) * np.max(values)
 
             # In the constructor
