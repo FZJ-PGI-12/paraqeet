@@ -51,7 +51,8 @@ class CustomHamiltonian(Hamiltonian):
 
     def get_matrix(self, t: Array) -> Array:
         """Return Hamiltonian as a function of time for an array of time."""
-        return vmap(self.__hamiltonian_function)(t, *self.__parameters)
+        params = self.__parameters
+        return vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))(t, *params)
 
     def gradient_one_time(self, t):
         """Return the gradient as a function of time for a single time point."""
@@ -65,7 +66,8 @@ class CustomHamiltonian(Hamiltonian):
 
     def gradient(self, t: Array) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
-        return vmap(self.gradient_one_time)
+        params = self.__parameters
+        return vmap(self.gradient_one_time, in_axes=(0,) + (None,) * len(params))(t, *params)
 
     def get_collapseops(self):
         """Return collapse operators."""
