@@ -1,10 +1,11 @@
 """Class definition of the Transmon Hamiltonian model."""
 
 import jax.numpy as jnp
+from cthree.quantity import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 import jax
 
@@ -32,16 +33,16 @@ class Transmon(Hamiltonian):
     __dimension: int
     __frequency: Quantity
     __anharmonicity: Quantity
-    __annihilation_op: jnp.ndarray
-    __numOp: jnp.ndarray
-    __anharmonic_term: jnp.ndarray
+    __annihilation_op: Array
+    __numOp: Array
+    __anharmonic_term: Array
 
     def __init__(
         self,
         dimension: int,
         frequency: Quantity,
         anharmonicity: Quantity,
-        drives: list[Drive] = None,
+        drives: list[Drive] | None = None,
     ):
         super().__init__(drives=drives)
         self.__dimension = dimension
@@ -89,7 +90,7 @@ class Transmon(Hamiltonian):
             self.__anharmonicity,
         ]
 
-    def get_matrix_one_time(self, t: jnp.ndarray) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -99,14 +100,14 @@ class Transmon(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             The repeated drive matrix.
 
         """
         H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonic_term
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -116,7 +117,7 @@ class Transmon(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of the drive.
 
         """
@@ -124,12 +125,12 @@ class Transmon(Hamiltonian):
         gradients = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
-        grads = []
+        grads_list = []
         if self._is_optimised(self.__frequency):
-            grads.append(self.__numOp)
+            grads_list.append(self.__numOp)
         if self._is_optimised(self.__anharmonicity):
-            grads.append(self.__anharmonic_term)
-        grads = jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,) + self.__numOp.shape)
+            grads_list.append(self.__anharmonic_term)
+        grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__numOp.shape)
         gradients = jnp.append(gradients, grads, axis=0)
 
         return gradients

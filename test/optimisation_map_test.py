@@ -5,13 +5,13 @@ import pytest
 import random
 
 from cthree.optimisation_map import OptimisationMap
-from test.test_optimisable import TestOptimisable
+from test.test_optimisable import DummyOptimisable
 
 
 @pytest.fixture
 def randomOptimisables(random_quantity):
     """Create random optimisables."""
-    return [TestOptimisable(random_quantity, np.random.randint(2, 10)) for i in range(2, 10)]
+    return [DummyOptimisable(random_quantity, np.random.randint(2, 10)) for i in range(2, 10)]
 
 
 @pytest.fixture

@@ -1,11 +1,11 @@
 """Class definition of the Bayesian Optimiser model."""
 
-import numpy as np
 from bayes_opt import BayesianOptimization
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.optimisers.optimiser import Optimiser, OptimisationResult
 from cthree.measurement.measurement import Measurement
+from cthree.optimisation_map import OptimisationMap
+from cthree.optimisers.optimiser import OptimisationResult, Optimiser
+from cthree.exceptions import ConfigurationException
 
 
 class BayesianOptimiser(Optimiser):
@@ -100,6 +100,9 @@ class BayesianOptimiser(Optimiser):
 
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
+        if not optimiser.max:
+            raise ConfigurationException("BaysianOptimization has no max field.")
+
         bestValues = optimiser.max["params"]
         for i, param in enumerate(params):
             param.set_reduced_value(bestValues[str(i)])
@@ -113,12 +116,12 @@ class BayesianOptimiser(Optimiser):
 
         return OptimisationResult(
             status=OptimisationResult.STATUS_FINISHED,
-            value=result["fun"],
+            value=float(result["fun"]),
             iterations=self.__iterations + self.__initial_samples,
             raw_result=optimiser.max,
         )
 
-    def _set_parameters_and_measure(self, **kwargs) -> np.ndarray:
+    def _set_parameters_and_measure(self, **kwargs) -> float:
         """Update the parameter values and returns the measurement result.
 
         Internal callback.
@@ -140,7 +143,7 @@ class BayesianOptimiser(Optimiser):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        fidelity = self._measure.measure_normalised()
+        fidelity = self._measure.measure_normalised_scalar()
 
         if self._logger:
             self._logger.log(log, fidelity)

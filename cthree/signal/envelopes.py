@@ -3,16 +3,15 @@
 from abc import abstractmethod
 from collections.abc import Callable
 from functools import partial
-import numpy as np
 
 import jax
 import jax.numpy as jnp
+from cthree.quantity import Array
 from jax import jit
 from jax.scipy.special import erf
-from jax.typing import ArrayLike as Array
 
-from cthree.signal.waveform import Waveform
 from cthree.quantity import Quantity
+from cthree.signal.waveform import Waveform
 
 jax.config.update("jax_enable_x64", True)
 
@@ -43,8 +42,8 @@ class Envelope(Waveform):
     ):
         self.__amplitude = amplitude or Quantity(
             1.55e8,
-            min_value=np.array(0.0),
-            max_value=np.array(1e9),
+            min_value=jnp.array(0.0),
+            max_value=jnp.array(1e9),
             unit="Hz",
             name="Amplitude",
             two_pi=True,
@@ -52,8 +51,8 @@ class Envelope(Waveform):
 
         self.__t_final = t_final or Quantity(
             32e-9,
-            min_value=np.array(0),
-            max_value=np.array(100e-9),
+            min_value=jnp.array(0),
+            max_value=jnp.array(100e-9),
             unit="s",
             name="t_final",
         )
@@ -135,7 +134,7 @@ class Envelope(Waveform):
         raise NotImplementedError()
 
     @abstractmethod
-    def compute_output(self, t: np.ndarray) -> np.ndarray:
+    def compute_output(self, t: Array) -> Array:
         """Compute the output.
 
         Parameters
@@ -176,9 +175,9 @@ class ConstantEnvelope(Envelope):
     @partial(jit, static_argnums=(0,))
     def _evaluate(
         self,
-        amp: np.ndarray,
-        t_final: np.ndarray,
-        t: np.ndarray,
+        amp: Array,
+        t_final: Array,
+        t: Array | float,
     ) -> Array:
         """Evaluate the envelope depending on all parameters.
 
@@ -192,7 +191,7 @@ class ConstantEnvelope(Envelope):
         """
         return jnp.squeeze(jnp.where(t <= t_final, amp, 0.0))
 
-    def compute_output(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: Array) -> Array:
         """Compute the constant signal envelope at different times.
 
         Parameters
@@ -213,19 +212,19 @@ class ConstantEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluate(amp, t_final, t)
+        return self._evaluate(amp, t_final, t)  # type: ignore
 
-    def compute_time_gradient(self, t: np.ndarray) -> Array:
+    def compute_time_gradient(self, t: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
         ----------
-        t: np.ndarray
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        np.ndarray
+        Array
             Returns a vector signals time derivative.
         """
         return jnp.zeros_like(t)
@@ -269,7 +268,7 @@ class FlatTopGaussianEnvelope(Envelope):
     """
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+    def _evaluate(self, amp: Array, t_final: Array, t: Array | float):  # type: ignore
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -278,14 +277,14 @@ class FlatTopGaussianEnvelope(Envelope):
         ----------
         amp : cthree.quantity
             Cosine pulse amplitude.
-        t_final: np.ndarray
+        t_final: Array
             The length in time of the entire envelope.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -297,11 +296,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @staticmethod
     @jit
-    def __dir_erf(x: np.ndarray):
-        return 2 / jnp.sqrt(np.pi) * jnp.exp(-(x**2))
+    def __dir_erf(x: Array):
+        return 2 / jnp.sqrt(jnp.pi) * jnp.exp(-(x**2))
 
     @partial(jit, static_argnums=(0,))
-    def _evaluateTimeGrad(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+    def _evaluateTimeGrad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -310,14 +309,14 @@ class FlatTopGaussianEnvelope(Envelope):
         ----------
         amp : cthree.quantity
             Cosine pulse amplitude.
-        t_final: np.ndarray
+        t_final: Array
             The length in time of the entire envelope.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -337,7 +336,7 @@ class FlatTopGaussianEnvelope(Envelope):
         return amp * prod_dir / 4
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate_t_final_grad(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+    def _evaluate_t_final_grad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -346,14 +345,14 @@ class FlatTopGaussianEnvelope(Envelope):
         ----------
         amp : cthree.quantity
             Cosine pulse amplitude.
-        t_final: np.ndarray
+        t_final: Array
             The length in time of the entire envelope.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -372,7 +371,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         return amp * prod_dir / 4
 
-    def compute_output(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: Array) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
@@ -388,9 +387,9 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluate(amp, t_final, t)
+        return self._evaluate(amp, t_final, t)  # type: ignore
 
-    def compute_gradient(self, t: np.ndarray) -> Array:
+    def compute_gradient(self, t: Array) -> Array:
         """Return the gradient wrt dimensionless parameters.
 
         Parameters
@@ -406,31 +405,31 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        t = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(t, ndmin=1)
 
         grads = []
         if self._is_optimised(self.amplitude):
-            grads.append(self._evaluate(np.array(1.0), t_final, t))
+            grads.append(self._evaluate(jnp.array([1.0]), t_final, t_arr))
         if self._is_optimised(self.t_final):
-            grads.append(self._evaluate_t_final_grad(amp, t_final, t))
-        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t.shape[0], 0))
+            grads.append(self._evaluate_t_final_grad(amp, t_final, t_arr))
+        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t_arr.shape[0], 0))
 
-    def compute_time_gradient(self, t: np.ndarray) -> Array:
+    def compute_time_gradient(self, t: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
         ----------
-        t: np.ndarray
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        np.ndarray
+        Array
             Returns a vector signals time derivative.
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluateTimeGrad(amp, t_final, t)
+        return jnp.array(self._evaluateTimeGrad(amp, t_final, t))
 
 
 class GaussEnvelope(Envelope):
@@ -450,12 +449,12 @@ class GaussEnvelope(Envelope):
     """
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray) -> Array:
+    def _evaluate(self, amp: Array, t_final: Array, t: Array) -> Array:  # type: ignore
         """Calculate the unscaled gaussian signal.
 
         Parameters
         ----------
-        t_final : np.ndarray
+        t_final : Array
             Duration of the signal to calculate the center of the gaussian from.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
@@ -470,12 +469,12 @@ class GaussEnvelope(Envelope):
         return jnp.squeeze(env)
 
     @partial(jax.jit, static_argnums=(0,))
-    def _evaluate_time_gradient(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray) -> Array:
+    def _evaluate_time_gradient(self, amp: Array, t_final: Array, t: Array) -> Array:
         """Calculate the unscaled gaussian signal.
 
         Parameters
         ----------
-        t_final : np.ndarray
+        t_final : Array
             Duration of the signal to calculate the center of the gaussian from.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
@@ -487,39 +486,39 @@ class GaussEnvelope(Envelope):
         """
         sigma = t_final / 8
         timeGrad = self._evaluate(amp, t_final, t) * -1.0 * (t - t_final / 2) / sigma**2
-        return timeGrad
+        return timeGrad  # type: ignore
 
-    def compute_output(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: Array) -> Array:
         """Compute a Gaussian signal.
 
         Parameters
         ----------
-        t: np.ndarray
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        np.ndarray
+        Array
             Returns a vector gaussian signal.
         """
         t_final = self.t_final.get_value()
         amp = self.amplitude.get_value()
-        return self._evaluate(amp, t_final, t)
+        return self._evaluate(amp, t_final, t)  # type: ignore
 
-    def compute_time_gradient(self, t: np.ndarray) -> Array:
+    def compute_time_gradient(self, t: Array) -> Array:
         """Compute a Gaussian signals time derivative.
 
         Parameters
         ----------
-        t: np.ndarray
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        np.ndarray
+        Array
             Returns a vector gaussian signals time derivative.
         """
         t_final = self.t_final.get_value()
         amp = self.amplitude.get_value()
         envTimeDeriv = self._evaluate_time_gradient(amp, t_final, t)
-        return envTimeDeriv
+        return envTimeDeriv  # type: ignore

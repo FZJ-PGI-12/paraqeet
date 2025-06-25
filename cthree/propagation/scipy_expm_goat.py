@@ -5,20 +5,21 @@ Uses the GOAT optimisation method.
 """
 
 from functools import partial
-from jax import Array, jit
-from jax.lax import scan
 
-import numpy as np
 import jax.numpy as jnp
 
+from cthree.quantity import Array
+from jax import jit
+from jax.lax import scan
 
+from cthree.exceptions import ConfigurationException
 from cthree.propagation.scipy_expm import ScipyExpm
 
 
 class ScipyExpmGOAT(ScipyExpm):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
-    def _create_super_state(self, psi: jnp.ndarray, dpsis: jnp.ndarray):
+    def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
 
         Parameters
@@ -30,7 +31,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns a super state created from the state and the differential.
 
         """
@@ -53,7 +54,7 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian for the GOAT optimisation method.
 
         """
@@ -80,7 +81,7 @@ class ScipyExpmGOAT(ScipyExpm):
         psis_t, _ = scan(propagateBody, psis_t, steps_arr)
         return psis_t
 
-    def gradient(self, time: np.ndarray) -> tuple[Array, Array]:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
@@ -90,14 +91,17 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             First dimension is time, second dimension is the parameter.
 
         """
+        if self._initial_state is None:
+            raise ConfigurationException("Initial state is not set")
+
         n_params = self._model.gradient(jnp.array([0.0])).shape[1]
         dim = self._initial_state.shape[0]
         psi = [jnp.array(self._initial_state, dtype=jnp.complex128)]
-        dpsis = [[jnp.zeros_like(self._initial_state, dtype=jnp.complex128)] * n_params]
+        dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
         eom_func = self._model.get_matrix
         grad_func = self._model.gradient

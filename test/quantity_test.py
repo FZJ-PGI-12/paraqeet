@@ -197,7 +197,7 @@ def testToArray(random_quantity_for_values) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(values)
-        testing.assert_array_almost_equal(np.array(q), values)
+        testing.assert_array_almost_equal(np.asarray(q.get_value()), values)
 
 
 # comparison
@@ -388,9 +388,9 @@ def testPersistence(random_quantity):
             # assert q == q2
             assert q.get_name() == q2.get_name()
             assert q.get_unit() == q2.get_unit()
-            testing.assert_almost_equal(q.get_min_value(), q2.get_min_value())
-            testing.assert_almost_equal(q.get_max_value(), q2.get_max_value())
-            testing.assert_almost_equal(q.get_reduced_value(), q2.get_reduced_value())
+            testing.assert_allclose(q.get_min_value(), q2.get_min_value())
+            testing.assert_allclose(q.get_max_value(), q2.get_max_value())
+            testing.assert_allclose(q.get_reduced_value(), q2.get_reduced_value())
             if N == 1:
                 assert q2.is_scalar()
             else:

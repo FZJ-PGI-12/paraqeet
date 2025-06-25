@@ -1,13 +1,15 @@
 """Class definition for the Scipy optimiser gradient model."""
 
 import numpy as np
+import jax.numpy as jnp
+from cthree.quantity import Array
 from scipy.optimize import minimize
 
 from cthree.exceptions import IncompatibleOptimisationMap
+from cthree.measurement.measurement import Measurement
 from cthree.optimisation_map import OptimisationMap
 from cthree.optimisers.optimiser import OptimisationResult
 from cthree.optimisers.scipy_optimiser import ScipyOptimiser
-from cthree.measurement.measurement import Measurement
 
 
 class ScipyOptimiserGradient(ScipyOptimiser):
@@ -18,12 +20,13 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
     """
 
-    __gradCache: np.ndarray  # of shape (n_parameters,)
+    __gradCache: Array  # of shape (n_parameters,)
+    __scales: Array
 
     def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
         super().__init__(measure, optimisables)
         params = self._optimisables.get_all_parameters()
-        self.__scales = np.array([p.get_scale() for p in params]).flatten()
+        self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
 
     def optimise(self) -> OptimisationResult:
         """Optimise via the Scipy optimizer gradient model.
@@ -50,7 +53,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             result = minimize(
                 fun=self._set_parameters_and_measure,
                 jac=self._lookup_jac,
-                x0=np.concatenate(init).flatten(),
+                x0=jnp.concatenate(init).flatten(),
                 bounds=[(-1, 1)] * self._opt_idxs[-1],
                 method=self._method,
                 options=self._options,
@@ -75,7 +78,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             raw_result=result,
         )
 
-    def _set_parameters_and_measure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> float:
         """Update the parameter values and return measurement result.
 
         Returns the measurement result including gradient.
@@ -97,7 +100,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
         """
         log = []
         params = self._optimisables.get_all_parameters()
-        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
+        for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
         fun, grad = self._measure.measure_with_gradient()
@@ -105,10 +108,10 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         infid = 1 - fun
         if self._logger:
-            self._logger.log(log, float(infid))
+            self._logger.log(log, infid)
         return 1 - fun
 
-    def _lookup_jac(self, values) -> np.ndarray:
+    def _lookup_jac(self, values) -> Array:
         """Update the parameter values.
 
         Return the gradient of a measurement result.

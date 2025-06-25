@@ -1,10 +1,11 @@
 """Class definition of the Resonator Hamiltonian model."""
 
 import jax.numpy as jnp
+from cthree.quantity import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 import jax
 
@@ -29,10 +30,10 @@ class Resonator(Hamiltonian):
 
     __dimension: int
     __frequency: Quantity
-    __annihilation_op: jnp.ndarray
-    __numOp: jnp.ndarray
+    __annihilation_op: Array
+    __numOp: Array
 
-    def __init__(self, dimension: int, frequency: Quantity, drives: list[Drive] = None):
+    def __init__(self, dimension: int, frequency: Quantity, drives: list[Drive] | None = None):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
@@ -64,7 +65,7 @@ class Resonator(Hamiltonian):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -74,14 +75,14 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             The drive matrix at a single timestamp.
 
         """
         H = self.__frequency.get_value() * self.__numOp
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -91,7 +92,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of the drive.
 
         """

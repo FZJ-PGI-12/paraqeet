@@ -1,12 +1,12 @@
 """Class definition for the Runge-Kutta Scipy propagation model."""
 
-import numpy as np
-from scipy.integrate import RK45
+import numpy as np  # Using regular numpy for scipy interface
+from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from cthree.exceptions import ConfigurationException
-from cthree.quantity import Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
+from cthree.quantity import Quantity, Array
 
 
 class RungeKutta(StatePropagation):
@@ -24,11 +24,11 @@ class RungeKutta(StatePropagation):
 
     """
 
-    __initial_time_step: float
+    __initial_time_step: float | None
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)
-        self._initial_state = None
+        self._initial_state: Array
         self.__initial_time_step = initial_time_step
 
     def get_parameters(self) -> list[Quantity]:
@@ -42,7 +42,7 @@ class RungeKutta(StatePropagation):
         """
         return []
 
-    def set_initial_state(self, state: np.ndarray):
+    def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
 
         Subclasses can access the state in the _initial_state field.
@@ -55,7 +55,7 @@ class RungeKutta(StatePropagation):
         """
         self._initial_state = np.reshape(state, (-1,))
 
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
 
         Parameters
@@ -92,12 +92,13 @@ class RungeKutta(StatePropagation):
         # Since RK45 uses adaptive time steps and does not guarantee
         # to return a state for each time stamp, this
         # function has to iterate over the time steps itself.
-        states = np.array([self._initial_state] * len(time))
+        states = [self._initial_state]
         for ti in range(1, len(time)):
             dt = self.__initial_time_step
             if dt is None or dt > time[ti] - time[ti - 1]:
-                dt = (time[ti] - time[ti - 1]) / 5
+                dt = float(time[ti] - time[ti - 1]) / 5
 
+            # This is the scipy implementation of RK45, which is compatible with (non-jax) numpy
             integrator = RK45(
                 fun=callback,
                 t0=time[ti - 1],
@@ -109,5 +110,5 @@ class RungeKutta(StatePropagation):
 
             while integrator.status == "running":
                 integrator.step()
-            states[ti] = integrator.y
-        return states
+            states.append(integrator.y)
+        return np.array(states)

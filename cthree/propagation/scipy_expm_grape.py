@@ -8,19 +8,16 @@ Hamiltonian is defined in the rotating frame of drive.
 
 from functools import partial
 
-import numpy as np
+import jax
 import jax.numpy as jnp
-
+from cthree.quantity import Array
 from jax import jit, vmap
 from jax.lax import scan
-
 from jax.scipy.linalg import expm, expm_frechet
 
-from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.exceptions import ConfigurationException
+from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.scipy_expm import ScipyExpm
-
-import jax
 
 jax.config.update("jax_enable_x64", True)
 
@@ -36,39 +33,39 @@ class ScipyExpmGRAPE(ScipyExpm):
 
     _res: float
         Simulation resolution.
-    _initial_state: np.ndarray = None
+    _initial_state: Array = None
         Initial state for forward propagation.
-    _target_state: np.ndarray = None
+    _target_state: Array = None
         Target state for backward propagation.
     _save_bwd_propagated_states: bool = False
         Flag for saving backward propgated state. Saved if True.
-    _bwd_propagated_states: np.ndarray = None
+    _bwd_propagated_states: Array = None
         If `_saveBwdPropagatedStates` is True, save the bwd propagated states.
     _schirmer_derivative: bool = False
         If true, compute the gradient by Schirmer Derivative/Method of auxillary
         matrix exponential. If false, use frechet derivative.
     """
 
-    _target_state: np.ndarray = None
+    _target_state: Array | None = None
     _save_bwd_propagated_states: bool = False
-    _bwd_propagated_states: np.ndarray = None
+    _bwd_propagated_states: Array | None = None
     _schirmer_derivative: bool = False
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
 
     @property
-    def target_state(self) -> np.ndarray:
+    def target_state(self) -> Array | None:
         """Returns the current target state for backward propagation."""
         return self._target_state
 
     @target_state.setter
-    def target_state(self, targetState: np.ndarray) -> None:
+    def target_state(self, targetState: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
         ----------
-        targetState : np.ndarray
+        targetState : Array
             Target state.
         """
         self._target_state = targetState
@@ -108,24 +105,24 @@ class ScipyExpmGRAPE(ScipyExpm):
     @staticmethod
     @jit
     def __sandwich_op_values(
-        bwd_propagated_state: np.ndarray,
-        Op: np.ndarray,
-        fwd_propagated_state: np.ndarray,
-    ) -> np.ndarray:
+        bwd_propagated_state: Array,
+        Op: Array,
+        fwd_propagated_state: Array,
+    ) -> Array:
         r"""Compute \\langle \\lambda(t) | O | \\psi(t) \\rangle.
 
         Parameters
         ----------
-        bwd_propagated_state : np.ndarray
+        bwd_propagated_state : Array
             Backwards propagated states
-        Op : np.ndarray
+        Op : Array
             Array of operator for each time point.
-        fwd_propagated_state : np.ndarray
+        fwd_propagated_state : Array
             Forwards propagated states
 
         Returns
         -------
-        np.ndarray
+        Array
             Matrix element of the operator for each time point.
         """
         return jnp.matmul(bwd_propagated_state, jnp.matmul(Op, fwd_propagated_state))
@@ -144,9 +141,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-        psis_t : np.ndarray
+        psis_t : Array
             Forward propagated state
-        lamdas_t : np.ndarray
+        lamdas_t : Array
             Backward propagated state
         """
 
@@ -170,9 +167,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-        ham : np.ndarray
+        ham : Array
             -iHdt
-        dh_dp : np.ndarray
+        dh_dp : Array
             -i\\frac{\\partial H}{\\partial u} dt
         """
         return expm_frechet(ham, dh_dp)
@@ -184,9 +181,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-        ham : np.ndarray
+        ham : Array
             -iHdt
-        dh_dp : np.ndarray
+        dh_dp : Array
             -i\\frac{\\partial H}{\\partial u} dt
         """
         zeros = jnp.zeros_like(ham)
@@ -201,7 +198,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-            ham : np.ndarray
+            ham : Array
             -iHdt
         """
         return expm(ham)
@@ -219,9 +216,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-        psis_t : np.ndarray
+        psis_t : Array
             Forward propagated state
-        lamdas_t : np.ndarray
+        lamdas_t : Array
             Backward propagated state
         """
 
@@ -232,7 +229,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
         return psis_list
 
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
@@ -249,9 +246,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         psis = self._propagate_in_time(Us, init_state, jnp.arange(0, len(timeGrid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-        return psis
+        return jnp.array(psis)
 
-    def gradient(self, time: np.ndarray) -> np.ndarray:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -282,7 +279,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         hams = eom_func(timeGrid) * dt
         dH_dps = jnp.array(grad_func(timeGrid)) * dt
 
-        Ugrads = []
+        Ugrads_list = []
         n_params = dH_dps.shape[1]
 
         dim = init_state.shape[0]
@@ -294,9 +291,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         for i in range(n_params):
             Us, dUs = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dH_dps[:, i, ...])
-            Ugrads.append(dUs)
+            Ugrads_list.append(dUs)
 
-        Ugrads = jnp.stack(Ugrads, axis=1)
+        Ugrads = jnp.stack(Ugrads_list, axis=1)
 
         psis, lamdas = self._forward_and_backward_propagation(
             Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)

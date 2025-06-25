@@ -1,9 +1,7 @@
 """Class definition of the file logger object."""
 
-import os
 import json
-import numpy as np
-
+import os
 
 from cthree.logger import Logger
 from cthree.quantity import Quantity
@@ -53,14 +51,14 @@ class FileLogger(Logger):
         """Start logging."""
         super().start()
 
-    def log(self, params: list[Quantity], infidelity: np.ndarray):
+    def log(self, params: list[Quantity], infidelity: float):
         """Write the formatted parameters and the goal to the log file.
 
         Parameters
         ----------
         params : List[cthree.Logger]
             List of parameters to be written to the log file.
-        infidelity : numpy.ndarray
+        infidelity : float
             Goal value to be written to the log file.
 
         """
@@ -76,7 +74,7 @@ class FileLogger(Logger):
             log.write("\n")
             log.flush()
 
-    def stop(self, result_message: str = None):
+    def stop(self, result_message: str | None = None):
         """Stop logging and end the log file with the run information.
 
         Parameters

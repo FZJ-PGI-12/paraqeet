@@ -1,9 +1,9 @@
 """Class definition of a Rabi experiment model."""
 
-import numpy as np
+import jax.numpy as jnp
 
-from cthree.quantity import Quantity
 from cthree.measurement.measurement import Measurement
+from cthree.quantity import Quantity
 
 
 class RabiExperiment(Measurement):
@@ -22,7 +22,7 @@ class RabiExperiment(Measurement):
     __time: Quantity
 
     def __init__(self, qubit_freq: float) -> None:
-        super().__init__()
+        super().__init__(jnp.asarray(0.0))
         self.__qubit_freq = Quantity(qubit_freq, 0.0, 10e9)
         self.__amp = Quantity(60e6, 0, 100e6, "Hz")
         self.__freq = Quantity(0.6 * qubit_freq, 0, 10e9)
@@ -39,7 +39,7 @@ class RabiExperiment(Measurement):
         """
         return [self.__amp, self.__freq, self.__time]
 
-    def measure(self):
+    def measure_normalised_scalar(self):
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,
@@ -52,8 +52,8 @@ class RabiExperiment(Measurement):
 
         """
         q_freq = self.__qubit_freq.get_value()
-        amp = self.__amp.get_value() * 2 * np.pi
+        amp = self.__amp.get_value() * 2 * jnp.pi
         freq = self.__freq.get_value()
         t = self.__time.get_value()
         diff_sq = (q_freq - freq) ** 2
-        return np.abs(np.cos(np.sqrt(diff_sq + amp**2) / 2 * t) / np.sqrt(1 + diff_sq / (amp**2))) ** 2
+        return jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * t) / jnp.sqrt(1 + diff_sq / (amp**2))) ** 2

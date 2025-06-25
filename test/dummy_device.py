@@ -5,7 +5,8 @@ from functools import partial
 import numpy as np
 import jax.numpy as jnp
 
-from jax import Array, jit
+from cthree.quantity import Array
+from jax import jit
 from jax.scipy.special import erf
 
 from cthree.signal.envelopes import Envelope
@@ -30,7 +31,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
     """
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+    def _evaluate(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -39,14 +40,14 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         ----------
         amp : cthree.quantity
             Cosine pulse amplitude.
-        t_final: np.ndarray
+        t_final: Array
             The length in time of the entire envelope.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -58,11 +59,11 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
     @staticmethod
     @jit
-    def __dir_erf(x: np.ndarray):
+    def __dir_erf(x: Array):
         return 2 / jnp.sqrt(np.pi) * jnp.exp(-(x**2))
 
     @partial(jit, static_argnums=(0,))
-    def _evaluateTimeGrad(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+    def _evaluateTimeGrad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -71,14 +72,14 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         ----------
         amp : cthree.quantity
             Cosine pulse amplitude.
-        t_final: np.ndarray
+        t_final: Array
             The length in time of the entire envelope.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -98,7 +99,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         return amp * prod_dir / 4
 
     @partial(jit, static_argnums=(0,))
-    def _evaluateTFinalGrad(self, amp: np.ndarray, t_final: np.ndarray, t: np.ndarray):
+    def _evaluateTFinalGrad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
@@ -107,14 +108,14 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         ----------
         amp : cthree.quantity
             Cosine pulse amplitude.
-        t_final: np.ndarray
+        t_final: Array
             The length in time of the entire envelope.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -133,7 +134,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
         return amp * prod_dir / 4
 
-    def compute_output(self, t: np.ndarray) -> Array:
+    def compute_output(self, t: Array) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
@@ -149,21 +150,21 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluate(amp, t_final, t)
+        return jnp.array(self._evaluate(amp, t_final, t))
 
-    def compute_time_gradient(self, t: np.ndarray) -> Array:
+    def compute_time_gradient(self, t: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
         ----------
-        t: np.ndarray
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        np.ndarray
+        Array
             Returns a vector signals time derivative.
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluateTimeGrad(amp, t_final, t)
+        return jnp.array(self._evaluateTimeGrad(amp, t_final, t))

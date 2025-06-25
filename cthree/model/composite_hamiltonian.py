@@ -1,12 +1,13 @@
 """Class definition of the composite Hamiltonian model."""
 
-import numpy as np
+import jax
 import jax.numpy as jnp
 from jax import vmap
-
-from cthree.quantity import Quantity
+import numpy as np
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity, Array
+from cthree.exceptions import IncompatibleLayersException
 
 
 class CompositeHamiltonian(Hamiltonian):
@@ -40,7 +41,7 @@ class CompositeHamiltonian(Hamiltonian):
         self.__subsystems = subsystems
         self.__couplings = couplings
         self.__dimensions = [s.dimension() for s in subsystems]
-        self.__total_dimension = np.prod(self.__dimensions)
+        self.__total_dimension = int(np.prod(self.__dimensions))
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
@@ -86,7 +87,7 @@ class CompositeHamiltonian(Hamiltonian):
         """
         return self.__total_dimension
 
-    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
@@ -96,7 +97,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Hamiltonian of shape [n, n] with 'n' as the Hilbert space
             dimension.
 
@@ -117,7 +118,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         return matrix
 
-    def gradient(self, t: np.ndarray) -> jnp.ndarray:
+    def gradient(self, t: Array) -> Array:
         """Return the gradient of each parameter.
 
         Returns as an array for an array of input times.
@@ -125,18 +126,18 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        t: jnp.ndarray
+        t: Array
             Array of time samples.
 
         Returns
         -------
-        jnp.ndarray
+        Array
             Gradient for each time point in the input array of times.
 
         """
-        return vmap(self._gradientOneTime)(t)
+        return vmap(self._gradient_one_time)(t)
 
-    def _gradientOneTime(self, t: float) -> jnp.ndarray:
+    def _gradient_one_time(self, t: Array) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
@@ -144,12 +145,12 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        t: float
+        t: Array
             One time point.
 
         Returns
         -------
-        jnp.ndarray
+        Array
             Gradient at time t.
 
         """
@@ -157,10 +158,12 @@ class CompositeHamiltonian(Hamiltonian):
 
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
-        for i, subsystem in enumerate(self.__subsystems):
+        for one_index, subsystem in enumerate(self.__subsystems):
             subGradients = subsystem.gradient_one_time(t)
             for g in subGradients:
-                gradients.append(self.__tensor_product_with_identity([g], [i]))
+                if not isinstance(g, np.ndarray | jax.Array):
+                    raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
+                gradients.append(self.__tensor_product_with_identity([g], [one_index]))
 
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
@@ -168,12 +171,14 @@ class CompositeHamiltonian(Hamiltonian):
             indices = [self.__subsystems.index(s) for s in coupling.subsystems]
             couplingGradient = coupling.gradient_one_time(t)
             for term in couplingGradient:
-                for g in term:
-                    gradients.append(self.__tensor_product_with_identity(g, indices))
+                for g_list in term:
+                    grad = self.__tensor_product_with_identity(g_list, indices)
+                    if grad.size != 0:
+                        gradients.append(grad)
 
         return jnp.array(gradients)
 
-    def __tensor_product_with_identity(self, M: list[jnp.ndarray], n: list[int]) -> jnp.ndarray:
+    def __tensor_product_with_identity(self, M: list[Array], n: list[int]) -> Array:
         r"""Put the matrices M into a tensor product at positions `n`.
 
         All other positions are identity matrices:
@@ -191,7 +196,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Tensor product of M_i's with I's.
 
         """
@@ -199,7 +204,7 @@ class CompositeHamiltonian(Hamiltonian):
         # fill in M at the corresponding indices
         subMatrices = [jnp.eye(s.dimension()) for s in self.__subsystems]
         for i, k in enumerate(n):
-            subMatrices[k] = M[i]
+            subMatrices[k] = jnp.array(M[i])
 
         # Tensor product everything in subMatrices
         product = jnp.eye(1)

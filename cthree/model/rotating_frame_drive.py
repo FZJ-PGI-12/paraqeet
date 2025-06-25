@@ -1,10 +1,9 @@
 """Class definition of the Drive Hamiltonian in the rotating frame of drive."""
 
-from jax.numpy import ndarray
 import jax.numpy as jnp
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
+from cthree.quantity import Quantity, Array
 from cthree.signal.generator import Generator
 
 
@@ -43,7 +42,7 @@ class RotatingFrameDrive(Drive):
         """
         return self.__signal_generator.get_parameters()
 
-    def get_matrix_one_time(self, annihilation_operator: jnp.ndarray, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         r"""Implement drive in the rotating frame of drive.
 
         Drive Hamiltonian is implemented as
@@ -54,15 +53,15 @@ class RotatingFrameDrive(Drive):
 
         Parameters
         ----------
-        annihilation_operator: jnp.ndarray
+        annihilation_operator: Array
             Annihilation operator of the subsystem
-        t: float
+        t: Array
             One time step
         """
-        env = self.__signal_generator.generate_signal(t)
+        env = self.__signal_generator.generate_signal(jnp.array([t]))
         return env * annihilation_operator + jnp.conjugate(env) * annihilation_operator.conj().T
 
-    def gradient_one_time(self, annihilation_operator: ndarray, t: float) -> ndarray:
+    def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -70,7 +69,7 @@ class RotatingFrameDrive(Drive):
 
         Parameters
         ----------
-        a : numpy.ndarray
+        annihilation_operator : numpy.ndarray
             Operator for longitudinal or transverse drive.
         t : numpy.ndarray
             One-dimensional vector of timestamps.
@@ -81,5 +80,5 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        envGrad = self.__signal_generator.generate_signal_gradient(t).reshape((-1, 1, 1))
+        envGrad = self.__signal_generator.generate_signal_gradient(jnp.array([t])).reshape((-1, 1, 1))
         return envGrad * annihilation_operator + jnp.conjugate(envGrad) * annihilation_operator.conj().T

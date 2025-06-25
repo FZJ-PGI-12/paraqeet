@@ -4,9 +4,9 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.measurement.measurement import Measurement
 from cthree.file_logger import Logger
+from cthree.measurement.measurement import Measurement
+from cthree.optimisation_map import OptimisationMap
 
 
 @dataclass(repr=False)

@@ -1,10 +1,11 @@
 """Class definition of a qubit model."""
 
 import jax.numpy as jnp
+from cthree.quantity import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 
 class Qubit(Hamiltonian):
@@ -26,10 +27,10 @@ class Qubit(Hamiltonian):
     """
 
     __frequency: Quantity
-    __annihilationOp: jnp.ndarray
-    __drift: jnp.array
+    __annihilationOp: Array
+    __drift: Array
 
-    def __init__(self, frequency: Quantity, drives: list[Drive] = None):
+    def __init__(self, frequency: Quantity, drives: list[Drive] | None = None):
         super().__init__(drives)
         self.__frequency = frequency
         self.__annihilationOp = jnp.array(
@@ -72,7 +73,7 @@ class Qubit(Hamiltonian):
         """
         return 2
 
-    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -82,14 +83,14 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             The repeated drive matrix.
 
         """
         H = self.__frequency.get_value() * self.__drift
         return H + self._get_drive_matrix_one_time(self.__annihilationOp, t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -99,7 +100,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of the drive.
 
         """

@@ -6,7 +6,7 @@ from cthree.optimisable import Optimisable
 from cthree.quantity import Quantity
 
 
-class TestOptimisable(Optimisable):
+class DummyOptimisable(Optimisable):
     """An optimisable implementation.
 
     Does nothing except providing some random parameters.

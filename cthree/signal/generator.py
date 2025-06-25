@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 
-import numpy as np
+from cthree.quantity import Array
 
 from cthree.optimisable import Optimisable
 
@@ -20,7 +20,7 @@ class Generator(Optimisable):
     """
 
     @abstractmethod
-    def generate_signal(self, times: np.ndarray) -> np.ndarray:
+    def generate_signal(self, times: Array) -> Array:
         """Return array with scalar signal value for each time step.
 
         Parameters
@@ -42,7 +42,7 @@ class Generator(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def generate_signal_gradient(self, times: np.ndarray) -> np.ndarray:
+    def generate_signal_gradient(self, times: Array) -> Array:
         """Return array with gradient of signal value for each time step.
 
         Abstract method.
@@ -68,7 +68,7 @@ class Generator(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def generate_signal_gradient_one_time(self, time: float) -> np.ndarray:
+    def generate_signal_gradient_one_time(self, time: Array) -> Array:
         """Return array with the gradient of the signal value for one time step.
 
         The result has the shape (p,) where 'p' is the parameter index.

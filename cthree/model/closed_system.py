@@ -1,10 +1,8 @@
 """Class definition of a closed model."""
 
-from cthree.quantity import Quantity
-from cthree.model.hamiltonian import Hamiltonian
 from cthree.model.equation_of_motion import EquationOfMotion
-
-import numpy as np
+from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity, Array
 
 
 class ClosedSystem(EquationOfMotion):
@@ -33,7 +31,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_parameters()
 
-    def get_matrix(self, time: np.ndarray) -> np.ndarray:
+    def get_matrix(self, time: Array) -> Array:
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -54,7 +52,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian.get_matrix(time)
 
-    def gradient(self, t) -> np.ndarray:
+    def gradient(self, t) -> Array:
         """Compute the gradient of getMatrix.
 
         Parameters
