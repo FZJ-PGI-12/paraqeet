@@ -1,17 +1,16 @@
 """The class definition of state transfer fidelity model."""
 
+import warnings
 from collections.abc import Callable
-from cthree.quantity import Quantity
+
+import jax.numpy as jnp
+from cthree.quantity import Array, Quantity
+from jax import grad, jit
 
 from cthree.measurement.measurement import Measurement
 from cthree.propagation.state_propagation import StatePropagation
 
 import jax
-import jax.numpy as jnp
-from jax import Array, grad, jit
-from jax.typing import ArrayLike
-
-import warnings
 
 jax.config.update("jax_enable_x64", True)
 
@@ -24,25 +23,25 @@ class StateTransferFidelity(Measurement):
     propagation : cthree.propagation.StatePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.ArrayLike
+    initial_state : jax.typing.Array
         Initial state.
-    target_state : jax.typing.ArrayLike
+    target_state : jax.typing.Array
         Target state.
-    times : jax.typing.ArrayLike
+    times : jax.typing.Array
         One-dimensional vector of timestamps.
 
     """
 
-    _initial_state: ArrayLike
-    _target_state: ArrayLike
+    _initial_state: Array
+    _target_state: Array
     _propagation: StatePropagation
 
     def __init__(
         self,
         propagation: StatePropagation,
-        initial_state: ArrayLike,
-        target_state: ArrayLike,
-        times: ArrayLike,
+        initial_state: Array,
+        target_state: Array,
+        times: Array,
     ):
         super().__init__(times=times)
         self._propagation = propagation
@@ -64,8 +63,8 @@ class StateTransferFidelity(Measurement):
             self._overlap = self._overlap_vec
 
     @staticmethod
-    def _fid(overlap):
-        return jnp.abs(overlap) ** 2
+    def _fid(overlap: Array) -> float:
+        return float(jnp.abs(jnp.average(overlap)) ** 2)
 
     @staticmethod
     def _overlap_vec(target_state, final_state):
@@ -75,13 +74,13 @@ class StateTransferFidelity(Measurement):
     def _overlap_dm(target_state, final_state):
         return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
-    def measure(self) -> ArrayLike:
+    def measure(self) -> Array:
         """Measure overlap between initial and target state.
 
         Returns
         -------
-        jax.typing.ArrayLike
-            Overlap between initial and target state in a JAX ArrayLike format.
+        jax.Array
+            Overlap between initial and target state in a JAX Array format.
 
         """
         states = self._propagation.propagate(time=self._times)
@@ -90,12 +89,12 @@ class StateTransferFidelity(Measurement):
         f = self._overlap(self._target_state, final_state)
         return self._fid(f)
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
@@ -129,11 +128,11 @@ class StateTransferFidelityAD(StateTransferFidelity):
     propagation : cthree.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.ArrayLike
+    initial_state : jax.typing.Array
         Initial state.
-    target_state : jax.typing.ArrayLike
+    target_state : jax.typing.Array
         Target state.
-    times : jax.typing.ArrayLike
+    times : jax.typing.Array
         One-dimensional vector of timestamps.
 
     """
@@ -143,14 +142,14 @@ class StateTransferFidelityAD(StateTransferFidelity):
     def __init__(
         self,
         propagation: StatePropagation,
-        initial_state: ArrayLike,
-        target_state: ArrayLike,
-        times: ArrayLike,
+        initial_state: Array,
+        target_state: Array,
+        times: Array,
     ):
         super().__init__(propagation, initial_state, target_state, times)
         self.__gradient_function = None
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -158,7 +157,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[float, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
@@ -188,23 +187,23 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     propagation : cthree.propagation.StatePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : jax.typing.ArrayLike
+    initial_state : jax.typing.Array
         Initial state.
-    target_state : jax.typing.ArrayLike
+    target_state : jax.typing.Array
         Target state.
-    times : jax.typing.ArrayLike
+    times : jax.typing.Array
         One-dimensional vector of timestamps.
 
     """
 
     _propagation: StatePropagation
 
-    def measure_with_gradient(self) -> tuple[Array, Array]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
         -------
-        Tuple[jax.Array, jax.Array]
+        Tuple[Array, Array]
             Tuple of function value and gradient of shape (n_parameters,).
 
         """

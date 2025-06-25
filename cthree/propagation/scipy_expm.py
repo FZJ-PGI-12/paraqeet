@@ -2,17 +2,20 @@
 
 from functools import partial
 
-import numpy as np
 import jax.numpy as jnp
+from cthree.quantity import Array
+from jax import jit, vmap
+from jax.lax import scan
+from jax.scipy.linalg import expm
 
 from cthree.exceptions import ConfigurationException
-from cthree.quantity import Quantity
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.propagation.state_propagation import StatePropagation
+from cthree.quantity import Quantity
 
-from jax.scipy.linalg import expm
-from jax import Array, jit, vmap
-from jax.lax import scan
+import jax
+
+jax.config.update("jax_enable_x64", True)
 
 
 class ScipyExpm(StatePropagation):
@@ -31,7 +34,7 @@ class ScipyExpm(StatePropagation):
     """
 
     _res: float
-    _initial_state: np.ndarray | None = None
+    _initial_state: Array | None = None
 
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model)
@@ -82,8 +85,8 @@ class ScipyExpm(StatePropagation):
         """
         t0 = time[ti - 1]
         t1 = time[ti]
-        steps = int(np.ceil((t1 - t0) * self._res))
-        times = np.linspace(t0, t1, steps, endpoint=False)
+        steps = int(jnp.ceil((t1 - t0) * self._res))
+        times = jnp.linspace(t0, t1, steps, endpoint=False)
         if steps < 2:
             dt = t1 - t0
         else:
@@ -151,7 +154,7 @@ class ScipyExpm(StatePropagation):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the evolved state.
 
         """
@@ -178,13 +181,13 @@ class ScipyExpm(StatePropagation):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the evolved state.
 
         """
         return expm(eom_matrix) @ psis_t
 
-    def propagate(self, time: np.ndarray) -> Array:
+    def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
 
         Loop over all desired times in time at set resolution.
@@ -196,7 +199,7 @@ class ScipyExpm(StatePropagation):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the solution of the equations of motion.
 
         Raises

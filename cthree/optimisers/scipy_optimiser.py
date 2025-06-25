@@ -2,12 +2,12 @@
 
 from collections.abc import Callable
 
-import numpy as np
-from scipy.optimize import minimize
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.optimisers.optimiser import Optimiser, OptimisationResult
+from scipy.optimize import minimize
+import numpy as np
 from cthree.measurement.measurement import Measurement
+from cthree.optimisation_map import OptimisationMap
+from cthree.optimisers.optimiser import OptimisationResult, Optimiser
 
 
 class ScipyOptimiser(Optimiser):
@@ -86,6 +86,9 @@ class ScipyOptimiser(Optimiser):
 
         Performs the actual optimisation.
 
+        Since the search parameters are dimensionless and bound by [-1, 1], we set the bounds of the scipy minimize
+        module to -1, and 1 explicitely in each search dimension.
+
         Returns
         -------
         cthree.optimisers.optimiser.OptimisationResult
@@ -101,12 +104,12 @@ class ScipyOptimiser(Optimiser):
         # Collect the initial values of all parameters
         init = []
         for qty in self._optimisables.get_all_parameters():
-            init.append(qty.get_reduced_value())
+            init.append(qty.get_reduced_value())  # reduced values are between [-1, 1]
 
         opt_res = minimize(
             fun=self._set_parameters_and_measure,
             x0=np.concatenate(init).flatten(),
-            bounds=[(-1, 1)] * self._opt_idxs[-1],
+            bounds=[(-1, 1)] * len(self._opt_idxs),  # len(.) gives the number of parameters
             method=self._method,
             options=self._options,
             callback=self._callback,
@@ -123,7 +126,7 @@ class ScipyOptimiser(Optimiser):
             raw_result=opt_res,
         )
 
-    def _set_parameters_and_measure(self, values) -> np.ndarray:
+    def _set_parameters_and_measure(self, values) -> float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
@@ -144,8 +147,8 @@ class ScipyOptimiser(Optimiser):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.measure_normalised()
+        infid = 1 - self._measure.measure_normalised_scalar()
 
         if self._logger:
-            self._logger.log(log, float(infid))
+            self._logger.log(log, infid)
         return infid

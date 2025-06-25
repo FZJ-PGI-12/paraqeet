@@ -1,11 +1,9 @@
 """Class definition of the Measurement model."""
 
-from abc import abstractmethod
-
-import numpy as np
-from jax._src.basearray import ArrayLike
+import jax.numpy as jnp
 
 from cthree.optimisable import Optimisable
+from cthree.quantity import Array
 
 
 class Measurement(Optimisable):
@@ -24,23 +22,22 @@ class Measurement(Optimisable):
     # Fields for tracing and projecting before the measurement
     __input_dimensions: list[int] | None = None
     __output_dimensions: list[int] | None = None
-    __projector: np.ndarray | None = None
-    _times: ArrayLike | None = None
+    __projector: Array | None = None
+    _times: Array
 
-    def __init__(self, times: np.ndarray | None = None):
+    def __init__(self, times: Array):
         self._times = times
 
-    @abstractmethod
-    def measure(self) -> np.ndarray:
+    def measure(self) -> Array | float:
         """Measure the observable and returns the value.
 
         Abstract Method. This function must be implemented by subclasses.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray or float
             This abstract method must return a Numpy ndarray when
-            implemented by subclasses.
+            implemented by subclasses. Might return multiple values.
 
         Raises
         ------
@@ -48,14 +45,21 @@ class Measurement(Optimisable):
             If a subclass does not implement the measure method, raise an error.
 
         """
-        raise NotImplementedError()
+        return self.measure_normalised_scalar()
 
-    def measure_normalised(self) -> np.ndarray:
+    def measure_scalar(self) -> float:
+        """Measure the observable.
+
+        Returns a scalar value. This function must be implemented by subclasses, unless identical to
+        self.measure_normalised_scalar().
+        """
+        return self.measure_normalised_scalar()
+
+    def measure_normalised_scalar(self) -> float:
         """Measure the normalised observable.
 
-        Returns the value between 0 and 1, 1 representing the perfect result.
-        This function must be implemented by subclasses,
-        unless identical to self.measure().
+        Returns a single scalar value between 0 and 1, 1 representing the perfect result, required for use with most
+        optimisations. This function must be implemented by subclasses.
 
         Returns
         -------
@@ -63,9 +67,9 @@ class Measurement(Optimisable):
             Returns a Numpy ndarray if implemented by a subclass.
 
         """
-        return self.measure()
+        raise NotImplementedError()
 
-    def measure_with_gradient(self) -> tuple[np.ndarray, np.ndarray]:
+    def measure_with_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measureNormalised()
@@ -73,8 +77,8 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        Tuple[numpy.ndarray, numpy.ndarray]
-            Tuple of function value and gradient of shape (n_parameters,)
+        Tuple[float, numpy.ndarray]
+            Tuple of function value as bare float and gradient of shape (n_parameters,)
 
         Raises
         ------
@@ -129,20 +133,20 @@ class Measurement(Optimisable):
                     "The input and output dimensions must \
                         contain the same number of subsystems"
                 )
-            if np.any(np.array(self.__input_dimensions) < 0) or np.any(np.array(self.__output_dimensions) < 0):
+            if jnp.any(jnp.array(self.__input_dimensions) < 0) or jnp.any(jnp.array(self.__output_dimensions) < 0):
                 raise RuntimeError("Dimensions must not be negative")
-            if np.any(np.array(self.__input_dimensions) < np.array(self.__output_dimensions)):
+            if jnp.any(jnp.array(self.__input_dimensions) < jnp.array(self.__output_dimensions)):
                 raise RuntimeError("Output dimensions can not be larger than input dimensions")
-            if np.sum(output_dimensions) == 0:
+            if sum(output_dimensions) == 0:
                 raise RuntimeError("All output dimensions can not be 0")
 
-            P = np.eye(1)
+            P = jnp.eye(1)
             for dimIn, dimOut in zip(input_dimensions, output_dimensions):
                 dim2 = dimOut if dimOut > 0 else 1
-                P = np.kron(P, np.eye(dimIn, dim2))
+                P = jnp.kron(P, jnp.eye(dimIn, dim2, dtype=jnp.float64))
             self.__projector = P
 
-    def _preprocess_matrix(self, operator: np.ndarray) -> np.ndarray:
+    def _preprocess_matrix(self, operator: Array) -> Array:
         """Perform any preprocessing on the "operator" that was registered.
 
         Operator could be unitary matrices, density matrices.
@@ -164,7 +168,7 @@ class Measurement(Optimisable):
             operator = self.__projector.T @ operator @ self.__projector
         return operator
 
-    def _preprocess_vector(self, states: np.ndarray) -> np.ndarray:
+    def _preprocess_vector(self, states: Array) -> Array:
         """Perform any preprocessing on the "states" that were registered.
 
         States could be a single state or batch of state vectors.
@@ -186,7 +190,7 @@ class Measurement(Optimisable):
             if states.shape[-1] == 1:
                 states = self.__projector.T @ states
             else:
-                states = np.reshape(states, states.shape + (1,))
+                states = jnp.reshape(states, states.shape + (1,))
                 states = self.__projector.T @ states
-                states = np.squeeze(states, axis=-1)
+                states = jnp.squeeze(states, axis=-1)
         return states

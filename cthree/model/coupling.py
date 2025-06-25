@@ -1,13 +1,13 @@
 """Class definition of a coupling optimisable model."""
 
-from jax import vmap
+import jax
 import jax.numpy as jnp
+from cthree.quantity import Array
+from jax import vmap
 
+from cthree.model.hamiltonian import Hamiltonian
 from cthree.optimisable import Optimisable
 from cthree.quantity import Quantity
-from cthree.model.hamiltonian import Hamiltonian
-
-import jax
 
 jax.config.update("jax_enable_x64", True)
 
@@ -37,7 +37,7 @@ class Coupling(Optimisable):
 
     _subsystems: list[Hamiltonian]
     _coefficient: Quantity
-    _total_dims: jnp.ndarray
+    _total_dims: int
     __is_longitudinal: bool
     __useRWA: bool
 
@@ -52,7 +52,7 @@ class Coupling(Optimisable):
         self._coefficient = coefficient
         self.__is_longitudinal = is_longitudinal
         self.__useRWA = useRWA
-        self._total_dims = jnp.prod(jnp.array([s.dimension() for s in self.subsystems]))
+        self._total_dims = int(jnp.prod(jnp.array([s.dimension() for s in self.subsystems])))
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
@@ -77,7 +77,7 @@ class Coupling(Optimisable):
         """
         return self._subsystems
 
-    def get_matrices_one_time(self, t: float) -> list[list[jnp.ndarray]]:
+    def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -104,7 +104,7 @@ class Coupling(Optimisable):
             matrices[i][0] *= self._coefficient.get_value()
         return matrices
 
-    def get_matrices(self, t: jnp.ndarray) -> list[list[jnp.ndarray]]:
+    def get_matrices(self, t: Array) -> list[list[Array]]:
         """Return the matrices for an array of time.
 
         vmaps over the method for one time step.
@@ -123,9 +123,10 @@ class Coupling(Optimisable):
             the subsystem dimension.
 
         """
-        return vmap(self.get_matrices_one_time)(t)
+        # Technically, vmap returns "any" but we know the type of get_matrices_one_time is correct.
+        return vmap(self.get_matrices_one_time)(t)  # type:ignore
 
-    def gradient_one_time(self, t: float) -> list[list[list[jnp.ndarray]]]:
+    def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
@@ -146,13 +147,14 @@ class Coupling(Optimisable):
             result of getMatricesOneTime.
 
         """
+        coup_ops = self.__coupling_operators()
         if self._is_optimised(self._coefficient):
-            grads = [self.__coupling_operators()]
+            grads = [coup_ops]
         else:
-            grads = jnp.empty((0, self._total_dims, self._total_dims))
+            grads = [[[jnp.empty((0, 0)) for _ in sub] for sub in coup_ops]]
         return grads
 
-    def gradient(self, t: jnp.ndarray) -> list[list[list[jnp.ndarray]]]:
+    def gradient(self, t: Array) -> list[list[list[Array]]]:
         """Return the gradients for an array of times.
 
         Parameters
@@ -168,9 +170,10 @@ class Coupling(Optimisable):
             The rest is in the same shape as the result of getMatrices.
 
         """
-        return vmap(self.gradient_one_time)(t)
+        # Technically, vmap returns "any" but we know the type of gradient_one_time is correct.
+        return vmap(self.gradient_one_time)(t)  # type: ignore
 
-    def __coupling_operators(self) -> list[list[jnp.ndarray]]:
+    def __coupling_operators(self) -> list[list[Array]]:
         """Return coupling operators.
 
         Returns the operators of the longitudinal or transversal coupling
@@ -180,7 +183,7 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        List[List[jnp.ndarray]]
+        List[List[Array]]
             A list of operators for each subsystem.
             The subsystems are the outer list.
 

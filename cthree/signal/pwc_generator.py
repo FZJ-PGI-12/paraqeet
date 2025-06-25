@@ -1,15 +1,12 @@
-from cthree.quantity import Quantity
-from cthree.signal.envelopes import Envelope
-from cthree.signal.generator import Generator
-
+from functools import partial
 
 import jax.numpy as jnp
-import numpy as np
-from jax import Array, jit, vmap
+from jax import jit, vmap
 from jax.scipy.special import erf
 
-
-from functools import partial
+from cthree.quantity import Quantity, Array
+from cthree.signal.envelopes import Envelope
+from cthree.signal.generator import Generator
 
 
 class PWCGenerator(Generator):
@@ -25,7 +22,7 @@ class PWCGenerator(Generator):
 
     __envs: list[Waveform]
         List of Envelopes
-    __tlist: np.ndarray
+    __tlist: Array
         Time grid discritization points
 
     Parameters
@@ -36,7 +33,7 @@ class PWCGenerator(Generator):
     """
 
     __envs: list[Envelope]
-    __tlist: np.ndarray
+    __tlist: Array
     __inphase: Quantity
     __quadrature: Quantity
     _optimisable_parameters: list[Quantity] = []
@@ -45,7 +42,7 @@ class PWCGenerator(Generator):
     def __init__(
         self,
         envelopes: list[Envelope] | None,
-        tlist: np.ndarray,
+        tlist: Array,
     ):
         self.__envs = envelopes or []
         self.__tlist = tlist
@@ -65,23 +62,23 @@ class PWCGenerator(Generator):
         return rampUp * rampDown / 4
 
     @property
-    def tlist(self) -> np.ndarray:
+    def tlist(self) -> Array:
         """Get time grid discritization for generating PWC pulse.
 
         Returns
         -------
-        np.ndarray
+        Array
             Array of time points at which envelope is discritized.
         """
         return self.__tlist
 
     @tlist.setter
-    def tlist(self, tlist: np.ndarray) -> None:
+    def tlist(self, tlist: Array) -> None:
         """Set time grid discritization for generating PWC pulse.
 
         Parameters
         ----------
-        tlist : np.ndarray
+        tlist : Array
             Array of time points at which envelope is discritized.
         """
         self.__tlist = tlist
@@ -123,18 +120,19 @@ class PWCGenerator(Generator):
             env += dev.compute_output(self.__tlist)
 
         max_abs = jnp.max(jnp.abs(env))
+        bound = 2 * max_abs * jnp.ones_like(self.__tlist)
 
         self.__inphase = Quantity(
             jnp.real(env),
-            min_value=-2 * max_abs,
-            max_value=2 * max_abs,
+            min_value=-bound,
+            max_value=bound,
             unit="Hz",
             name="Inphase",
         )
         self.__quadrature = Quantity(
             jnp.imag(env),
-            min_value=-2 * max_abs,
-            max_value=2 * max_abs,
+            min_value=-bound,
+            max_value=bound,
             unit="Hz",
             name="Quadrature",
         )
@@ -165,10 +163,10 @@ class PWCGenerator(Generator):
     @partial(jit, static_argnums=(0,))
     def __pwc_signal(
         self,
-        inphase: np.ndarray,
-        quadrature: np.ndarray,
-        tlist: np.ndarray,
-        t: float,
+        inphase: Array,
+        quadrature: Array,
+        tlist: Array,
+        t: Array,
     ) -> Array:
         """Generate a signal for a single time point 't'.
 
@@ -177,25 +175,25 @@ class PWCGenerator(Generator):
 
         Parameters
         ----------
-        inphase: np.ndarray
+        inphase: Array
             1-D vector of step values of real part of the PWC signal.
-        quadrature: np.ndarray
+        quadrature: Array
             1-D vector of step values of complex part of the PWC signal.
-        tlist: np.ndarray
+        tlist: Array
             Time bins of the PWC pulse.
         t : float
             One time point.
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the PWC signal value at t.
 
         """
         index = jnp.argmin(jnp.abs(tlist - t))
         return inphase[index] + 1j * quadrature[index]
 
-    def generate_signal(self, t: np.ndarray) -> Array:
+    def generate_signal(self, times: Array) -> Array:
         """Generate the PWC signal for time(s) 't'.
 
         Parameters
@@ -205,22 +203,22 @@ class PWCGenerator(Generator):
 
         Returns
         -------
-        jax.Array
+        Array
             Returns the signal vector.
 
         """
         tlist = self.__tlist
-        t = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(times, ndmin=1)
         inphase = self.__inphase.get_value()
         quadrature = self.__quadrature.get_value()
         if self.__multiply_flat_top:
             env = self.__compute_envelope(tlist)
             inphase *= env
             quadrature *= env
-        shape = jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, quadrature, tlist, t))
+        shape = jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, quadrature, tlist, t_arr))
         return shape
 
-    def generate_signal_gradient(self, t: np.ndarray) -> Array:
+    def generate_signal_gradient(self, times: Array) -> Array:
         """Return signal gradient wrt inphase and quadrature.
 
         This returns a list of ones as the gradient of the envelope wrt a step
@@ -228,7 +226,7 @@ class PWCGenerator(Generator):
 
         Parameters
         ----------
-        t : np.ndarray
+        t : Array
             Array of time steps.
 
         Returns
@@ -236,17 +234,17 @@ class PWCGenerator(Generator):
         Array
             PWC signal gradients.
         """
-        t = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(times, ndmin=1)
 
         grads = []
         tlist = self.__tlist
 
         if self.__multiply_flat_top:
             smoothing = self.__compute_envelope(tlist)
-            index = jnp.argmin(jnp.abs(tlist - t))
+            index = jnp.argmin(jnp.abs(tlist - t_arr))
             env = smoothing[index]
         else:
-            env = jnp.ones_like(t)
+            env = jnp.ones_like(t_arr)
 
         if self._is_optimised(self.__inphase):
             grads.append(env)
@@ -256,10 +254,10 @@ class PWCGenerator(Generator):
         if len(grads) > 0:
             grads_stack = jnp.stack(grads)
         else:
-            grads_stack = jnp.empty((t.shape[0], 0))
+            grads_stack = jnp.empty((t_arr.shape[0], 0))
         return grads_stack
 
-    def generate_signal_gradient_one_time(self, t: float) -> Array:
+    def generate_signal_gradient_one_time(self, time: Array) -> Array:
         """Return signal gradient wrt inphase and quadrature.
 
         This returns a list of ones as the gradient of the envelope wrt a step
@@ -280,7 +278,7 @@ class PWCGenerator(Generator):
 
         if self.__multiply_flat_top:
             smoothing = self.__compute_envelope(tlist)
-            index = jnp.argmin(jnp.abs(tlist - t))
+            index = jnp.argmin(jnp.abs(tlist - time))
             env = smoothing[index]
         else:
             env = 1

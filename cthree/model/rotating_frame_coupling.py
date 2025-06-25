@@ -1,10 +1,10 @@
 """Coupling Hamiltonian in the rotating frame of drive."""
 
-from cthree.quantity import Quantity
+import jax.numpy as jnp
+
 from cthree.model.coupling import Coupling
 from cthree.model.hamiltonian import Hamiltonian
-import numpy as np
-import jax.numpy as jnp
+from cthree.quantity import Quantity, Array
 
 
 class RotatingFrameCoupling(Coupling):
@@ -53,15 +53,18 @@ class RotatingFrameCoupling(Coupling):
         """
         return [self._coefficient, self.__diff_freq]
 
-    def __coupling_operators(self) -> list[np.ndarray]:
-        """Return the annhilation operator."""
-        dimensions = [s.dimension() for s in self.subsystems]
-        annihilationOp = [np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1)) for dim in dimensions]
-        if len(annihilationOp) > 1:
-            annihilationOp[1] = annihilationOp[1].conj().T
-        return annihilationOp
+    def __coupling_operators(self) -> list[Array]:
+        """Return the annhilation operator. Special implementation for two subsystems."""
+        if len(self.subsystems) > 2:
+            raise NotImplementedError("No implementation for more than 2 subsystems.")
+        dim = self.subsystems[0].dimension()
+        annihilationOps: list[Array] = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
+        if len(self.subsystems) == 2:
+            dim = self.subsystems[1].dimension()
+            annihilationOps.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
+        return annihilationOps
 
-    def get_matrices_one_time(self, t: float) -> list[np.ndarray]:
+    def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -82,15 +85,15 @@ class RotatingFrameCoupling(Coupling):
             shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
             with n the subsystem dimension.
         """
-        annihilationOp = self.__coupling_operators()
-        if len(annihilationOp) > 2:
+        annihilationOps = self.__coupling_operators()
+        if len(annihilationOps) > 2:
             raise NotImplementedError()
 
-        annihilationOp[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
-        annihilationOp_conj = [a.conj().T for a in annihilationOp]
-        return [annihilationOp, annihilationOp_conj]
+        annihilationOps[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
+        annihilationOps_conj = [a.conj().T for a in annihilationOps]
+        return [annihilationOps, annihilationOps_conj]
 
-    def gradient_one_time(self, t) -> list[list[np.ndarray]]:
+    def gradient_one_time(self, t) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
@@ -112,15 +115,15 @@ class RotatingFrameCoupling(Coupling):
 
         """
         if self._is_optimised(self._coefficient):
-            annihilationOp = self.__coupling_operators()
-            annihilationOp[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
-            annihilationOp_conj = [a.conj().T for a in annihilationOp]
-            grads = [annihilationOp, annihilationOp_conj]
+            annihilationOps = self.__coupling_operators()
+            annihilationOps[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
+            annihilationOps_conj = [a.conj().T for a in annihilationOps]
+            grads = [[annihilationOps, annihilationOps_conj]]
         elif self._is_optimised(self.__diff_freq):
-            annihilationOp = self.__coupling_operators()
-            annihilationOp[0] *= self._coefficient.get_value() * 1j * t
-            annihilationOp_conj = [a.conj().T for a in annihilationOp]
-            grads = [annihilationOp, annihilationOp_conj]
+            annihilationOps = self.__coupling_operators()
+            annihilationOps[0] *= self._coefficient.get_value() * 1j * t
+            annihilationOps_conj = [a.conj().T for a in annihilationOps]
+            grads = [[annihilationOps, annihilationOps_conj]]
         else:
-            grads = jnp.empty((0, self._total_dims, self._total_dims))
+            grads = [[[jnp.zeros_like(annOp) for annOp in annihilationOps]] * 2]
         return grads

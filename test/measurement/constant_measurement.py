@@ -1,6 +1,7 @@
 """Class definition for a mock system that always returns the same value."""
 
-import numpy as np
+import jax.numpy as jnp
+from cthree.quantity import Array
 
 from cthree.quantity import Quantity
 from cthree.measurement.measurement import Measurement
@@ -22,13 +23,13 @@ class ConstantMeasurement(Measurement):
     """
 
     __propagation: Propagation
-    __value: float
+    __value: Array
 
     def __init__(
         self,
         propagation: Propagation,
-        value: float = 1.0,
-        times: float | None = None,
+        value: Array = jnp.array(1.0),
+        times: Array = jnp.array(0.0),
     ):
         super().__init__(times=times)
         self.__propagation = propagation
@@ -45,7 +46,7 @@ class ConstantMeasurement(Measurement):
         """
         return []
 
-    def measure(self) -> np.ndarray:
+    def measure(self) -> Array:
         """Get the measurement value.
 
         Returns

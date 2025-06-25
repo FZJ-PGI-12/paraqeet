@@ -3,13 +3,18 @@
 from __future__ import annotations  # necessary for type hints
 
 import copy
-from typing import Self
 from collections.abc import Callable
 from sys import float_info
+from typing import Self
 
 import numpy as np
+import jax
+import jax.numpy as jnp
 
 from cthree.exceptions import IncompatibleQuantityException
+
+type Array = np.typing.NDArray[np.float64] | np.typing.NDArray[np.complexfloating] | jax.Array
+jax.config.update("jax_enable_x64", True)
 
 
 class Quantity:
@@ -19,6 +24,11 @@ class Quantity:
     The value itself is stored in an optimizer friendly way as a float
     between -1 and 1. The conversion is given by
     scale * (value + 1) / 2 + offset
+
+    For convenience, the constructor and setter functions accept primitive floats. However, these will be converted into
+    numpy arrays internally, such that scalar values are represented by arrays of shape (1,). All getter functions only
+    return numpy arrays. If the value is an array and min/max are floats, the latter will be considered constant bounds
+    for all value and will be converted into constant arrays.
 
     Note on python's operators: equality checks `q == p` and `q != p` check
     for the values of the quantities q and p. For vector or matrix quantities,
@@ -33,10 +43,9 @@ class Quantity:
         Value of the quantity
     min_value : numpy.array(numpy.float64) or numpy.float64
         Minimum this quantity is allowed to take.
-        If this is null, a default interval around the value will be chosen.
+        If this is a float, it will be a default interval around the value will be chosen.
     max_value : numpy.array(numpy.float64) or numpy.float64
         Maximum this quantity is allowed to take.
-        If this is null, a default interval around the value will be chosen.
     unit : str
         physical unit
     name : str
@@ -54,44 +63,45 @@ class Quantity:
     __unit: str
     __name: str
     __length: int
-    __shape: tuple
+    __shape: tuple[int, ...]
     # internal representation of the value
-    __value: np.ndarray
-    __offset: np.ndarray
-    __scale: np.ndarray
+    __value: Array
+    __offset: Array
+    __scale: Array
     __twoPi: bool
     __dependent: bool
     __dependencies: list
-    __relation: Callable
+    __relation: Callable | None
     __dependents: list
 
     def __init__(
         self,
-        value: np.array,
-        min_value: np.ndarray,
-        max_value: np.ndarray,
+        value: Array | float,
+        min_value: Array | float,
+        max_value: Array | float,
         unit: str = "",
         name: str = "",
         two_pi: bool = False,
     ):
         if value is None or max_value is None or min_value is None:
-            raise Exception("value, minimum, and maximum must be not null")
+            raise IncompatibleQuantityException("value, minimum, and maximum must be not null")
 
         self.__unit = unit
         self.__name = name
-        self.__scale = np.array(0)
+        self.__scale = jnp.array(0)
         self.__twoPi = two_pi
 
-        if np.shape(value) == ():
-            value = np.array([value])
-        else:
-            value = np.array(value)
+        value_fixed = self.__fix_parameter_types(value)
+        min_value_fixed = self.__fix_parameter_types(min_value)
+        max_value_fixed = self.__fix_parameter_types(max_value)
 
-        self.__shape = value.shape
-        self.__length = int(np.prod(value.shape))
+        min_value_fixed, max_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
 
-        self.__offset = np.array(min_value)
-        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        self.__shape = value_fixed.shape
+        self.__length = int(np.prod(value_fixed.shape))
+
+        self.__offset = min_value_fixed
+        self.__scale = jnp.abs(max_value_fixed - min_value_fixed)
 
         # if this quantity is dependent on/calculated from other quantities
         self.__dependent = False
@@ -104,6 +114,30 @@ class Quantity:
         self.__dependents = list()
 
         self.set_value(value)
+
+    @staticmethod
+    def __fix_shapes(value: Array, min_value: Array, max_value: Array) -> tuple[Array, Array]:
+        # If value is an array and the bounds are floats, the same bounds are used for all values. The floats are
+        # converted into constant arrays.
+        if not np.size(value) == 1 and np.size(min_value) == 1:
+            min_value = jnp.array(min_value * np.ones_like(value))
+        if not np.size(value) == 1 and np.size(max_value) == 1:
+            max_value = jnp.array(max_value * np.ones_like(value))
+
+        # Values and bounds that are arrays of different length can not be handled
+        if value.shape != min_value.shape or value.shape != max_value.shape:
+            raise IncompatibleQuantityException("The value and the boundaries must have the same shape")
+
+        return min_value, max_value
+
+    @staticmethod
+    def __fix_parameter_types(param: Array | float) -> Array:
+        """
+        Makes sure that the parameter is a jax numpy array of type jnp.float64. Primitive floats are wrapped into a
+        1d-array
+        """
+        p = jnp.array([param]) if np.shape(param) == () else jnp.array(param)
+        return p.astype(jnp.float64)
 
     @property
     def dependencies(self) -> list[Quantity]:
@@ -181,8 +215,8 @@ class Quantity:
 
         """
         quantities = quantities if isinstance(quantities, list) else [quantities]
-        min_val = np.min([qty.get_min_value() for qty in quantities])
-        max_val = np.max([qty.get_max_value() for qty in quantities])
+        min_val = jnp.min(jnp.asarray([qty.get_min_value() for qty in quantities]))
+        max_val = jnp.max(jnp.asarray([qty.get_max_value() for qty in quantities]))
 
         if name is None:
             name = "relation_of"
@@ -292,11 +326,11 @@ class Quantity:
         """
         self.__set_value(self.__relation(*[qty.get_value() for qty in self.__dependencies]))
 
-    def get_value(self) -> np.array:
+    def get_value(self) -> Array:
         """Get value of the parameter."""
         return self.__scale * (self.__value + 1) / 2 + self.__offset
 
-    def get_reduced_value(self) -> np.ndarray:
+    def get_reduced_value(self) -> Array:
         """Return the value in the reduced representation.
 
         Returns
@@ -305,9 +339,9 @@ class Quantity:
             Value from the reduced representation.
 
         """
-        return np.reshape(self.__value, (-1, 1))
+        return jnp.reshape(self.__value, (-1, 1))
 
-    def set_value(self, value) -> None:
+    def set_value(self, value: Array | float) -> None:
         """Set the value of this quantity.
 
         Value needs to be within the range of 'min_value' and 'max_value'.
@@ -320,7 +354,8 @@ class Quantity:
         Raises
         ------
         ValueError
-            If the value is not within the range of 'min_value' and 'max_value'.
+            If the value is not within the range of 'min_value' and 'max_value', if the shape of the value is different
+            from 'min_value' or 'max_value', or if this is a dependent quantity
 
         """
         if self.__dependent:
@@ -331,21 +366,21 @@ class Quantity:
 
         self.__set_value(value)
 
-    def __set_value(self, value) -> None:
+    def __set_value(self, value: Array | float) -> None:
         """Set value for the parameter."""
-        if np.any(self.__scale < float_info.epsilon):
+        if jnp.any(self.__scale < float_info.epsilon):
             raise ValueError(
                 f"The range between the minimum ({self.__to_string(self.get_min_value())}) "
                 f"and maximum ({self.__to_string(self.get_max_value())}) values is too "
                 f"small. Consider changing the bounds or use reduced units."
             )
-        if isinstance(value, np.ndarray):
-            val = value.astype(np.float64)
-        else:
-            val = np.array(value).astype(np.float64)
+        val = self.__fix_parameter_types(value)
+        if val.shape != self.__shape:
+            raise IncompatibleQuantityException("The new value must have the same shape as the old value")
+
         tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
 
-        if np.any(np.abs(tmp) > 1.0):
+        if jnp.any(jnp.abs(tmp) > 1.0):
             print("Error: ", val, self.get_min_value(), self.get_max_value())
             raise ValueError(
                 f"Value {self.__to_string(val)} out of bounds for quantity with "
@@ -358,21 +393,22 @@ class Quantity:
         for qty in self.__dependents:
             qty.update()
 
-    def set_reduced_value(self, value) -> None:
+    def set_reduced_value(self, value: Array | float) -> None:
         """Set reduced value limit for parameter."""
-        if np.shape(value) == ():
-            value = np.array([value])
-        self.__value = value
+        value_fixed = self.__fix_parameter_types(value)
+        if value_fixed.shape != self.__shape:
+            raise IncompatibleQuantityException("The new value must have the same shape as the old value")
+        self.__value = value_fixed
 
-    def get_min_value(self) -> np.ndarray:
+    def get_min_value(self) -> Array:
         """Get minimum value of parameter."""
         return self.__offset
 
-    def get_max_value(self) -> np.ndarray:
+    def get_max_value(self) -> Array:
         """Get maximum value of parameter."""
         return self.__scale + self.__offset
 
-    def get_scale(self) -> np.ndarray:
+    def get_scale(self) -> Array:
         """Get scale of parameter."""
         return self.__scale
 
@@ -380,7 +416,7 @@ class Quantity:
         """Get length of parameter."""
         return self.__length
 
-    def set_limits(self, min_value, max_value) -> None:
+    def set_limits(self, min_value: Array | float, max_value: Array | float) -> None:
         """Set the allowed minimum and maximum of this quantity.
 
         Parameters
@@ -392,19 +428,30 @@ class Quantity:
 
         """
         oldValue = self.get_value()
-        self.__offset = np.array(min_value)
-        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
+        min_value_fixed = self.__fix_parameter_types(min_value)
+        max_value_fixed = self.__fix_parameter_types(max_value)
+
+        min_value_fixed, max_value_fixed = self.__fix_shapes(oldValue, min_value_fixed, max_value_fixed)
+
+        self.__offset = min_value_fixed
+        self.__scale = np.abs(max_value_fixed - min_value_fixed)
         # the value is based on offset and scale and needs to be updated
         self.__set_value(oldValue)
 
-    def set_value_and_limits(self, value, min_value, max_value) -> None:
+    def set_value_and_limits(self, value: Array | float, min_value: Array | float, max_value: Array | float) -> None:
         """
         This can be used to set the value and the limits to new values at the same time. This function does not raise
         an exception if the new value is outside of the old limits.
         """
-        self.__offset = np.array(min_value)
-        self.__scale = np.abs(np.array(max_value) - np.array(min_value))
-        self.__set_value(value)
+        value_fixed = self.__fix_parameter_types(value)
+        min_value_fixed = self.__fix_parameter_types(min_value)
+        max_value_fixed = self.__fix_parameter_types(max_value)
+
+        min_value_fixed, max_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
+
+        self.__offset = min_value_fixed
+        self.__scale = np.abs(max_value_fixed - min_value_fixed)
+        self.__set_value(value_fixed)
 
     def get_name(self) -> str:
         """Return the symbol or description or this quantity.
@@ -476,13 +523,13 @@ class Quantity:
     def __pow__(self, other) -> Quantity:
         """Magic method for exponentiation by operand."""
         out_val = copy.deepcopy(self)
-        out_val.set_value(np.float_power(self.get_value(), other))
+        out_val.set_value(jnp.float_power(self.get_value(), other))
         return out_val
 
     def __rpow__(self, other) -> Quantity:
         """Magic method for exponentiation by right-hand operand."""
         out_val = copy.deepcopy(self)
-        out_val.set_value(np.float_power(other, self.get_value()))
+        out_val.set_value(jnp.float_power(other, self.get_value()))
         return out_val
 
     def __truediv__(self, other) -> Quantity:
@@ -522,7 +569,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() < other.get_value()
+        return bool(self.get_value().item() < other.get_value().item())
 
     def __le__(self, other) -> bool:
         """Magic method for representation of less-equal operation.
@@ -544,19 +591,19 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() <= other
+        return bool(self.get_value().item() <= other.get_value().item())
 
     def __eq__(self, other) -> bool:
         """Magic method for representation of equality operation."""
         if self.__shape != other.__shape:
             return False
-        return all(self.get_value() == other)
+        return all(self.get_value() == other.get_value())
 
     def __ne__(self, other) -> bool:
         """Magic method for representation of not-equal operation."""
         if self.__shape != other.__shape:
             return True
-        return any(self.get_value() != other)
+        return any(self.get_value() != other.get_value())
 
     def __ge__(self, other) -> bool:
         """Magic method for representation of greater-equal operation.
@@ -578,7 +625,7 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() >= other
+        return bool(self.get_value().item() >= other.get_value().item())
 
     def __gt__(self, other) -> bool:
         """Magic method for representation of greater-than operation.
@@ -599,11 +646,15 @@ class Quantity:
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
-        return self.get_value() > other
+        return bool(self.get_value().item() > other.get_value().item())
 
     def __array__(self):
         """Magic method for representation into array."""
         return np.array(self.get_value())
+
+    def __jax_array__(self):
+        """Magic method for representation into array."""
+        return jnp.array(self.get_value())
 
     def __len__(self):
         """Magic method for calculation of length."""
@@ -647,10 +698,10 @@ class Quantity:
         """Human readable representation of the parameters set to optimise."""
         return self.__to_string(self.get_value())
 
-    def __to_string(self, val):
+    def __to_string(self, val: Array):
         """Represent parameter as custom defined string value."""
         ret = ""
-        for entry in np.nditer(val):
+        for entry in val:
             if self.__unit != "":
                 if self.__twoPi:
                     ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi "

@@ -1,10 +1,10 @@
 """Class definition of the State propagation model."""
 
 from abc import ABC
-import numpy as np
 
 from cthree.model.equation_of_motion import EquationOfMotion
 from cthree.model.open_system import OpenSystem
+from cthree.quantity import Array
 from cthree.propagation.propagation import Propagation
 
 
@@ -20,7 +20,7 @@ class StatePropagation(Propagation, ABC):
 
     """
 
-    _initial_state: np.ndarray | None = None
+    _initial_state: Array | None = None
     _is_open: bool = False
 
     def __init__(self, model: EquationOfMotion):
@@ -38,7 +38,7 @@ class StatePropagation(Propagation, ABC):
         """Set if the propagation is for open or closed system."""
         self._is_open = flag
 
-    def set_initial_state(self, state: np.ndarray):
+    def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
 
         Subclasses can access the state in the _initial_sate field.

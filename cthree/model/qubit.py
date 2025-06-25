@@ -1,10 +1,11 @@
 """Class definition of a qubit model."""
 
 import jax.numpy as jnp
+from cthree.quantity import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 
 class Qubit(Hamiltonian):
@@ -26,16 +27,19 @@ class Qubit(Hamiltonian):
     """
 
     __frequency: Quantity
-    __annihilationOp: jnp.ndarray
-    __drift: jnp.array
+    __annihilationOp: Array
+    __drift: Array
+    __t1: Quantity | None
+    __temp: Quantity | None
+    __t2star: Quantity | None
 
     def __init__(
         self,
         frequency: Quantity,
-        drives: list[Drive] = None,
-        t1: Quantity = None,
-        temp: Quantity = None,
-        t2star: Quantity = None,
+        drives: list[Drive] | None = None,
+        t1: Quantity | None = None,
+        temp: Quantity | None = None,
+        t2star: Quantity | None = None,
     ):
         super().__init__(drives)
         self.__frequency = frequency
@@ -46,9 +50,9 @@ class Qubit(Hamiltonian):
             ]
         )
         self.__drift = 0.5 * jnp.diag(jnp.array([1.0, -1.0]))
-        self.__t1 = t1
-        self.__temp = temp
-        self.__t2star = t2star
+        self.t1 = t1
+        self.temp = temp
+        self.t2star = t2star
 
     @property
     def frequency(self) -> Quantity:
@@ -61,32 +65,32 @@ class Qubit(Hamiltonian):
         self.__frequency = frequency
 
     @property
-    def t1(self) -> Quantity:
+    def t1(self) -> Quantity | None:
         """Get the t1 of the resonator."""
         return self.__t1
 
     @t1.setter
-    def t1(self, t1: Quantity) -> None:
+    def t1(self, t1: Quantity | None) -> None:
         """Set the t1 of the resonator."""
         self.__t1 = t1
 
     @property
-    def temp(self) -> Quantity:
+    def temp(self) -> Quantity | None:
         """Get the temp of the resonator."""
         return self.__temp
 
     @temp.setter
-    def temp(self, temp: Quantity) -> None:
+    def temp(self, temp: Quantity | None) -> None:
         """Set the temp of the resonator."""
         self.__temp = temp
 
     @property
-    def t2star(self) -> Quantity:
+    def t2star(self) -> Quantity | None:
         """Get the t2star of the resonator."""
         return self.__t2star
 
     @t2star.setter
-    def t2star(self, t2star: Quantity) -> None:
+    def t2star(self, t2star: Quantity | None) -> None:
         """Set the t2star of the resonator."""
         self.__t2star = t2star
 
@@ -112,7 +116,7 @@ class Qubit(Hamiltonian):
         """
         return 2
 
-    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -122,14 +126,14 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             The repeated drive matrix.
 
         """
         H = self.__frequency.get_value() * self.__drift
         return H + self._get_drive_matrix_one_time(self.__annihilationOp, t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -139,7 +143,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of the drive.
 
         """
@@ -168,7 +172,7 @@ class Qubit(Hamiltonian):
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_collapseops(self) -> list[jnp.ndarray]:
+    def get_collapseops(self) -> list[tuple[float, Array]]:
         """Return a list tuples of decay rates and collapse operators for each subsystem."""
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         col_t1 = self.__annihilationOp

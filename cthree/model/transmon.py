@@ -1,10 +1,11 @@
 """Class definition of the Transmon Hamiltonian model."""
 
 import jax.numpy as jnp
+from cthree.quantity import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 import jax
 
@@ -35,19 +36,19 @@ class Transmon(Hamiltonian):
     __annihilation_op: jnp.ndarray
     __numOp: jnp.ndarray
     __anharmonic_term: jnp.ndarray
-    __t1: Quantity
-    __temp: Quantity
-    __t2star: Quantity
+    __t1: Quantity | None
+    __temp: Quantity | None
+    __t2star: Quantity | None
 
     def __init__(
         self,
         dimension: int,
         frequency: Quantity,
         anharmonicity: Quantity,
-        drives: list[Drive] = None,
-        t1: Quantity = None,
-        temp: Quantity = None,
-        t2star: Quantity = None,
+        drives: list[Drive] | None = None,
+        t1: Quantity | None = None,
+        temp: Quantity | None = None,
+        t2star: Quantity | None = None,
     ):
         super().__init__(drives=drives)
         self.__dimension = dimension
@@ -56,9 +57,9 @@ class Transmon(Hamiltonian):
         self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
         self.__numOp = self.__annihilation_op.T @ self.__annihilation_op
         self.__anharmonic_term = 0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
-        self.__t1 = t1
-        self.__temp = temp
-        self.__t2star = t2star
+        self.t1 = t1
+        self.temp = temp
+        self.t2star = t2star
 
     def dimension(self) -> int:
         """Get the dimension of the Transmon system."""
@@ -85,32 +86,32 @@ class Transmon(Hamiltonian):
         self.__anharmonicity = anharmonicity
 
     @property
-    def t1(self) -> Quantity:
+    def t1(self) -> Quantity | None:
         """Get the t1 of the resonator."""
         return self.__t1
 
     @t1.setter
-    def t1(self, t1: Quantity) -> None:
+    def t1(self, t1: Quantity | None) -> None:
         """Set the t1 of the resonator."""
         self.__t1 = t1
 
     @property
-    def temp(self) -> Quantity:
+    def temp(self) -> Quantity | None:
         """Get the temp of the resonator."""
         return self.__temp
 
     @temp.setter
-    def temp(self, temp: Quantity) -> None:
+    def temp(self, temp: Quantity | None) -> None:
         """Set the temp of the resonator."""
         self.__temp = temp
 
     @property
-    def t2star(self) -> Quantity:
+    def t2star(self) -> Quantity | None:
         """Get the t2star of the resonator."""
         return self.__t2star
 
     @t2star.setter
-    def t2star(self, t2star: Quantity) -> None:
+    def t2star(self, t2star: Quantity | None) -> None:
         """Set the t2star of the resonator."""
         self.__t2star = t2star
 
@@ -128,7 +129,7 @@ class Transmon(Hamiltonian):
             self.__anharmonicity,
         ]
 
-    def get_matrix_one_time(self, t: jnp.ndarray) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -138,14 +139,14 @@ class Transmon(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             The repeated drive matrix.
 
         """
         H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonic_term
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -155,7 +156,7 @@ class Transmon(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of the drive.
 
         """
@@ -163,12 +164,12 @@ class Transmon(Hamiltonian):
         gradients = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
-        grads = []
+        grads_list = []
         if self._is_optimised(self.__frequency):
-            grads.append(self.__numOp)
+            grads_list.append(self.__numOp)
         if self._is_optimised(self.__anharmonicity):
-            grads.append(self.__anharmonic_term)
-        grads = jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,) + self.__numOp.shape)
+            grads_list.append(self.__anharmonic_term)
+        grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__numOp.shape)
         gradients = jnp.append(gradients, grads, axis=0)
 
         return gradients
@@ -189,7 +190,7 @@ class Transmon(Hamiltonian):
         gamma_t1 = gamma * (nbar + 1)  # TODO - Check this part
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_collapseops(self) -> list[jnp.ndarray]:
+    def get_collapseops(self) -> list[tuple[float, Array]]:
         """
         Return a list tuples of decay rates and collapse operators for each subsystem.
 

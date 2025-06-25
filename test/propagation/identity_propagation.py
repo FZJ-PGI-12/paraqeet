@@ -1,7 +1,7 @@
 """Test the identity propagation model."""
 
-import numpy as np
-
+import jax.numpy as jnp
+from cthree.quantity import Array
 from cthree.propagation.state_propagation import StatePropagation
 from cthree.quantity import Quantity
 
@@ -12,12 +12,12 @@ class IdentityPropagation(StatePropagation):
     Returns the initial state as the target state.
     """
 
-    __state: np.ndarray
+    __state: Array
 
     def __init__(self):
         super().__init__(None)
 
-    def set_initial_state(self, state: np.ndarray):
+    def set_initial_state(self, state: Array):
         """Set the initial state of the system.
 
         Set it to the given state argument.
@@ -30,7 +30,7 @@ class IdentityPropagation(StatePropagation):
         """
         self.__state = state
 
-    def propagate(self, time: np.ndarray) -> np.ndarray:
+    def propagate(self, time: Array) -> Array:
         """Get the propagated state across the timestamps.
 
         Parameters
@@ -44,7 +44,7 @@ class IdentityPropagation(StatePropagation):
             Returns the propagated values of the state across timestamps.
 
         """
-        return np.array([self.__state] * len(time))
+        return jnp.array([self.__state] * len(time))
 
     def get_parameters(self) -> list[Quantity]:
         """Returns an empty list."""

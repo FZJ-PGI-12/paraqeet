@@ -1,10 +1,11 @@
 """Class definition of the Resonator Hamiltonian model."""
 
 import jax.numpy as jnp
+from cthree.quantity import Array
 
-from cthree.quantity import Quantity
 from cthree.model.drive import Drive
 from cthree.model.hamiltonian import Hamiltonian
+from cthree.quantity import Quantity
 
 import jax
 
@@ -31,27 +32,27 @@ class Resonator(Hamiltonian):
     __frequency: Quantity
     __annihilation_op: jnp.ndarray
     __numOp: jnp.ndarray
-    __t1: Quantity
-    __temp: Quantity
-    __t2star: Quantity
+    __t1: Quantity | None
+    __temp: Quantity | None
+    __t2star: Quantity | None
 
     def __init__(
         self,
         dimension: int,
         frequency: Quantity,
-        drives: list[Drive] = None,
-        t1: Quantity = None,
-        temp: Quantity = None,
-        t2star: Quantity = None,
+        drives: list[Drive] | None = None,
+        t1: Quantity | None = None,
+        temp: Quantity | None = None,
+        t2star: Quantity | None = None,
     ):
         super().__init__(drives=drives)
         self.__dimension = dimension
         self.__frequency = frequency
         self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
         self.__numOp = self.__annihilation_op.T @ self.__annihilation_op
-        self.__t1 = t1
-        self.__temp = temp
-        self.__t2star = t2star
+        self.t1 = t1
+        self.temp = temp
+        self.t2star = t2star
 
     def dimension(self):
         """Get the dimension of the resonator."""
@@ -68,32 +69,32 @@ class Resonator(Hamiltonian):
         self.__frequency = frequency
 
     @property
-    def t1(self) -> Quantity:
+    def t1(self) -> Quantity | None:
         """Get the t1 of the resonator."""
         return self.__t1
 
     @t1.setter
-    def t1(self, t1: Quantity) -> None:
+    def t1(self, t1: Quantity | None) -> None:
         """Set the t1 of the resonator."""
         self.__t1 = t1
 
     @property
-    def temp(self) -> Quantity:
+    def temp(self) -> Quantity | None:
         """Get the temp of the resonator."""
         return self.__temp
 
     @temp.setter
-    def temp(self, temp: Quantity) -> None:
+    def temp(self, temp: Quantity | None) -> None:
         """Set the temp of the resonator."""
         self.__temp = temp
 
     @property
-    def t2star(self) -> Quantity:
+    def t2star(self) -> Quantity | None:
         """Get the t2star of the resonator."""
         return self.__t2star
 
     @t2star.setter
-    def t2star(self, t2star: Quantity) -> None:
+    def t2star(self, t2star: Quantity | None) -> None:
         """Set the t2star of the resonator."""
         self.__t2star = t2star
 
@@ -108,7 +109,7 @@ class Resonator(Hamiltonian):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def get_matrix_one_time(self, t: float) -> jnp.ndarray:
+    def get_matrix_one_time(self, t: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -118,14 +119,14 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             The drive matrix at a single timestamp.
 
         """
         H = self.__frequency.get_value() * self.__numOp
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: float) -> jnp.ndarray:
+    def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -135,7 +136,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        jax.numpy.ndarray
+        jax.Array
             Returns the gradients of the drive.
 
         """
@@ -164,13 +165,13 @@ class Resonator(Hamiltonian):
         gamma_t1 = gamma * (nbar + 1)  # TODO - Check this part
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_collapseops(self) -> list[jnp.ndarray]:
+    def get_collapseops(self) -> list[tuple[float, Array]]:
         """
         Return a list tuples of decay rates and collapse operators for each subsystem.
 
         Return
         ------
-        List[Tuple[float, np.ndarray]]
+        List[Tuple[float, Array]]
             List of collapse operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
