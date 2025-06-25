@@ -1,5 +1,7 @@
 """Test the random propagation model."""
 
+from functools import partial
+from jax import jit
 import numpy as np
 import jax.numpy as jnp
 from scipy.stats import unitary_group
@@ -80,6 +82,18 @@ class RandomPropagation(Propagation):
             self.update()
         return jnp.array([self.__state] * len(time))
 
+    @staticmethod
+    @partial(jit, static_argnums=(0,))
+    def __create_random_dm(dim: int, rho: Array):
+        rho /= jnp.trace(rho)
+        U = unitary_group.rvs(dim)
+        return jnp.conjugate(U.T) @ rho @ U
+
+    @staticmethod
+    @jit
+    def __create_random_vec(state: Array):
+        return state / jnp.sqrt(jnp.vdot(state, state))
+
     def update(self) -> None:
         """Update the state on propagation.
 
@@ -91,10 +105,8 @@ class RandomPropagation(Propagation):
             # generate a random density matrix by rotating a
             # random diagonal matrix
             rho = jnp.diag(np.random.random(self.__dimension))
-            rho /= jnp.trace(rho)
-            U = unitary_group.rvs(self.__dimension)
-            self.__state = jnp.conjugate(U.T) @ rho @ U
+            self.__state = self.__create_random_dm(self.__dimension, rho)
         else:
             # generate a random state vector
             state = np.random.random((self.__dimension, 1)) + 1j * np.random.random((self.__dimension, 1))
-            self.__state = state / jnp.sqrt(jnp.vdot(state, state))
+            self.__state = self.__create_random_vec(state)

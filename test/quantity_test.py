@@ -339,7 +339,7 @@ def __generateRandomMatrix(N: int) -> np.ndarray:
         Returns a randomly generated `N` by `N` matrix.
 
     """
-    magnitude = np.power(10.0, np.random.randint(-10, 10))
+    magnitude: float = np.power(10.0, np.random.randint(-10, 10))
     return (2 * np.random.random((N, N)) - 1) * magnitude
 
 
