@@ -49,8 +49,6 @@ class RotatingFrameDrive(Drive):
         \\big\\{ \\Omega a + \\Omega^* a^\\dagger \\big\\}
         Where \\Omega is the envelope (without the LO).
 
-        TODO - Chcek this calculation
-
         Parameters
         ----------
         annihilation_operator: Array

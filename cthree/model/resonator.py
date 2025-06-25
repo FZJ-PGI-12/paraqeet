@@ -160,9 +160,9 @@ class Resonator(Hamiltonian):
 
         hbar_over_kb = 7.638232582257738e-12
         beta = hbar_over_kb / (self.temp.get_value())
-        nbar = jnp.exp(-beta * self.frequency.get_value())  # TODO - Check this part
-        gamma_temp = gamma * nbar  # TODO - Check this part
-        gamma_t1 = gamma * (nbar + 1)  # TODO - Check this part
+        nbar = jnp.exp(-beta * self.frequency.get_value())
+        gamma_temp = gamma * nbar
+        gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:

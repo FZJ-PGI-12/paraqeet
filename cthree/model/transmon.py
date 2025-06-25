@@ -184,10 +184,16 @@ class Transmon(Hamiltonian):
 
         hbar_over_kb = 7.638232582257738e-12
         beta = hbar_over_kb / (self.temp.get_value())
-        # TODO - This would have anharmonicity term too. Add that.
-        nbar = jnp.exp(-beta * self.frequency.get_value())  # TODO - Check this part
-        gamma_temp = gamma * nbar  # TODO - Check this part
-        gamma_t1 = gamma * (nbar + 1)  # TODO - Check this part
+
+        freq = self.frequency.get_value()
+        anharm = self.anharmonicity.get_value()
+        if self.dimension() > 2:
+            freq_diff = jnp.diag(jnp.array([freq + n * anharm for n in range(self.dimension())]), k=0)
+            nbar = jnp.exp(-beta * freq_diff)
+        else:
+            nbar = jnp.exp(-beta * freq)
+        gamma_temp = gamma * nbar
+        gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:

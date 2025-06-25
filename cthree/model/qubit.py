@@ -167,7 +167,7 @@ class Qubit(Hamiltonian):
 
         hbar_over_kb = 7.638232582257738e-12
         beta = hbar_over_kb / (self.temp.get_value())
-        nbar = jnp.exp(-beta * 5e9)  # inserting typical qubit freq here. TODO - CHECK
+        nbar = jnp.exp(-beta * self.frequency.get_value())
         gamma_temp = gamma * nbar
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
