@@ -64,7 +64,7 @@ codequality:
     reports:
       codequality: mypy-report.json
   allow_failure: true
-  tags: [docker]
+  tags: [docker, light]
 
 formatting-and-linting:
   stage: codestyle
@@ -74,7 +74,7 @@ formatting-and-linting:
     reports:
       codequality: ruff-report.json
   allow_failure: true
-  tags: [docker]
+  tags: [docker, light]
 
 
 examples:
@@ -86,7 +86,7 @@ examples:
     expire_in: 7 days
     reports:
       junit: notebooks.xml
-  tags: [docker, c64]
+  tags: [docker, medium]
   
 
 build-docs:
@@ -102,6 +102,6 @@ build-docs:
   artifacts:
     paths:
       - public
-  tags: [docker]
+  tags: [docker, light]
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
