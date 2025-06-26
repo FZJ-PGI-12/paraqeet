@@ -42,8 +42,28 @@ class CustomHamiltonian(Hamiltonian):
     ):
         self.__hamiltonian_function = hamiltonian_function
         self.__parameters = parameters
-        self.__gradient_functions = gradient_functions
-        self.__collapse_operators = collapse_operators
+        self.gradient_functions = gradient_functions
+        self.collapse_operators = collapse_operators
+
+    @property
+    def gradient_functions(self) -> list[Callable] | None:
+        """Return gradient functions."""
+        return self.__gradient_functions
+
+    @gradient_functions.setter
+    def gradient_functions(self, grad_funcs: list[Callable] | None):
+        """Set gradient functions."""
+        self.__gradient_functions = grad_funcs
+
+    @property
+    def collapse_operators(self) -> list[tuple[Array, Array]] | None:
+        """Return collapse operators."""
+        return self.__collapse_operators
+
+    @collapse_operators.setter
+    def collapse_operators(self, col_ops: list[tuple[Array, Array]] | None):
+        """Set collapse operators."""
+        self.__collapse_operators = col_ops
 
     def dimension(self):
         """Return dimension of the Hilbert space."""
@@ -58,24 +78,31 @@ class CustomHamiltonian(Hamiltonian):
         params = [p.get_value()[0] for p in self.__parameters]
         return self.__hamiltonian_function(t, *params)
 
-    def get_matrix(self, time: Array) -> Array:
+    def get_matrix(self, t: Array) -> Array:
         """Return Hamiltonian as a function of time for an array of time."""
         params = [p.get_value()[0] for p in self.__parameters]
         matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
-        return matrix_fun(time, *params)
+        return matrix_fun(t, *params)
 
     def gradient_one_time(self, t):
         """Return the gradient as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
-        if self.__gradient_functions is None:
+        if self.gradient_functions is None:
             raise ConfigurationException("Specify the gradient functions of the Hamiltonian to compute gradients.")
-        grads = jnp.array([grad_func(t, *params) for grad_func in self.__gradient_functions])
+        if len(self.gradient_functions) != len(params):
+            raise ConfigurationException(
+                f"Got {len(params)} parameters but got {len(self.gradient_functions)}. "
+                + "Provide gradient methods for all the input paramters"
+            )
+        grads = jnp.array([grad_func(t, *params) for grad_func in self.gradient_functions])
         return grads
 
     def gradient(self, t: Array) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
         return jnp.array(vmap(self.gradient_one_time, in_axes=(0,))(t))
 
-    def get_collapseops(self):
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return collapse operators."""
-        return self.__collapse_operators
+        if self.collapse_operators is None:
+            raise ConfigurationException("Collapse operators not specified.")
+        return self.collapse_operators
