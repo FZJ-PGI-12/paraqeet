@@ -145,6 +145,8 @@ class Vern7GRAPE(Vern7):
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
+        if self._model is None:
+            raise ConfigurationException("No equation of motion is configured.")
         eom_func = self._model.get_matrix
         grad_func = self._model.gradient
 
