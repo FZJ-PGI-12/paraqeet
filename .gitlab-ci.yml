@@ -94,9 +94,10 @@ build-docs:
   script:
     - apt-get update
     - apt-get install -y pandoc
-    - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
+    - pip install sphinx sphinx-press-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter sphinx-autodoc-typehints recommonmark
     - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
     - cd doc
+    - sphinx-apidoc -o source ../paraQeet
     - make html
     - mv _build/html/ ../public/
   artifacts:

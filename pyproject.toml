@@ -10,8 +10,8 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "cthree"
-version = "2.0"
+name = "paraQeet"
+version = "0.9"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -36,6 +36,11 @@ dependencies = [
   "cma>=4.2.0"
 ]
 
+[tool.sphinx-pyproject]
+author = "PGI-12"
+project = "paraQeet"
+copyright = "PGI-12"
+release = "0.9"
 
 [project.optional-dependencies]
 dev = [

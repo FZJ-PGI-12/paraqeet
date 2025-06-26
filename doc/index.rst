@@ -1,14 +1,8 @@
-.. toctree::
-    :maxdepth: 4
-    :caption: API documentation:
-    :glob:
-
-
 ===================================================================================
-:math:`C^3` -  An integrated tool-set for control, calibration and characterization
+paraQeet -  A quantum optimal control toolkit with parameter handling
 ===================================================================================
 
-The :math:`C^3` software package provides tools to simulate and interact with experiments to perform common control and characterization tasks. Modules can be used individually or combined to achieve a certain goal. The main focus are three optimizations:
+You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
 
 * :math:`C_1` Open-loop optimal control: Given a model, find the pulse shapes which maximize fidelity with a target operation.
 * :math:`C_2`  Closed-loop calibration: Given pulses, calibrate their parameters to maximize a figure of merit measured by the actual experiment, thus improving beyond the limits of a deficient model.
@@ -19,15 +13,29 @@ When combined in sequence, these three procedures represent a recipe for system 
 *Note: This documentation is work-in-progress.*
 
 .. toctree::
-   :maxdepth: 4
+   :hidden:
+   :maxdepth: 1
    :caption: Examples:
    :glob:
    
    notebooks/*
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+   :hidden:
+   :maxdepth: 1
+   :caption: API:
+   :glob:
+   
+   source/*
+
+
+Contents
+========
+.. toctree::
+   
+   usage
+
+
 
 Indices and tables
 ==================
