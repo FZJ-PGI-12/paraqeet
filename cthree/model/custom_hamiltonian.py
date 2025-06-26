@@ -67,7 +67,7 @@ class CustomHamiltonian(Hamiltonian):
 
     def dimension(self):
         """Return dimension of the Hilbert space."""
-        return self.get_matrix_one_time(0.0).shape[0]
+        return self.get_matrix_one_time(jnp.array([0.0])).shape[1]
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of optimisable parameters."""
