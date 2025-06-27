@@ -496,6 +496,8 @@ class DRAGMixer(Waveform):
 
         if self.multiply_flat_top:
             smoothing = self.__compute_flat_top_envelope(t)
+        else:
+            smoothing = jnp.ones_like(t)
 
         # Collect gradients wrt envelope parameters
         for tone in self.__envs:
