@@ -19,9 +19,9 @@ jax.config.update("jax_enable_x64", True)
 class Envelope(Waveform):
     """Classical Signal Envelope class.
 
-    __amplitude: Quantity
+    _amplitude: Quantity
         The amplitude of the envelope.
-    __t_final: Quantity
+    _t_final: Quantity
         The length in time of the envelope.
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
@@ -32,15 +32,15 @@ class Envelope(Waveform):
 
     """
 
-    __amplitude: Quantity
-    __t_final: Quantity
+    _amplitude: Quantity
+    _t_final: Quantity
 
     def __init__(
         self,
         amplitude: Quantity | None = None,
         t_final: Quantity | None = None,
     ):
-        self.__amplitude = amplitude or Quantity(
+        self._amplitude = amplitude or Quantity(
             1.55e8,
             min_value=jnp.array(0.0),
             max_value=jnp.array(1e9),
@@ -49,7 +49,7 @@ class Envelope(Waveform):
             two_pi=True,
         )
 
-        self.__t_final = t_final or Quantity(
+        self._t_final = t_final or Quantity(
             32e-9,
             min_value=jnp.array(0),
             max_value=jnp.array(100e-9),
@@ -69,7 +69,7 @@ class Envelope(Waveform):
             List of parameters of the envelope.
 
         """
-        return [self.__amplitude, self.__t_final]
+        return [self._amplitude, self._t_final]
 
     @property
     def amplitude(self) -> Quantity:
@@ -81,7 +81,7 @@ class Envelope(Waveform):
             Amplitude of the system.
 
         """
-        return self.__amplitude
+        return self._amplitude
 
     @amplitude.setter
     def amplitude(self, amplitude: Quantity) -> None:
@@ -93,7 +93,7 @@ class Envelope(Waveform):
             Amplitude value of the system to be set.
 
         """
-        self.__amplitude = amplitude
+        self._amplitude = amplitude
 
     @property
     def t_final(self) -> Quantity:
@@ -105,7 +105,7 @@ class Envelope(Waveform):
             Length in time of the tone.
 
         """
-        return self.__t_final
+        return self._t_final
 
     @t_final.setter
     def t_final(self, t_final: Quantity) -> None:
@@ -117,7 +117,7 @@ class Envelope(Waveform):
             Length in time of the tone to be set.
 
         """
-        self.__t_final = t_final
+        self._t_final = t_final
 
     @abstractmethod
     def _evaluate(self, *args, **kwargs):
@@ -159,9 +159,9 @@ class Envelope(Waveform):
 class ConstantEnvelope(Envelope):
     """A constant envelope tone with a fixed length.
 
-    __amplitude: Quantity
+    _amplitude: Quantity
         The amplitude of the envelope.
-    __t_final: Quantity
+    _t_final: Quantity
         The length in time of the envelope.
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
@@ -233,9 +233,9 @@ class ConstantEnvelope(Envelope):
 class ZeroEnvelope(ConstantEnvelope):
     """Shorthand implentation of a zero signal envelope.
 
-    __amplitude: Quantity
+    _amplitude: Quantity
         The amplitude of the envelope.
-    __t_final: Quantity
+    _t_final: Quantity
         The length in time of the envelope.
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
@@ -254,9 +254,9 @@ class ZeroEnvelope(ConstantEnvelope):
 class FlatTopGaussianEnvelope(Envelope):
     """A flat-top Gaussian envelope.
 
-    __amplitude: Quantity
+    _amplitude: Quantity
         The amplitude of the envelope.
-    __t_final: Quantity
+    _t_final: Quantity
         The length in time of the envelope.
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
@@ -435,9 +435,9 @@ class FlatTopGaussianEnvelope(Envelope):
 class GaussEnvelope(Envelope):
     """Create a simple Gauss envelope.
 
-    __amplitude: Quantity
+    _amplitude: Quantity
         The amplitude of the envelope.
-    __t_final: Quantity
+    _t_final: Quantity
         The length in time of the envelope.
     _gradientFunction: Callable | None
         The function to calculate the gradient with respect to a set of
