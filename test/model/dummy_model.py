@@ -12,7 +12,7 @@ class DummyModel(EquationOfMotion):
 
     Parameters
     ----------
-    hamiltonian : cthree.model.hamiltonian
+    hamiltonian : paraqeet.model.hamiltonian
         Class object for a matrix representation of a Hamiltonian.
     """
 
@@ -24,7 +24,7 @@ class DummyModel(EquationOfMotion):
 
         Returns
         -------
-        list[cthree.quantity]
+        list[paraqeet.quantity]
             List of parameters of the system.
 
         """

@@ -40,7 +40,7 @@ before_script:
 test:
   stage: tests
   script:
-    - pytest test -n 16 --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
+    - pytest test -n 16 --cov=paraqeet --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
@@ -56,7 +56,7 @@ codequality:
   stage: codestyle
   script:
     - pip install mypy mypy-gitlab-code-quality
-    - mypy cthree --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
+    - mypy paraqeet --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
     - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > mypy-report.json
   artifacts:
     when: always
@@ -97,7 +97,7 @@ build-docs:
     - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
     - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
     - cd doc
-    - make html
+    - make htmlparaqeet
     - mv _build/html/ ../public/
   artifacts:
     paths:

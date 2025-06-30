@@ -17,7 +17,7 @@ def tone():
 
     Returns
     -------
-    cthree.signal.envelopes.Envelope
+    paraqeet.signal.envelopes.Envelope
         A Flat top Gaussian Envelope
     """
     return FlatTopGaussianEnvelope()
@@ -29,7 +29,7 @@ def toneAD():
 
     Returns
     -------
-    cthree.signal.envelopes.Envelope
+    paraqeet.signal.envelopes.Envelope
         A Flat top Gaussian Envelope without gradients defined
     """
     return FlatTopGaussianEnvelopeAD()
