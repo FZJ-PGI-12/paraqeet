@@ -12,7 +12,7 @@ class RandomMeasurement(Measurement):
 
     Parameters
     ----------
-    propagation : paraqeet.propagation.propagation
+    propagation : paraQeet.propagation.propagation
         Abstract base class for any implementation
         that can solve the equation of motion.
     times : Array
@@ -30,7 +30,7 @@ class RandomMeasurement(Measurement):
 
         Returns
         -------
-        list[paraqeet.quantity]
+        list[paraQeet.quantity]
             The list of parameters of the system.
 
         """

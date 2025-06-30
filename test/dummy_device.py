@@ -38,7 +38,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
         Parameters
         ----------
-        amp : paraqeet.quantity
+        amp : paraQeet.quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
@@ -70,7 +70,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
         Parameters
         ----------
-        amp : paraqeet.quantity
+        amp : paraQeet.quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
@@ -106,7 +106,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
         Parameters
         ----------
-        amp : paraqeet.quantity
+        amp : paraQeet.quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.

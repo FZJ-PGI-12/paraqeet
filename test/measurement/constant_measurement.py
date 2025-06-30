@@ -13,7 +13,7 @@ class ConstantMeasurement(Measurement):
 
     Parameters
     ----------
-    propagation : paraqeet.propagation.propagation
+    propagation : paraQeet.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     value : float, default=1.0
@@ -40,7 +40,7 @@ class ConstantMeasurement(Measurement):
 
         Parameters
         ----------
-        list[paraqeet.Quantity]
+        list[paraQeet.Quantity]
             List of parameters of the system.
 
         """

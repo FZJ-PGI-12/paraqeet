@@ -69,7 +69,7 @@ def test_initial_state(model):
 
     Raises
     ------
-    paraqeet.Exceptions.ConfigurationException
+    paraQeet.Exceptions.ConfigurationException
         If the initial state is not set.
 
     """
