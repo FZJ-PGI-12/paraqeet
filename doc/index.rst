@@ -4,13 +4,20 @@ paraQeet -  A quantum optimal control toolkit with parameter handling
 
 You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
 
-* :math:`C_1` Open-loop optimal control: Given a model, find the pulse shapes which maximize fidelity with a target operation.
-* :math:`C_2`  Closed-loop calibration: Given pulses, calibrate their parameters to maximize a figure of merit measured by the actual experiment, thus improving beyond the limits of a deficient model.
-* :math:`C_3`  Model learning: Given control pulses and their experimental measurement outcome, optimize model parameters to best reproduce the results.
+Choose a pulse parametrisation, simulate a quantum system, and optimise.
 
-When combined in sequence, these three procedures represent a recipe for system characterization.
+Combining Quantum Optimal Control methods with automatic differentiation with JAX.
+Aimed at resource efficient computation.
 
-*Note: This documentation is work-in-progress.*
+We use a top-down approach to make the codebase modular.
+Each module interacts only with the module above it in hierarchy.
+
+.. _README: https://jugit.fz-juelich.de/pgi-12-external/yaq/yaq/-/blob/main/README.md
+.. _CONTRIBUTING: https://jugit.fz-juelich.de/pgi-12-external/yaq/yaq/-/blob/main/CONTRIBUTING.md
+
+.. image:: layers.png
+   :width: 400
+   :alt: layers
 
 .. toctree::
    :hidden:
