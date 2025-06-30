@@ -13,14 +13,14 @@ class WeightedSumGoal(Measurement):
 
     Parameters
     ----------
-    measurements : List[cthree.measurement.Measurement]
+    measurements : List[paraQeet.measurement.Measurement]
         List of measurements.
     weights : Array
         List of weights.
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    paraQeet.Exceptions.ConfigurationException
         If number of measurements and weights are incompatible.
     UserWarning
         If the given weights are not normalized.

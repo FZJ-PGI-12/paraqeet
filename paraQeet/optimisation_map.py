@@ -50,9 +50,9 @@ class OptimisationMap:
 
         Parameters
         ----------
-        optimisable : cthree.optimisable
+        optimisable : paraQeet.optimisable
             Input Optimisable object for adding to the map.
-        optimisable_quantities : List[cthree.Quantity], optional
+        optimisable_quantities : List[paraQeet.Quantity], optional
             List of all parameters of the optimisable object considered for
             optimisation.
 
@@ -67,7 +67,7 @@ class OptimisationMap:
 
         Parameters
         ----------
-        optimisable : cthree.optimisable.Optimisable
+        optimisable : paraQeet.optimisable.Optimisable
             Parameter to be removed.
 
         """
@@ -82,7 +82,7 @@ class OptimisationMap:
 
         Returns
         -------
-        Set[cthree.Optimisable]
+        Set[paraQeet.Optimisable]
             Set of all optimisable objects from the map.
 
         """
@@ -93,12 +93,12 @@ class OptimisationMap:
 
         Parameters
         ----------
-        optimisable : cthree.optimisable
+        optimisable : paraQeet.optimisable
             Input optimisable object.
 
         Returns
         -------
-        List[cthree.Quantity] | None
+        List[paraQeet.Quantity] | None
             List of parameters or None (if the optimisable has not been
             added yet).
 
@@ -110,7 +110,7 @@ class OptimisationMap:
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             All parameters that were added to the map.
 
         """

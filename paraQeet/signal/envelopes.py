@@ -77,7 +77,7 @@ class Envelope(Waveform):
 
         Returns
         -------
-        cthree.quantity
+        paraQeet.quantity
             Amplitude of the system.
 
         """
@@ -89,7 +89,7 @@ class Envelope(Waveform):
 
         Parameters
         ----------
-        cthree.Quantity
+        paraQeet.Quantity
             Amplitude value of the system to be set.
 
         """
@@ -101,7 +101,7 @@ class Envelope(Waveform):
 
         Returns
         -------
-        cthree.quantity
+        paraQeet.quantity
             Length in time of the tone.
 
         """
@@ -113,7 +113,7 @@ class Envelope(Waveform):
 
         Parameters
         ----------
-        cthree.Quantity
+        paraQeet.Quantity
             Length in time of the tone to be set.
 
         """
@@ -275,7 +275,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        amp : cthree.quantity
+        amp : paraQeet.quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
@@ -307,7 +307,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        amp : cthree.quantity
+        amp : paraQeet.quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
@@ -343,7 +343,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        amp : cthree.quantity
+        amp : paraQeet.quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.

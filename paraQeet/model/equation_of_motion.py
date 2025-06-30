@@ -18,7 +18,7 @@ class EquationOfMotion(Optimisable):
 
     Parameters
     ----------
-    hamiltonian : cthree.model.hamiltonian
+    hamiltonian : paraQeet.model.hamiltonian
         Matrix representation of a Hamiltonian.
 
     """
@@ -34,7 +34,7 @@ class EquationOfMotion(Optimisable):
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             Returns the list of parameters as Quantities.
 
         Raises

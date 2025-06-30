@@ -25,7 +25,7 @@ class RotatingFrameDrive(Drive):
 
         Returns
         -------
-        cthree.signal.generator.Generator
+        paraQeet.signal.generator.Generator
             Returns the signal generator object from the system.
 
         """

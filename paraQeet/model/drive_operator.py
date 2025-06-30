@@ -16,7 +16,7 @@ class DriveOperator(Drive):
 
     Parameters
     ----------
-    generator : cthree.signal.generator
+    generator : paraQeet.signal.generator
         Signal generator stack.
     isLongitudinal : bool
         Generator is longitudinal or transversal depending on this boolean.
@@ -36,7 +36,7 @@ class DriveOperator(Drive):
 
         Returns
         -------
-        cthree.signal.generator.Generator
+        paraQeet.signal.generator.Generator
             Returns the signal generator object from the system.
 
         """

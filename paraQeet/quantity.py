@@ -39,12 +39,12 @@ class Quantity:
 
     Parameters
     ----------
-    value : cthree.quantity.Array | float
+    value : paraQeet.quantity.Array | float
         Value of the quantity
-    min_value : cthree.quantity.Array | float
+    min_value : paraQeet.quantity.Array | float
         Minimum this quantity is allowed to take.
         If this is a float, it will be a default interval around the value will be chosen.
-    max_value : cthree.quantity.Array | float
+    max_value : paraQeet.quantity.Array | float
         Maximum this quantity is allowed to take.
     unit : str
         physical unit
@@ -335,7 +335,7 @@ class Quantity:
 
         Returns
         -------
-        cthree.quantity.Array
+        paraQeet.quantity.Array
             Value from the reduced representation.
 
         """
@@ -555,7 +555,7 @@ class Quantity:
 
         Raises
         ------
-        cthree.Exceptions.IncompatibleQuantityException
+        paraQeet.Exceptions.IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -576,7 +576,7 @@ class Quantity:
 
         Raises
         ------
-        cthree.Exceptions.IncompatibleQuantityException
+        paraQeet.Exceptions.IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -610,7 +610,7 @@ class Quantity:
 
         Raises
         ------
-        cthree.Exceptions.IncompatibleQuantityException
+        paraQeet.Exceptions.IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -632,7 +632,7 @@ class Quantity:
 
         Raises
         ------
-        cthree.Exceptions.IncompatibleQuantityException
+        paraQeet.Exceptions.IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns

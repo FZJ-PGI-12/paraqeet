@@ -19,7 +19,7 @@ class Hamiltonian(Optimisable, ABC):
 
     Parameters
     ----------
-    drives : List[cthree.model.Drive], optional
+    drives : List[paraQeet.model.Drive], optional
         List of time-dependent drives.
 
     """
@@ -144,7 +144,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        list[cthree.model.drive.Drive]
+        list[paraQeet.model.drive.Drive]
             Returns a list of time-dependent drives of the system.
         """
         return self._drives
@@ -154,7 +154,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             Returns the combined list of parameters from all drives.
 
         """

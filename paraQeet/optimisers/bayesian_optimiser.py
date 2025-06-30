@@ -20,9 +20,9 @@ class BayesianOptimiser(Optimiser):
 
     Parameters
     ----------
-    measure : cthree.measurement.measurement
+    measure : paraQeet.measurement.measurement
         The measure to be optimised.
-    optimisables : cthree.optimisation_map
+    optimisables : paraQeet.optimisation_map
         All optimisable parameters.
     initialSamples : int, default=10
         Number of iterations before the explorations starts the exploration
@@ -75,7 +75,7 @@ class BayesianOptimiser(Optimiser):
 
         Returns
         -------
-        cthree.optimisers.optimiser.OptimisationResult
+        paraQeet.optimisers.optimiser.OptimisationResult
             Result of optimization via the OptimisationResult object.
             (status, value, iterations and the raw result)
 

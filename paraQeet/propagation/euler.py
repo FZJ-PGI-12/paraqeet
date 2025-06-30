@@ -19,7 +19,7 @@ class Euler(StatePropagation):
 
     Parameters
     ----------
-    model : cthree.model.Model
+    model : paraQeet.model.Model
         Represents the equation of motion for a given Hamiltonian.
 
     """

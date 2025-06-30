@@ -35,7 +35,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         Returns
         -------
-        cthree.optimisers.optimiser.OptimisationResult
+        paraQeet.optimisers.optimiser.OptimisationResult
             The result of the optimisation.
 
         """

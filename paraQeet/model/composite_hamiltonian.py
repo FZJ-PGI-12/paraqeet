@@ -48,7 +48,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        list[cthree.Quantity]
+        list[paraQeet.Quantity]
             Returns the list of parameters of the system.
 
         """
@@ -67,7 +67,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        params : list[cthree.quantity]
+        params : list[paraQeet.quantity]
             Input list of parameters to be set.
 
         """

@@ -33,7 +33,7 @@ class RabiExperiment(Measurement):
 
         Returns
         -------
-        List[cthree.Quantity, cthree.Quantity, cthree.Quantity]
+        List[paraQeet.Quantity, paraQeet.Quantity, paraQeet.Quantity]
             List of parameters accessible in this measurement.
 
         """
@@ -47,7 +47,7 @@ class RabiExperiment(Measurement):
 
         Returns
         -------
-        cthree.quantity.Array
+        paraQeet.quantity.Array
             Result of a general Rabi oscillation.
 
         """

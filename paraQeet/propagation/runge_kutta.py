@@ -17,7 +17,7 @@ class RungeKutta(StatePropagation):
 
     Parameters
     ----------
-    model : cthree.model.Model
+    model : paraQeet.model.Model
         Represents the equation of motion for a given Hamiltonian.
     initial_time_step : float | None, optional
         The initial time step for the adaptive time steps in RK45.
@@ -70,7 +70,7 @@ class RungeKutta(StatePropagation):
 
         Raises
         ------
-        cthree.Exceptions.ConfigurationException
+        paraQeet.Exceptions.ConfigurationException
             If the initial state is not set.
         ValueError
             If the propagation needs at least two time steps.

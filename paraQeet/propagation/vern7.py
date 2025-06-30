@@ -227,7 +227,7 @@ class Vern7(StatePropagation):
 
         Raises
         ------
-        cthree.Exceptions.ConfigurationException
+        paraQeet.Exceptions.ConfigurationException
             If the initial state is not set.
 
         """

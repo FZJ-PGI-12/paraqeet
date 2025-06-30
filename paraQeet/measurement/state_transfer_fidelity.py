@@ -20,14 +20,14 @@ class StateTransferFidelity(Measurement):
 
     Parameters
     ----------
-    propagation : cthree.propagation.StatePropagation
+    propagation : paraQeet.propagation.StatePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : cthree.quantity.Array
+    initial_state : paraQeet.quantity.Array
         Initial state.
-    target_state : cthree.quantity.Array
+    target_state : paraQeet.quantity.Array
         Target state.
-    times : cthree.quantity.Array
+    times : paraQeet.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -114,7 +114,7 @@ class StateTransferFidelity(Measurement):
 
         Returns
         -------
-        list[cthree.quantity]
+        list[paraQeet.quantity]
             List of parameters of the system.
         """
         return []
@@ -125,14 +125,14 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
     Parameters
     ----------
-    propagation : cthree.propagation.propagation
+    propagation : paraQeet.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : cthree.quantity.Array
+    initial_state : paraQeet.quantity.Array
         Initial state.
-    target_state : cthree.quantity.Array
+    target_state : paraQeet.quantity.Array
         Target state.
-    times : cthree.quantity.Array
+    times : paraQeet.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -184,14 +184,14 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     Parameters
     ----------
-    propagation : cthree.propagation.StatePropagation
+    propagation : paraQeet.propagation.StatePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : cthree.quantity.Array
+    initial_state : paraQeet.quantity.Array
         Initial state.
-    target_state : cthree.quantity.Array
+    target_state : paraQeet.quantity.Array
         Target state.
-    times : cthree.quantity.Array
+    times : paraQeet.quantity.Array
         One-dimensional vector of timestamps.
 
     """

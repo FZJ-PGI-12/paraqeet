@@ -27,7 +27,7 @@ class PWCGenerator(Generator):
 
     Parameters
     ----------
-    envelopes : List[cthree.signal.Waveform]
+    envelopes : List[paraQeet.signal.Waveform]
         List of input devices.
 
     """

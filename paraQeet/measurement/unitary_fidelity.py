@@ -19,7 +19,7 @@ class UnitaryFidelity(Measurement):
 
     Parameters
     ----------
-    propagation : cthree.propagation.propagation
+    propagation : paraQeet.propagation.propagation
         Implementation of EOM solver.
     gate : Array
         Matrix representation of target gate.
@@ -59,7 +59,7 @@ class UnitaryFidelity(Measurement):
 
         Returns
         -------
-        list[cthree.quantity]
+        list[paraQeet.quantity]
             Returns the parameters of the system.
 
         """

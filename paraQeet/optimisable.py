@@ -71,7 +71,7 @@ class Optimisable:
 
         Parameters
         ----------
-        params : List[cthree.Quantity]
+        params : List[paraQeet.Quantity]
             List of optimisable parameters to be set.
 
         """
@@ -85,7 +85,7 @@ class Optimisable:
 
         Parameters
         ----------
-        param : cthree.quantity
+        param : paraQeet.quantity
             Input parameter to be checked for whether it is optimised.
 
         Returns

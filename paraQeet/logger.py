@@ -22,7 +22,7 @@ class Logger:
 
         Parameters
         ----------
-        params : List[cthree.Quantity]
+        params : List[paraQeet.Quantity]
             List of parameters to be logged.
         infid : float
             Goal value to be logged.

@@ -19,9 +19,9 @@ class Qubit(Hamiltonian):
 
     Parameters
     ----------
-    frequency : cthree.quantity
+    frequency : paraQeet.quantity
         Frequency for characterizing the qubit.
-    drives : List[cthree.model.Drive], optional
+    drives : List[paraQeet.model.Drive], optional
         List of time-dependent drives.
 
     """
@@ -99,7 +99,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             Returns the list of parameters of the system.
 
         """

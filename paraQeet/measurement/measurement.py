@@ -14,7 +14,7 @@ class Measurement(Optimisable):
 
     Parameters
     ----------
-    times: cthree.quantity.Array | None, optional
+    times: paraQeet.quantity.Array | None, optional
         One-dimensional vector of timestamps.
 
     """
@@ -35,8 +35,8 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        cthree.quantity.Array or float
-            This abstract method must return a cthree.quantity.cthree.quantity.Array or a float when
+        paraQeet.quantity.Array or float
+            This abstract method must return a paraQeet.quantity.paraQeet.quantity.Array or a float when
             implemented by subclasses. Might return multiple values.
 
         Raises
@@ -63,8 +63,8 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        cthree.quantity.Array
-            Returns a cthree.quantity.cthree.quantity.Array if implemented by a subclass.
+        paraQeet.quantity.Array
+            Returns a paraQeet.quantity.paraQeet.quantity.Array if implemented by a subclass.
 
         """
         raise NotImplementedError()
@@ -77,7 +77,7 @@ class Measurement(Optimisable):
 
         Returns
         -------
-        Tuple[float, cthree.quantity.Array]
+        Tuple[float, paraQeet.quantity.Array]
             Tuple of function value as bare float and gradient of shape (n_parameters,)
 
         Raises
@@ -155,12 +155,12 @@ class Measurement(Optimisable):
 
         Parameters
         ----------
-        operator : cthree.quantity.Array
+        operator : paraQeet.quantity.Array
             Takes an array of Propagator/ density matrices as input.
 
         Returns
         -------
-        cthree.quantity.Array
+        paraQeet.quantity.Array
             The modified propagator.
 
         """
@@ -177,12 +177,12 @@ class Measurement(Optimisable):
 
         Parameters
         ----------
-        states : cthree.quantity.Array
+        states : paraQeet.quantity.Array
             Single state or batch of state vectors.
 
         Returns
         -------
-        cthree.quantity.Array
+        paraQeet.quantity.Array
             The modified propagator.
 
         """

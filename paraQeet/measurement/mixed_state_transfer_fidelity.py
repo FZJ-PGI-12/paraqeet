@@ -19,12 +19,12 @@ class MixedStateTransferFidelity(Measurement):
 
     Parameters
     ----------
-    propagation : cthree.propagation.propagation
+    propagation : paraQeet.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    targetState : cthree.quantity.Array
+    targetState : paraQeet.quantity.Array
         Final state of the density matrices.
-    times : cthree.quantity.Array
+    times : paraQeet.quantity.Array
         One-dimensional vector of timestamps.
 
     """
@@ -56,12 +56,12 @@ class MixedStateTransferFidelity(Measurement):
 
         Returns
         -------
-        cthree.quantity.Array
+        paraQeet.quantity.Array
             Overlap between initial and final state of density matrices.
 
         Raises
         ------
-        cthree.Exceptions.IncompatibleLayersException
+        paraQeet.Exceptions.IncompatibleLayersException
             Raises an exception if required vector shape is not received.
 
         """

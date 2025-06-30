@@ -47,7 +47,7 @@ class Waveform(Optimisable):
 
         Parameters
         ----------
-        params : List[cthree.Quantity]
+        params : List[paraQeet.Quantity]
             Input list of parameters to be set.
 
         """

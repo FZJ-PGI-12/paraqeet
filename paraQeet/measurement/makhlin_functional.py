@@ -21,12 +21,12 @@ class MakhlinFunctional(Measurement):
 
     Parameters
     ----------
-    propagation : cthree.propagation.propagation
+    propagation : paraQeet.propagation.propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    times : cthree.quantity.Array
+    times : paraQeet.quantity.Array
         One-dimensional vector of timestamps.
-    ideal_invariants : cthree.quantity.Array optional
+    ideal_invariants : paraQeet.quantity.Array optional
         One-dimensional vector of ideal Makhlin invariants.
 
     """
@@ -49,7 +49,7 @@ class MakhlinFunctional(Measurement):
 
         Returns
         -------
-        list[cthree.quantity]
+        list[paraQeet.quantity]
             Returns the list of parameters of the system.
 
         """
@@ -60,12 +60,12 @@ class MakhlinFunctional(Measurement):
 
         Returns
         -------
-        cthree.quantity.Array
+        paraQeet.quantity.Array
             Distance of propagator.
 
         Raises
         ------
-        cthree.Exceptions.IncompatibleLayersException
+        paraQeet.Exceptions.IncompatibleLayersException
             Raises an exception if a quadratic unitary
             4x4 operator is not received.
 
@@ -90,13 +90,13 @@ class MakhlinFunctional(Measurement):
 
         Parameters
         ----------
-        U: cthree.quantity.Array
+        U: paraQeet.quantity.Array
             Input matrix for computing the Makhlin invariants of.
 
         Returns
         -------
-        Tuple[cthree.quantity.Array, cthree.quantity.Array, cthree.quantity.Array]
-            Returns a tuple of 3 Numpy cthree.quantity.Array as invariants g1, g2 and g3.
+        Tuple[paraQeet.quantity.Array, paraQeet.quantity.Array, paraQeet.quantity.Array]
+            Returns a tuple of 3 Numpy paraQeet.quantity.Array as invariants g1, g2 and g3.
 
         """
         # transform to bell basis

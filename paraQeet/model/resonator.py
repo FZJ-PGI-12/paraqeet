@@ -21,9 +21,9 @@ class Resonator(Hamiltonian):
     ----------
     dimension : int
         Dimension of the harmonic oscillator.
-    frequency : cthree.model.Quantity
+    frequency : paraQeet.model.Quantity
         Frequency of the harmonic oscillator.
-    drives : List[cthree.model.Drive], optional
+    drives : List[paraQeet.model.Drive], optional
         List of time-dependent drives of the subsystem.
 
     """
@@ -103,7 +103,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             Returns the list of parameters of the system.
 
         """

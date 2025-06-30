@@ -87,14 +87,14 @@ class Optimiser:
 
     Parameters
     ----------
-    measure : cthree.measurement.measurement
+    measure : paraQeet.measurement.measurement
         Implementation of the Measurement class that measures the observable
         to be minimised.
-    optimisables : cthree.optimisation_map
+    optimisables : paraQeet.optimisation_map
         An optimisation map containing all parameters that can be optimised.
         If none, an empty map will be created to which the parameters can
         be added later used.
-    logger : cthree.file_logger
+    logger : paraQeet.file_logger
         The file logger object.
 
     """
@@ -125,7 +125,7 @@ class Optimiser:
 
         Parameters
         ----------
-        logger : cthree.file_logger.Logger
+        logger : paraQeet.file_logger.Logger
             Logger object to be set as the logger for the system.
         """
         self._logger = logger
@@ -138,7 +138,7 @@ class Optimiser:
 
         Returns
         -------
-        cthree.optimisation_map
+        paraQeet.optimisation_map
             Returns the optimisation map that this optimiser uses.
 
         """
@@ -153,7 +153,7 @@ class Optimiser:
 
         Parameters
         ----------
-        opt : cthree.optimisation_map
+        opt : paraQeet.optimisation_map
             Takes in the optimisables to set parameters.
 
         """

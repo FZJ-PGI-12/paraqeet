@@ -26,7 +26,7 @@ class ScipyExpm(StatePropagation):
 
     Parameters
     ----------
-    model : cthree.model.Model
+    model : paraQeet.model.Model
         Represents the equation of motion for a given Hamiltonian.
     res : float
         Resolution at which to sample the EOM.
@@ -57,7 +57,7 @@ class ScipyExpm(StatePropagation):
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             Returns an empty list.
 
         """
@@ -204,7 +204,7 @@ class ScipyExpm(StatePropagation):
 
         Raises
         ------
-        cthree.Exceptions.ConfigurationException
+        paraQeet.Exceptions.ConfigurationException
             If the initial state is not set.
 
         """

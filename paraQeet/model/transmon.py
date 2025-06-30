@@ -21,11 +21,11 @@ class Transmon(Hamiltonian):
     ----------
     dimension : int
         Dimension of the anharmonic oscillator.
-    frequency : cthree.model.Quantity
+    frequency : paraQeet.model.Quantity
         Frequency of the anharmonic oscillator.
-    anharmonicity : cthree.model.Quantity
+    anharmonicity : paraQeet.model.Quantity
         Anharmonicity of the oscillator.
-    drives : List[cthree.model.Drive], optional
+    drives : List[paraQeet.model.Drive], optional
         List of time-dependent drives of the subsystem.
 
     """
@@ -120,7 +120,7 @@ class Transmon(Hamiltonian):
 
         Returns
         -------
-        List[cthree.Quantity]
+        List[paraQeet.Quantity]
             Returns the list of parameters of the system.
 
         """

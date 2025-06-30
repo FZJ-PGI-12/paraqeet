@@ -56,7 +56,7 @@ class FileLogger(Logger):
 
         Parameters
         ----------
-        params : List[cthree.Logger]
+        params : List[paraQeet.Logger]
             List of parameters to be written to the log file.
         infidelity : float
             Goal value to be written to the log file.

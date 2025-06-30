@@ -59,7 +59,7 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        list[cthree.Quantity]
+        list[paraQeet.Quantity]
             Returns the list of parameters of the system.
 
         """
@@ -94,7 +94,7 @@ class Coupling(Optimisable):
         -------
         List[List[chtree.quantity.Array]]
             The outer list are the coupling terms. The inner list contains
-            matrices for each subsystem. The matrices (cthree.quantity.Array) have the same
+            matrices for each subsystem. The matrices (paraQeet.quantity.Array) have the same
             shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
             with n the subsystem dimension.
 
@@ -118,7 +118,7 @@ class Coupling(Optimisable):
         -------
         List[List[chtree.quantity.Array]]
             The outer list are the coupling terms. The inner list represents
-            the subsystems. The matrices (cthree.quantity.Array) have the same shape as the
+            the subsystems. The matrices (paraQeet.quantity.Array) have the same shape as the
             subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
             the subsystem dimension.
 

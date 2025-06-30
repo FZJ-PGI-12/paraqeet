@@ -32,11 +32,11 @@ class CMAEsOptimiser(Optimiser):
 
     Parameters
     ----------
-    measure : cthree.measurement.measurement
+    measure : paraQeet.measurement.measurement
         Represents any observable and the process of measurement itself.
-    optimisables : cthree.optimisation_map
+    optimisables : paraQeet.optimisation_map
         Optimisable interface for all parameters considered in optimisation.
-    logger : cthree.FileLogger | None, default=None
+    logger : paraQeet.FileLogger | None, default=None
         The file logger object.
     callback
         Callback function for optimisation.
@@ -109,7 +109,7 @@ class CMAEsOptimiser(Optimiser):
 
         Returns
         -------
-        cthree.optimisers.optimiser.OptimisationResult
+        paraQeet.optimisers.optimiser.OptimisationResult
             Result of optimization via the OptimisationResult object.
             (status, value, iterations and the raw result)
 

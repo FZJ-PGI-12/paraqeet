@@ -15,10 +15,10 @@ class ScipyOptimiser(Optimiser):
 
     Parameters
     ----------
-    measure : cthree.measurement.measurement
+    measure : paraQeet.measurement.measurement
         Implementation of the Measurement class that measures the observable
         to be minimised.
-    optimisable : cthree.optimisation_map
+    optimisable : paraQeet.optimisation_map
         An optimisation map containing all parameters that can be optimised.
 
     """
@@ -91,7 +91,7 @@ class ScipyOptimiser(Optimiser):
 
         Returns
         -------
-        cthree.optimisers.optimiser.OptimisationResult
+        paraQeet.optimisers.optimiser.OptimisationResult
             The result of the optimisation.
 
         """
