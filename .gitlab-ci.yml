@@ -97,7 +97,7 @@ build-docs:
     - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
     - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
     - cd doc
-    - make htmlparaqeet
+    - make html
     - mv _build/html/ ../public/
   artifacts:
     paths:
