@@ -5,7 +5,7 @@ from jax import jit, vmap
 from jax.scipy.special import erf
 
 from paraQeet.quantity import Quantity, Array
-from paraQeet.signal.envelopes import Envelope
+from paraQeet.signal.waveform import Waveform
 from paraQeet.signal.generator import Generator
 
 
@@ -32,7 +32,7 @@ class PWCGenerator(Generator):
 
     """
 
-    __envs: list[Envelope]
+    __envs: list[Waveform]
     __tlist: Array
     __inphase: Quantity
     __quadrature: Quantity
@@ -41,7 +41,7 @@ class PWCGenerator(Generator):
 
     def __init__(
         self,
-        envelopes: list[Envelope] | None,
+        envelopes: list[Waveform] | None,
         tlist: Array,
     ):
         self.__envs = envelopes or []
@@ -51,9 +51,10 @@ class PWCGenerator(Generator):
         dt = tlist[1] - tlist[0]
         self.__tlist = tlist[:-1] + dt / 2
 
-        self.__set_inphase_and_quadrature()
+        self.__setup_inphase_and_quadrature()
         self.__t_final = self.__tlist[-1]
 
+    @partial(jit, static_argnums=(0,))
     def __compute_envelope(self, t):
         t_final = self.__t_final
         ramp_time = t_final / 25
@@ -82,7 +83,7 @@ class PWCGenerator(Generator):
             Array of time points at which envelope is discritized.
         """
         self.__tlist = tlist
-        self.__set_inphase_and_quadrature()
+        self.__setup_inphase_and_quadrature()
 
     @property
     def multiply_flat_top(self) -> bool:
@@ -111,13 +112,17 @@ class PWCGenerator(Generator):
             Flag value for multiply_flat_top.
         """
         self.__multiply_flat_top = multiply_flat_top
-        self.__set_inphase_and_quadrature()
+        self.__setup_inphase_and_quadrature()
 
-    def __set_inphase_and_quadrature(self) -> None:
-        """Generate Inphase and Quadrature Quantities using tlist."""
+    def __compute_shape(self) -> Array:
         env = jnp.zeros_like(self.__tlist)
         for dev in self.__envs:
             env += dev.compute_output(self.__tlist)
+        return env
+
+    def __setup_inphase_and_quadrature(self) -> None:
+        """Generate Inphase and Quadrature Quantities using tlist."""
+        env = self.__compute_shape()
 
         max_abs = jnp.max(jnp.abs(env))
         bound = 2 * max_abs * jnp.ones_like(self.__tlist)
@@ -136,6 +141,19 @@ class PWCGenerator(Generator):
             unit="Hz",
             name="Quadrature",
         )
+
+    def _get_partial_derivatives(self) -> Array:
+        env_grads = []
+        for dev in self.__envs:
+            grad = dev.compute_gradient(self.__tlist)
+            dev_grad = jnp.concat([jnp.real(grad), jnp.imag(grad)])
+            env_grads.append(dev_grad)
+        return jnp.hstack(env_grads)
+
+    def _update_inphase_and_quadrature(self) -> None:
+        env = self.__compute_shape()
+        self.__inphase.set_value(jnp.real(env))
+        self.__quadrature.set_value(jnp.imag(env))
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
