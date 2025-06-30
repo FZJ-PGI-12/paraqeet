@@ -176,7 +176,7 @@ class OpenSystem(EquationOfMotion):
     def __create_hamiltonian_grad_superop(self, t):
         """Create the Gradient of Hamiltonian superoperator for one time point `t`."""
         identityop = jnp.eye(self._hamiltonian.dimension())
-        ham_grad = self._hamiltonian.gradient_one_time([t])
+        ham_grad = self._hamiltonian.gradient_one_time(jnp.array([t]))
         term1 = -1j * vmap(self.__kron, in_axes=(None, 0))(identityop, ham_grad)
         term2 = 1j * vmap(self.__kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
         superop = term1 + term2
