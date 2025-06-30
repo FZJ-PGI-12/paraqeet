@@ -3,11 +3,11 @@
 import pytest
 import numpy as np
 
-from cthree.quantity import Quantity
-from cthree.model.drive_operator import DriveOperator
-from cthree.model.qubit import Qubit
-from cthree.signal.iq_mixer import IQMixer
-from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from paraQeet.quantity import Quantity
+from paraQeet.model.drive_operator import DriveOperator
+from paraQeet.model.qubit import Qubit
+from paraQeet.signal.iq_mixer import IQMixer
+from paraQeet.signal.envelopes import FlatTopGaussianEnvelope
 
 
 FREQ = 4.8e9 * 2 * np.pi

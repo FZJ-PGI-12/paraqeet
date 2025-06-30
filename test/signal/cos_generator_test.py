@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from cthree.signal.envelopes import ConstantEnvelope, ZeroEnvelope
-from cthree.signal.iq_mixer import IQMixer
+from paraQeet.signal.envelopes import ConstantEnvelope, ZeroEnvelope
+from paraQeet.signal.iq_mixer import IQMixer
 
 LEN_SIG = 1001
 

@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from cthree.exceptions import ConfigurationException
-from cthree.propagation.runge_kutta import RungeKutta
+from paraQeet.exceptions import ConfigurationException
+from paraQeet.propagation.runge_kutta import RungeKutta
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 

@@ -4,8 +4,8 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.quantity import Array
-from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from paraQeet.quantity import Array
+from paraQeet.signal.envelopes import FlatTopGaussianEnvelope
 from test.dummy_device import FlatTopGaussianEnvelopeAD
 
 time = jnp.linspace(0, 10e-6, 100)

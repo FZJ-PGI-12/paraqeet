@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from cthree.measurement.unitary_fidelity import UnitaryFidelity
+from paraQeet.measurement.unitary_fidelity import UnitaryFidelity
 from test.propagation.identity_propagation import IdentityPropagation
 from test.propagation.random_propagation import RandomPropagation
 

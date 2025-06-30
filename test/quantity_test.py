@@ -4,8 +4,8 @@ import numpy as np
 import numpy.testing as testing
 import pytest
 
-from cthree.exceptions import IncompatibleQuantityException
-from cthree.quantity import Quantity
+from paraQeet.exceptions import IncompatibleQuantityException
+from paraQeet.quantity import Quantity
 
 
 @pytest.fixture

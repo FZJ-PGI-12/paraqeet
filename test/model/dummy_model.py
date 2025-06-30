@@ -1,10 +1,10 @@
 """Class definition of the Dummy model for testing."""
 
-from cthree.quantity import Array
+from paraQeet.quantity import Array
 
-from cthree.quantity import Quantity
-from cthree.model.hamiltonian import Hamiltonian
-from cthree.model.equation_of_motion import EquationOfMotion
+from paraQeet.quantity import Quantity
+from paraQeet.model.hamiltonian import Hamiltonian
+from paraQeet.model.equation_of_motion import EquationOfMotion
 
 
 class DummyModel(EquationOfMotion):

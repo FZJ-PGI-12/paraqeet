@@ -1,9 +1,9 @@
 """Class definition of the empty Hamiltonian for testing."""
 
 import numpy as np
-from cthree.quantity import Array
-from cthree.model.hamiltonian import Hamiltonian
-from cthree.quantity import Quantity
+from paraQeet.quantity import Array
+from paraQeet.model.hamiltonian import Hamiltonian
+from paraQeet.quantity import Quantity
 
 
 class EmptyHamiltonian(Hamiltonian):

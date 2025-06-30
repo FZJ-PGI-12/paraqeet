@@ -1,11 +1,11 @@
 """Class definition for a mock system that always returns the same value."""
 
 import jax.numpy as jnp
-from cthree.quantity import Array
+from paraQeet.quantity import Array
 
-from cthree.quantity import Quantity
-from cthree.measurement.measurement import Measurement
-from cthree.propagation.propagation import Propagation
+from paraQeet.quantity import Quantity
+from paraQeet.measurement.measurement import Measurement
+from paraQeet.propagation.propagation import Propagation
 
 
 class ConstantMeasurement(Measurement):

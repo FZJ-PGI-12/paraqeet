@@ -3,9 +3,9 @@
 import pytest
 import numpy as np
 
-from cthree.signal.envelopes import FlatTopGaussianEnvelope
-from cthree.signal.iq_mixer import IQMixer
-from cthree.model.drive_operator import DriveOperator
+from paraQeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraQeet.signal.iq_mixer import IQMixer
+from paraQeet.model.drive_operator import DriveOperator
 
 
 LEN_SIG = 101

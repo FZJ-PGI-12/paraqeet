@@ -2,9 +2,9 @@
 
 import numpy as np
 import pytest
-from cthree.exceptions import ConfigurationException
+from paraQeet.exceptions import ConfigurationException
 
-from cthree.propagation.scipy_expm import ScipyExpm
+from paraQeet.propagation.scipy_expm import ScipyExpm
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 

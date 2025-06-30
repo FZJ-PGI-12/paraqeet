@@ -5,11 +5,11 @@ from functools import partial
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.quantity import Array
+from paraQeet.quantity import Array
 from jax import jit
 from jax.scipy.special import erf
 
-from cthree.signal.envelopes import Envelope
+from paraQeet.signal.envelopes import Envelope
 
 
 class FlatTopGaussianEnvelopeAD(Envelope):

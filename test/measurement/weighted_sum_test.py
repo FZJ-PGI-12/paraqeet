@@ -4,9 +4,9 @@ from test.propagation.identity_propagation import IdentityPropagation
 
 import numpy as np
 import pytest
-from cthree.exceptions import ConfigurationException
-from cthree.measurement.unitary_fidelity import UnitaryFidelity
-from cthree.measurement.weighted_sum_goal import WeightedSumGoal
+from paraQeet.exceptions import ConfigurationException
+from paraQeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraQeet.measurement.weighted_sum_goal import WeightedSumGoal
 
 
 def test_weighted_sum_goal(random_unitary_matrix):

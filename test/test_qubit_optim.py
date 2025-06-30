@@ -3,20 +3,20 @@
 import pytest
 import numpy as np
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.quantity import Quantity
-from cthree.measurement.state_transfer_fidelity import StateTransferFidelity
-from cthree.model.drive_operator import DriveOperator
-from cthree.model.qubit import Qubit
-from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
-from cthree.optimisers.scipy_optimiser import ScipyOptimiser
-from cthree.optimisers.cmaes_optimiser import CMAEsOptimiser
-from cthree.optimisers.bayesian_optimiser import BayesianOptimiser
+from paraQeet.optimisation_map import OptimisationMap
+from paraQeet.quantity import Quantity
+from paraQeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraQeet.model.drive_operator import DriveOperator
+from paraQeet.model.qubit import Qubit
+from paraQeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraQeet.optimisers.scipy_optimiser import ScipyOptimiser
+from paraQeet.optimisers.cmaes_optimiser import CMAEsOptimiser
+from paraQeet.optimisers.bayesian_optimiser import BayesianOptimiser
 
-from cthree.model.closed_system import ClosedSystem
+from paraQeet.model.closed_system import ClosedSystem
 
-from cthree.signal.iq_mixer import IQMixer
-from cthree.signal.envelopes import ConstantEnvelope
+from paraQeet.signal.iq_mixer import IQMixer
+from paraQeet.signal.envelopes import ConstantEnvelope
 
 
 tone = ConstantEnvelope()
