@@ -1,4 +1,4 @@
-# Yet Another Quantum package (YAQ) - For Gradient Based Quantum Optimal Control
+# paraQeet -  A quantum optimal control toolkit with parameter handling
 
 [![pipeline status](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/pipeline.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/pipelines)
 [![coverage](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/coverage.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/graphs/main/charts)
@@ -12,39 +12,9 @@ We use a top-down approach to make the codebase modular.
 Each module interacts only with the module above it in hierarchy. 
 ![Layers](doc/layers.png)
 
-Currently implementated optimization methods - 
+Currently implementated optimization methods
 - GRAPE: Gradient Ascent Pulse Enginnering
 - GOAT: Gradient Optimization of Analytic conTrols
-- RK45
-
 
 ## Installation
 Install with `pip install .` in the top folder.
-
-
-# Upcoming:
-## Models
-
-- ~~Schrödinger~~
-- SSE
-- Lindblad
-- generalised Lindblad (positive rates)
-- generalised Lindblad (arbitrary rates)
-- von Neumann
-- Pseudo-Lindblad ME
-- Stochastic Master equation (SME)
-
-
-
-## Solvers
-
-- ~~Euler~~
-- ~~RK~~
-- ~~Scipy Expm~~
-- Monte-Carlo wave function (MCWF)
-- Non-markovian quantum jumps (NMQJ)
-- Non-markovian stochastic trajectories (MNST)
-- Non-markovian quantum state diffusion (NMQSD)
-- Euler + stochastic noise (solves SSE)
-- Ashutosh's Solver for SME
-
