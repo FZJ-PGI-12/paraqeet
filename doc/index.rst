@@ -12,25 +12,29 @@ Aimed at resource efficient computation.
 We use a top-down approach to make the codebase modular.
 Each module interacts only with the module above it in hierarchy.
 
-.. _README: https://jugit.fz-juelich.de/pgi-12-external/yaq/yaq/-/blob/main/README.md
-.. _CONTRIBUTING: https://jugit.fz-juelich.de/pgi-12-external/yaq/yaq/-/blob/main/CONTRIBUTING.md
+.. _README: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/README.md
+.. _CONTRIBUTING: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/CONTRIBUTING.md
 
 .. image:: layers.png
    :width: 400
    :alt: layers
 
-.. toctree::
-   :hidden:
-   :maxdepth: 1
-   :caption: Examples:
-   :glob:
-   
-   notebooks/*
+Examples
+========
+We introduce the usage of the package with some examples. These are also available as interactive notebooks.
 
 .. toctree::
-   :hidden:
    :maxdepth: 1
-   :caption: API:
+   :glob:
+
+   notebooks/*
+
+
+API Documentation
+=================
+
+.. toctree::
+   :maxdepth: 1
    :glob:
    
    source/*
