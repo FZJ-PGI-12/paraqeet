@@ -60,9 +60,9 @@ gpu = [
 ]
 
 [project.urls]
-"Homepage" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update"
-"Bug Reports" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update/-/issues"
-"Source" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update"
+"Homepage" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
+"Bug Reports" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/issues"
+"Source" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
 
 
 # mypy configurations
