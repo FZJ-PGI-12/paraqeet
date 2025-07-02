@@ -1,4 +1,4 @@
-# paraQeet -  A quantum optimal control toolkit with parameter handling
+# paraQeet -  A quantum optimal control toolkit with simple parameter management
 
 [![pipeline status](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/pipeline.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/pipelines)
 [![coverage](https://jugit.fz-juelich.de/pgi-12-external/c3-update/badges/main/coverage.svg)](https://jugit.fz-juelich.de/pgi-12-external/c3-update/-/graphs/main/charts)
