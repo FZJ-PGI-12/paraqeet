@@ -3,19 +3,19 @@
 import numpy as np
 import pytest
 
-from cthree.model.open_system import OpenSystem
-from cthree.optimisation_map import OptimisationMap
-from cthree.quantity import Quantity
-from cthree.measurement.state_transfer_fidelity import StateTransferFidelity
-from cthree.measurement.unitary_fidelity import UnitaryFidelity
-from cthree.model.closed_system import ClosedSystem
-from cthree.model.drive_operator import DriveOperator
-from cthree.model.qubit import Qubit
-from cthree.optimisers.scipy_optimiser import ScipyOptimiser
-from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
-from cthree.signal.envelopes import FlatTopGaussianEnvelope
-from cthree.signal.iq_mixer import IQMixer
+from paraqeet.model.open_system import OpenSystem
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.quantity import Quantity
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.qubit import Qubit
+from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9

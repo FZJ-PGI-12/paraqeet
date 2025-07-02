@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
-from cthree.signal.envelopes import (
+from paraqeet.signal.envelopes import (
     FlatTopGaussianEnvelope,
     GaussEnvelope,
     ZeroEnvelope,
 )
-from cthree.signal.iq_mixer import IQMixer
-from cthree.signal.waveform import DRAGMixer
+from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.signal.waveform import DRAGMixer
 
 LEN_SIG = 1001
 

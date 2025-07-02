@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from cthree.optimisable import Optimisable
-from cthree.quantity import Quantity
+from paraqeet.optimisable import Optimisable
+from paraqeet.quantity import Quantity
 
 
 class DummyOptimisable(Optimisable):

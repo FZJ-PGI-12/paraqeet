@@ -3,18 +3,18 @@
 import pytest
 import numpy as np
 
-from cthree.quantity import Quantity
-from cthree.signal.envelopes import GaussEnvelope
-from cthree.signal.pwc_generator import PWCGenerator
-from cthree.model.qubit import Qubit
-from cthree.model.closed_system import ClosedSystem
-from cthree.model.open_system import OpenSystem
-from cthree.model.rotating_frame_drive import RotatingFrameDrive
-from cthree.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from cthree.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from cthree.optimisation_map import OptimisationMap
-from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from cthree.propagation.vern7_grape import Vern7GRAPE
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import GaussEnvelope
+from paraqeet.signal.pwc_generator import PWCGenerator
+from paraqeet.model.qubit import Qubit
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.propagation.vern7_grape import Vern7GRAPE
 
 T_FINAL = 20e-9
 FREQ = 1e6

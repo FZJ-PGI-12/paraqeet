@@ -40,7 +40,7 @@ before_script:
 test:
   stage: tests
   script:
-    - pytest test -n 16 --cov=cthree --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
+    - pytest test -n 16 --cov=paraqeet --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
@@ -56,7 +56,7 @@ codequality:
   stage: codestyle
   script:
     - pip install mypy mypy-gitlab-code-quality
-    - mypy cthree --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
+    - mypy paraqeet --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
     - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > mypy-report.json
   artifacts:
     when: always
@@ -94,14 +94,15 @@ build-docs:
   script:
     - apt-get update
     - apt-get install -y pandoc
-    - pip install sphinx insipid-sphinx-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter
-    - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
+    - pip install sphinx sphinx-press-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter sphinx-autodoc-typehints recommonmark
+    - for notebook in examples/*.ipynb; do jupyter nbconvert --execute --to rst --output-dir doc/notebooks $notebook; done
     - cd doc
+    - sphinx-apidoc -o source ../paraqeet
     - make html
     - mv _build/html/ ../public/
   artifacts:
     paths:
       - public
-  tags: [docker, light]
+  tags: [docker, medium]
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

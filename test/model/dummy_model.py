@@ -1,10 +1,10 @@
 """Class definition of the Dummy model for testing."""
 
-from cthree.quantity import Array
+from paraqeet.quantity import Array
 
-from cthree.quantity import Quantity
-from cthree.model.hamiltonian import Hamiltonian
-from cthree.model.equation_of_motion import EquationOfMotion
+from paraqeet.quantity import Quantity
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.equation_of_motion import EquationOfMotion
 
 
 class DummyModel(EquationOfMotion):
@@ -12,7 +12,7 @@ class DummyModel(EquationOfMotion):
 
     Parameters
     ----------
-    hamiltonian : cthree.model.hamiltonian
+    hamiltonian : Hamiltonian
         Class object for a matrix representation of a Hamiltonian.
     """
 
@@ -24,7 +24,7 @@ class DummyModel(EquationOfMotion):
 
         Returns
         -------
-        list[cthree.quantity]
+        list[Quantity]
             List of parameters of the system.
 
         """

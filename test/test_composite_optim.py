@@ -3,21 +3,21 @@
 import pytest
 import numpy as np
 
-from cthree.model.drive_operator import DriveOperator
-from cthree.optimisers.scipy_optimiser import ScipyOptimiser
-from cthree.signal.envelopes import FlatTopGaussianEnvelope
-from cthree.signal.iq_mixer import IQMixer
+from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.quantity import Quantity
-from cthree.measurement.unitary_fidelity import UnitaryFidelity
-from cthree.model.coupling import Coupling
-from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.quantity import Quantity
+from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.model.coupling import Coupling
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 
-from cthree.model.closed_system import ClosedSystem
-from cthree.model.composite_hamiltonian import CompositeHamiltonian
-from cthree.model.transmon import Transmon
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.model.transmon import Transmon
 
 FREQ1 = 5.5e9 * 2 * np.pi
 ANHARM1 = -240e6 * 2 * np.pi

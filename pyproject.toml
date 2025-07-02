@@ -10,8 +10,8 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "cthree"
-version = "2.0"
+name = "paraqeet"
+version = "0.9"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -36,6 +36,11 @@ dependencies = [
   "cma>=4.2.0"
 ]
 
+[tool.sphinx-pyproject]
+author = "PGI-12"
+project = "paraqeet"
+copyright = "PGI-12"
+release = "0.9"
 
 [project.optional-dependencies]
 dev = [
@@ -55,9 +60,9 @@ gpu = [
 ]
 
 [project.urls]
-"Homepage" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update"
-"Bug Reports" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update/-/issues"
-"Source" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update"
+"Homepage" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
+"Bug Reports" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/issues"
+"Source" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
 
 
 # mypy configurations

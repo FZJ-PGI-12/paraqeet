@@ -8,17 +8,17 @@ from jax import jit
 from jax.scipy.special import erf
 import pytest
 
-from cthree.quantity import Array, Quantity
-from cthree.signal.envelopes import Envelope
-from cthree.signal.pwc_generator import PWCGenerator
-from cthree.model.closed_system import ClosedSystem
-from cthree.model.rotating_frame_drive import RotatingFrameDrive
-from cthree.model.hamiltonian import Hamiltonian
-from cthree.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from cthree.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from cthree.optimisation_map import OptimisationMap
-from cthree.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from cthree.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.quantity import Array, Quantity
+from paraqeet.signal.envelopes import Envelope
+from paraqeet.signal.pwc_generator import PWCGenerator
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 
 
 t_final = 20e-9

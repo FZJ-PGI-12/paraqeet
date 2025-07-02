@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from cthree.exceptions import ConfigurationException
-from cthree.propagation.runge_kutta import RungeKutta
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.propagation.runge_kutta import RungeKutta
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
@@ -42,7 +42,7 @@ def test_initial_state(rk, ts):
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    ConfigurationException
         If the initial state is not set.
 
     """

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from cthree.measurement.mixed_state_transfer_fidelity import (
+from paraqeet.measurement.mixed_state_transfer_fidelity import (
     MixedStateTransferFidelity,
 )
 from test.propagation.identity_propagation import IdentityPropagation

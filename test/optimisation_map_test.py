@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 import random
 
-from cthree.optimisation_map import OptimisationMap
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.optimisation_map import OptimisationMap
 from test.test_optimisable import DummyOptimisable
 
 
@@ -70,7 +71,13 @@ def test_adding_all_parameters(randomOptimisables) -> None:
 
         intersection = [p for p in optimisable.get_parameters() if p in m.get_all_parameters()]
         assert len(intersection) == len(optimisable.get_parameters())
-        intersection2 = [p for p in optimisable.get_parameters() if p in m.get_parameters(optimisable)]
+        params = m.get_parameters(optimisable)
+        if params is not None:
+            intersection2 = [p for p in optimisable.get_parameters() if p in params]
+        else:
+            raise ConfigurationException(
+                f"{optimisable}.get_parameters() returns None. No quantities specified in {optimisable}."
+            )
         assert len(intersection2) == len(optimisable.get_parameters())
 
 
@@ -96,7 +103,13 @@ def test_adding_some_parameters(randomOptimisables) -> None:
 
         intersection = [p for p in optimisable.get_parameters() if p in m.get_all_parameters()]
         assert len(intersection) == numAdded
-        intersection2 = [p for p in optimisable.get_parameters() if p in m.get_parameters(optimisable)]
+        params = m.get_parameters(optimisable)
+        if params is not None:
+            intersection2 = [p for p in optimisable.get_parameters() if p in params]
+        else:
+            raise ConfigurationException(
+                f"{optimisable}.get_parameters() returns None. No quantities specified in {optimisable}."
+            )
         assert len(intersection2) == numAdded
 
 
