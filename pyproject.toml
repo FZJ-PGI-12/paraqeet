@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "paraQeet"
+name = "paraqeet"
 version = "0.9"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
@@ -38,7 +38,7 @@ dependencies = [
 
 [tool.sphinx-pyproject]
 author = "PGI-12"
-project = "paraQeet"
+project = "paraqeet"
 copyright = "PGI-12"
 release = "0.9"
 

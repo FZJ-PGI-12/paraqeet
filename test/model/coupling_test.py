@@ -3,9 +3,9 @@
 import pytest
 import numpy as np
 
-from paraQeet.quantity import Quantity
-from paraQeet.model.coupling import Coupling
-from paraQeet.model.transmon import Transmon
+from paraqeet.quantity import Quantity
+from paraqeet.model.coupling import Coupling
+from paraqeet.model.transmon import Transmon
 
 COUPLINGSTR = 25e6 * 2 * np.pi
 LEN_SIG = 101

@@ -3,20 +3,20 @@
 import pytest
 import numpy as np
 
-from paraQeet.optimisation_map import OptimisationMap
-from paraQeet.quantity import Quantity
-from paraQeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraQeet.model.drive_operator import DriveOperator
-from paraQeet.model.qubit import Qubit
-from paraQeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraQeet.optimisers.scipy_optimiser import ScipyOptimiser
-from paraQeet.optimisers.cmaes_optimiser import CMAEsOptimiser
-from paraQeet.optimisers.bayesian_optimiser import BayesianOptimiser
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.quantity import Quantity
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.qubit import Qubit
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+from paraqeet.optimisers.cmaes_optimiser import CMAEsOptimiser
+from paraqeet.optimisers.bayesian_optimiser import BayesianOptimiser
 
-from paraQeet.model.closed_system import ClosedSystem
+from paraqeet.model.closed_system import ClosedSystem
 
-from paraQeet.signal.iq_mixer import IQMixer
-from paraQeet.signal.envelopes import ConstantEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.signal.envelopes import ConstantEnvelope
 
 
 tone = ConstantEnvelope()

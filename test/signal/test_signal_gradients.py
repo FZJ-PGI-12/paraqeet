@@ -4,8 +4,8 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from paraQeet.quantity import Array
-from paraQeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.quantity import Array
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from test.dummy_device import FlatTopGaussianEnvelopeAD
 
 time = jnp.linspace(0, 10e-6, 100)
@@ -17,7 +17,7 @@ def tone():
 
     Returns
     -------
-    paraQeet.signal.envelopes.Envelope
+    paraqeet.signal.envelopes.Envelope
         A Flat top Gaussian Envelope
     """
     return FlatTopGaussianEnvelope()
@@ -29,7 +29,7 @@ def toneAD():
 
     Returns
     -------
-    paraQeet.signal.envelopes.Envelope
+    paraqeet.signal.envelopes.Envelope
         A Flat top Gaussian Envelope without gradients defined
     """
     return FlatTopGaussianEnvelopeAD()

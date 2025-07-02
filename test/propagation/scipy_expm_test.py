@@ -2,9 +2,9 @@
 
 import numpy as np
 import pytest
-from paraQeet.exceptions import ConfigurationException
+from paraqeet.exceptions import ConfigurationException
 
-from paraQeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.scipy_expm import ScipyExpm
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
@@ -69,7 +69,7 @@ def test_initial_state(model):
 
     Raises
     ------
-    paraQeet.Exceptions.ConfigurationException
+    ConfigurationException
         If the initial state is not set.
 
     """

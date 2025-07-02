@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 import random
 
-from paraQeet.exceptions import ConfigurationException
-from paraQeet.optimisation_map import OptimisationMap
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.optimisation_map import OptimisationMap
 from test.test_optimisable import DummyOptimisable
 
 

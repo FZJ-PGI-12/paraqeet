@@ -8,17 +8,17 @@ from jax import jit
 from jax.scipy.special import erf
 import pytest
 
-from paraQeet.quantity import Array, Quantity
-from paraQeet.signal.envelopes import Envelope
-from paraQeet.signal.pwc_generator import PWCGenerator
-from paraQeet.model.closed_system import ClosedSystem
-from paraQeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraQeet.model.hamiltonian import Hamiltonian
-from paraQeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraQeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraQeet.optimisation_map import OptimisationMap
-from paraQeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from paraQeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.quantity import Array, Quantity
+from paraqeet.signal.envelopes import Envelope
+from paraqeet.signal.pwc_generator import PWCGenerator
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 
 
 t_final = 20e-9

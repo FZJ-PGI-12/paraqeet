@@ -3,19 +3,19 @@
 import numpy as np
 import pytest
 
-from paraQeet.model.open_system import OpenSystem
-from paraQeet.optimisation_map import OptimisationMap
-from paraQeet.quantity import Quantity
-from paraQeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraQeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraQeet.model.closed_system import ClosedSystem
-from paraQeet.model.drive_operator import DriveOperator
-from paraQeet.model.qubit import Qubit
-from paraQeet.optimisers.scipy_optimiser import ScipyOptimiser
-from paraQeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from paraQeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraQeet.signal.envelopes import FlatTopGaussianEnvelope
-from paraQeet.signal.iq_mixer import IQMixer
+from paraqeet.model.open_system import OpenSystem
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.quantity import Quantity
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.qubit import Qubit
+from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9

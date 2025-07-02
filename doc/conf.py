@@ -22,6 +22,7 @@ html_theme = "press"
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
 
 # Group modules
+apidoc_module_first = True
 autoapi_member_order = "groupwise"
 
 # Automatically extract typehints when specified and place them in

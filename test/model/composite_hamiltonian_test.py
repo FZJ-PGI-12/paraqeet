@@ -3,13 +3,13 @@
 import pytest
 import numpy as np
 
-from paraQeet.quantity import Quantity
-from paraQeet.model.coupling import Coupling
-from paraQeet.signal.envelopes import FlatTopGaussianEnvelope
-from paraQeet.signal.iq_mixer import IQMixer
-from paraQeet.model.drive_operator import DriveOperator
-from paraQeet.model.transmon import Transmon
-from paraQeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.quantity import Quantity
+from paraqeet.model.coupling import Coupling
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.transmon import Transmon
+from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
 
 
 LEN_SIG = 101

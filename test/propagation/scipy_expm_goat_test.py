@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraQeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 

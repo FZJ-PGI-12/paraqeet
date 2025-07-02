@@ -3,14 +3,14 @@
 import pytest
 import numpy as np
 
-from paraQeet.model.open_system import OpenSystem
-from paraQeet.propagation.scipy_expm import ScipyExpm
-from paraQeet.propagation.vern7 import Vern7
-from paraQeet.quantity import Quantity
-from paraQeet.model.drive_operator import DriveOperator
-from paraQeet.model.transmon import Transmon
-from paraQeet.signal.iq_mixer import IQMixer
-from paraQeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
+from paraqeet.model.open_system import OpenSystem
+from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.vern7 import Vern7
+from paraqeet.quantity import Quantity
+from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.transmon import Transmon
+from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
 
 DIMS = 3
 FREQ = 4.8e9 * 2 * np.pi

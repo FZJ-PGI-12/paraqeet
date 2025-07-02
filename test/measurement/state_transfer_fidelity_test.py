@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraQeet.measurement.state_transfer_fidelity import (
+from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelity,
     StateTransferFidelityAD,
 )

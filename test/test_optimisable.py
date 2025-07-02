@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from paraQeet.optimisable import Optimisable
-from paraQeet.quantity import Quantity
+from paraqeet.optimisable import Optimisable
+from paraqeet.quantity import Quantity
 
 
 class DummyOptimisable(Optimisable):

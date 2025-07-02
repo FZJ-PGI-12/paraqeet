@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 
-from paraQeet.propagation.euler import Euler
+from paraqeet.propagation.euler import Euler
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 

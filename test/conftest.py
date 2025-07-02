@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 from scipy.stats import unitary_group
 
-from paraQeet.quantity import Quantity
+from paraqeet.quantity import Quantity
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 

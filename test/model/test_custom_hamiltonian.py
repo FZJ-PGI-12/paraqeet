@@ -1,12 +1,12 @@
 import pytest
 import jax.numpy as jnp
-from paraQeet.quantity import Quantity
-from paraQeet.model.custom_hamiltonian import CustomHamiltonian
-from paraQeet.model.closed_system import ClosedSystem
-from paraQeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraQeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraQeet.optimisation_map import OptimisationMap
-from paraQeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.quantity import Quantity
+from paraqeet.model.custom_hamiltonian import CustomHamiltonian
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
 
 sigma_x = jnp.array([[0j, 1], [1, 0]])
 sigma_z = jnp.diag(jnp.array([1.0, -1.0]))

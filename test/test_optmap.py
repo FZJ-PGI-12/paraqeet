@@ -1,9 +1,9 @@
 """Testing the optimisation map."""
 
-from paraQeet.optimisation_map import OptimisationMap
+from paraqeet.optimisation_map import OptimisationMap
 
-from paraQeet.signal.iq_mixer import IQMixer
-from paraQeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
 
 tone = ConstantEnvelope()
 gen = IQMixer(envelopes=[tone])

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraQeet.measurement.makhlin_functional import MakhlinFunctional
+from paraqeet.measurement.makhlin_functional import MakhlinFunctional
 from test.propagation.identity_propagation import IdentityPropagation
 from test.propagation.random_propagation import RandomPropagation
 

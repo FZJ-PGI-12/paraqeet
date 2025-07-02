@@ -5,10 +5,10 @@ from jax import jit
 import numpy as np
 import jax.numpy as jnp
 from scipy.stats import unitary_group
-from paraQeet.quantity import Array
+from paraqeet.quantity import Array
 
-from paraQeet.propagation.propagation import Propagation
-from paraQeet.quantity import Quantity
+from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Quantity
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
