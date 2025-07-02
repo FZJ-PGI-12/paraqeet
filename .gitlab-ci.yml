@@ -26,15 +26,17 @@ cache:
 
 stages:
   - codestyle
+  - build
   - tests
   - docs
+  - publish
 
 before_script:
   - python --version  # For debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install pytest-cov pytest-xdist mypy mypy-gitlab-code-quality nbval
+  - pip install pytest-cov pytest-xdist mypy mypy-gitlab-code-quality nbval build twine
   - pip install -e ."[dev, testNB]"
 
 test:
@@ -106,3 +108,18 @@ build-docs:
   tags: [docker, medium]
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  
+build:
+  stage: build
+  script:
+    - python -m build
+  artifacts:
+    paths:
+      - dist/
+
+publish:
+  stage: publish
+  script:
+    - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ python3 -m twine upload dist/*
+  rules:
+    - if: $CI_COMMIT_TAG
