@@ -1,3 +1,8 @@
+.. image:: ../big_logo.png
+   :align: center
+   :width: 90%
+   :alt: logo
+
 ===================================================================================
 ParaQeet -  A quantum optimal control toolkit with parameter handling
 ===================================================================================
@@ -16,7 +21,8 @@ Each module interacts only with the module above it in hierarchy.
 .. _CONTRIBUTING: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/CONTRIBUTING.md
 
 .. image:: layers.png
-   :width: 400
+   :align: center
+   :width: 60%
    :alt: layers
 
 Examples

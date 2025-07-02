@@ -103,6 +103,6 @@ build-docs:
   artifacts:
     paths:
       - public
-  tags: [docker, light]
+  tags: [docker, medium]
   #rules:
   #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

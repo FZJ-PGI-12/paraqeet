@@ -1,5 +1,5 @@
 <p align="center">
-<img src="paraqeet_big_logo.png" alt="paraqeet_logo" width="90%"/>
+<img src="big_logo.png" alt="paraqeet_logo" width="90%"/>
 </p>
 
 # ParaQeet -  A quantum optimal control toolkit with simple parameter management

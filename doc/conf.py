@@ -15,6 +15,7 @@ extensions = [
 
 
 html_theme = "press"
+
 # html_permalinks_icon = '<span>#</span>'
 # html_theme = 'sphinxawesome_theme'
 
@@ -31,4 +32,3 @@ autodoc_typehints = "description"
 
 # Don't show class signature with the class' name.
 autodoc_class_signature = "separated"
-
