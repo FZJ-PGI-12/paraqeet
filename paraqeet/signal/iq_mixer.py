@@ -115,18 +115,29 @@ class IQMixer(Generator):
         return jnp.real(self.__complex_signal(times))
 
     def generate_signal_gradient(self, times) -> Array:
-        """Collect and returns the gradients from all devices.
+        r"""Collect and returns the gradients from all devices.
 
-        Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
+        Since the
+
+        .. math::
+            signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
+
         Derivative of the signal wrt optimisable parameter of envelope would be
-        0.5 * Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
+
+        .. math::
+            0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+
         (TODO - Check the envelope derivatives)
 
         And derivative of signal wrt parameter of LO would be
-        0.5 * Re(env(t).conj() * i*t*e^(i*freq*t) * e^(-i*phase))
+
+        .. math::
+            0.5 i t \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
 
         And derivative of signal wrt phase would be
-        -0.5 * i * Re(env(t).conj() * e^(i*freq*t) * e^(-i*phase))
+
+        .. math::
+            -0.5 i \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
 
         The 0.5 are due to the Wirtinger derivatives due to Re part.
 
@@ -172,18 +183,29 @@ class IQMixer(Generator):
         return gradients
 
     def generate_signal_gradient_one_time(self, time: Array) -> Array:
-        """Return the gradients from all devices at the given time.
+        r"""Return the gradients from all devices at the given time.
 
-        Since the signal = Re(env(t).conj() * e^(i*freq*t) * exp(-i*phase))
+        Since the
+
+        .. math::
+            signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
+
         Derivative of the signal wrt optimisable parameter of envelope would be
-        0.5 * Re(denv(t).conj() * e^(i*freq*t) * e^(-i*phase))
+
+        .. math::
+            0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+
         (TODO - Check the envelope derivatives)
 
         And derivative of signal wrt parameter of LO would be
-        0.5*i*t * env(t).conj() * e^(i*freq*t) * e^(-i*phase)
+
+        .. math::
+            0.5 i t \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
 
         And derivative of signal wrt phase would be
-        -0.5*i * env(t).conj() * e^(i*freq*t) * e^(-i*phase)
+
+        .. math::
+            -0.5 i \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
 
         The 0.5 are due to the Wirtinger derivatives due to Re part.
 
