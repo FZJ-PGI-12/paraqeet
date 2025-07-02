@@ -1,6 +1,6 @@
-<p align="center">
-<img src="big_logo.png" alt="paraqeet_logo" width="90%"/>
-</p>
+<div align="center">
+  <center><img src="big_logo.png" alt="paraqeet_logo" width="90%"/></center>
+</div>
 
 # ParaQeet -  A quantum optimal control toolkit with simple parameter management
 
@@ -15,9 +15,9 @@ Aimed at resource efficient computation.
 We use a top-down approach to make the codebase modular. 
 Each module interacts only with the module above it in hierarchy. 
 
-<p align="center">
-<img src="doc/layers.png" alt="Layers" width="60%"/>
-</p>
+<div align="center">
+  <center><img src="doc/layers.png" alt="Layers" width="60%"/></center>
+</div>
 
 Currently implementated optimization methods
 - GRAPE: Gradient Ascent Pulse Enginnering
