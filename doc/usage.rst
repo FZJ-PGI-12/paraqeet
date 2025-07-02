@@ -5,8 +5,8 @@ Usage
 Installation
 ------------
 
-To use paraQeet, first install it using pip:
+To use ParaQeet, first install it using pip:
 
 .. code-block:: console
 
-   $ pip install paraQeet
+   $ pip install paraqeet

@@ -1,5 +1,5 @@
 ===================================================================================
-paraQeet -  A quantum optimal control toolkit with parameter handling
+ParaQeet -  A quantum optimal control toolkit with parameter handling
 ===================================================================================
 
 You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
