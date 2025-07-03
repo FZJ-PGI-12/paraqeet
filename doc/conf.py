@@ -10,6 +10,7 @@ extensions = [
     "sphinx.ext.mathjax",  # to include math expressions in the .rst files
     "recommonmark",  # to include markdown files in sphinx documentation
     "nbsphinx",  # to include jupyter notebooks,
+    "sphinx.ext.apidoc",
 ]
 
 
@@ -24,6 +25,8 @@ html_theme = "press"
 # Group modules
 apidoc_module_first = True
 autoapi_member_order = "groupwise"
+
+apidoc_modules = [{"path": "../paraqeet", "destination": "source/"}]
 
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
