@@ -28,7 +28,6 @@ stages:
   - codestyle
   - build
   - tests
-  - docs
   - publish
 
 before_script:
@@ -91,24 +90,6 @@ examples:
   tags: [docker, medium]
   
 
-build-docs:
-  stage: docs
-  script:
-    - apt-get update
-    - apt-get install -y pandoc
-    - pip install sphinx sphinx-press-theme sphinx-pyproject nbsphinx sphinx-autoapi jupyter sphinx-autodoc-typehints recommonmark
-    - for notebook in examples/*.ipynb; do jupyter nbconvert --execute --to rst --output-dir doc/notebooks $notebook; done
-    - cd doc
-    - sphinx-apidoc -o source ../paraqeet
-    - make html
-    - mv _build/html/ ../public/
-  artifacts:
-    paths:
-      - public
-  tags: [docker, medium]
-  #rules:
-  #  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  
 build:
   stage: build
   script:

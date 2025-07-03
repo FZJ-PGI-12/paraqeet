@@ -15,7 +15,7 @@ build:
         - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
         - cd $READTHEDOCS_REPOSITORY_PATH/doc
         - sphinx-apidoc -o source $READTHEDOCS_REPOSITORY_PATH/paraqeet
-        - make html
+        - sphinx-build -M html "." "_build"
         - mv _build/html/ $READTHEDOCS_OUTPUT/html/
       # You can also specify other tool versions:
     # nodejs: "20"
