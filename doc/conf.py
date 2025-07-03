@@ -8,7 +8,10 @@ extensions = [
     "recommonmark",  # to include markdown files in sphinx documentation
     "nbsphinx",  # to include jupyter notebooks,
     "sphinx.ext.apidoc",
+    "IPython.sphinxext.ipython_console_highlighting",
 ]
+
+exclude_patterns = ["**.ipynb_checkpoints"]
 
 
 html_theme = "press"

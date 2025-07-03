@@ -11,6 +11,7 @@ build:
     python: "3.12"
   jobs:
     pre_build:
+      - pip install -e .
       - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
       - sphinx-apidoc -o $READTHEDOCS_REPOSITORY_PATH/doc/source $READTHEDOCS_REPOSITORY_PATH/paraqeet
 
