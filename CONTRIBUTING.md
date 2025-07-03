@@ -41,3 +41,10 @@ pre-commit install
 
 - Add a doc string to every class and function, unless the function inherits the documentation from another class or interface.
 - Use the numpy format for arguments and return values (see https://numpydoc.readthedocs.io/en/latest/format.html)
+- For all merge requests, run the following commands to compile the examples for documentation.
+  ```
+    pip install matplotlib nbconvert ipykernel pandoc
+  ```
+  ```bash
+    for notebook in examples/*.ipynb; do jupyter nbconvert --execute --to rst --output-dir doc/notebooks $notebook; done
+  ```
