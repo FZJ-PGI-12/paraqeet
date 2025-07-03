@@ -24,4 +24,4 @@ Currently implementated optimization methods
 - GOAT: Gradient Optimization of Analytic conTrols
 
 ## Installation
-Install with `pip install .` in the top folder.
+Install with `pip install paraqeet`.
