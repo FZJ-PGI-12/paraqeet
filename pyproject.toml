@@ -13,7 +13,7 @@ include = ["paraqeet*"]  # package names should match these glob patterns (["*"]
 
 [project]
 name = "paraqeet"
-version = "0.9"
+version = "0.9.1"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -42,7 +42,7 @@ dependencies = [
 author = "PGI-12"
 project = "paraqeet"
 copyright = "PGI-12"
-release = "0.9"
+release = "0.9.1"
 
 [project.optional-dependencies]
 dev = [
