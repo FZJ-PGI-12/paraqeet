@@ -145,6 +145,5 @@ okteto.yml
 
 # Doc build
 doc/_build
-doc/notebooks/*
 doc/source/*
 
