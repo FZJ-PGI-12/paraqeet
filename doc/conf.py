@@ -2,9 +2,6 @@ from sphinx_pyproject import SphinxConfig
 
 config = SphinxConfig("../pyproject.toml", globalns=globals())
 
-copyrights = "PGI-12"
-release = "0.9"
-
 extensions = [
     "sphinx.ext.napoleon",  # to parse numpy stye python docstrings
     "sphinx.ext.mathjax",  # to include math expressions in the .rst files
