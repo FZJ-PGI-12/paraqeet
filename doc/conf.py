@@ -10,7 +10,6 @@ extensions = [
     "sphinx.ext.mathjax",  # to include math expressions in the .rst files
     "recommonmark",  # to include markdown files in sphinx documentation
     "nbsphinx",  # to include jupyter notebooks,
-    "sphinx_autodoc_typehints",
 ]
 
 
