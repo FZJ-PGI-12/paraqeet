@@ -12,11 +12,11 @@ build:
     jobs:
   build:
     html:
-    - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
-    - cd doc
-    - sphinx-apidoc -o source ../paraqeet
-    - make html
-    - mv _build/html/ $READTHEDOCS_OUTPUT/html/
+      - for notebook in examples/*.ipynb; do jupyter nbconvert --to rst --output-dir doc/notebooks $notebook; done
+      - cd doc
+      - sphinx-apidoc -o source ../paraqeet
+      - make html
+      - mv _build/html/ $READTHEDOCS_OUTPUT/html/
     # You can also specify other tool versions:
     # nodejs: "20"
     # rust: "1.70"
