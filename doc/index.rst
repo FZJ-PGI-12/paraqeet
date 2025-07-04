@@ -4,7 +4,7 @@
    :alt: logo
 
 ===================================================================================
-ParaQeet -  A quantum optimal control toolkit with parameter handling
+ParaQeet -  A quantum optimal control toolkit with simple parameter management
 ===================================================================================
 
 You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
@@ -25,6 +25,14 @@ Each module interacts only with the module above it in hierarchy.
    :width: 60%
    :alt: layers
 
+
+Installation
+========
+.. toctree::
+   
+   usage
+
+
 Examples
 ========
 We introduce the usage of the package with some examples. These are also available as interactive notebooks.
@@ -44,14 +52,6 @@ API Documentation
    :glob:
    
    source/*
-
-
-Contents
-========
-.. toctree::
-   
-   usage
-
 
 
 Indices and tables
