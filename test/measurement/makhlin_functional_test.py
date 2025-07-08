@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.makhlin_functional import MakhlinFunctional
 from test.propagation.identity_propagation import IdentityPropagation
 from test.propagation.random_propagation import RandomPropagation
@@ -98,3 +99,16 @@ def test_incompatible_shape():
         measurement = MakhlinFunctional(propagation, np.array([1.0]))
         with pytest.raises(Exception):
             _ = measurement.measure()
+
+
+def test_parameters():
+    propagation = RandomPropagation(4, True)
+    measurement = MakhlinFunctional(propagation, np.array([1.0]))
+    assert len(measurement.get_parameters()) == 0
+
+
+def test_measurement_needs_time():
+    propagation = RandomPropagation(4, True)
+    measurement = MakhlinFunctional(propagation, None)
+    with pytest.raises(ConfigurationException):
+        measurement.measure()
