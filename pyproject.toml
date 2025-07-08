@@ -65,6 +65,7 @@ gpu = [
 "Homepage" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
 "Bug Reports" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/issues"
 "Source" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
+"Documentation" = "https://paraqeet.readthedocs.io/en/latest/"
 
 
 # mypy configurations
