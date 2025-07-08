@@ -1,6 +1,7 @@
 import pytest
+import numpy.random as random
 import jax.numpy as jnp
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Quantity, Array
 from paraqeet.model.custom_hamiltonian import CustomHamiltonian
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
@@ -107,3 +108,18 @@ def test_optimisation(opt):
     """Test gradient based optimisation."""
     res = opt.optimise()
     assert res.value < 1e-4
+
+
+def test_shapes(random_matrix):
+    for dim in range(2, 10):
+
+        def generator(time) -> Array:
+            M = random_matrix(dim, dim)
+            return M + jnp.conjugate(M).T
+
+        H = CustomHamiltonian(hamiltonian_function=generator, parameters=[])
+        assert H.dimension() == dim
+
+        times = jnp.linspace(0, random.randint(1, 100) * random.random(), random.randint(2, 20))
+        assert H.get_matrix_one_time(times[-1]).shape == (dim, dim)
+        assert H.get_matrix(times).shape == (len(times), dim, dim)
