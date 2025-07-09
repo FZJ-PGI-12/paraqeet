@@ -3,6 +3,7 @@
 import pytest
 import numpy as np
 
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.euler import Euler
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
@@ -49,3 +50,14 @@ def test_state_dimension_matrix(random_matrix, euler, ts):
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape
+
+
+def test_needs_initial_state(random_state, euler):
+    for dim in range(2, 10):
+        random_time_vector = np.linspace(0.0, np.random.randint(1, 10) * np.random.rand(), np.random.randint(1, 10))
+        propagation = euler(dim)
+        with pytest.raises(ConfigurationException):
+            propagation.propagate(random_time_vector)
+
+        propagation.set_initial_state(random_state(dim))
+        propagation.propagate(random_time_vector)
