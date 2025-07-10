@@ -25,10 +25,10 @@ class CompositeHamiltonian(Hamiltonian):
         List of couplings between the various subsystems
     """
 
-    __subsystems: list[Hamiltonian]
-    __couplings: list[Coupling]
-    __dimensions: list[int]
-    __total_dimension: int
+    _subsystems: list[Hamiltonian]
+    _couplings: list[Coupling]
+    _dimensions: list[int]
+    _total_dimension: int
 
     def __init__(
         self,
@@ -38,10 +38,10 @@ class CompositeHamiltonian(Hamiltonian):
         super().__init__()
         if couplings is None:
             couplings = []
-        self.__subsystems = subsystems
-        self.__couplings = couplings
-        self.__dimensions = [s.dimension() for s in subsystems]
-        self.__total_dimension = int(np.prod(self.__dimensions))
+        self._subsystems = subsystems
+        self._couplings = couplings
+        self._dimensions = [s.dimension() for s in subsystems]
+        self._total_dimension = int(np.prod(self._dimensions))
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
@@ -53,9 +53,9 @@ class CompositeHamiltonian(Hamiltonian):
 
         """
         params = []
-        for subsystem in self.__subsystems:
+        for subsystem in self._subsystems:
             params += subsystem.get_parameters()
-        for coupling in self.__couplings:
+        for coupling in self._couplings:
             params += coupling.get_parameters()
         return params
 
@@ -71,9 +71,9 @@ class CompositeHamiltonian(Hamiltonian):
             Input list of parameters to be set.
 
         """
-        for subsystem in self.__subsystems:
+        for subsystem in self._subsystems:
             subsystem.set_optimisable_parameters(params)
-        for coupling in self.__couplings:
+        for coupling in self._couplings:
             coupling.set_optimisable_parameters(params)
 
     def dimension(self) -> int:
@@ -85,7 +85,17 @@ class CompositeHamiltonian(Hamiltonian):
             Dimension of the system.
 
         """
-        return self.__total_dimension
+        return self._total_dimension
+
+    def get_subsystem_dimensions(self) -> list[int]:
+        """Return a list of dimensions of each subsystem in the composite Hamiltonian.
+
+        Returns
+        -------
+        list[int]
+            list of dimension of each subsystem.
+        """
+        return self._dimensions
 
     def get_matrix_one_time(self, t: Array) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
@@ -103,15 +113,15 @@ class CompositeHamiltonian(Hamiltonian):
 
         """
         # Calculate the tensor product of all subsystem matrices
-        matrix = jnp.zeros((self.__total_dimension, self.__total_dimension))
-        for n, subsystem in enumerate(self.__subsystems):
+        matrix = jnp.zeros((self._total_dimension, self._total_dimension))
+        for n, subsystem in enumerate(self._subsystems):
             subMatrix = subsystem.get_matrix_one_time(t)
             matrix += self.__tensor_product_with_identity([subMatrix], [n])
 
-        for coupling in self.__couplings:
+        for coupling in self._couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
-            indices = [self.__subsystems.index(s) for s in coupling.subsystems]
+            indices = [self._subsystems.index(s) for s in coupling.subsystems]
             subMatrices = coupling.get_matrices_one_time(t)
             for term in subMatrices:
                 matrix += self.__tensor_product_with_identity(term, indices)
@@ -158,7 +168,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
-        for one_index, subsystem in enumerate(self.__subsystems):
+        for one_index, subsystem in enumerate(self._subsystems):
             subGradients = subsystem.gradient_one_time(t)
             for g in subGradients:
                 if not isinstance(g, np.ndarray | jax.Array):
@@ -167,8 +177,8 @@ class CompositeHamiltonian(Hamiltonian):
 
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
-        for coupling in self.__couplings:
-            indices = [self.__subsystems.index(s) for s in coupling.subsystems]
+        for coupling in self._couplings:
+            indices = [self._subsystems.index(s) for s in coupling.subsystems]
             couplingGradient = coupling.gradient_one_time(t)
             for term in couplingGradient:
                 for g_list in term:
@@ -202,7 +212,7 @@ class CompositeHamiltonian(Hamiltonian):
         """
         # Create identity matrices for all subsystems and
         # fill in M at the corresponding indices
-        subMatrices = [jnp.eye(s.dimension()) for s in self.__subsystems]
+        subMatrices = [jnp.eye(s.dimension()) for s in self._subsystems]
         for i, k in enumerate(n):
             subMatrices[k] = jnp.array(M[i])
 
@@ -219,7 +229,7 @@ class CompositeHamiltonian(Hamiltonian):
         with identity to create the collapse operators of the right dimension.
         """
         all_collapse_ops = []
-        for n, subsystem in enumerate(self.__subsystems):
+        for n, subsystem in enumerate(self._subsystems):
             rates_and_cols = subsystem.get_collapseops()
             for rate, col_op in rates_and_cols:
                 all_collapse_ops.append((rate, self.__tensor_product_with_identity([col_op], [n])))

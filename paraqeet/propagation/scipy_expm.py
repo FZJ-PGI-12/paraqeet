@@ -98,22 +98,72 @@ class ScipyExpm(StatePropagation):
         # Verify if `model.ode_propagation` is set to `False`.
         # ode_propgation returns hamiltonian and collapse operators separately.
         eom = self._model.get_matrix(jnp.array([0.0]))
+        dim_generator = eom.shape[1]
+
         if len(eom) == 2:
             raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
 
+        state = self.__check_and_fix_state_shape(state, dim_generator)
+        self._initial_state = jnp.array(state, dtype=jnp.complex128)
+
+    def __check_and_fix_state_shape(self, state, dim_generator):
+        # For closed system check if the initial state has the right dimensions.
+        if not self.is_open:
+            if len(state.shape) == 1:  # (n,) array
+                state = jnp.reshape(state, (-1, 1))
+
+            if state.shape[-2] != dim_generator:
+                raise ConfigurationException(
+                    f"Obtained a state vector of shape {state.shape} as initial state. "
+                    + f"Expected a shape of dimensions `{(dim_generator, 1)}`"
+                    + "or an array of initial states of the above dimension."
+                )
+
         # For open system convert Density Matrix to Vectorized form.
-        if self.is_open:
+        else:
             try:
                 if len(state.shape) == 1:  # An (n,) array
                     state = jnp.reshape(state, (-1, 1))
-                # Compare the shapes of inital state with the generator of time translation
-                dim_generator = eom.shape[1]
-                # Comparing dim -2 as 0 can be batch dimension
+
+                # Check whether it is a density matrix or vectorized density matrix (or an array of those).
+                # Checking if it is a density matrix. Comparing dim (-2) as (0) can be batch dimension
                 if state.shape[-2] == jnp.sqrt(dim_generator):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
                     if state.shape[-1] == state.shape[-2]:
-                        # This is a density matrix
-                        state = self._convert_dm_to_vec(state)
+                        # This is a density matrix. Convert to vectorized form.
+                        state = self._convert_dm_to_vec(state, int(jnp.sqrt(dim_generator)))
+
+                    # check if it is a list of vectorized density matrices
+                    elif state.shape[-1] == dim_generator:
+                        # This is an egde case with batch dimension = n, where n is Hilbert space dimension
+                        state = jnp.expand_dims(state, -1)
+
+                    else:
+                        raise ConfigurationException(
+                            "Initial state neither a density matrix nor a vectorized density matrix.\n"
+                            + "For a list of vectorized density matrices expected shape is (m, n^2, 1)"
+                            + " where m is the batch dimension, n is the Hilbert space dimension."
+                        )
+
+                # Not a density matrix (or list). Check if it is a vectorized density matrix.
+                elif state.shape[-2] == dim_generator:
+                    # vectorized density matrix or a list of vectorized density matrix
+                    if state.shape[-1] == state.shape[-2]:
+                        # list of vectorized density matrices
+                        # This is an egde case: batch dimension = n^2, where n is Hilbert space dimension
+                        state = jnp.expand_dims(state, -1)
+
+                    elif state.shape[-1] == 1:
+                        # normal vectorized density matrix
+                        state = state
+
+                    else:
+                        raise ConfigurationException(
+                            "Initial state neither a single or list of vectorized density matrix.\n"
+                            + "For a list of vectorized density matrices expected shape is (m, n^2, 1)"
+                            + " where m is the batch dimension, n is the Hilbert space dimension."
+                        )
+
             except Exception as e:
                 raise ConfigurationException(
                     f"Obtained a state vector of shape {state.shape} as initial state. "
@@ -121,17 +171,24 @@ class ScipyExpm(StatePropagation):
                     + "as the initial state.\n"
                     + f"Raised exception: `{e}`"
                 )
-        self._initial_state = jnp.array(state, dtype=jnp.complex128)
+
+        return state
 
     @staticmethod
-    def _convert_dm_to_vec(state_dm: Array) -> jnp.ndarray:
+    def _convert_dm_to_vec(state_dm: Array, dim: int) -> jnp.ndarray:
         """Helper function to convert a density matrix to vectorized form."""
-        return jnp.reshape(jnp.transpose(state_dm), (-1, 1))
+        vec = jnp.reshape(jnp.transpose(state_dm), (-1, dim**2, 1))
+        if vec.shape[0] == 1:
+            vec = jnp.squeeze(vec, axis=0)
+        return vec
 
     @staticmethod
     def _convert_vec_to_dm(state_vec: Array, dim: int) -> jnp.ndarray:
         """Helper function to convert a Vectorized density matrix to matrix form."""
-        return jnp.transpose(jnp.reshape(state_vec, (dim, dim)))
+        dm = jnp.reshape(state_vec, (-1, dim, dim))
+        if dm.shape[0] == 1:
+            dm = jnp.squeeze(dm, axis=0)
+        return jnp.transpose(dm)
 
     @partial(jit, static_argnums=(0,))
     def _propagate_in_time(self, psis_t, eom, steps_arr):
