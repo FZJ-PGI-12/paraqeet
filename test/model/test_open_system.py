@@ -52,3 +52,9 @@ def test_create_sparse_matrix(open_system):
         assert system.sparse_superop is False
         matrix = system.get_matrix(random_time_vector)
         assert matrix.shape == (len(random_time_vector), dim**2, dim**2)
+
+
+def test_has_parameters(open_system):
+    system = open_system(np.random.randint(2, 10))
+    assert system.get_parameters() is not None
+    assert len(system.get_parameters()) >= 0

@@ -1,6 +1,8 @@
 """Class definition of the Transmon Hamiltonian model."""
 
 import jax.numpy as jnp
+
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.quantity import Array
 
 from paraqeet.model.drive import Drive
@@ -177,7 +179,7 @@ class Transmon(Hamiltonian):
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""
         if (self.t1 is None) or (self.t2star is None) or (self.temp is None):
-            raise Exception("Specify values of T1, T2star and Temp for Open system simulations.")
+            raise ConfigurationException("Specify values of T1, T2star and Temp for Open system simulations.")
 
         gamma = 1 / self.t1.get_value()
         gamma_t2star = 0.5 / self.t2star.get_value()

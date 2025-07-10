@@ -3,7 +3,6 @@
 import pytest
 import numpy as np
 
-from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.vern7 import Vern7
@@ -12,6 +11,7 @@ from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.resonator import Resonator
 from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
+from test.model.common_hamiltonian_tests import needs_parameters_for_decay_rates
 
 DIMS = 3
 FREQ = 4.8e9 * 2 * np.pi
@@ -160,32 +160,7 @@ def test_decay_ode(ode):
 
 
 def test_needs_parameters_for_decay_rates(hamiltonian):
-    t1 = Quantity(1.0, 0.0, 2.0)
-    t2star = Quantity(1.0, 0.0, 2.0)
-    temp = Quantity(1.0, 0.0, 2.0)
-    combinations = [
-        [t1, None, None],
-        [None, t2star, None],
-        [None, None, temp],
-        [t1, t2star, None],
-        [t1, None, temp],
-        [None, t2star, temp],
-    ]
-    for dim in np.arange(1, 10):
-        H = hamiltonian(dim)
-        for combination in combinations:
-            # Invalid parameters should raise an exception
-            H.t1 = combination[0]
-            H.t2star = combination[1]
-            H.temp = combination[2]
-            with pytest.raises(ConfigurationException):
-                H.get_decay_rates()
-            with pytest.raises(ConfigurationException):
-                H.get_collapseops()
-
-            # Valid parameters should work
-            H.t1 = t1
-            H.t2star = t2star
-            H.temp = temp
-            H.get_decay_rates()
-            H.get_collapseops()
+    for _ in range(10):
+        for dim in np.arange(1, 10):
+            H = hamiltonian(dim)
+            needs_parameters_for_decay_rates(H)

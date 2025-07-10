@@ -3,6 +3,7 @@
 import pytest
 import numpy as np
 
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.vern7 import Vern7
@@ -179,3 +180,34 @@ def test_decay_ode(ode):
 
     # Check the ground state population
     assert np.isclose(final_state[0, 0], 1)
+
+
+def test_setters_and_getters(hamiltonian, random_quantity):
+    H = hamiltonian(np.random.randint(2, 10))
+
+    frequency = random_quantity(1)
+    H.frequency = frequency
+    assert H.frequency == frequency
+
+    anharmonicity = random_quantity(1)
+    H.anharmonicity = anharmonicity
+    assert H.anharmonicity == anharmonicity
+
+
+def test_needs_parameters_for_decay_rates(hamiltonian):
+    for _ in range(10):
+        for dim in np.arange(1, 10):
+            H = hamiltonian(dim)
+            t1 = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+            t2star = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+            temp = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+            H.t1 = t1
+            H.t2star = t2star
+            H.temp = temp
+            if t1 is not None and t2star is not None and temp is not None:
+                # Valid parameters should work
+                H.get_collapseops()
+            else:
+                # Invalid parameters should raise an exception
+                with pytest.raises(ConfigurationException):
+                    H.get_collapseops()
