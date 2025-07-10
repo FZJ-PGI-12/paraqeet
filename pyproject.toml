@@ -67,6 +67,8 @@ gpu = [
 "Source" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
 "Documentation" = "https://paraqeet.readthedocs.io/en/latest/"
 
+[tool.setuptools.package-data]
+"paraqeet" = ["py.typed"]
 
 # mypy configurations
 [tool.mypy]
