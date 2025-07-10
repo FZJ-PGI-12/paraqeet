@@ -51,7 +51,7 @@ def test_state_dimension_vector(random_state, expm, ts):
         assert propagatedStates.shape[1:] == state.shape + (1,)
 
 
-def test_state_dimension_matrix(random_matrix, expm, ts):
+def test_state_dimension_rect_matrix(random_matrix, expm, ts):
     """Test the state matrix after propagation."""
     for i in range(10):
         basis = np.random.randint(2, 30)
@@ -64,11 +64,38 @@ def test_state_dimension_matrix(random_matrix, expm, ts):
         assert propagatedStates.shape[1:] == state.shape
 
 
+def test_state_dimension_square_matrix(expm, ts):
+    """Test for a batch of initial states for propagation."""
+    for i in range(5):
+        basis = np.random.randint(2, 30)
+        dim = basis + np.random.randint(1, 3)
+        state = np.eye(dim, dtype=np.complex128)
+        propagation = expm(dim, res=3)
+        propagation.set_initial_state(state)
+        propagatedStates = propagation.propagate(ts)
+        assert propagatedStates.shape[0] == len(ts)
+        assert propagatedStates.shape[1:] == state.shape
+
+
 def test_state_dimension_matrix_open(random_matrix, expm, ts):
     """Test the state matrix after propagation."""
     for i in range(10):
         dim = np.random.randint(2, 30)
         state = random_matrix(dim, dim)
+        propagation = expm(dim**2, res=3)
+        propagation.is_open = True
+        propagation.set_initial_state(state)
+        propagatedStates = propagation.propagate(ts)
+        assert propagatedStates.shape[0] == len(ts)
+        assert propagatedStates.shape[1:] == state.shape
+
+
+def test_state_dimension_square_matrix_open(expm, ts):
+    """Test for a batch of initial states for propagation."""
+    for i in range(5):
+        basis = np.random.randint(2, 30)
+        dim = basis + np.random.randint(1, 3)
+        state = np.eye(dim, dtype=np.complex128)
         propagation = expm(dim**2, res=3)
         propagation.is_open = True
         propagation.set_initial_state(state)
