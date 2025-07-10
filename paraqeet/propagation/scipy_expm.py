@@ -177,12 +177,18 @@ class ScipyExpm(StatePropagation):
     @staticmethod
     def _convert_dm_to_vec(state_dm: Array, dim: int) -> jnp.ndarray:
         """Helper function to convert a density matrix to vectorized form."""
-        return jnp.squeeze(jnp.reshape(jnp.transpose(state_dm), (-1, dim**2, 1)), axis=0)
+        vec = jnp.reshape(jnp.transpose(state_dm), (-1, dim**2, 1))
+        if vec.shape[0] == 1:
+            vec = jnp.squeeze(vec, axis=0)
+        return vec
 
     @staticmethod
     def _convert_vec_to_dm(state_vec: Array, dim: int) -> jnp.ndarray:
         """Helper function to convert a Vectorized density matrix to matrix form."""
-        return jnp.transpose(jnp.squeeze(jnp.reshape(state_vec, (-1, dim, dim)), axis=0))
+        dm = jnp.reshape(state_vec, (-1, dim, dim))
+        if dm.shape[0] == 1:
+            dm = jnp.squeeze(dm, axis=0)
+        return jnp.transpose(dm)
 
     @partial(jit, static_argnums=(0,))
     def _propagate_in_time(self, psis_t, eom, steps_arr):
