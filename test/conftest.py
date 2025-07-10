@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import unitary_group
 
 from paraqeet.quantity import Quantity
-from test.model.dummy_model import DummyModel
+from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
 LEN_SIG = 20
@@ -37,7 +37,7 @@ def model():
     """Return a dummy model generation function."""
 
     def _method(dimension):
-        return DummyModel(EmptyHamiltonian(dimension))
+        return DummyEquationsOfMotion(EmptyHamiltonian(dimension))
 
     return _method
 

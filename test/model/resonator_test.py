@@ -11,7 +11,6 @@ from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.resonator import Resonator
 from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
-from test.model.common_hamiltonian_tests import needs_parameters_for_decay_rates
 
 DIMS = 3
 FREQ = 4.8e9 * 2 * np.pi
@@ -157,10 +156,3 @@ def test_decay_ode(ode):
 
     # Check the ground state population
     assert np.isclose(final_state[0, 0], 1)
-
-
-def test_needs_parameters_for_decay_rates(hamiltonian):
-    for _ in range(10):
-        for dim in np.arange(1, 10):
-            H = hamiltonian(dim)
-            needs_parameters_for_decay_rates(H)
