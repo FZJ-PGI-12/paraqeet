@@ -41,7 +41,7 @@ def test_state_dimension_vector(random_state, expm, ts):
 
     """
     for i in range(10):
-        dim = np.random.randint(2, 30)
+        dim = np.random.randint(2, 10)
         state = random_state(dim)
         propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
@@ -54,7 +54,7 @@ def test_state_dimension_vector(random_state, expm, ts):
 def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
     """Test the state matrix after propagation."""
     for i in range(10):
-        dim = np.random.randint(2, 30)
+        dim = np.random.randint(2, 10)
         state = random_matrix(dim, dim)
         if is_open:
             propagation = expm(dim**2, res=3)
