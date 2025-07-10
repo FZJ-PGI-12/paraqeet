@@ -9,7 +9,7 @@ from paraqeet.quantity import Array
 
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Quantity
-from test.model.dummy_model import DummyModel
+from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
 
@@ -40,7 +40,7 @@ class RandomPropagation(Propagation):
         generateMatrices: bool = False,
         autoUpdate: bool = True,
     ):
-        super().__init__(DummyModel(EmptyHamiltonian(0)))
+        super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)))
         self.__dimension = dimension
         self.__createMatrices = generateMatrices
         self.__autoUpdate = autoUpdate

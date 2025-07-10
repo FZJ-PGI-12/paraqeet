@@ -2,10 +2,10 @@
 
 import pytest
 import numpy as np
-from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.runge_kutta import RungeKutta
-from test.model.dummy_model import DummyModel
+from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
+from test.propagation.common_propagation_tests import needs_initial_state
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def rk():
     """Return a Runge-Kutta model generating method."""
 
     def _method(dimension):
-        return RungeKutta(DummyModel(EmptyHamiltonian(dimension)))
+        return RungeKutta(DummyEquationsOfMotion(EmptyHamiltonian(dimension)))
 
     return _method
 
@@ -46,9 +46,9 @@ def test_initial_state(rk, ts):
         If the initial state is not set.
 
     """
-    rungeKutta = rk(np.random.randint(1, 100))
-    with pytest.raises(ConfigurationException, match="Initial state is not set"):
-        rungeKutta.propagate(ts)
+    for dim in range(2, 20):
+        propagation = rk(dim)
+        needs_initial_state(propagation, dim)
 
 
 def test_time_steps(rk, random_state):

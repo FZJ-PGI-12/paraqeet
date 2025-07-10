@@ -3,10 +3,10 @@
 import pytest
 import numpy as np
 
-from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.euler import Euler
-from test.model.dummy_model import DummyModel
+from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
+from test.propagation.common_propagation_tests import needs_initial_state
 
 
 @pytest.fixture
@@ -14,7 +14,7 @@ def euler():
     """Return a Euler propagation model generating method."""
 
     def _method(dimension):
-        return Euler(DummyModel(EmptyHamiltonian(dimension)))
+        return Euler(DummyEquationsOfMotion(EmptyHamiltonian(dimension)))
 
     return _method
 
@@ -54,10 +54,5 @@ def test_state_dimension_matrix(random_matrix, euler, ts):
 
 def test_needs_initial_state(random_state, euler):
     for dim in range(2, 10):
-        random_time_vector = np.linspace(0.0, np.random.randint(1, 10) * np.random.rand(), np.random.randint(1, 10))
         propagation = euler(dim)
-        with pytest.raises(ConfigurationException):
-            propagation.propagate(random_time_vector)
-
-        propagation.set_initial_state(random_state(dim))
-        propagation.propagate(random_time_vector)
+        needs_initial_state(propagation, dim)
