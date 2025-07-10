@@ -10,7 +10,7 @@ from paraqeet.optimisable import Optimisable
 class Generator(Optimisable):
     """Signal generation stack.
 
-    Contrary to most quantum simulators, C^3 includes a detailed simulation
+    Contrary to most quantum simulators, paraqeet includes a detailed simulation
     of the control stack. Each component in the stack and its functions are
     simulated individually and combined here.
 
