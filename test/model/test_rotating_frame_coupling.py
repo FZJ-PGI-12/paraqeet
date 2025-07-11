@@ -22,10 +22,8 @@ def coupling(subsystem, random_quantity):
     def _method(dim1, dim2) -> RotatingFrameCoupling:
         sub1 = subsystem(dim1)
         sub2 = subsystem(dim2)
-        coupling = random_quantity(1)
-        coupling.unit = "Hz"
-        diff_frequency = random_quantity(1)
-        diff_frequency.unit = "Hz"
+        coupling = random_quantity(1, "Hz")
+        diff_frequency = random_quantity(1, "Hz")
         return RotatingFrameCoupling([sub1, sub2], coupling, diff_frequency)
 
     return _method

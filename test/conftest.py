@@ -117,10 +117,10 @@ def random_quantity(random_quantity_for_values):
 
     """
 
-    def _method(N: int):
+    def _method(N: int, unit: str = ""):
         magnitude = np.power(10.0, np.random.randint(-10, 10))
         values = (2 * np.random.random(N) - 1) * magnitude
-        return random_quantity_for_values(values)
+        return random_quantity_for_values(values, unit)
 
     return _method
 
@@ -133,9 +133,9 @@ def random_quantity_for_values(random_limits_for_quantity):
 
     """
 
-    def _method(values: np.ndarray):
+    def _method(values: np.ndarray, unit: str = ""):
         limits = random_limits_for_quantity(values)
-        return Quantity(values, min_value=limits[0], max_value=limits[1], unit="")
+        return Quantity(values, min_value=limits[0], max_value=limits[1], unit=unit)
 
     return _method
 
