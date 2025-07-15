@@ -4,9 +4,9 @@ from test.propagation.identity_propagation import IdentityPropagation
 
 import numpy as np
 import pytest
-from cthree.exceptions import ConfigurationException
-from cthree.measurement.unitary_fidelity import UnitaryFidelity
-from cthree.measurement.weighted_sum_goal import WeightedSumGoal
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
 
 
 def test_weighted_sum_goal(random_unitary_matrix):
@@ -28,7 +28,7 @@ def test_weighted_sum_goal_mismatched_weights():
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    ConfigurationException
         Raise an exception with the weighted sum goal with weights.
 
     """
@@ -41,7 +41,7 @@ def test_weighted_sum_goal_weights_not_normalised():
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    ConfigurationException
         Raise an exception with the weighted sum goal with weights.
 
     """

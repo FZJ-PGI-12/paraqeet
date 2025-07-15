@@ -4,7 +4,8 @@ import numpy as np
 import numpy.testing as testing
 import pytest
 
-from cthree.quantity import Quantity
+from paraqeet.exceptions import IncompatibleQuantityException
+from paraqeet.quantity import Quantity
 
 
 @pytest.fixture
@@ -19,9 +20,76 @@ def three():
     return Quantity(3, 0, 15)
 
 
+# constructor
+def test_constructor_keeps_value_length():
+    """If value, min, and max are arrays of length N, they should not be altered in the constructor."""
+    for N in range(1, 100):
+        values = np.random.rand(N)
+        q = Quantity(values, min_value=0.9 * values, max_value=1.1 * values, unit="")
+        assert len(q.get_value()) == N
+        assert len(q.get_min_value()) == N
+        assert len(q.get_max_value()) == N
+
+
+def test_updates_bounds_length():
+    """If value is of length N while min, and max are scalar, the bounds should be altered into arrays."""
+    for N in range(1, 100):
+        # In the constructor
+        values = np.random.rand(N)
+        q = Quantity(values, min_value=0.9 * np.min(values), max_value=1.1 * np.max(values), unit="")
+        assert len(q.get_value()) == N
+
+        minValue = q.get_min_value()
+        assert len(minValue) == N
+        testing.assert_allclose(minValue, minValue[0])
+
+        maxValue = q.get_max_value()
+        assert len(maxValue) == N
+        testing.assert_allclose(maxValue, maxValue[0])
+
+        # In set_limits
+        q.set_limits(0.9 * np.min(values), 1.1 * np.max(values))
+        minValue = q.get_min_value()
+        assert len(minValue) == N
+        testing.assert_allclose(minValue, minValue[0])
+
+        maxValue = q.get_max_value()
+        assert len(maxValue) == N
+        testing.assert_allclose(maxValue, maxValue[0])
+
+
+def test_fails_on_different_lengths(random_from_list):
+    """If value, min, and max are arrays of different length, the quantity should raise an exception."""
+    for N in range(1, 100):
+        values = np.random.rand(N)
+        # Test for 20 random shapes other than N if set_value, set_reduced_value, and set_value_and_limits fail
+        for _ in range(20):
+            minShape = random_from_list(np.arange(100), N)
+            minValues = 0.9 * np.random.rand(minShape) * np.min(values)
+            maxShape = random_from_list(np.arange(100), np.array([N, minShape]))
+            maxValues = (1.0 + 0.1 * np.random.rand(maxShape)) * np.max(values)
+
+            # In the constructor
+            with pytest.raises(IncompatibleQuantityException):
+                Quantity(values, min_value=minValues, max_value=maxValues, unit="")
+
+            # In set_limits
+            q = Quantity(values, min_value=0.9 * values, max_value=1.1 * values, unit="")
+            with pytest.raises(IncompatibleQuantityException):
+                q.set_limits(minValues, maxValues)
+            testing.assert_array_equal(q.get_value(), values)
+            testing.assert_almost_equal(q.get_min_value(), 0.9 * values)
+            testing.assert_almost_equal(q.get_max_value(), 1.1 * values)
+
+            # In set_value_and_limits
+            with pytest.raises(IncompatibleQuantityException):
+                q.set_value_and_limits(values, minValues, maxValues)
+            testing.assert_array_equal(q.get_value(), values)
+            testing.assert_almost_equal(q.get_min_value(), 0.9 * values)
+            testing.assert_almost_equal(q.get_max_value(), 1.1 * values)
+
+
 # getter and setter
-
-
 def testGet(random_quantity_for_values) -> None:
     """Test get_value, get_min_value, and get_max_value.
 
@@ -68,6 +136,36 @@ def testSet(random_quantity_for_values, random_limits_for_quantity) -> None:
         testing.assert_array_less(q.get_value(), q.get_max_value())
 
 
+def test_set_fails_on_different_lengths(random_quantity_for_values, random_from_list):
+    """Setting a new value should fail if the length of the new value is different than the old one."""
+    for N in range(1, 100):
+        # create a random quantity with values that shall be overwritten
+        values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
+        q = random_quantity_for_values(values)
+        oldValue = q.get_value()
+        oldMin = q.get_min_value()
+        oldMax = q.get_max_value()
+
+        # Test for 20 random shapes other than N if set_value, set_reduced_value, and set_value_and_limits fail
+        for _ in range(20):
+            newShape = random_from_list(np.arange(100), N)
+            newValues = np.random.rand(newShape)
+            with pytest.raises(IncompatibleQuantityException):
+                q.set_value(newValues)
+            with pytest.raises(IncompatibleQuantityException):
+                q.set_reduced_value(newValues)
+            if N > 1:
+                # If the bounds have a shape of N=1, set_value_and_limits would correctly assume that the bounds should
+                # be transformed from scalar into array
+                with pytest.raises(IncompatibleQuantityException):
+                    q.set_value_and_limits(newValues, oldMin, oldMax)
+
+        # Make sure that the quantity did not change
+        testing.assert_array_equal(q.get_value(), oldValue)
+        testing.assert_array_equal(q.get_min_value(), oldMin)
+        testing.assert_array_equal(q.get_max_value(), oldMax)
+
+
 def testGetItem(random_quantity_for_values) -> None:
     """Test get item for scalar quantities."""
     for N in range(1, 100):
@@ -99,7 +197,7 @@ def testToArray(random_quantity_for_values) -> None:
     for N in range(1, 100):
         values = (2 * np.random.random(N) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(values)
-        testing.assert_array_almost_equal(np.array(q), values)
+        testing.assert_array_almost_equal(np.asarray(q.get_value()), values)
 
 
 # comparison
@@ -237,11 +335,11 @@ def __generateRandomMatrix(N: int) -> np.ndarray:
 
     Returns
     -------
-    numpy.ndarray
+    Array
         Returns a randomly generated `N` by `N` matrix.
 
     """
-    magnitude = np.power(10.0, np.random.randint(-10, 10))
+    magnitude: float = np.power(10.0, np.random.randint(-10, 10))
     return (2 * np.random.random((N, N)) - 1) * magnitude
 
 
@@ -290,9 +388,9 @@ def testPersistence(random_quantity):
             # assert q == q2
             assert q.get_name() == q2.get_name()
             assert q.get_unit() == q2.get_unit()
-            testing.assert_almost_equal(q.get_min_value(), q2.get_min_value())
-            testing.assert_almost_equal(q.get_max_value(), q2.get_max_value())
-            testing.assert_almost_equal(q.get_reduced_value(), q2.get_reduced_value())
+            testing.assert_allclose(q.get_min_value(), q2.get_min_value())
+            testing.assert_allclose(q.get_max_value(), q2.get_max_value())
+            testing.assert_allclose(q.get_reduced_value(), q2.get_reduced_value())
             if N == 1:
                 assert q2.is_scalar()
             else:

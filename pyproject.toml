@@ -8,10 +8,12 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["paraqeet*"]  # package names should match these glob patterns (["*"] by default)
 
 [project]
-name = "cthree"
-version = "2.0"
+name = "paraqeet"
+version = "0.9.1"
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -28,18 +30,25 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
-  "numpy>=1.23.0",
-  "scipy>=1.9.0",
-  "jax>=0.4.20",
-  "jaxlib>=0.4.20"
+  "numpy>=2.3.0",
+  "scipy>=1.15.3",
+  "jax>=0.6.1",
+  "jaxlib>=0.6.1",
+  "bayesian-optimization>=2.0.4",
+  "cma>=4.2.0"
 ]
 
+[tool.sphinx-pyproject]
+author = "PGI-12"
+project = "paraqeet"
+copyright = "PGI-12"
+release = "0.9.1"
 
 [project.optional-dependencies]
 dev = [
   "pytest>=7.2.0",
-  "pre-commit>=3.3.1",
-  "ruff>=0.6.5"
+  "pre-commit>=4.2.0",
+  "ruff>=0.11.13"
 ]
 test = [
   "pytest>=7.2.0",
@@ -53,14 +62,17 @@ gpu = [
 ]
 
 [project.urls]
-"Homepage" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update"
-"Bug Reports" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update/-/issues"
-"Source" = "https://jugit.fz-juelich.de/pgi-12/projects/c3-update"
+"Homepage" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
+"Bug Reports" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/issues"
+"Source" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
+"Documentation" = "https://paraqeet.readthedocs.io/en/latest/"
 
+[tool.setuptools.package-data]
+"paraqeet" = ["py.typed"]
 
 # mypy configurations
 [tool.mypy]
-python_version = "=3.12"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 

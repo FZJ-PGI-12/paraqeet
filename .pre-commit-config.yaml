@@ -10,7 +10,6 @@ repos:
     rev: 'v1.15.0'
     hooks:
     - id: mypy
-      args: [--no-strict-optional, --ignore-missing-imports, --no-warn-return-any]
 -   repo: https://github.com/kynan/nbstripout
     rev: 0.6.1
     hooks:

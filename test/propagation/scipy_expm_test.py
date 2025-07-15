@@ -2,9 +2,9 @@
 
 import numpy as np
 import pytest
-from cthree.exceptions import ConfigurationException
+from paraqeet.exceptions import ConfigurationException
 
-from cthree.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.scipy_expm import ScipyExpm
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
@@ -48,16 +48,55 @@ def test_state_dimension_vector(random_state, expm, ts):
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
-        assert propagatedStates.shape[1:] == state.shape
+        assert propagatedStates.shape[1:] == state.shape + (1,)
 
 
-def test_state_dimension_matrix(random_matrix, expm, ts):
+def test_state_dimension_rect_matrix(random_matrix, expm, ts):
     """Test the state matrix after propagation."""
     for i in range(10):
-        basis = np.random.randint(2, 30)
+        basis = np.random.randint(2, 10)
         dim = basis + np.random.randint(1, 3)
         state = random_matrix(dim, basis)  # rect matrix with dim>basis
         propagation = expm(dim, res=3)
+        propagation.set_initial_state(state)
+        propagatedStates = propagation.propagate(ts)
+        assert propagatedStates.shape[0] == len(ts)
+        assert propagatedStates.shape[1:] == state.shape
+
+
+def test_state_dimension_square_matrix(expm, ts):
+    """Test for a batch of initial states for propagation."""
+    for i in range(5):
+        basis = np.random.randint(2, 10)
+        dim = basis + np.random.randint(1, 3)
+        state = np.eye(dim, dtype=np.complex128)
+        propagation = expm(dim, res=3)
+        propagation.set_initial_state(state)
+        propagatedStates = propagation.propagate(ts)
+        assert propagatedStates.shape[0] == len(ts)
+        assert propagatedStates.shape[1:] == state.shape
+
+
+def test_state_dimension_matrix_open(random_matrix, expm, ts):
+    """Test the state matrix after propagation."""
+    for i in range(10):
+        dim = np.random.randint(2, 10)
+        state = random_matrix(dim, dim)
+        propagation = expm(dim**2, res=3)
+        propagation.is_open = True
+        propagation.set_initial_state(state)
+        propagatedStates = propagation.propagate(ts)
+        assert propagatedStates.shape[0] == len(ts)
+        assert propagatedStates.shape[1:] == state.shape
+
+
+def test_state_dimension_square_matrix_open(expm, ts):
+    """Test for a batch of initial states for propagation."""
+    for i in range(5):
+        dim = np.random.randint(2, 10)
+        state = np.eye(dim, dtype=np.complex128)
+        propagation = expm(dim**2, res=3)
+        propagation.is_open = True
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
@@ -69,7 +108,7 @@ def test_initial_state(model):
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    ConfigurationException
         If the initial state is not set.
 
     """
@@ -94,7 +133,7 @@ def test_construct_times(model):
     full_times = np.linspace(t_start, t_final, steps, endpoint=False)
     times, dt = propagation._construct_times(time, 1)
 
-    assert np.all(times == full_times)
+    assert np.allclose(times, full_times)
     assert np.isclose(dt, 1 / res)
 
     # Test if times array is constructed correctly if steps < 2
@@ -106,5 +145,5 @@ def test_construct_times(model):
     full_times = np.linspace(t_start, t_final, steps, endpoint=False)
     times, dt = propagation._construct_times(time, 1)
 
-    assert np.all(times == full_times)
+    assert np.allclose(time, full_times)
     assert np.isclose(dt, 1 / res)

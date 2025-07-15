@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from cthree.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
@@ -41,21 +41,26 @@ def test_state_dimension_vector(random_state, expm, ts):
 
     """
     for i in range(10):
-        dim = np.random.randint(2, 30)
+        dim = np.random.randint(2, 10)
         state = random_state(dim)
         propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
-        assert propagatedStates.shape[1:] == state.shape
+        assert propagatedStates.shape[1:] == state.shape + (1,)
 
 
-def test_state_dimension_matrix(random_matrix, expm, ts):
+@pytest.mark.parametrize("is_open", [True, False])
+def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
     """Test the state matrix after propagation."""
     for i in range(10):
-        dim = np.random.randint(2, 30)
+        dim = np.random.randint(2, 10)
         state = random_matrix(dim, dim)
-        propagation = expm(dim, res=3)
+        if is_open:
+            propagation = expm(dim**2, res=3)
+            propagation.is_open = True
+        else:
+            propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)

@@ -1,9 +1,9 @@
 """Class definition of the empty Hamiltonian for testing."""
 
 import numpy as np
-
-from cthree.model.hamiltonian import Hamiltonian
-from cthree.quantity import Quantity
+from paraqeet.quantity import Array
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.quantity import Quantity
 
 
 class EmptyHamiltonian(Hamiltonian):
@@ -22,17 +22,17 @@ class EmptyHamiltonian(Hamiltonian):
 
         self.__dimension = dimension
 
-    def get_matrix(self, t: np.ndarray) -> np.ndarray:
+    def get_matrix(self, t: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        t : numpy.ndarray
+        t : Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The matrix representation of the Hamiltonian.
 
         """

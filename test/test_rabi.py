@@ -3,9 +3,9 @@
 import pytest
 from numpy.testing import assert_almost_equal
 
-from cthree.optimisation_map import OptimisationMap
-from cthree.measurement.rabi_experiment import RabiExperiment
-from cthree.optimisers.scipy_optimiser import ScipyOptimiser
+from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.measurement.rabi_experiment import RabiExperiment
+from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
 
 
 FREQ = 4.8e9

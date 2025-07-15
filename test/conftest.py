@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 from scipy.stats import unitary_group
 
-from cthree.quantity import Quantity
+from paraqeet.quantity import Quantity
 from test.model.dummy_model import DummyModel
 from test.model.empty_hamiltonian import EmptyHamiltonian
 
@@ -133,7 +133,7 @@ def random_quantity_for_values(random_limits_for_quantity):
 
     """
 
-    def _method(values: np.array):
+    def _method(values: np.ndarray):
         limits = random_limits_for_quantity(values)
         return Quantity(values, min_value=limits[0], max_value=limits[1], unit="")
 
@@ -149,18 +149,18 @@ def random_limits_for_quantity():
 
     """
 
-    def _method(values: np.array):
+    def _method(values: np.ndarray):
         if len(values.shape) == 0:
             # scalar quantity
             if values == 0.0:
-                min_value = -1
-                max_value = +1
+                min_value = np.array(-1.0)
+                max_value = np.array(+1.0)
             elif values < 0:
-                min_value = (np.random.random() + 1) * values
+                min_value = (np.random.random() + 1.1) * values
                 max_value = np.random.random() * values
             else:
                 min_value = np.random.random() * values
-                max_value = (np.random.random() + 1) * values
+                max_value = (np.random.random() + 1.1) * values
             return min_value, max_value
         else:
             # list quantity
@@ -173,11 +173,24 @@ def random_limits_for_quantity():
                     min_values[i] = -1
                     max_values[i] = +1
                 elif v < 0:
-                    min_values[i] = (np.random.random() + 1) * v
+                    min_values[i] = (np.random.random() + 1.1) * v
                     max_values[i] = np.random.random() * v
                 else:
                     min_values[i] = np.random.random() * v
-                    max_values[i] = (np.random.random() + 1) * v
+                    max_values[i] = (np.random.random() + 1.1) * v
             return min_values, max_values
+
+    return _method
+
+
+@pytest.fixture
+def random_from_list():
+    """Returns one or more random values from the given list, excluding specific values from the list."""
+
+    def _method(selectFrom: np.ndarray, excluded: np.ndarray | float, numSelected: int = 1):
+        if np.isscalar(excluded):
+            excluded = np.array([excluded])
+        selectable = np.delete(selectFrom, excluded)
+        return np.random.choice(selectable)
 
     return _method

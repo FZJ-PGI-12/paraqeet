@@ -145,4 +145,5 @@ okteto.yml
 
 # Doc build
 doc/_build
-ac_comments
+doc/source/*
+

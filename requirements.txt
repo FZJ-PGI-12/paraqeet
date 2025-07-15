@@ -1,9 +1,0 @@
-numpy>=1.23.0
-scipy>=1.9.0
-pytest>=7.2.0
-pre-commit>=3.3.1
-jax>=0.4.20
-jaxlib>=0.4.20
-bayesian-optimization>=1.4.3
-cma>=3.3.0
-ruff>=0.8.3

@@ -1,33 +1,58 @@
-.. toctree::
-    :maxdepth: 4
-    :caption: API documentation:
-    :glob:
-
+.. image:: ../big_logo.png
+   :align: center
+   :width: 90%
+   :alt: logo
 
 ===================================================================================
-:math:`C^3` -  An integrated tool-set for control, calibration and characterization
+ParaQeet -  A quantum optimal control toolkit with simple parameter management
 ===================================================================================
 
-The :math:`C^3` software package provides tools to simulate and interact with experiments to perform common control and characterization tasks. Modules can be used individually or combined to achieve a certain goal. The main focus are three optimizations:
+You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
 
-* :math:`C_1` Open-loop optimal control: Given a model, find the pulse shapes which maximize fidelity with a target operation.
-* :math:`C_2`  Closed-loop calibration: Given pulses, calibrate their parameters to maximize a figure of merit measured by the actual experiment, thus improving beyond the limits of a deficient model.
-* :math:`C_3`  Model learning: Given control pulses and their experimental measurement outcome, optimize model parameters to best reproduce the results.
+Choose a pulse parametrisation, simulate a quantum system, and optimise.
 
-When combined in sequence, these three procedures represent a recipe for system characterization.
+Combining Quantum Optimal Control methods with automatic differentiation with JAX.
+Aimed at resource efficient computation.
 
-*Note: This documentation is work-in-progress.*
+We use a top-down approach to make the codebase modular.
+Each module interacts only with the module above it in hierarchy.
 
+.. _README: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/README.md
+.. _CONTRIBUTING: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/CONTRIBUTING.md
+
+.. image:: layers.png
+   :align: center
+   :width: 60%
+   :alt: layers
+
+
+Installation
+========
 .. toctree::
-   :maxdepth: 4
-   :caption: Examples:
-   :glob:
    
+   usage
+
+
+Examples
+========
+We introduce the usage of the package with some examples. These are also available as interactive notebooks.
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
    notebooks/*
 
+
+API Documentation
+=================
+
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+   :maxdepth: 1
+   :glob:
+   
+   source/*
+
 
 Indices and tables
 ==================

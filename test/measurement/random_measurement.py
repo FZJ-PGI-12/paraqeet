@@ -1,10 +1,10 @@
 """Class definition of a random measurement model for testing."""
 
 import numpy as np
-
-from cthree.quantity import Quantity
-from cthree.measurement.measurement import Measurement
-from cthree.propagation.propagation import Propagation
+from paraqeet.quantity import Array
+from paraqeet.quantity import Quantity
+from paraqeet.measurement.measurement import Measurement
+from paraqeet.propagation.propagation import Propagation
 
 
 class RandomMeasurement(Measurement):
@@ -12,16 +12,16 @@ class RandomMeasurement(Measurement):
 
     Parameters
     ----------
-    propagation : cthree.propagation.propagation
+    propagation : Propagation
         Abstract base class for any implementation
         that can solve the equation of motion.
-    times : numpy.ndarray
+    times : Array
         One-dimensional vector of timestamps.
     """
 
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, times: np.ndarray):
+    def __init__(self, propagation: Propagation, times: Array):
         super().__init__(times=times)
         self.__propagation = propagation
 
@@ -30,19 +30,19 @@ class RandomMeasurement(Measurement):
 
         Returns
         -------
-        list[cthree.quantity]
+        list[Quantity]
             The list of parameters of the system.
 
         """
         return []
 
-    def measure(self) -> np.ndarray:
+    def measure_normalised_scalar(self) -> float:
         """Return the result of measurement.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The result of the measurement.
 
         """
-        return np.random.random()
+        return float(np.random.random())

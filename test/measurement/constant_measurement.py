@@ -1,10 +1,11 @@
 """Class definition for a mock system that always returns the same value."""
 
-import numpy as np
+import jax.numpy as jnp
+from paraqeet.quantity import Array
 
-from cthree.quantity import Quantity
-from cthree.measurement.measurement import Measurement
-from cthree.propagation.propagation import Propagation
+from paraqeet.quantity import Quantity
+from paraqeet.measurement.measurement import Measurement
+from paraqeet.propagation.propagation import Propagation
 
 
 class ConstantMeasurement(Measurement):
@@ -12,7 +13,7 @@ class ConstantMeasurement(Measurement):
 
     Parameters
     ----------
-    propagation : cthree.propagation.propagation
+    propagation : Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     value : float, default=1.0
@@ -22,13 +23,13 @@ class ConstantMeasurement(Measurement):
     """
 
     __propagation: Propagation
-    __value: float
+    __value: Array
 
     def __init__(
         self,
         propagation: Propagation,
-        value: float = 1.0,
-        times: float | None = None,
+        value: Array = jnp.array(1.0),
+        times: Array = jnp.array(0.0),
     ):
         super().__init__(times=times)
         self.__propagation = propagation
@@ -39,18 +40,18 @@ class ConstantMeasurement(Measurement):
 
         Parameters
         ----------
-        list[cthree.Quantity]
+        list[Quantity]
             List of parameters of the system.
 
         """
         return []
 
-    def measure(self) -> np.ndarray:
+    def measure(self) -> Array:
         """Get the measurement value.
 
         Returns
         -------
-        numpy.ndarray
+        Array
             The value of the measurement.
 
         """

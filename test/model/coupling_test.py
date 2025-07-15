@@ -3,9 +3,9 @@
 import pytest
 import numpy as np
 
-from cthree.quantity import Quantity
-from cthree.model.coupling import Coupling
-from cthree.model.transmon import Transmon
+from paraqeet.quantity import Quantity
+from paraqeet.model.coupling import Coupling
+from paraqeet.model.transmon import Transmon
 
 COUPLINGSTR = 25e6 * 2 * np.pi
 LEN_SIG = 101
@@ -139,15 +139,13 @@ def test_gradient_shape(coupling, time_samples):
     # Test if the coupling is not optimized
     dim1 = np.random.randint(2, 7)
     dim2 = np.random.randint(2, 7)
-    coup = coupling(dim1, dim2, isLongitudinal=False)
-    grads = coup.gradient(time_samples)
-    assert grads.shape == time_samples.shape + (0, dim1 * dim2, dim1 * dim2)
-
-    # Test with couping optimized
-    dim1 = np.random.randint(2, 7)
-    dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, isLongitudinal=False)
+    grads = coup.gradient(time_samples)
+    for grad in grads:
+        for term in grad:
+            for i, ops in enumerate(term):
+                assert np.size(ops) == 0
     coup.set_optimisable_parameters(coup.get_parameters())
     grads = coup.gradient(time_samples)
     for grad in grads:

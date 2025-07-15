@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from cthree.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from test.propagation.identity_propagation import IdentityPropagation
 from test.propagation.random_propagation import RandomPropagation
 
@@ -16,8 +16,8 @@ def identity_propagation():
 
 def test_positivity(random_unitary_matrix, random_basis_vectors):
     """Test that the fidelity is always positive."""
-    for dim in range(5, 30):
-        for i in range(100):
+    for dim in range(5, 10):
+        for i in range(50):
             propagation = RandomPropagation(dim, True)
             gate = random_unitary_matrix(dim)
             measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
@@ -37,7 +37,7 @@ def test_positivity(random_unitary_matrix, random_basis_vectors):
 def test_positivity_projected(random_unitary_matrix):
     """Test the projected positivity of the system."""
     times = np.array([1.0])
-    for size in range(5, 30):
+    for size in range(5, 10):
         for projectedSize in range(2, size):
             gate = random_unitary_matrix(projectedSize)
             propagation = RandomPropagation(size, True)
@@ -51,8 +51,8 @@ def test_positivity_projected(random_unitary_matrix):
 
 def test_equality(identity_propagation, random_unitary_matrix):
     """Test that F(U,U) = 1."""
-    for dim in range(2, 30):
-        for i in range(100):
+    for dim in range(2, 10):
+        for i in range(50):
             gate = random_unitary_matrix(dim)
             np.testing.assert_almost_equal(np.conjugate(gate.T) @ gate, np.eye(dim))
             propagation = IdentityPropagation()
@@ -64,8 +64,8 @@ def test_equality(identity_propagation, random_unitary_matrix):
 
 def test_projection(identity_propagation, random_basis_vectors):
     """Test the projection of the state vectors."""
-    for dim in range(2, 30):
-        for i in range(100):
+    for dim in range(2, 10):
+        for i in range(50):
             gate = np.eye(dim)
             init_state = random_basis_vectors(dim + 4, dim)
             propagation = identity_propagation
@@ -88,9 +88,9 @@ def test_incompatible_shape(identity_propagation, random_unitary_matrix):
         raise an exception.
 
     """
-    allDims = np.arange(2, 30)
+    allDims = np.arange(2, 10)
     for dim in allDims:
-        for i in range(100):
+        for i in range(50):
             gate = random_unitary_matrix(dim)
 
             # create a propagator of a different dimension

@@ -4,7 +4,8 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 
-from cthree.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.quantity import Array
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from test.dummy_device import FlatTopGaussianEnvelopeAD
 
 time = jnp.linspace(0, 10e-6, 100)
@@ -16,7 +17,7 @@ def tone():
 
     Returns
     -------
-    cthree.signal.envelopes.Envelope
+    paraqeet.signal.envelopes.Envelope
         A Flat top Gaussian Envelope
     """
     return FlatTopGaussianEnvelope()
@@ -28,13 +29,13 @@ def toneAD():
 
     Returns
     -------
-    cthree.signal.envelopes.Envelope
+    paraqeet.signal.envelopes.Envelope
         A Flat top Gaussian Envelope without gradients defined
     """
     return FlatTopGaussianEnvelopeAD()
 
 
-def random_entries_from_list(elements: jnp.array, num: int = None) -> jnp.array:
+def random_entries_from_list(elements: Array, num: int = 0) -> Array:
     """Get random entries from an array of elements.
 
     Parameters

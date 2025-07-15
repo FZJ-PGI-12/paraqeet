@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from cthree.signal.envelopes import ConstantEnvelope, ZeroEnvelope
-from cthree.signal.iq_mixer import IQMixer
+from paraqeet.signal.envelopes import ConstantEnvelope, ZeroEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 LEN_SIG = 1001
 
@@ -74,7 +74,7 @@ def test_gradient_one_time(gen):
     """Test the generate signal gradient one time function."""
     print(gen.get_parameters())
     gen.set_optimisable_parameters(gen.get_parameters())
-    grads = gen.generate_signal_gradient_one_time(0)
+    grads = gen.generate_signal_gradient_one_time(np.array([0]))
     assert grads.shape == (len(gen.get_parameters()),)
 
 
