@@ -20,7 +20,9 @@ def test_weighted_sum_goal(random_unitary_matrix):
     weights = np.random.random(len(meas))
     weights /= sum(weights)
     goal = WeightedSumGoal(measurements=meas, weights=weights)
-    assert goal.measure() > 0
+    assert goal.measure() >= 0
+    # Rounding errors might cause the value to be slightly larger than 1
+    assert 0 <= np.round(goal.measure_normalised(), 8) <= 1
 
 
 def test_weighted_sum_goal_mismatched_weights():

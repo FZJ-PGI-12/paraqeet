@@ -11,7 +11,6 @@ from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.transmon import Transmon
 from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
 
-
 LEN_SIG = 101
 
 
@@ -64,18 +63,17 @@ def transmon_parameters():
 def transmon(transmon_parameters, drive):
     """Return a transmon generating function."""
 
-    class CreateTransmon:
-        def get(self, dimension):
-            freq, anharm = transmon_parameters.get()
-            transmon = Transmon(
-                dimension=dimension,
-                frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
-                anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
-                drives=[drive],
-            )
-            return transmon
+    def get(dimension):
+        freq, anharm = transmon_parameters.get()
+        transmon = Transmon(
+            dimension=dimension,
+            frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
+            anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
+            drives=[drive],
+        )
+        return transmon
 
-    return CreateTransmon()
+    return get
 
 
 @pytest.fixture
@@ -83,8 +81,8 @@ def uncoupled_transmons(transmon):
     """Return a composite Hamiltonian generating function."""
 
     def _method(dim1, dim2):
-        transmon1 = transmon.get(dim1)
-        transmon2 = transmon.get(dim2)
+        transmon1 = transmon(dim1)
+        transmon2 = transmon(dim2)
         compositeHams = CompositeHamiltonian([transmon1, transmon2])
         return compositeHams
 
@@ -96,8 +94,8 @@ def coupled_transmons(transmon):
     """Return a coupled transmon generating function."""
 
     def _method(dim1: int, dim2: int, useRWA: bool = False):
-        transmon1 = transmon.get(dim1)
-        transmon2 = transmon.get(dim2)
+        transmon1 = transmon(dim1)
+        transmon2 = transmon(dim2)
 
         couplingStr = np.abs(transmon1.frequency.get_value() - transmon2.frequency.get_value()) * 0.05
         coupling = Coupling(
@@ -109,6 +107,35 @@ def coupled_transmons(transmon):
 
         compositeHams = CompositeHamiltonian([transmon1, transmon2], [coupling])
         return compositeHams
+
+    return _method
+
+
+@pytest.fixture
+def coupled_transmons_chain(transmon, random_quantity):
+    def _method(dims: list[int], openSystem: bool = True) -> CompositeHamiltonian:
+        transmons = [transmon(d) for d in dims]
+        if openSystem:
+            for t in transmons:
+                t.temp = random_quantity(1, "K")
+                t.t1 = random_quantity(1, "")
+                t.t2star = random_quantity(1, "")
+        coupling_strengths = [
+            0.5 * np.abs(transmons[i].frequency.get_value() - transmons[i + 1].frequency.get_value())
+            for i in range(len(transmons) - 1)
+        ]
+        couplings = [
+            Coupling(
+                [transmons[i], transmons[i + 1]],
+                is_longitudinal=False,
+                coefficient=Quantity(
+                    coupling_strengths[i], 0.8 * coupling_strengths[i], 1.2 * coupling_strengths[i], "Hz"
+                ),
+            )
+            for i in range(len(transmons) - 1)
+        ]
+
+        return CompositeHamiltonian(transmons, couplings)
 
     return _method
 
@@ -171,3 +198,12 @@ def test_gradient(gen, coupled_transmons, time_samples):
             dim1 * dim2,
             dim1 * dim2,
         )
+
+
+def test_collapseops_dimensions(coupled_transmons_chain):
+    for _ in np.arange(1, 10):
+        dims = [np.random.randint(2, 5) for _ in range(np.random.randint(2, 5))]
+        H = coupled_transmons_chain(dims, True)
+        ops = H.get_collapseops()
+        for rate, op in ops:
+            assert op.shape[0] == op.shape[1] == H.dimension()

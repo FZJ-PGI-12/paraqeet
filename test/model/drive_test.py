@@ -58,3 +58,9 @@ def test_drive_gradient(tone, drive, time_samples):
     grads = drive.gradient(annihilationOp, time_samples)
     toneParams = tone.get_parameters()
     assert grads.shape == time_samples.shape + (len(toneParams), dim, dim)
+
+
+def test_has_parameters(drive):
+    assert drive.get_parameters() is not None
+    assert len(drive.get_parameters()) >= 0
+    assert drive.generator is not None
