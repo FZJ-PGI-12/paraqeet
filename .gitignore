@@ -147,3 +147,5 @@ okteto.yml
 doc/_build
 doc/source/*
 
+aux_notebooks/testing_fft.ipynb
+aux_notebooks/testing_fft.py

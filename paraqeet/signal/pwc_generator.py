@@ -58,9 +58,9 @@ class PWCGenerator(Generator):
     def __compute_envelope(self, t):
         t_final = self.__t_final
         ramp_time = t_final / 25
-        rampUp = 1 + erf((t - 2 * t_final / 20) / ramp_time)
-        rampDown = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
-        return rampUp * rampDown / 4
+        ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
+        ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
+        return ramp_up * ramp_down / 4
 
     @property
     def tlist(self) -> Array:

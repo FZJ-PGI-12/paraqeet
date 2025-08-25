@@ -284,7 +284,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -316,7 +316,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
@@ -352,7 +352,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
