@@ -17,11 +17,13 @@ class PWCGenerator(Generator):
     everywhere else.
 
     This Generator doesn't add the LO signal to the envelope pulse.
-    Driving with a PWC pulse (without the LO) should be done in the rotating
+    Driving with a PWC pulse (without the LO) is usually done in the rotating
     frame of drive.
 
     __envs: list[Waveform]
         List of Envelopes
+    __max_amplitude: float
+        Maximum amplitude of the drive
     __tlist: Array
         Time grid discritization points
 
@@ -34,6 +36,7 @@ class PWCGenerator(Generator):
 
     __envs: list[Waveform]
     __tlist: Array
+    __max_amplitude: float
     __inphase: Quantity
     __quadrature: Quantity
     _optimisable_parameters: list[Quantity] = []
@@ -43,15 +46,24 @@ class PWCGenerator(Generator):
         self,
         envelopes: list[Waveform] | None,
         tlist: Array,
+        max_amplitude: float | None = None,
     ):
         self.__envs = envelopes or []
         self.__tlist = tlist
+
+        if max_amplitude is not None and max_amplitude < 0.0:
+            raise ValueError("The maximum drive amplitude must be positive.")
+        elif max_amplitude is None:
+            env = self.__compute_shape()
+            self.__max_amplitude = 2 * jnp.max(jnp.abs(env))
+        else:
+            self.__max_amplitude = max_amplitude
 
         # Choose the center point as time grid
         dt = tlist[1] - tlist[0]
         self.__tlist = tlist[:-1] + dt / 2
 
-        self.__setup_inphase_and_quadrature()
+        self.__setup_inphase_and_outphase()
         self.__t_final = self.__tlist[-1]
 
     @partial(jit, static_argnums=(0,))
@@ -83,7 +95,40 @@ class PWCGenerator(Generator):
             Array of time points at which envelope is discritized.
         """
         self.__tlist = tlist
-        self.__setup_inphase_and_quadrature()
+        self.__setup_inphase_and_outphase()
+
+    @property
+    def max_amplitude(self) -> float:
+        """Get the maximum drive amplitude.
+
+        Returns
+        -------
+            The value of the maximum drive amplitude.
+        """
+        return self.__max_amplitude
+
+    @max_amplitude.setter
+    def max_amplitude(self, max_amplitude: float) -> None:
+        """Set the maximum drive amplitude of the drive.
+
+        Parameters
+        ----------
+        max_amplitude: float
+            The value of the maximu drive amplitude.
+        """
+        self.__max_amplitude = max_amplitude
+        self.__setup_inphase_and_outphase()
+
+    @property
+    def envs(self) -> list[Waveform]:
+        """Gets the list of envelopes.
+
+        Returns
+        -------
+        list[Waveform]
+            The list of waveforms associated with the generator.
+        """
+        return self.__envs
 
     @property
     def multiply_flat_top(self) -> bool:
@@ -112,7 +157,7 @@ class PWCGenerator(Generator):
             Flag value for multiply_flat_top.
         """
         self.__multiply_flat_top = multiply_flat_top
-        self.__setup_inphase_and_quadrature()
+        self.__setup_inphase_and_outphase()
 
     def __compute_shape(self) -> Array:
         env = jnp.zeros_like(self.__tlist)
@@ -120,26 +165,25 @@ class PWCGenerator(Generator):
             env += dev.compute_output(self.__tlist)
         return env
 
-    def __setup_inphase_and_quadrature(self) -> None:
-        """Generate Inphase and Quadrature Quantities using tlist."""
+    def __setup_inphase_and_outphase(self) -> None:
+        """Generate inphase and outphase Quantities using tlist."""
         env = self.__compute_shape()
 
-        max_abs = jnp.max(jnp.abs(env))
-        bound = 2 * max_abs * jnp.ones_like(self.__tlist)
+        # max_abs = jnp.max(jnp.abs(env))
+        max_component = self.__max_amplitude / jnp.sqrt(2)
+        bound = max_component * jnp.ones_like(self.__tlist)
 
         self.__inphase = Quantity(
             jnp.real(env),
             min_value=-bound,
             max_value=bound,
-            unit="Hz",
             name="Inphase",
         )
         self.__quadrature = Quantity(
             jnp.imag(env),
             min_value=-bound,
             max_value=bound,
-            unit="Hz",
-            name="Quadrature",
+            name="Outphase",
         )
 
     def _get_partial_derivatives(self) -> Array:

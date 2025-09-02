@@ -79,7 +79,7 @@ class StateTransferFidelity(Measurement):
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Overlap between initial and target state in a JAX ArrayLike format.
 
         """
