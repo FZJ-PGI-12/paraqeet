@@ -101,7 +101,7 @@ class Optimiser:
 
     _measure: Measurement
     _optimisables: OptimisationMap
-    __opt_idxs: list[int]
+    _opt_idxs: list[int]
     __logger: Logger | None
 
     def __init__(

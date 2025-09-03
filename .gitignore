@@ -147,3 +147,5 @@ okteto.yml
 doc/_build
 doc/source/*
 
+examples/test_scipy_optimizer.ipynb
+list_of_issues_and_todos
