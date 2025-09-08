@@ -81,10 +81,6 @@ class Smoothness(Measurement):
         """
         opt_pwc_params = self._pwc_generator.optimisable_parameters
         opt_params = self.__optmap.get_all_parameters()
-        # This cannot work. You should create
-        # a function that returns the optimisable parameters, but only of PWC since the
-        # gradient is only nonzero with respect to these. So there must be a way to flag
-        # if these are parameters of the pwc passed to the class.
 
         def get_partial_derivative(n: int, vec: Array):
             num_pwc = vec.shape[0]
@@ -93,20 +89,21 @@ class Smoothness(Measurement):
                 * (1.0 - jnp.where(n == 0, 1.0, 0.0))
                 * (1.0 - jnp.where(n == num_pwc - 1, 1.0, 0.0))
             )
-            res += (vec[1] - vec[0]) * jnp.where(n == 0, 1.0, 0.0)
+            res += (vec[0] - vec[1]) * jnp.where(n == 0, 1.0, 0.0)
             res += (vec[num_pwc - 1] - vec[num_pwc - 2]) * jnp.where(n == num_pwc - 1, 1.0, 0.0)
-            return res
+            return -res
 
         if len(opt_params) > 0:
             grad_list = []
             for param in opt_params:
-                num_elements = param.get_value().shape[0]
+                num_pwc = param.get_value().shape[0]
+                norm_coeff = (num_pwc - 1) * (2 * self._pwc_generator.max_amplitude) ** 2
                 if id(param) in [id(pwc_param) for pwc_param in opt_pwc_params]:
-                    n_vec = jnp.arange(num_elements)
+                    n_vec = jnp.arange(num_pwc)
                     vmap_get_partial_derivative = jax.vmap(get_partial_derivative, in_axes=(0, None))
-                    grad_list.append(vmap_get_partial_derivative(n_vec, param.get_value()))
+                    grad_list.append(2 * vmap_get_partial_derivative(n_vec, param.get_value()) / norm_coeff)
                 else:
-                    grad_list.append(jnp.zeros(num_elements))
+                    grad_list.append(jnp.zeros(num_pwc))
             gradient = jnp.concatenate(grad_list)
         else:
             gradient = jnp.empty((1, 0))  # this is purely conventional
