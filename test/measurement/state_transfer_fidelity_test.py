@@ -33,7 +33,13 @@ def test_limits_vectors(random_state):
 
         for _ in range(20):
             m = measurement.measure()
+            assert 0.0 <= m
+            m = measurement.measure_scalar()
+            assert 0.0 <= m
+            m = measurement.measure_normalised_scalar()
             assert 0.0 <= m <= 1.0
+            m, grad = measurement.measure_with_gradient()
+            assert 0.0 <= m
 
 
 @pytest.mark.filterwarnings("ignore:Different shapes for")
@@ -110,6 +116,10 @@ def test_no_parameters(identity_propagation, random_state):
     state = random_state(np.random.randint(2, 30))
     measurement = StateTransferFidelity(identity_propagation, state, state, np.array([1.0]))
     assert measurement.get_parameters() == []
+    _, grad = measurement.measure_with_gradient()
+    assert len(grad) == 0
 
     measurement = StateTransferFidelityAD(identity_propagation, state, state, np.array([1.0]))
     assert measurement.get_parameters() == []
+    _, grad = measurement.measure_with_gradient()
+    assert len(grad) == 0

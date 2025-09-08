@@ -2,11 +2,11 @@
 
 import numpy as np
 import pytest
-from paraqeet.exceptions import ConfigurationException
 
 from paraqeet.propagation.scipy_expm import ScipyExpm
-from test.model.dummy_model import DummyModel
+from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
+from test.propagation.common_propagation_tests import needs_initial_state
 
 
 @pytest.fixture
@@ -14,7 +14,7 @@ def expm():
     """Return a Scipy piecewise exponentitation solver generating method."""
 
     def _method(dimension, res):
-        return ScipyExpm(DummyModel(EmptyHamiltonian(dimension)), res=res)
+        return ScipyExpm(DummyEquationsOfMotion(EmptyHamiltonian(dimension)), res=res)
 
     return _method
 
@@ -112,10 +112,10 @@ def test_initial_state(model):
         If the initial state is not set.
 
     """
-    propagation = ScipyExpm(model=model, res=3)
-    ts = np.linspace(0.0, 1e-9, 3)
-    with pytest.raises(ConfigurationException, match="Initial state is not set"):
-        propagation.propagate(ts)
+    dim = np.random.randint(2, 10)
+    m = model(dim)
+    propagation = ScipyExpm(model=m, res=3)
+    needs_initial_state(propagation, dim)
 
 
 def test_construct_times(model):

@@ -26,6 +26,7 @@ pre-commit install
 - No "let's fix that later"
 - Use the numpy package of jax (`import jax.numpy as jnp`) instead of numpy, when applicable.
 - Write unit tests for (almost) everything. Test for properties instead of specific values. Use dummy classes instead of fixtures whenever possible.
+- Explicitly refer to literature in comments when possible
 
 ## Code-specific
 

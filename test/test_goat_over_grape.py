@@ -4,9 +4,11 @@ from collections.abc import Callable
 from functools import partial
 
 import jax.numpy as jnp
+import numpy as np
 from jax import jit
 from jax.scipy.special import erf
 import pytest
+import numpy.testing as testing
 
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
@@ -137,6 +139,16 @@ def optGrad(tone, fid, gen):
     goat = GOATOverGRAPE(fid, gen)
     optGrad = ScipyOptimiserGradient(goat, optimisables=optmap)
     return optGrad
+
+
+def test_can_measure(tone, fid, gen):
+    fid = GOATOverGRAPE(fid, gen)
+    assert 0 <= fid.measure()
+    assert 0 <= fid.measure_normalised_scalar() <= 1
+
+    value, grad = fid.measure_with_gradient()
+    assert 0 <= value
+    testing.assert_array_less(np.zeros_like(grad), grad)
 
 
 def test_goat_over_grape(optGrad):

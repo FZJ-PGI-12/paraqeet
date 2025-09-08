@@ -114,13 +114,12 @@ class RotatingFrameCoupling(Coupling):
             result of getMatricesOneTime.
 
         """
+        annihilationOps = self.__coupling_operators()
         if self._is_optimised(self._coefficient):
-            annihilationOps = self.__coupling_operators()
             annihilationOps[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
             annihilationOps_conj = [a.conj().T for a in annihilationOps]
             grads = [[annihilationOps, annihilationOps_conj]]
         elif self._is_optimised(self.__diff_freq):
-            annihilationOps = self.__coupling_operators()
             annihilationOps[0] *= self._coefficient.get_value() * 1j * t
             annihilationOps_conj = [a.conj().T for a in annihilationOps]
             grads = [[annihilationOps, annihilationOps_conj]]

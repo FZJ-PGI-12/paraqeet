@@ -4,8 +4,9 @@ import numpy as np
 import pytest
 
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from test.model.dummy_model import DummyModel
+from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
+from test.propagation.common_propagation_tests import needs_initial_state
 
 
 @pytest.fixture
@@ -13,7 +14,7 @@ def expm():
     """Return a Scipy piecewise exponentiation solver generating function."""
 
     def _method(dimension, res):
-        return ScipyExpmGOAT(DummyModel(EmptyHamiltonian(dimension)), res=res)
+        return ScipyExpmGOAT(DummyEquationsOfMotion(EmptyHamiltonian(dimension)), res=res)
 
     return _method
 
@@ -65,3 +66,9 @@ def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape
+
+
+def test_needs_initial_state(random_state, expm):
+    for dim in range(2, 10):
+        propagation = expm(dim, res=3)
+        needs_initial_state(propagation, dim)

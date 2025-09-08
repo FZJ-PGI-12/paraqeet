@@ -7,7 +7,7 @@ from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
 
 
-class DummyModel(EquationOfMotion):
+class DummyEquationsOfMotion(EquationOfMotion):
     """Dummy model class to construct derived model classes.
 
     Parameters
