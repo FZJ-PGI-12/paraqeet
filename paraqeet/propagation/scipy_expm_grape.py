@@ -82,7 +82,7 @@ class ScipyExpmGRAPE(ScipyExpm):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
                     if targetState.shape[-1] == targetState.shape[-2]:
                         # This is a density matrix
-                        targetState = self._convert_dm_to_vec(targetState)
+                        targetState = self._convert_dm_to_vec(targetState, dim_generator)
             except Exception as e:
                 raise ConfigurationException(
                     f"Obtained a state vector of shape {targetState.shape} as target state. "

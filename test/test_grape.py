@@ -35,6 +35,7 @@ def tone():
 def pwc_gen(tone):
     gen = PWCGenerator(envelopes=[tone], tlist=TLIST)
     gen.multiply_flat_top = True
+    gen.max_amplitude = 2 * 1e8
     return gen
 
 
