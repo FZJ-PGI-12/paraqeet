@@ -53,6 +53,17 @@ class Optimisable:
         """
         self._name = name
 
+    @property
+    def optimisable_parameters(self) -> list[Quantity]:
+        """Get the optimisable parameters
+
+        Returns
+        -------
+        list[Quantity]
+            The list of optimisable parameters
+        """
+        return self._optimisable_parameters
+
     def __repr__(self):
         """Magic method for human readable representation."""
         return self.__str__()
