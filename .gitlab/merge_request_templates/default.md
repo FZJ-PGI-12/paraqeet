@@ -1,2 +1,3 @@
 - [ ] Added doc strings to all new functions and classes
 - [ ] Added unit tests if necessary
+- [ ] Generated compiled docs from new/modified example notebooks (if applicable)
