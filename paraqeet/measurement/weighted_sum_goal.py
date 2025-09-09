@@ -100,7 +100,7 @@ class WeightedSumGoal(Measurement):
         """Returns an empty list."""
         return []
 
-    def measure(self) -> Array:
+    def measure(self) -> Array | float:
         """Sum of plain weighted measurements.
 
         Returns
@@ -110,11 +110,11 @@ class WeightedSumGoal(Measurement):
 
         """
         values = [m.measure() for m in self.__measurements]
-        sum_meas = 0.0
+        sum_meas: Array | float = 0.0
         for ii, w in enumerate(self.__weights):
             sum_meas += w * values[ii]
         if self.__sum_of_squares_options is not None:
-            sum_square_diff = 0.0
+            sum_square_diff: Array | float = 0.0
             values_in_sum_of_squares = [
                 val for val, flag in zip(values, self.__sum_of_squares_options["meas_bool"]) if flag
             ]
@@ -177,4 +177,4 @@ class WeightedSumGoal(Measurement):
                 grads_diff += 2 * (meas_a[0] - meas_b[0]) * (meas_a[1] - meas_b[1])
             sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
             sum_grads += self.__sum_of_squares_options["weight"] * grads_diff
-        return sum_meas, sum_grads
+        return float(sum_meas), sum_grads
