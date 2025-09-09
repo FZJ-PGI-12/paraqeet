@@ -22,7 +22,7 @@ def test_weighted_sum_goal(random_unitary_matrix):
     goal = WeightedSumGoal(measurements=meas, weights=weights)
     assert goal.measure() >= 0
     # Rounding errors might cause the value to be slightly larger than 1
-    assert 0 <= np.round(goal.measure_normalised(), 8) <= 1
+    assert 0 <= np.round(goal.measure_normalised_scalar(), 8) <= 1
 
 
 def test_weighted_sum_goal_mismatched_weights():
