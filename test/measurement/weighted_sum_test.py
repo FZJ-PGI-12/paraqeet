@@ -30,7 +30,7 @@ def test_weighted_sum_goal_mismatched_weights():
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    paraqeet.Exceptions.ConfigurationException
         Raise an exception with the weighted sum goal with weights.
 
     """
@@ -43,7 +43,7 @@ def test_weighted_sum_goal_weights_not_normalised():
 
     Raises
     ------
-    cthree.Exceptions.ConfigurationException
+    paraqeet.Exceptions.ConfigurationException
         Raise an exception with the weighted sum goal with weights.
 
     """
