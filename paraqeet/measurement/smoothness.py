@@ -58,7 +58,14 @@ class Smoothness(Measurement):
 
         norm_coeff = (num_pwc - 1) * (2 * self._pwc_generator.max_amplitude) ** 2
 
-        def get_squared_difference(index: int):
+        def get_squared_difference(index):
+            """Squared difference between two consecutive bins in PWC pulse.
+
+            Parameters
+            ----------
+            index : int
+                index of the bin
+            """
             return jnp.abs(pulse[index] - pulse[index + 1]) ** 2
 
         indices = jnp.arange(0, num_pwc - 1)
@@ -82,7 +89,16 @@ class Smoothness(Measurement):
         opt_pwc_params = self._pwc_generator.optimisable_parameters
         opt_params = self.__optmap.get_all_parameters()
 
-        def get_partial_derivative(n: int, vec: Array):
+        def get_partial_derivative(n, vec):
+            """Derivatives of the smoothness measure for 3 cases: starting point, center and end point.
+
+            Parameters
+            ----------
+            n : int
+                location in the piecewise constant vector
+            vec : Array
+                piecewise constant vector
+            """
             num_pwc = vec.shape[0]
             res = (
                 ((2 * vec[n]) - vec[n + 1] - vec[n - 1])

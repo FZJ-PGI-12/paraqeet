@@ -55,7 +55,7 @@ class PWCGenerator(Generator):
             raise ValueError("The maximum drive amplitude must be positive.")
         elif max_amplitude is None:
             env = self.__compute_shape()
-            self.__max_amplitude = 2 * jnp.max(jnp.abs(env))
+            self.__max_amplitude = 2 * float(jnp.max(jnp.abs(env)))
         else:
             self.__max_amplitude = max_amplitude
 
