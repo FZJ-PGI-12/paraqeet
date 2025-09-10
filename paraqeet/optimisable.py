@@ -12,10 +12,21 @@ class Optimisable:
     parameters. The optimiser will collect all parameters (by reference) and
     update their values.
 
+    Parameters
+    ----------
+    _name : str | None
+        The name of the object.
+    _optimisable_parameters : list[Quantity] = []
+        The optimisable parameters associated with the object.
+    _all_optimisable_parameters: list[Quantity] = []
+        All the optimisable parameters considered in the optimization. This
+        is needed to set correctly the size of the gradient and its ordering.
+
     """
 
     _name: str | None = None
     _optimisable_parameters: list[Quantity] = []
+    _all_optimisable_parameters: list[Quantity] = []
 
     @abstractmethod
     def get_parameters(self) -> list[Quantity]:
@@ -60,9 +71,20 @@ class Optimisable:
         Returns
         -------
         list[Quantity]
-            The list of optimisable parameters
+            The list of optimisable parameters associated with the object.
         """
         return self._optimisable_parameters
+
+    @property
+    def all_optimisable_parameters(self) -> list[Quantity]:
+        """Get the optimisable parameters
+
+        Returns
+        -------
+        list[Quantity]
+            The list of all the optimisable parameters considered in the optimization
+        """
+        return self._all_optimisable_parameters
 
     def __repr__(self):
         """Magic method for human readable representation."""
@@ -73,7 +95,8 @@ class Optimisable:
         return self._name or str(self.__class__)
 
     def set_optimisable_parameters(self, params: list[Quantity]) -> None:
-        """Set which parameters shall be considered during optimisation.
+        """Set which parameters associated with the object shall be considered
+        during optimisation.
 
         All quantities that are not in the response of get_parameters will
         be filtered out. This function is called by the optimiser before
@@ -86,8 +109,19 @@ class Optimisable:
             List of optimisable parameters to be set.
 
         """
-        allParams = self.get_parameters()
-        self._optimisable_parameters = [p for p in params if any([p is q for q in allParams])]
+        own_params = self.get_parameters()
+        self._optimisable_parameters = [p for p in params if any([p is q for q in own_params])]
+
+    def set_all_optimisable_parameters(self, all_params: list[Quantity]) -> None:
+        """Set all optimisable parameters in the optimisation.
+
+        Parameters
+        ----------
+        params : List[Quantity]
+            List of optimisable parameters to be set.
+
+        """
+        self._all_optimisable_parameters = all_params
 
     def _is_optimised(self, param: Quantity) -> bool:
         """Check if a parameter is being optimised.

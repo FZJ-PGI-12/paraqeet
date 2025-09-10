@@ -130,6 +130,7 @@ class OptimisationMap:
         """
         for optimisable, params in self.__optimisable_to_parameter_map.items():
             optimisable.set_optimisable_parameters(params)
+            optimisable.set_all_optimisable_parameters(self.get_all_parameters())
 
     def filter_parameters(self, filterFunction: Callable) -> None:
         """Filter parameters using filter function.

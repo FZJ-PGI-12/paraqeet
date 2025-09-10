@@ -6,7 +6,6 @@ Eqs. 23 and 24 of the supplementary material.
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.signal.pwc_generator import PWCGenerator
 from paraqeet.quantity import Array, Quantity
-from paraqeet.optimisation_map import OptimisationMap
 
 import jax
 import jax.numpy as jnp
@@ -23,19 +22,14 @@ class Smoothness(Measurement):
     ----------
     pwc_generator: PWCGenerator
         The generator from which we extract the pulse.
-    optmap: OptimisationMap
-        The object that stores all optimisable parameters. It is needed
-        to compute the gradient correctly.
     times: Array
         One-dimensional vector of timestamps.
     """
 
     _pwc_generator: PWCGenerator
-    __optmap: OptimisationMap
 
-    def __init__(self, pwc_generator: PWCGenerator, optmap: OptimisationMap):
+    def __init__(self, pwc_generator: PWCGenerator):
         super().__init__(pwc_generator.tlist)
-        self.__optmap = optmap
         self._pwc_generator = pwc_generator
 
     def get_parameters(self) -> list[Quantity]:
@@ -87,7 +81,7 @@ class Smoothness(Measurement):
 
         """
         opt_pwc_params = self._pwc_generator.optimisable_parameters
-        opt_params = self.__optmap.get_all_parameters()
+        opt_params = self._pwc_generator.all_optimisable_parameters
 
         def get_partial_derivative(n, vec):
             """Derivatives of the smoothness measure for 3 cases: starting point, center and end point.
