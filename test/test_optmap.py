@@ -99,9 +99,24 @@ def test_optimisables_are_added(optmap, dummy_optimisable) -> None:
     opt2 = dummy_optimisable(0)
     optmap.add(opt2)
     assert opt2 not in optmap.get_optimisables()
+    assert len(optmap.get_optimisables()) == 0
     with pytest.raises(Exception):
         optmap.get_parameters(opt2)
     assert len(optmap.get_all_parameters()) == 0
+
+
+def test_access_to_all_optimisables_parameters(optmap, dummy_optimisable) -> None:
+    """Test for accessing all the otpimisable parameters in the optmap from
+    the Optimisable objects."""
+    opt1 = dummy_optimisable(1)
+    opt2 = dummy_optimisable(2)
+    optmap.add(opt1)
+    optmap.add(opt2)
+    optmap.register_params_with_optimisables()
+    assert len(opt1.optimisable_parameters) < len(optmap.get_all_parameters())
+    assert len(opt2.optimisable_parameters) < len(optmap.get_all_parameters())
+    assert optmap.get_all_parameters() == opt1.all_optimisable_parameters
+    assert optmap.get_all_parameters() == opt2.all_optimisable_parameters
 
 
 def test_no_initial_parameters() -> None:
