@@ -159,18 +159,18 @@ class CMAEsOptimiser(Optimiser):
                 sigmas.append(es.sigma)
                 if iter > sigma_conv:
                     if all(sigmas[-(i + 1)] < sigmas[-(i + 2)] for i in range(sigma_conv - 1)):
-                        print(f"C3:STATUS:Shrunk cloud for {sigma_conv} steps. " "Switching to gradients.")
+                        print(f"ParaQeet:STATUS: Shrunk cloud for {sigma_conv} steps. " "Switching to gradients.")
                         break
 
             if sigma_check:
                 if es.sigma < stop_sigma:
-                    print("C3:STATUS:Goal sigma reached. Stopping CMA.")
+                    print("ParaQeet:STATUS: Goal sigma reached. Stopping CMA.")
                     break
 
             samples = es.ask()
             if init_point and iter == 0:
                 samples.insert(0, x_init)
-                print("C3:STATUS:Adding initial point to CMA sample.")
+                print("ParaQeet:STATUS: Adding initial point to CMA sample.")
             solutions = []
             if batch_noise:
                 error = np.random.randn() * noise
