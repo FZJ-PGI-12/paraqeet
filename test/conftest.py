@@ -82,8 +82,10 @@ def random_unitary_matrix():
 
     """
 
+    seed = 84
+
     def _method(dim):
-        return unitary_group.rvs(dim)
+        return unitary_group.rvs(dim, random_state=seed)
 
     return _method
 
