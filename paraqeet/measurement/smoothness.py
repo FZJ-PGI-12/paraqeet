@@ -1,6 +1,8 @@
 """Class definition of the pulse smoothness. It follows the definition in
-Heeres et al., https://arxiv.org/abs/1608.02430 (2017), in particular
-Eqs. 23 and 24 of the supplementary material.
+[Heeres2017], in particular Eqs. 21 of the supplementary material.
+
+References
+[Heeres2017] R. Heeres et al., Nat. Comm. 8, 94 (2017)
 """
 
 from paraqeet.measurement.measurement import Measurement
