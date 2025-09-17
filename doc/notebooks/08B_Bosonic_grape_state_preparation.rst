@@ -1,4 +1,4 @@
-Bosonic GRAPE state preparation
+Arbitrary bosonic state preparation using GRAPE
 ===============================
 
 In this notebook, we implement a standard application of GRAPE, namely
