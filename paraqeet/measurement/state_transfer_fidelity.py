@@ -102,12 +102,12 @@ class StateTransferFidelity(Measurement):
         states = self._preprocess_vector(states)
         dg_dp_list = self._preprocess_vector(dg_dp_list)
         final_state = states[-1]
-        dF_dp = []
+        df_dp_list = []
         f = self._overlap(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = self._overlap(self._target_state, dg_dp)
-            dF_dp.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
-        return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
+            df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
+        return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def get_parameters(self) -> list[Quantity]:
         """Get the parameters of the system.
@@ -168,13 +168,13 @@ class StateTransferFidelityAD(StateTransferFidelity):
         states = self._preprocess_vector(states)
         dg_dp_list = self._preprocess_vector(dg_dp_list)
         final_state = states[-1]
-        dF_dp = []
+        df_dp_list = []
         f = self._overlap(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = self._overlap(self._target_state, dg_dp)
             dfdp = self.__gradient_function(f) * g
-            dF_dp.append(jnp.real(dfdp))
-        return self._fid(f), jnp.array(dF_dp)  # shape scalar, (n_parameters,)
+            df_dp_list.append(jnp.real(dfdp))
+        return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
 
 class StateTransferFidelityGRAPE(StateTransferFidelity):

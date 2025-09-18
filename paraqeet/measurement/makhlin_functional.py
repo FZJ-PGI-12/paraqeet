@@ -73,17 +73,17 @@ class MakhlinFunctional(Measurement):
         if self._times is None:
             raise ConfigurationException("Time array was not specified")
 
-        U = self.__propagation.propagate(self._times)[-1]
-        U = self._preprocess_matrix(U)
-        if U.shape != (4, 4):
+        u = self.__propagation.propagate(self._times)[-1]
+        u = self._preprocess_matrix(u)
+        if u.shape != (4, 4):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
-        gs = self.__makhlin_invariants(U)
+        gs = self.__makhlin_invariants(u)
         if self.__ideal_invariants is not None:
             return jnp.array(jnp.linalg.norm(gs - self.__ideal_invariants))
         else:
             return jnp.abs(gs[2] * jnp.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
-    def __makhlin_invariants(self, U: Array) -> tuple[Array, Array, Array]:
+    def __makhlin_invariants(self, u: Array) -> tuple[Array, Array, Array]:
         """Compute the Makhlin invariants for a matrix U.
 
         Returns a tuple with the three invariants g1, g2 and g3.
@@ -100,19 +100,19 @@ class MakhlinFunctional(Measurement):
 
         """
         # transform to bell basis
-        Q = jnp.array(
+        q = jnp.array(
             [[1, 0, 0, 1j], [0, 1j, 1, 0], [0, 1j, -1, 0], [1, 0, 0, -1j]],
         )
-        det = jnp.linalg.det(U)
+        det = jnp.linalg.det(u)
         # Normalize the determinant to be sensitive to leakage, non-unitarity.
         if det != 0.0:
             det /= jnp.abs(det)
-        U_B = (Q.T.conj() @ U @ Q) / 2
-        m = U_B.T @ U_B
+        u_b = (q.T.conj() @ u @ q) / 2
+        m = u_b.T @ u_b
         tr = jnp.trace(m @ m)
-        trSq = jnp.trace(m) ** 2 / det
+        tr_sq = jnp.trace(m) ** 2 / det
         return (
-            jnp.real(trSq) / 16,
-            jnp.imag(trSq) / 16,
-            jnp.real(trSq - tr / det) / 4,
+            jnp.real(tr_sq) / 16,
+            jnp.imag(tr_sq) / 16,
+            jnp.real(tr_sq - tr / det) / 4,
         )

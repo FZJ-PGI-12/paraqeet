@@ -140,11 +140,11 @@ class Measurement(Optimisable):
             if sum(output_dimensions) == 0:
                 raise RuntimeError("All output dimensions can not be 0")
 
-            P = jnp.eye(1)
-            for dimIn, dimOut in zip(input_dimensions, output_dimensions):
-                dim2 = dimOut if dimOut > 0 else 1
-                P = jnp.kron(P, jnp.eye(dimIn, dim2, dtype=jnp.float64))
-            self.__projector = P
+            p = jnp.eye(1)
+            for dim_in, dim_out in zip(input_dimensions, output_dimensions):
+                dim2 = dim_out if dim_out > 0 else 1
+                p = jnp.kron(p, jnp.eye(dim_in, dim2, dtype=jnp.float64))
+            self.__projector = p
 
     def _preprocess_matrix(self, operator: Array) -> Array:
         """Perform any preprocessing on the "operator" that was registered.

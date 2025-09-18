@@ -115,16 +115,16 @@ class UnitaryFidelity(Measurement):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         f = jnp.average(jnp.asarray(overlaps))
 
-        dF_dp = []
+        df_dp_list = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
             for ii, s in enumerate(self.__target_costates.T):
                 gs.append(jnp.vdot(s, dg_dp[:, ii]))
             g = jnp.average(jnp.asarray(gs))
-            dF_dp.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
+            df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
         fid = self.__fid(jnp.asarray(overlaps))
-        return fid, jnp.array(dF_dp)  # shape scalar, (n_parameters,)
+        return fid, jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def set_ideal_gate(self, gate: Array):
         """Compute target states for the L2 norm.
