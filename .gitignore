@@ -147,3 +147,8 @@ okteto.yml
 doc/_build
 doc/source/*
 
+aux_notebooks/testing_fft.ipynb
+aux_notebooks/testing_fft.py
+examples/test_scipy_optimizer.ipynb
+list_of_issues_and_todos
+examples/testing_notebook.ipynb

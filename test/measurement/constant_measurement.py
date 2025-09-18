@@ -56,3 +56,8 @@ class ConstantMeasurement(Measurement):
 
         """
         return self.__value
+
+    def measure_with_gradient(self) -> tuple[float, Array]:
+        """Get measurement value and gradient"""
+        grad = jnp.array([self.__value, 0.0])
+        return self.__value, grad

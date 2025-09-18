@@ -109,7 +109,7 @@ class ScipyOptimiser(Optimiser):
         opt_res = minimize(
             fun=self._set_parameters_and_measure,
             x0=np.concatenate(init).flatten(),
-            bounds=[(-1, 1)] * len(self._opt_idxs),  # len(.) gives the number of parameters
+            bounds=[(-1, 1)] * self._opt_idxs[-1],
             method=self._method,
             options=self._options,
             callback=self._callback,
