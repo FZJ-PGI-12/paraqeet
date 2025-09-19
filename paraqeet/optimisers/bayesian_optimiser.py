@@ -20,14 +20,14 @@ class BayesianOptimiser(Optimiser):
 
     Parameters
     ----------
-    measure : Measurement
+    measure: Measurement
         The measure to be optimised.
     optimisables : OptimisationMap
         All optimisable parameters.
-    initialSamples : int, default=10
+    initial_samples : int=10
         Number of iterations before the explorations starts the exploration
         for the maximum.
-    iterations : int, default=100
+    iterations: int =100
         Number of iterations where the method attempts to find the maximum
         value.
 
@@ -41,11 +41,11 @@ class BayesianOptimiser(Optimiser):
         self,
         measure: Measurement,
         optimisables: OptimisationMap,
-        initialSamples=10,
+        initial_samples=10,
         iterations=100,
     ):
         super().__init__(measure, optimisables)
-        self.__initial_samples = initialSamples
+        self.__initial_samples = initial_samples
         self.__iterations = iterations
 
     @property
@@ -54,9 +54,9 @@ class BayesianOptimiser(Optimiser):
         return self.__initial_samples
 
     @initial_samples.setter
-    def initial_samples(self, initialSamples: int) -> None:
+    def initial_samples(self, initial_samples: int) -> None:
         """Set the initial samples for the system."""
-        self.__initial_samples = initialSamples
+        self.__initial_samples = initial_samples
 
     @property
     def iterations(self) -> int:
@@ -75,7 +75,7 @@ class BayesianOptimiser(Optimiser):
 
         Returns
         -------
-        paraqeet.optimisers.optimiser.OptimisationResult
+        OptimisationResult
             Result of optimization via the OptimisationResult object.
             (status, value, iterations and the raw result)
 
@@ -101,15 +101,15 @@ class BayesianOptimiser(Optimiser):
         # The last measurement is not necessarily the best.
         # We therefore set the optimised parameters to the best value.
         if not optimiser.max:
-            raise ConfigurationException("BaysianOptimization has no max field.")
+            raise ConfigurationException("BayesianOptimization has no max field.")
 
-        bestValues = optimiser.max["params"]
+        best_values = optimiser.max["params"]
         for i, param in enumerate(params):
-            param.set_reduced_value(bestValues[str(i)])
+            param.set_reduced_value(best_values[str(i)])
 
         # Use the actual names and the non-reduced values
         # for the return value
-        result = {params[i].get_name(): params[i].get_value() for i in range(len(bestValues))}
+        result = {params[i].get_name(): params[i].get_value() for i in range(len(best_values))}
         result["fun"] = 1 - optimiser.max["target"]
         if self._logger:
             self._logger.stop(str(result))

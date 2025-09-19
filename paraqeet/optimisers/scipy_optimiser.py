@@ -15,10 +15,10 @@ class ScipyOptimiser(Optimiser):
 
     Parameters
     ----------
-    measure : Measurement
+    measure: Measurement
         Implementation of the Measurement class that measures the observable
         to be minimised.
-    optimisable : OptimisationMap
+    optimisable: OptimisationMap
         An optimisation map containing all parameters that can be optimised.
 
     """
@@ -50,7 +50,7 @@ class ScipyOptimiser(Optimiser):
 
         Parameters
         ----------
-        method : str
+        method: str
             Type of solver, specified by string value.
 
         """
@@ -75,7 +75,7 @@ class ScipyOptimiser(Optimiser):
 
         Parameters
         ----------
-        collections.abc.Callable
+        Callable
             The function to be set as the callback.
 
         """
@@ -91,7 +91,7 @@ class ScipyOptimiser(Optimiser):
 
         Returns
         -------
-        paraqeet.optimisers.optimiser.OptimisationResult
+        OptimisationResult
             The result of the optimisation.
 
         """
@@ -133,7 +133,7 @@ class ScipyOptimiser(Optimiser):
 
         Parameters
         ----------
-        values : Array
+        values: Array
             Parameter values for the update.
 
         Returns

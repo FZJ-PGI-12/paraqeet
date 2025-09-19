@@ -39,13 +39,13 @@ def pwc_gen(tone):
     return gen
 
 
-@pytest.fixture(scope="function", params=["openSystem", "closedSystem"])
+@pytest.fixture(scope="function", params=["open_system", "closed_system"])
 def model(pwc_gen, request):
     drive = RotatingFrameDrive(pwc_gen)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
-    if request.param == "openSystem":
+    if request.param == "open_system":
         model = OpenSystem(controlled_qubit)
-    elif request.param == "closedSystem":
+    elif request.param == "closed_system":
         model = ClosedSystem(controlled_qubit)
     return model
 
@@ -80,7 +80,7 @@ def states(model, request):
 
 
 @pytest.fixture
-def optMap(pwc_gen):
+def opt_map(pwc_gen):
     """Create an optimisation map."""
     optmap = OptimisationMap()
     optmap.add(pwc_gen)
@@ -88,12 +88,12 @@ def optMap(pwc_gen):
 
 
 @pytest.fixture
-def opt(states, optMap):
+def opt(states, opt_map):
     """Create a scipy optimiser gradient object over states."""
-    return ScipyOptimiserGradient(measure=states, optimisables=optMap)
+    return ScipyOptimiserGradient(measure=states, optimisables=opt_map)
 
 
-def test_optim_GRAPE(opt) -> None:
+def test_optim_grape(opt) -> None:
     """Check that the optimization goes below threshold."""
     res = opt.optimise()
     assert res.value < 1e-2

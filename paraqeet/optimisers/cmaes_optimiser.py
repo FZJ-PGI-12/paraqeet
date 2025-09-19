@@ -15,16 +15,16 @@ class CMAEsOptimiser(Optimiser):
     """Wrapper for the pycma implementation of CMA-Es.
 
     The pycmi implementation has the following custom options for optimisation:
-    noise : float
+    noise: float
         Artificial noise added to a function evaluation.
-    init_point : boolean
+    init_point: boolean
         Force the use of the initial point in the first generation.
-    spread : float
+    spread: float
         Adjust the parameter spread of the first generation cloud.
     stop_at_convergence : int
         Custom stopping condition. Stop if the cloud shrunk for this number of
         generations.
-    stop_at_sigma : float
+    stop_at_sigma: float
         Custom stopping condition. Stop if the cloud shrunk to this standard
         deviation.
 
@@ -32,11 +32,11 @@ class CMAEsOptimiser(Optimiser):
 
     Parameters
     ----------
-    measure : Measurement
+    measure: Measurement
         Represents any observable and the process of measurement itself.
-    optimisables : OptimisationMap
+    optimisables: OptimisationMap
         Optimisable interface for all parameters considered in optimisation.
-    logger : FileLogger | None, default=None
+    logger: FileLogger | None, default=None
         The file logger object.
     callback
         Callback function for optimisation.
@@ -84,7 +84,7 @@ class CMAEsOptimiser(Optimiser):
 
         Parameters
         ----------
-        collections.abc.Callable
+        Callable
             The function to be set as the callback.
 
         """
@@ -94,22 +94,22 @@ class CMAEsOptimiser(Optimiser):
         """Optimise the system via the CMA-Es optimiser.
 
         Performs the actual optimisation via the following custom options:
-        noise : float
+        noise: float
             Artificial noise added to a function evaluation.
-        init_point : boolean
+        init_point: boolean
             Force the use of the initial point in the first generation.
-        spread : float
+        spread: float
             Adjust the parameter spread of the first generation cloud.
         stop_at_convergence : int
             Custom stopping condition. Stop if the cloud shrunk for this number
             of generations.
-        stop_at_sigma : float
+        stop_at_sigma: float
             Custom stopping condition. Stop if the cloud shrunk to this
             standard deviation.
 
         Returns
         -------
-        paraqeet.optimisers.optimiser.OptimisationResult
+        OptimisationResult
             Result of optimization via the OptimisationResult object.
             (status, value, iterations and the raw result)
 
@@ -205,7 +205,7 @@ class CMAEsOptimiser(Optimiser):
 
         Parameters
         ----------
-        values : Array
+        values: Array
             Values for the update of the parameters.
 
         Returns
@@ -219,7 +219,7 @@ class CMAEsOptimiser(Optimiser):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.measure_normalised_scalar()
+        infid = 1.0 - self._measure.measure_normalised_scalar()
 
         if self._logger:
             self._logger.log(log, infid)
@@ -233,7 +233,7 @@ class CMAEsOptimiser(Optimiser):
 
         Parameters
         ----------
-        conditions : dict
+        conditions: dict
             The dictionary from the CMAEvolutionStrategy.stop().
 
         Returns

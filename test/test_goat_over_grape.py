@@ -23,8 +23,8 @@ from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 
 
-t_final = 20e-9
-tlist = jnp.linspace(0, t_final, 26)
+T_FINAL = 20e-9
+TLIST = jnp.linspace(0, T_FINAL, 26)
 
 
 class FlatTopGaussianEnvelope(Envelope):
@@ -51,9 +51,9 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, t: Array):
-        rampUp = 1 + erf((t - t_up) / ramp_time)
-        rampDown = 1 + erf((-t + t_down) / ramp_time)
-        return jnp.squeeze(amp * rampUp * rampDown / 4)
+        ramp_up = 1 + erf((t - t_up) / ramp_time)
+        ramp_down = 1 + erf((-t + t_down) / ramp_time)
+        return jnp.squeeze(amp * ramp_up * ramp_down / 4)
 
     def compute_output(self, t: Array) -> Array:
         """Compute pulse shape."""
@@ -84,17 +84,17 @@ class SpinRWA(Hamiltonian):
 @pytest.fixture
 def tone():
     tone = FlatTopGaussianEnvelope(
-        amplitude=Quantity(jnp.pi / t_final / 3, -jnp.pi / t_final, jnp.pi / t_final, name="Amplitude"),
-        t_up=Quantity(1e-9, 0.0, t_final, name="t_up"),
-        t_down=Quantity(t_final - 1e-9, 0.0, t_final, name="t_down"),
-        ramp_time=Quantity(2e-9, 0.5e-9, t_final, name="ramp_time"),
+        amplitude=Quantity(jnp.pi / T_FINAL / 3, -jnp.pi / T_FINAL, jnp.pi / T_FINAL, name="Amplitude"),
+        t_up=Quantity(1e-9, 0.0, T_FINAL, name="t_up"),
+        t_down=Quantity(T_FINAL - 1e-9, 0.0, T_FINAL, name="t_down"),
+        ramp_time=Quantity(2e-9, 0.5e-9, T_FINAL, name="ramp_time"),
     )
     return tone
 
 
 @pytest.fixture
 def gen(tone):
-    gen = PWCGenerator(envelopes=[tone], tlist=tlist)
+    gen = PWCGenerator(envelopes=[tone], tlist=TLIST)
     gen.multiply_flat_top = True
 
     params = gen.get_parameters()
@@ -125,13 +125,13 @@ def fid(model):
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=tlist,
+        times=TLIST,
     )
     return zeroone
 
 
 @pytest.fixture
-def optGrad(tone, fid, gen):
+def opt_grad(tone, fid, gen):
     optmap = OptimisationMap()
     optmap.add(tone)
     optmap.register_params_with_optimisables()
@@ -151,6 +151,6 @@ def test_can_measure(tone, fid, gen):
     testing.assert_array_less(np.zeros_like(grad), grad)
 
 
-def test_goat_over_grape(optGrad):
-    res = optGrad.optimise()
+def test_goat_over_grape(opt_grad):
+    res = opt_grad.optimise()
     assert res.value < 1e-4

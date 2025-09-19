@@ -13,15 +13,15 @@ class DummyOptimisable(Optimisable):
 
     Parameters
     ----------
-    randomQuantity
+    random_quantity: Quantity
         New randomly generated Quantity object.
-    numParams : int
+    num_params: int
         Number of parameters.
     """
 
-    def __init__(self, randomQuantity, numParams: int):
+    def __init__(self, random_quantity, num_params: int):
         super().__init__()
-        self._optimisable_parameters = [randomQuantity(np.random.randint(1, 20)) for i in range(numParams)]
+        self._optimisable_parameters = [random_quantity(np.random.randint(1, 20)) for i in range(num_params)]
 
     def get_parameters(self) -> list[Quantity]:
         """Get optimisable parameters."""

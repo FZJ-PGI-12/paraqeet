@@ -56,7 +56,7 @@ def tone():
 
 
 @pytest.fixture
-def coupledTransmons(tone):
+def coupled_transmons(tone):
     """Create a coupled Transmon system."""
     freq1 = 6.0e9
     freq2 = 6.0002e9
@@ -79,7 +79,7 @@ def coupledTransmons(tone):
             unit="rad",
         ),
     )
-    drive1 = DriveOperator(generator1, isLongitudinal=False)
+    drive1 = DriveOperator(generator1, is_longitudinal=False)
 
     generator2 = IQMixer(
         envelopes=[tone2],
@@ -96,7 +96,7 @@ def coupledTransmons(tone):
             unit="rad",
         ),
     )
-    drive2 = DriveOperator(generator2, isLongitudinal=False)
+    drive2 = DriveOperator(generator2, is_longitudinal=False)
 
     transmon1 = Transmon(
         dimension=3,
@@ -124,40 +124,40 @@ def coupledTransmons(tone):
     model = ClosedSystem(hamiltonian)
     prop = ScipyExpmGOAT(model=model, res=RES)
 
-    X = np.array([[0.0, 1], [1, 0.0]])
-    Z = np.array([[1, 0], [0.0, -1]])
-    ZX = np.exp(1j * np.pi / 4) * np.kron(Z, X)
-    CRGate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
+    pauli_x = np.array([[0.0, 1], [1, 0.0]])
+    pauli_z = np.array([[1, 0], [0.0, -1]])
+    pauli_zx = np.exp(1j * np.pi / 4) * np.kron(pauli_z, pauli_x)
+    cr_gate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 
-    CRGate = ZX @ CRGate
+    cr_gate = pauli_zx @ cr_gate
     prop.set_initial_state(np.identity(9))
-    gateFid = UnitaryFidelity(
+    gate_fid = UnitaryFidelity(
         propagation=prop,
-        gate=CRGate,
+        gate=cr_gate,
         times=np.array([0.0, T_FINAL]),
     )
-    gateFid.restrict_subsystems([3, 3], [2, 2])
+    gate_fid.restrict_subsystems([3, 3], [2, 2])
 
-    tone1Amp = tone1.get_parameters()[0]
+    tone1_amp = tone1.get_parameters()[0]
 
     optmap = OptimisationMap()
-    optmap.add(tone1, [tone1Amp])
-    return gateFid, optmap
+    optmap.add(tone1, [tone1_amp])
+    return gate_fid, optmap
 
 
 @pytest.fixture
-def opt(coupledTransmons):
+def opt(coupled_transmons):
     """Return Scipy optimiser from coupled transmons."""
-    measure, optmap = coupledTransmons
+    measure, optmap = coupled_transmons
     opt = ScipyOptimiser(measure, optimisables=optmap)
     opt.set_options({"maxiter": 5})
     return opt
 
 
 @pytest.fixture
-def gradOpt(coupledTransmons):
+def grad_opt(coupled_transmons):
     """Return Scipy optimiser gradient."""
-    measure, optmap = coupledTransmons
+    measure, optmap = coupled_transmons
     opt = ScipyOptimiserGradient(measure, optimisables=optmap)
     opt.set_options({"maxiter": 2})
     return opt
@@ -169,7 +169,7 @@ def test_optim_finite_diff(opt):
     assert res.value < 0.1
 
 
-def test_optim_GOAT(gradOpt):
+def test_optim_goat(grad_opt):
     """Test GOAT optimisation."""
-    res = gradOpt.optimise()
+    res = grad_opt.optimise()
     assert res.value < 0.1

@@ -20,28 +20,28 @@ from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import ConstantEnvelope
 
 
-tone = ConstantEnvelope()
-gen = IQMixer(envelopes=[tone])
-params = gen.get_parameters()
+TONE = ConstantEnvelope()
+GEN = IQMixer(envelopes=[TONE])
+PARAMS = GEN.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
 t_final = 10e-9
 
-params[0].set_value(0.8 * np.pi / t_final)
-params[2].set_value(1.01 * FREQ)
+PARAMS[0].set_value(0.8 * np.pi / t_final)
+PARAMS[2].set_value(1.01 * FREQ)
 
-drive = DriveOperator(gen, isLongitudinal=False)
-controlled_qubit = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
-model = ClosedSystem(controlled_qubit)
+DRIVE = DriveOperator(GEN, is_longitudinal=False)
+CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[DRIVE])
+MODEL = ClosedSystem(CONTROLLED_QUBIT)
 
-prop = ScipyExpmGOAT(model, res=100e9)
+PROP = ScipyExpmGOAT(MODEL, res=100e9)
 
-init = np.array([[1.0], [0]])
-target = np.array([[0.0], [1]])
-zeroone = StateTransferFidelity(
-    propagation=prop,
-    initial_state=init,
-    target_state=target,
+INIT = np.array([[1.0], [0]])
+TARGET = np.array([[0.0], [1]])
+ZEROONE = StateTransferFidelity(
+    propagation=PROP,
+    initial_state=INIT,
+    target_state=TARGET,
     times=np.array([0.0, t_final]),
 )
 
@@ -50,24 +50,24 @@ zeroone = StateTransferFidelity(
 def opt():
     """Create ScipyOptimiser optimiser."""
     optmap = OptimisationMap()
-    optmap.add(gen, [params[0], params[2]])
-    return ScipyOptimiser(zeroone, optimisables=optmap)
+    optmap.add(GEN, [PARAMS[0], PARAMS[2]])
+    return ScipyOptimiser(ZEROONE, optimisables=optmap)
 
 
 @pytest.fixture
 def cma_opt():
     """Create CMAEs optimiser."""
     optmap = OptimisationMap()
-    optmap.add(gen, [params[0], params[2]])
-    return CMAEsOptimiser(zeroone, optimisables=optmap)
+    optmap.add(GEN, [PARAMS[0], PARAMS[2]])
+    return CMAEsOptimiser(ZEROONE, optimisables=optmap)
 
 
 @pytest.fixture
 def bay_opt():
     """Create Bayesian optimiser."""
     optmap = OptimisationMap()
-    optmap.add(gen, [params[0], params[2]])
-    return BayesianOptimiser(zeroone, optimisables=optmap)
+    optmap.add(GEN, [PARAMS[0], PARAMS[2]])
+    return BayesianOptimiser(ZEROONE, optimisables=optmap)
 
 
 def test_optim(opt) -> None:

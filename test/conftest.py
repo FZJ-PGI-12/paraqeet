@@ -94,15 +94,15 @@ def random_unitary_matrix():
 def random_basis_vectors():
     """Return a random basis vector generating method.
 
-    Generates N vectors, each with 0 everywhere except a 1 at a random index.
+    Generates num_vec vectors, each with 0 everywhere except a 1 at a random index.
     All vectors will be orthogonal.
 
     """
 
-    def _method(dim, N):
-        v = np.zeros((dim, N))
-        indices = np.random.choice(np.arange(0, dim), N, replace=False)
-        for i in range(N):
+    def _method(dim, num_vec):
+        v = np.zeros((dim, num_vec))
+        indices = np.random.choice(np.arange(0, dim), num_vec, replace=False)
+        for i in range(num_vec):
             v[indices[i], i] = 1
         return v
 
@@ -112,16 +112,16 @@ def random_basis_vectors():
 @pytest.fixture
 # helper functions
 def random_quantity(random_quantity_for_values):
-    """Generate a quantity with N positive and negative numbers.
+    """Generate a quantity with n positive and negative numbers.
 
     Each quantity is with the same order of magnitude
     which is chosen randomly between 1e-10 and 1e10.
 
     """
 
-    def _method(N: int, unit: str = ""):
+    def _method(n: int, unit: str = ""):
         magnitude = np.power(10.0, np.random.randint(-10, 10))
-        values = (2 * np.random.random(N) - 1) * magnitude
+        values = (2 * np.random.random(n) - 1) * magnitude
         return random_quantity_for_values(values, unit)
 
     return _method
@@ -189,10 +189,10 @@ def random_limits_for_quantity():
 def random_from_list():
     """Returns one or more random values from the given list, excluding specific values from the list."""
 
-    def _method(selectFrom: np.ndarray, excluded: np.ndarray | float, numSelected: int = 1):
+    def _method(select_from: np.ndarray, excluded: np.ndarray | float, num_selected: int = 1):
         if np.isscalar(excluded):
             excluded = np.array([excluded])
-        selectable = np.delete(selectFrom, excluded)
+        selectable = np.delete(select_from, excluded)
         return np.random.choice(selectable)
 
     return _method

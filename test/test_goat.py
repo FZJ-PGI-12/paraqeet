@@ -47,7 +47,7 @@ def prop(gen, request):
     By piecewise exponentation with the scipy package.
 
     """
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
     if request.param == "openSystem":
         model = OpenSystem(controlled_qubit)
@@ -79,17 +79,17 @@ def gates(prop):
     """Compare the propagator with a gate via the L2 norm."""
     if prop.is_open:
         pytest.skip("Gate optimisation is only implemented for closed system.")
-    xGate = np.array([[0.0, 1], [1, 0.0]])
+    pauli_x = np.array([[0.0, 1], [1, 0.0]])
     prop.set_initial_state(np.identity(2))
     return UnitaryFidelity(
         propagation=prop,
-        gate=xGate,
+        gate=pauli_x,
         times=np.array([0.0, T_FINAL]),
     )
 
 
 @pytest.fixture
-def optMap(gen):
+def opt_map(gen):
     """Create an optimisation map."""
     params = gen.get_parameters()
     params[0].set_value(0.5 * np.pi / T_FINAL)
@@ -101,27 +101,27 @@ def optMap(gen):
 
 
 @pytest.fixture
-def gradOpt(states, optMap):
+def grad_opt(states, opt_map):
     """Create a scipy optimiser gradient object over states."""
-    return ScipyOptimiserGradient(measure=states, optimisables=optMap)
+    return ScipyOptimiserGradient(measure=states, optimisables=opt_map)
 
 
 @pytest.fixture
-def gradGatesOpt(gates, optMap):
+def grad_gates_opt(gates, opt_map):
     """Create a scipy optimiser gradient object over gates."""
-    return ScipyOptimiserGradient(measure=gates, optimisables=optMap)
+    return ScipyOptimiserGradient(measure=gates, optimisables=opt_map)
 
 
 @pytest.fixture
-def opt(states, optMap):
+def opt(states, opt_map):
     """Create a scipy optimiser object over states."""
-    return ScipyOptimiser(measure=states, optimisables=optMap)
+    return ScipyOptimiser(measure=states, optimisables=opt_map)
 
 
 @pytest.fixture
-def gatesOpt(gates, optMap):
+def gates_opt(gates, opt_map):
     """Create a scipy optimiser gradient object over gates."""
-    return ScipyOptimiser(measure=gates, optimisables=optMap)
+    return ScipyOptimiser(measure=gates, optimisables=opt_map)
 
 
 def test_optim_finite_diff(opt) -> None:
@@ -130,19 +130,19 @@ def test_optim_finite_diff(opt) -> None:
     assert res.value < 1e-2
 
 
-def test_optim_GOAT(gradOpt) -> None:
+def test_optim_goat(grad_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = gradOpt.optimise()
+    res = grad_opt.optimise()
     assert res.value < 1e-2
 
 
-def test_optim_gates_finite_diff(gatesOpt) -> None:
+def test_optim_gates_finite_diff(gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = gatesOpt.optimise()
+    res = gates_opt.optimise()
     assert res.value < 1e-2
 
 
-def test_optim_GOAT_gates(gradGatesOpt) -> None:
+def test_optim_goat_gates(grad_gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = gradGatesOpt.optimise()
+    res = grad_gates_opt.optimise()
     assert res.value < 1e-2

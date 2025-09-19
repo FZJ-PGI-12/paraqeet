@@ -68,15 +68,15 @@ class OptimisationResult:
         too the dict too.
 
         """
-        asDict = {
+        as_dict = {
             "status": self.status,
             "value": self.value,
             "iterations": self.iterations,
         }
         if self.message:
-            asDict["message"] = self.message
+            as_dict["message"] = self.message
 
-        return str(asDict)
+        return str(as_dict)
 
 
 class Optimiser:
@@ -87,14 +87,14 @@ class Optimiser:
 
     Parameters
     ----------
-    measure : Measurement
+    measure: Measurement
         Implementation of the Measurement class that measures the observable
         to be minimised.
-    optimisables : OptimisationMap
+    optimisables: OptimisationMap
         An optimisation map containing all parameters that can be optimised.
         If none, an empty map will be created to which the parameters can
         be added later used.
-    logger : FileLogger
+    logger: FileLogger
         The file logger object.
 
     """
@@ -153,7 +153,7 @@ class Optimiser:
 
         Parameters
         ----------
-        opt : OptimisationMap
+        opt: OptimisationMap
             Takes in the optimisables to set parameters.
 
         """
