@@ -58,7 +58,7 @@ class Optimisable:
 
         Parameters
         ----------
-        name : str
+        name : str | None
             Value of the name to be set.
 
         """
@@ -105,7 +105,7 @@ class Optimisable:
 
         Parameters
         ----------
-        params : List[Quantity]
+        params: list[Quantity]
             List of optimisable parameters to be set.
 
         """
@@ -130,7 +130,7 @@ class Optimisable:
 
         Parameters
         ----------
-        param : paraqeet.quantity
+        param: Quantity
             Input parameter to be checked for whether it is optimised.
 
         Returns

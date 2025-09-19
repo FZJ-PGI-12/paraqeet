@@ -22,9 +22,9 @@ class Logger:
 
         Parameters
         ----------
-        params : List[Quantity]
+        params: list[Quantity]
             List of parameters to be logged.
-        infid : float
+        infidelity: float
             Goal value to be logged.
 
         """
@@ -35,7 +35,7 @@ class Logger:
 
         Parameters
         ----------
-        result_message : str, optional
+        result_message : str | None = None
             The message that the user wants to write at the end of the log file.
 
         """

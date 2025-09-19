@@ -50,9 +50,9 @@ class OptimisationMap:
 
         Parameters
         ----------
-        optimisable : Optimisable
+        optimisable: Optimisable
             Input Optimisable object for adding to the map.
-        optimisable_quantities : List[Quantity], optional
+        optimisable_quantities: list[Quantity] | None = None
             List of all parameters of the optimisable object considered for
             optimisation.
 
@@ -67,7 +67,7 @@ class OptimisationMap:
 
         Parameters
         ----------
-        optimisable : Optimisable
+        optimisable: Optimisable
             Parameter to be removed.
 
         """
@@ -82,7 +82,7 @@ class OptimisationMap:
 
         Returns
         -------
-        Set[Optimisable]
+        set[Optimisable]
             Set of all optimisable objects from the map.
 
         """
@@ -93,12 +93,12 @@ class OptimisationMap:
 
         Parameters
         ----------
-        optimisable : Optimisable
+        optimisable: Optimisable
             Input optimisable object.
 
         Returns
         -------
-        List[Quantity] | None
+        list[Quantity] | None
             List of parameters or None (if the optimisable has not been
             added yet).
 
@@ -132,7 +132,7 @@ class OptimisationMap:
             optimisable.set_optimisable_parameters(params)
             optimisable.set_all_optimisable_parameters(self.get_all_parameters())
 
-    def filter_parameters(self, filterFunction: Callable) -> None:
+    def filter_parameters(self, filter_function: Callable) -> None:
         """Filter parameters using filter function.
 
         Updates the list of parameters for all Optimisables in this map using
@@ -141,12 +141,12 @@ class OptimisationMap:
 
         Parameters
         ----------
-        filterFunction : Callable
+        filter_function : Callable
             Filter function that maps quantities to boolean values.
 
         """
         for key in self.__optimisable_to_parameter_map.keys():
-            filtered = filter(filterFunction, self.__optimisable_to_parameter_map[key])
+            filtered = filter(filter_function, self.__optimisable_to_parameter_map[key])
             self.__optimisable_to_parameter_map[key] = list(filtered)
         self.__optimisable_to_parameter_map = dict(
             (k, v) for k, v in self.__optimisable_to_parameter_map.items() if len(v) > 0
@@ -200,9 +200,9 @@ class OptimisationMap:
                 raise SerialisationException("Optimisable does not have a name or the name is not unique.")
 
             # Check that the quantities' names are valid
-            quantityNames = [(q.get_name() or "").strip() for q in quantities]
-            nonEmptyQuantityNames = list(filter(lambda name: len(name) > 0, quantityNames))
-            if len(quantities) != len(set(nonEmptyQuantityNames)):
+            quantity_names = [(q.get_name() or "").strip() for q in quantities]
+            non_empty_quantity_names = list(filter(lambda name: len(name) > 0, quantity_names))
+            if len(quantities) != len(set(non_empty_quantity_names)):
                 raise SerialisationException(
                     f"Quantities in {optimisable.name} have empty or non-unique names within the optimisable."
                 )
@@ -217,7 +217,7 @@ class OptimisationMap:
 
         Parameters
         ----------
-        data : dict
+        data: dict
             All quantities that should be restored.
 
         Raises
@@ -225,16 +225,16 @@ class OptimisationMap:
         SerialisationException
             If the dict contains an Optimisable or a Quantity that does not exist in this optimisation map.
         """
-        optimisablesForName = {opt.name: opt for opt in self.__optimisable_to_parameter_map.keys()}
-        for optimisableName, values in data.items():
-            if optimisableName not in optimisablesForName:
+        optimisables_for_name = {opt.name: opt for opt in self.__optimisable_to_parameter_map.keys()}
+        for optimisable_name, values in data.items():
+            if optimisable_name not in optimisables_for_name:
                 raise SerialisationException(
-                    f'An optimisable with the name "{optimisableName}" does not exist in the optimisation map.'
+                    f'An optimisable with the name "{optimisable_name}" does not exist in the optimisation map.'
                 )
-            optimisable = optimisablesForName[optimisableName]
+            optimisable = optimisables_for_name[optimisable_name]
 
-            quantitiesForName = {q.get_name(): q for q in optimisable.get_parameters()}
-            for quantityName, quantityValues in values.items():
-                if quantityName not in quantitiesForName:
-                    raise SerialisationException(f'Quantity "{quantityName}" does not exist in {optimisableName}.')
-                quantitiesForName[quantityName].from_dict(quantityValues)
+            quantities_for_name = {q.get_name(): q for q in optimisable.get_parameters()}
+            for quantity_name, quantity_values in values.items():
+                if quantity_name not in quantities_for_name:
+                    raise SerialisationException(f'Quantity "{quantity_name}" does not exist in {optimisable_name}.')
+                quantities_for_name[quantity_name].from_dict(quantity_values)

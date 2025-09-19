@@ -39,18 +39,18 @@ class Quantity:
 
     Parameters
     ----------
-    value : paraqeet.quantity.Array | float
+    value: Array | float
         Value of the quantity
-    min_value : paraqeet.quantity.Array | float
+    min_value: Array | float
         Minimum this quantity is allowed to take.
         If this is a float, it will be a default interval around the value will be chosen.
-    max_value : paraqeet.quantity.Array | float
+    max_value: Array | float
         Maximum this quantity is allowed to take.
-    unit : str
+    unit: str
         physical unit
-    name : str
+    name: str
         symbol or description of this quantity
-    two_pi : bool
+    two_pi: bool
         divide by two pi for representation
 
     Raises
@@ -68,7 +68,7 @@ class Quantity:
     __value: Array
     __offset: Array
     __scale: Array
-    __twoPi: bool
+    __two_pi: bool
     __dependent: bool
     __dependencies: list
     __relation: Callable | None
@@ -89,7 +89,7 @@ class Quantity:
         self.__unit = unit
         self.__name = name
         self.__scale = jnp.array(0)
-        self.__twoPi = two_pi
+        self.__two_pi = two_pi
 
         value_fixed = self.__fix_parameter_types(value)
         min_value_fixed = self.__fix_parameter_types(min_value)
@@ -149,7 +149,7 @@ class Quantity:
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             List of parameter dependencies.
         """
         if self.__dependent:
@@ -166,7 +166,7 @@ class Quantity:
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             List of parameter dependencies.
         """
         return self.__dependents
@@ -187,7 +187,7 @@ class Quantity:
 
         Parameters
         ----------
-        quantities: Quantity | List[Quantity]
+        quantities: Quantity | list[Quantity]
             The quantities from which to calculate the value of self.
         relation: Callable
             Function describing how to calculate the value of self from other
@@ -264,7 +264,7 @@ class Quantity:
             max_value=quantity.get_max_value(),
             unit=quantity.get_unit(),
             name=quantity.get_name(),
-            two_pi=quantity.__twoPi,
+            two_pi=quantity.__two_pi,
         )
         qty.add_relation(quantity, lambda x: x)
         return qty
@@ -284,7 +284,7 @@ class Quantity:
         self,
         other: Quantity | list[Quantity],
         relation: Callable,
-        checkUnits: bool = True,
+        check_units: bool = True,
     ) -> None:
         """Add a relation of self to one or more other quantities.
 
@@ -295,18 +295,18 @@ class Quantity:
         relation: Callable
             Function describing how to calculate the value of self from other
             Quantities.
-        checkUnits: bool
+        check_units: bool
             If False, the check for equal units is not performed and unequal
             units are allowed.
 
         """
         other = other if isinstance(other, list) else [other]
 
-        if not all(qty.get_unit() == self.get_unit() for qty in other) and checkUnits:
+        if not all(qty.get_unit() == self.get_unit() for qty in other) and check_units:
             raise ValueError(
                 "Not all Quantities in the relation have the same units. "
                 "This may lead to unintentional physical errors. "
-                "Set 'checkUnits=False' if this behavior is wanted."
+                "Set 'check_units=False' if this behavior is wanted."
             )
 
         self.__dependent = True
@@ -335,7 +335,7 @@ class Quantity:
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Value from the reduced representation.
 
         """
@@ -427,16 +427,16 @@ class Quantity:
             Input value for setting the maximum limit.
 
         """
-        oldValue = self.get_value()
+        old_value = self.get_value()
         min_value_fixed = self.__fix_parameter_types(min_value)
         max_value_fixed = self.__fix_parameter_types(max_value)
 
-        min_value_fixed, max_value_fixed = self.__fix_shapes(oldValue, min_value_fixed, max_value_fixed)
+        min_value_fixed, max_value_fixed = self.__fix_shapes(old_value, min_value_fixed, max_value_fixed)
 
         self.__offset = min_value_fixed
         self.__scale = np.abs(max_value_fixed - min_value_fixed)
         # the value is based on offset and scale and needs to be updated
-        self.__set_value(oldValue)
+        self.__set_value(old_value)
 
     def set_value_and_limits(self, value: Array | float, min_value: Array | float, max_value: Array | float) -> None:
         """
@@ -555,7 +555,7 @@ class Quantity:
 
         Raises
         ------
-        paraqeet.Exceptions.IncompatibleQuantityException
+        IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -563,7 +563,7 @@ class Quantity:
         bool
             True if self's value is less than other paramter's value.
             Note: Because mypy doesn't understand what the type of
-            'self.getValue' and 'other.getValue' is, the return
+            'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
 
         """
@@ -576,7 +576,7 @@ class Quantity:
 
         Raises
         ------
-        paraqeet.Exceptions.IncompatibleQuantityException
+        IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -585,7 +585,7 @@ class Quantity:
             True if self's value is less than or equal to the operand's
             value.
             Note: Because mypy doesn't understand what the type of
-            'self.getValue' and 'other.getValue' is, the return
+            'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
 
         """
@@ -610,7 +610,7 @@ class Quantity:
 
         Raises
         ------
-        paraqeet.Exceptions.IncompatibleQuantityException
+        IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -619,7 +619,7 @@ class Quantity:
             True if self's value is greater than or equal to the operand's
             value.
             Note: Because mypy doesn't understand what the type of
-            'self.getValue' and 'other.getValue' is, the return
+            'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
 
         """
@@ -632,7 +632,7 @@ class Quantity:
 
         Raises
         ------
-        paraqeet.Exceptions.IncompatibleQuantityException
+        IncompatibleQuantityException
             If the parameter is incompatible for this operation.
 
         Returns
@@ -640,7 +640,7 @@ class Quantity:
         bool
             True if self's value is greater than the operand's value.
             Note: Because mypy doesn't understand what the type of
-            'self.getValue' and 'other.getValue' is, the return
+            'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
 
         """
@@ -665,7 +665,7 @@ class Quantity:
 
         Parameters
         ----------
-        key : int
+        key: int
             Index of object for retrieval.
 
         """
@@ -703,12 +703,12 @@ class Quantity:
         ret = ""
         for entry in val:
             if self.__unit != "":
-                if self.__twoPi:
+                if self.__two_pi:
                     ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi "
                 else:
                     ret += self.__make_human_readable(entry) + self.__unit + " "
             else:
-                if self.__twoPi:
+                if self.__two_pi:
                     ret += self.__make_human_readable(entry / np.pi / 2, use_prefix=False) + " x 2pi "
                 else:
                     ret += self.__make_human_readable(entry, use_prefix=False) + " "
@@ -722,8 +722,8 @@ class Quantity:
 
         Parameters
         ----------
-        use_prefix : bool, default=True
-            Adds a prefix string derived from '__engineeringNumber'
+        use_prefix: bool=True
+            Adds a prefix string derived from '__engineering_number'
             to the final format string.
 
         Returns
@@ -748,12 +748,12 @@ class Quantity:
 
         Parameters
         ----------
-        val : float
+        val: float
             Input number to be converted to engineering notation.
 
         Returns
         -------
-        Tuple[float, str]
+        tuple[float, str]
             Engineering notation composite made of the number and the prefix.
 
         """
@@ -794,7 +794,7 @@ class Quantity:
         return {
             "unit": self.__unit,
             "shape": self.__shape,
-            "twoPi": self.__twoPi,
+            "two_pi": self.__two_pi,
             "value": self.get_value().flatten().tolist(),
             "min": self.get_min_value().tolist(),
             "max": self.get_max_value().tolist(),
@@ -808,10 +808,10 @@ class Quantity:
         self.__unit = data["unit"]
         self.__shape = data["shape"]
         self.__length = int(np.prod(self.__shape))
-        self.__twoPi = data["twoPi"]
+        self.__two_pi = data["two_pi"]
 
         # The value and limits need to be set at the same time so that the new value is not out of range
         value = np.array(data["value"]).reshape(self.__shape)
-        minVal = np.array(data["min"]).reshape(self.__shape)
-        maxVal = np.array(data["max"]).reshape(self.__shape)
-        self.set_value_and_limits(value, minVal, maxVal)
+        min_val = np.array(data["min"]).reshape(self.__shape)
+        max_val = np.array(data["max"]).reshape(self.__shape)
+        self.set_value_and_limits(value, min_val, max_val)

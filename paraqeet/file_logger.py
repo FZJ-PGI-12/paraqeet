@@ -12,14 +12,14 @@ class FileLogger(Logger):
 
     Parameters
     ----------
-    logdir : str, default="."
+    logdir: str="."
         Destination directory to store the logs.
 
     """
 
     __logdir: str
     __logfile: str
-    __resultFile: str
+    __result_file: str
 
     def __init__(self, logdir: str = ".") -> None:
         self.logdir = logdir
@@ -37,13 +37,13 @@ class FileLogger(Logger):
 
         Parameters
         ----------
-        logdir : str
+        logdir: str
             Destination directory to store the logs.
 
         """
         self.__logdir = logdir
         self.__logfile = os.path.join(self.__logdir, "opt.log")
-        self.__resultFile = os.path.join(self.__logdir, "opt.result")
+        self.__result_file = os.path.join(self.__logdir, "opt.result")
         if not os.path.isdir(self.__logdir):
             os.makedirs(self.__logdir)
 
@@ -56,17 +56,17 @@ class FileLogger(Logger):
 
         Parameters
         ----------
-        params : List[Logger]
-            List of parameters to be written to the log file.
-        infidelity : float
+        params: list[Quantity]
+            List of quantities to be written to the log file.
+        infidelity: float
             Goal value to be written to the log file.
 
         """
         super().log(params, infidelity)
-        formattedParams = [param.get_value().tolist() for param in params]
+        formatted_params = [param.get_value().tolist() for param in params]
         status = {
             "Eval": self._counter,
-            "Parameters": formattedParams,
+            "Parameters": formatted_params,
             "Goal": infidelity,
         }
         with open(self.__logfile, "a") as log:
@@ -79,12 +79,12 @@ class FileLogger(Logger):
 
         Parameters
         ----------
-        result_message : str, optional
+        result_message: str | None = None
             The message that the user wants to write at the end of the log file.
 
         """
         super().stop()
-        with open(self.__resultFile, "a") as log:
+        with open(self.__result_file, "a") as log:
             if result_message:
                 log.write(result_message)
                 log.write("\n")
