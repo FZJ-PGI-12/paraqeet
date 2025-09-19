@@ -139,7 +139,7 @@ class PWCGenerator(Generator):
 
         Returns
         -------
-        multiply_flat_top : bool
+        multiply_flat_top: bool
             Flag value for multiply_flat_top.
         """
         return self.__multiply_flat_top
@@ -183,7 +183,7 @@ class PWCGenerator(Generator):
             jnp.imag(env),
             min_value=-bound,
             max_value=bound,
-            name="Outphase",
+            name="Quadrature",
         )
 
     def _get_partial_derivatives(self) -> Array:
@@ -206,7 +206,7 @@ class PWCGenerator(Generator):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             All Parameters describing the signal.
         """
         return [self.__inphase, self.__quadrature]
@@ -243,7 +243,7 @@ class PWCGenerator(Generator):
             1-D vector of step values of complex part of the PWC signal.
         tlist: Array
             Time bins of the PWC pulse.
-        t : float
+        t: Array
             One time point.
 
         Returns
@@ -260,7 +260,7 @@ class PWCGenerator(Generator):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -327,7 +327,7 @@ class PWCGenerator(Generator):
 
         Parameters
         ----------
-        t : float
+        time: Array
             One time step.
 
         Returns

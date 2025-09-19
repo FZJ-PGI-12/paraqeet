@@ -23,7 +23,7 @@ class Envelope(Waveform):
         The amplitude of the envelope.
     _t_final: Quantity
         The length in time of the envelope.
-    _gradientFunction: Callable | None
+    _gradient_function: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
     _grad_arg_nums: tuple[int, ...]
@@ -57,7 +57,7 @@ class Envelope(Waveform):
             name="t_final",
         )
 
-        self._gradientFunction: Callable | None = None
+        self._gradient_function: Callable | None = None
         self._grad_arg_nums: tuple[int, ...] = ()
 
     def get_parameters(self):
@@ -77,7 +77,7 @@ class Envelope(Waveform):
 
         Returns
         -------
-        paraqeet.quantity
+        Quantity
             Amplitude of the system.
 
         """
@@ -89,7 +89,7 @@ class Envelope(Waveform):
 
         Parameters
         ----------
-        paraqeet.Quantity
+        Quantity
             Amplitude value of the system to be set.
 
         """
@@ -101,7 +101,7 @@ class Envelope(Waveform):
 
         Returns
         -------
-        paraqeet.quantity
+        Quantity
             Length in time of the tone.
 
         """
@@ -113,7 +113,7 @@ class Envelope(Waveform):
 
         Parameters
         ----------
-        paraqeet.Quantity
+        Quantity
             Length in time of the tone to be set.
 
         """
@@ -139,7 +139,7 @@ class Envelope(Waveform):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -196,7 +196,7 @@ class ConstantEnvelope(Envelope):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -258,7 +258,7 @@ class FlatTopGaussianEnvelope(Envelope):
         The amplitude of the envelope.
     _t_final: Quantity
         The length in time of the envelope.
-    _gradientFunction: Callable | None
+    _gradient_function: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
     _grad_arg_nums: tuple[int, ...]
@@ -275,24 +275,24 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        amp : Quantity
+        amp: Quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
         """
         ramp_time = t_final / 10
-        rampUp = 1 + erf((t - t_final / 5) / ramp_time)
-        rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
-        return amp * rampUp * rampDown / 4
+        ramp_up = 1 + erf((t - t_final / 5) / ramp_time)
+        ramp_down = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        return amp * ramp_up * ramp_down / 4
 
     @staticmethod
     @jit
@@ -300,38 +300,38 @@ class FlatTopGaussianEnvelope(Envelope):
         return 2 / jnp.sqrt(jnp.pi) * jnp.exp(-(x**2))
 
     @partial(jit, static_argnums=(0,))
-    def _evaluateTimeGrad(self, amp: Array, t_final: Array, t: Array):
+    def _evaluate_time_grad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimisable parameters.
 
         Parameters
         ----------
-        amp : Quantity
+        amp: Quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
         """
         ramp_time = t_final / 10
 
-        rampUp = 1 + erf((t - t_final / 5) / ramp_time)
-        rampUp_t_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
-        rampUp_t_dir /= ramp_time
+        ramp_up = 1 + erf((t - t_final / 5) / ramp_time)
+        ramp_up_t_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
+        ramp_up_t_dir /= ramp_time
 
-        rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
-        rampDown_t_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
-        rampDown_t_dir *= -1 / ramp_time
+        ramp_down = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        ramp_down_t_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
+        ramp_down_t_dir *= -1 / ramp_time
 
-        prod_dir = rampUp * rampDown_t_dir + rampUp_t_dir * rampDown
+        prod_dir = ramp_up * ramp_down_t_dir + ramp_up_t_dir * ramp_down
 
         return amp * prod_dir / 4
 
@@ -343,31 +343,31 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        amp : Quantity
+        amp: Quantity
             Cosine pulse amplitude.
         t_final: Array
             The length in time of the entire envelope.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Returns the output of the device that explicitly depends
             on the optimisable parameters.
 
         """
         ramp_time = t_final / 10
 
-        rampUp = 1 + erf((t - t_final / 5) / ramp_time)
-        rampUp_t_fin_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
-        rampUp_t_fin_dir *= -1 / (5 * ramp_time)
+        ramp_up = 1 + erf((t - t_final / 5) / ramp_time)
+        ramp_up_t_fin_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
+        ramp_up_t_fin_dir *= -1 / (5 * ramp_time)
 
-        rampDown = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
-        rampDown_t_fin_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
-        rampDown_t_fin_dir *= 4 / (5 * ramp_time)
+        ramp_down = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        ramp_down_t_fin_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
+        ramp_down_t_fin_dir *= 4 / (5 * ramp_time)
 
-        prod_dir = rampUp * rampDown_t_fin_dir + rampUp_t_fin_dir * rampDown
+        prod_dir = ramp_up * ramp_down_t_fin_dir + ramp_up_t_fin_dir * ramp_down
 
         return amp * prod_dir / 4
 
@@ -376,7 +376,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -394,7 +394,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -429,7 +429,7 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return jnp.array(self._evaluateTimeGrad(amp, t_final, t))
+        return jnp.array(self._evaluate_time_grad(amp, t_final, t))
 
 
 class GaussEnvelope(Envelope):
@@ -439,7 +439,7 @@ class GaussEnvelope(Envelope):
         The amplitude of the envelope.
     _t_final: Quantity
         The length in time of the envelope.
-    _gradientFunction: Callable | None
+    _gradient_function: Callable | None
         The function to calculate the gradient with respect to a set of
         previously defined parameters.
     _grad_arg_nums: tuple[int, ...]
@@ -454,9 +454,9 @@ class GaussEnvelope(Envelope):
 
         Parameters
         ----------
-        t_final : Array
+        t_final: Array
             Duration of the signal to calculate the center of the gaussian from.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -474,9 +474,9 @@ class GaussEnvelope(Envelope):
 
         Parameters
         ----------
-        t_final : Array
+        t_final: Array
             Duration of the signal to calculate the center of the gaussian from.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -485,8 +485,8 @@ class GaussEnvelope(Envelope):
             The unscaled gaussian signals time derivative.
         """
         sigma = t_final / 8
-        timeGrad = self._evaluate(amp, t_final, t) * -1.0 * (t - t_final / 2) / sigma**2
-        return timeGrad  # type: ignore
+        time_grad = self._evaluate(amp, t_final, t) * -1.0 * (t - t_final / 2) / sigma**2
+        return time_grad  # type: ignore
 
     def compute_output(self, t: Array) -> Array:
         """Compute a Gaussian signal.
@@ -520,5 +520,5 @@ class GaussEnvelope(Envelope):
         """
         t_final = self.t_final.get_value()
         amp = self.amplitude.get_value()
-        envTimeDeriv = self._evaluate_time_gradient(amp, t_final, t)
-        return envTimeDeriv  # type: ignore
+        env_time_deriv = self._evaluate_time_gradient(amp, t_final, t)
+        return env_time_deriv  # type: ignore

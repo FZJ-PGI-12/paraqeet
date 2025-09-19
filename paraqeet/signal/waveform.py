@@ -26,13 +26,13 @@ class Waveform(Optimisable):
     _grad_arg_nums: tuple[int, ...] = ()
 
     def _compute_gradient_function(
-        self, signalFunction: Callable, argnums: tuple[int, ...], vmap_axes: tuple[int | None, ...]
+        self, signal_function: Callable, argnums: tuple[int, ...], vmap_axes: tuple[int | None, ...]
     ):
         """Return a compute gradient function from the signal function.
 
         Parameters
         ----------
-        signalFunction : Callable
+        signal_function: Callable
             A function that generated signals.
         argnums : Tuple[int, ...]
             A tuple of ints containing a variable number of argument numbers.
@@ -40,7 +40,7 @@ class Waveform(Optimisable):
             A tuple of ints.
 
         """
-        grads = grad(signalFunction, argnums=argnums)
+        grads = grad(signal_function, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
@@ -49,7 +49,7 @@ class Waveform(Optimisable):
 
         Parameters
         ----------
-        params : List[Quantity]
+        params: list[Quantity]
             Input list of parameters to be set.
 
         """
@@ -97,7 +97,7 @@ class Waveform(Optimisable):
 
         Parameters
         ----------
-        t : Array or float
+        t: Array
             One-dimensional vector of timestamps or a single value.
 
         Returns
@@ -127,7 +127,7 @@ class Waveform(Optimisable):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -160,9 +160,9 @@ class Waveform(Optimisable):
 
         """
         t_arr = jnp.array(t, ndmin=1)
-        envTimeGradFun = grad(self.compute_output, argnums=0)
-        envTimeGrad = vmap(envTimeGradFun, in_axes=(0,))(t_arr)
-        return jnp.squeeze(envTimeGrad)
+        env_time_grad_fun = grad(self.compute_output, argnums=0)
+        env_time_grad = vmap(env_time_grad_fun, in_axes=(0,))(t_arr)
+        return jnp.squeeze(env_time_grad)
 
 
 class LocalOscillator(Waveform):
@@ -213,7 +213,7 @@ class LocalOscillator(Waveform):
 
         Parameters
         ----------
-        freq : Quantity
+        freq: Quantity
             The frequency of the constant oscillating tone.
 
         """
@@ -225,9 +225,9 @@ class LocalOscillator(Waveform):
 
         Parameters
         ----------
-        freq : Array
+        freq: Array
             The frequency of the carrier signal
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -242,7 +242,7 @@ class LocalOscillator(Waveform):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -257,7 +257,7 @@ class LocalOscillator(Waveform):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             Array of time points to evaluate gradients at.
 
         Returns
@@ -304,7 +304,6 @@ class DRAGMixer(Waveform):
     __deltas: list[Quantity]
         The delta parameter by which to shift the frequency of the DRAG
         component.
-
     """
 
     __multiply_flat_top: bool = False
@@ -357,7 +356,7 @@ class DRAGMixer(Waveform):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             All Parameters describing the signal.
         """
         params = list()
@@ -367,23 +366,23 @@ class DRAGMixer(Waveform):
         return params
 
     @staticmethod
-    def __add_deltas(envelopeTones: list[Waveform], deltas: list[Quantity] | None) -> None:
+    def __add_deltas(envelope_tones: list[Waveform], deltas: list[Quantity] | None) -> None:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
 
         Parameters
         ----------
-        envelopeTones : List[Waveform]
+        envelope_tones: ist[Waveform]
             The list of tones defining the total envelope.
-        deltas : List[Quantity]
+        deltas : list[Quantity]
             A List of Quantities representing the delta parameters to add to
             each envelope Tone.
 
         Returns
         -------
-        List[Waveform]
+        ist[Waveform]
             The list of envelope Tones with the added delta parameters.
         """
-        for ii, env_tone in enumerate(envelopeTones):
+        for ii, env_tone in enumerate(envelope_tones):
             env_tone.__setattr__(
                 "_" + env_tone.__class__.__name__ + "__delta",
                 Quantity(
@@ -410,9 +409,9 @@ class DRAGMixer(Waveform):
     def __compute_flat_top_envelope(self, t):
         t_final = self.__t_final.get_value()
         ramp_time = t_final / 25
-        rampUp = 1 + erf((t - 2 * t_final / 20) / ramp_time)
-        rampDown = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
-        return rampUp * rampDown / 4
+        ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
+        ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
+        return ramp_up * ramp_down / 4
 
     def _evaluate(self, t, *deltas) -> Array:
         """Compute the DRAG Envelope using deltas.
@@ -421,9 +420,9 @@ class DRAGMixer(Waveform):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
-        deltas: List[float]
+        deltas: list[float]
             Variable number of inputs for delta parameters for each tone.
 
         Returns
@@ -446,7 +445,7 @@ class DRAGMixer(Waveform):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -464,7 +463,7 @@ class DRAGMixer(Waveform):
 
         Parameters
         ----------
-        params : list[Quantity]
+        params: list[Quantity]
         """
         super().set_optimisable_parameters(params)
 
@@ -477,11 +476,11 @@ class DRAGMixer(Waveform):
         Collect and return the parameter gradients from the Tone and the carrier
         Tone. Compute the gradient of the generator parameters by AD.
         The order of the gradients should match the order of paramters in
-        `self.getParameter()` method
+        `self.get_parameter()` method
 
         Parameters
         ----------
-        t : Array
+        t: Array
             An array of time points.
 
         Returns

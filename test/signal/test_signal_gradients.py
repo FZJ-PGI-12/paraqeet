@@ -24,7 +24,7 @@ def tone():
 
 
 @pytest.fixture
-def toneAD():
+def tone_ad():
     """Tone with AutoDiff gradients.
 
     Returns
@@ -40,14 +40,14 @@ def random_entries_from_list(elements: Array, num: int = 0) -> Array:
 
     Parameters
     ----------
-    elements : jax.numpy.array
+    elements: Array
         Array of elements to choose from.
-    num : int
+    num: int
         Number of random entries asked for.
 
     Returns
     -------
-    jax.numpy.array
+    Array
         Returns random entries selected from a list of elements.
 
     """
@@ -57,37 +57,37 @@ def random_entries_from_list(elements: Array, num: int = 0) -> Array:
     return np.array(elements)[indices]
 
 
-def test_values(tone, toneAD):
+def test_values(tone, tone_ad):
     """Test values from the AD signal."""
-    assert toneAD.compute_output(time) == pytest.approx(tone.compute_output(time), rel=1e-6)
+    assert tone_ad.compute_output(time) == pytest.approx(tone.compute_output(time), rel=1e-6)
 
 
-def test_gradients(tone, toneAD):
+def test_gradients(tone, tone_ad):
     """Test generation of analytic and AD signal gradients one at a time."""
     grad_tone = []
-    grad_toneAD = []
+    grad_tone_ad = []
 
     # Pick a random number of parameters from the tones
-    numParams = np.random.randint(0, len(tone.get_parameters()))
+    num_params = np.random.randint(0, len(tone.get_parameters()))
     for t in time:
-        tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), numParams))
-        toneAD.set_optimisable_parameters(random_entries_from_list(toneAD.get_parameters(), numParams))
+        tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), num_params))
+        tone_ad.set_optimisable_parameters(random_entries_from_list(tone_ad.get_parameters(), num_params))
 
-        grad_toneAD.append(toneAD.compute_gradient(t))
+        grad_tone_ad.append(tone_ad.compute_gradient(t))
         grad_tone.append(tone.compute_gradient(t))
 
-    assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
+    assert jnp.array(grad_tone_ad) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
 
 
-def test_gradients_vectorized(tone, toneAD):
+def test_gradients_vectorized(tone, tone_ad):
     """Test vectorized generation of analytic and AD signal gradients."""
-    numParams = np.random.randint(0, len(tone.get_parameters()))
+    num_params = np.random.randint(0, len(tone.get_parameters()))
 
-    toneAD.set_optimisable_parameters(random_entries_from_list(toneAD.get_parameters(), numParams))
-    grad_toneAD = toneAD.compute_gradient(time)
-    tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), numParams))
+    tone_ad.set_optimisable_parameters(random_entries_from_list(tone_ad.get_parameters(), num_params))
+    grad_tone_ad = tone_ad.compute_gradient(time)
+    tone.set_optimisable_parameters(random_entries_from_list(tone.get_parameters(), num_params))
     grad_tone = tone.compute_gradient(time)
-    assert jnp.array(grad_toneAD) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
+    assert jnp.array(grad_tone_ad) == pytest.approx(jnp.array(grad_tone), rel=1e-6)
 
 
 def test_gradients_shape(tone):

@@ -45,7 +45,7 @@ def gauss():
 
 
 @pytest.fixture
-def zeroGen():
+def zero_gen():
     """Return a zero tone DRAG generator object."""
     tone = ZeroEnvelope()
     drag_tone = DRAGMixer(tone)
@@ -76,9 +76,9 @@ def gen_multiple_tones():
     )
 
 
-def test_constant_env(zeroGen, time_samples):
+def test_constant_env(zero_gen, time_samples):
     """Test the values of a DRAG signal using a constant envelope."""
-    assert np.all(zeroGen.generate_signal(time_samples) == np.zeros_like(time_samples))
+    assert np.all(zero_gen.generate_signal(time_samples) == np.zeros_like(time_samples))
 
 
 def test_gen(gen, time_samples) -> None:
@@ -87,7 +87,7 @@ def test_gen(gen, time_samples) -> None:
     assert len(sig) == LEN_SIG
 
 
-def test_getParameters(gen_multiple_tones):
+def test_get_parameters(gen_multiple_tones):
     """Test if the expected amount of parameters is present.
 
     If multiple tones define the total envelope, the signal needs to have the

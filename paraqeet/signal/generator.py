@@ -25,7 +25,7 @@ class Generator(Optimisable):
 
         Parameters
         ----------
-        times : Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -51,7 +51,7 @@ class Generator(Optimisable):
 
         Parameters
         ----------
-        times : Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -75,7 +75,7 @@ class Generator(Optimisable):
 
         Parameters
         ----------
-        time : float
+        time: Array
             One time stamp.
 
         Returns

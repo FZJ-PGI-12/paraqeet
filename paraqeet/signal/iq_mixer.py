@@ -51,7 +51,7 @@ class IQMixer(Generator):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             All Parameters describing the signal.
         """
         pars = []
@@ -82,7 +82,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -103,7 +103,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -143,7 +143,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -211,7 +211,7 @@ class IQMixer(Generator):
 
         Parameters
         ----------
-        t : float
+        time: Array
             Single timestamp.
 
         Returns
