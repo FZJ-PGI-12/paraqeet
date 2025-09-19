@@ -26,9 +26,9 @@ class ScipyExpm(StatePropagation):
 
     Parameters
     ----------
-    model : Model
+    model: Model
         Represents the equation of motion for a given Hamiltonian.
-    res : float
+    res: float
         Resolution at which to sample the EOM.
 
     """
@@ -57,7 +57,7 @@ class ScipyExpm(StatePropagation):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             Returns an empty list.
 
         """
@@ -70,9 +70,9 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Array of timesteps.
-        ti : int
+        ti: int
             Snapshot of the time at a current step
 
         Returns
@@ -201,17 +201,17 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        psis_t : chtree.quantity.Array
+        psis_t: Array
             State/states at time 't'.
-        eom : chtree.quantity.Array
+        eom: Array
             Equation of motion for a list of times.
-        steps_arr : chtree.quantity.Array
+        steps_arr: Array
             Array from 0 to the length of the List of time, in steps of 1
             representing the iteration index.
 
         Returns
         -------
-        chtree.quantity.Array
+        Array
             Returns the evolved state.
 
         """
@@ -231,14 +231,14 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        eom_matrix : chtree.quantity.Array
+        eom_matrix : Array
             The equations of motion matrix.
-        psis_t : chtree.quantity.Array
+        psis_t : Array
             State/states at time 't'.
 
         Returns
         -------
-        chtree.quantity.Array
+        Array
             Returns the evolved state.
 
         """
@@ -251,7 +251,7 @@ class ScipyExpm(StatePropagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns

@@ -6,7 +6,7 @@ import pytest
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
-from test.propagation.common_propagation_tests import needs_initial_state
+from test.propagation.test_common_propagation import needs_initial_state
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def test_parameters(expm):
 
 def test_resolution(expm):
     """Test the resolution of the solver."""
-    for i in range(10):
+    for _ in range(10):
         propagation = expm(dimension=np.random.randint(2, 100), res=3)
         resolution = np.random.randint(1, 1000)
         propagation.resolution = resolution
@@ -41,20 +41,20 @@ def test_state_dimension_vector(random_state, expm, ts):
     after propagation.
 
     """
-    for i in range(10):
+    for _ in range(10):
         dim = np.random.randint(2, 10)
         state = random_state(dim)
         propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
-        propagatedStates = propagation.propagate(ts)
-        assert propagatedStates.shape[0] == len(ts)
-        assert propagatedStates.shape[1:] == state.shape + (1,)
+        propagated_states = propagation.propagate(ts)
+        assert propagated_states.shape[0] == len(ts)
+        assert propagated_states.shape[1:] == state.shape + (1,)
 
 
 @pytest.mark.parametrize("is_open", [True, False])
 def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
     """Test the state matrix after propagation."""
-    for i in range(10):
+    for _ in range(10):
         dim = np.random.randint(2, 10)
         state = random_matrix(dim, dim)
         if is_open:
@@ -63,9 +63,9 @@ def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
         else:
             propagation = expm(dim, res=3)
         propagation.set_initial_state(state)
-        propagatedStates = propagation.propagate(ts)
-        assert propagatedStates.shape[0] == len(ts)
-        assert propagatedStates.shape[1:] == state.shape
+        propagated_states = propagation.propagate(ts)
+        assert propagated_states.shape[0] == len(ts)
+        assert propagated_states.shape[1:] == state.shape
 
 
 def test_needs_initial_state(random_state, expm):

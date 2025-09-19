@@ -36,7 +36,7 @@ class RungeKutta(StatePropagation):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             List of optimisable parameters of the system.
 
         """
@@ -49,7 +49,7 @@ class RungeKutta(StatePropagation):
 
         Parameters
         ----------
-        state : Array
+        state: Array
             Parameter value to be set as the initial state for the propagation.
 
         """
@@ -60,7 +60,7 @@ class RungeKutta(StatePropagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns

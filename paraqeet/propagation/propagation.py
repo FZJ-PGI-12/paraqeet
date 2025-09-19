@@ -15,7 +15,7 @@ class Propagation(Optimisable):
 
     Parameters
     ----------
-    model : Model
+    model: Model
         Represents the equation of motion for a given Hamiltonian.
 
     """
@@ -33,7 +33,7 @@ class Propagation(Optimisable):
 
         Parameters
         ----------
-        state : Array
+        state: Array
             Parameter value to be set as the initial state for the propagation.
 
         Raises
@@ -55,7 +55,7 @@ class Propagation(Optimisable):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -82,12 +82,12 @@ class Propagation(Optimisable):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns
         -------
-        Tuple[Array Array]
+        tuple[Array Array]
             Computes part of the chain rune for a gradient trace.
 
         Raises

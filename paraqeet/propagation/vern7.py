@@ -217,7 +217,7 @@ class Vern7(StatePropagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns

@@ -20,30 +20,30 @@ class RandomPropagation(Propagation):
 
     Parameters
     ----------
-    dimension : int
+    dimension: int
         Hilbert space size for the generated states.
-    generateMatrices : bool, default=False
+    generate_matrices : bool, default=False
         Whether to generate matrices instead of vectors.
-    autoUpdate : bool, default=True
+    auto_update: bool, default=True
         Whether to return a new random state at every call of propagate.
         If false, propagate will return the same state until update was called.
     """
 
     __dimension: int
-    __createMatrices: bool
-    __autoUpdate: bool
+    __create_matrices: bool
+    __auto_update: bool
     __state: Array
 
     def __init__(
         self,
         dimension: int,
-        generateMatrices: bool = False,
-        autoUpdate: bool = True,
+        generate_matrices: bool = False,
+        auto_update: bool = True,
     ):
         super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)))
         self.__dimension = dimension
-        self.__createMatrices = generateMatrices
-        self.__autoUpdate = autoUpdate
+        self.__create_matrices = generate_matrices
+        self.__auto_update = auto_update
         self.update()
         self.is_open = False
 
@@ -58,7 +58,7 @@ class RandomPropagation(Propagation):
 
         Parameters
         ----------
-        state : Array
+        state: Array
             Given state to set as the initial state.
 
         """
@@ -69,7 +69,7 @@ class RandomPropagation(Propagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -78,7 +78,7 @@ class RandomPropagation(Propagation):
             Returns the updated state of the system.
 
         """
-        if self.__autoUpdate:
+        if self.__auto_update:
             self.update()
         return jnp.array([self.__state] * len(time))
 
@@ -91,8 +91,8 @@ class RandomPropagation(Propagation):
     @partial(jit, static_argnums=(0,))
     def __create_random_dm(dim: int, rho: Array):
         rho /= jnp.trace(rho)
-        U = unitary_group.rvs(dim)
-        return jnp.conjugate(U.T) @ rho @ U
+        u = unitary_group.rvs(dim)
+        return jnp.conjugate(u.T) @ rho @ u
 
     @staticmethod
     @jit
@@ -106,7 +106,7 @@ class RandomPropagation(Propagation):
         new random state.
 
         """
-        if self.__createMatrices:
+        if self.__create_matrices:
             # generate a random density matrix by rotating a
             # random diagonal matrix
             rho = jnp.diag(np.random.random(self.__dimension))

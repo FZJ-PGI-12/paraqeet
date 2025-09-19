@@ -24,37 +24,37 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Parameters
         ----------
-        psi : chtree.quantity.Array
+        psi : Array
             State of the system.
-        dpsis : chtree.quantity.Array
+        dpsis : Array
             Differential of state.
 
         Returns
         -------
-        chtree.quantity.Array
+        Array
             Returns a super state created from the state and the differential.
 
         """
-        superState = [psi]
-        superState.extend(dpsis)
-        psi_t = jnp.concatenate(superState)
+        super_state = [psi]
+        super_state.extend(dpsis)
+        psi_t = jnp.concatenate(super_state)
         return psi_t
 
-    def _create_GOAT_ham(self, n_params, eom, grads):
+    def _create_goat_ham(self, n_params, eom, grads):
         """Create a Hamiltonian for the GOAT optimisation method.
 
         Parameters
         ----------
-        n_params : int
+        n_params: int
             Number of parameters.
-        eom : chtree.quantity.Array
+        eom: Array
             Equations of motion in matrix form.
-        grads : chtree.quantity.Array
+        grads: Array
             Gradients of the system at a particular step.
 
         Returns
         -------
-        chtree.quantity.Array
+        Array
             Hamiltonian for the GOAT optimisation method.
 
         """
@@ -62,8 +62,8 @@ class ScipyExpmGOAT(ScipyExpm):
         zeros_like_eom = jnp.zeros_like(eom)
         line.extend([zeros_like_eom] * n_params)
         goat_ham_list = [line]
-        for ii, dH_dp in enumerate(grads, start=1):
-            line = [dH_dp]
+        for ii, dh_dp in enumerate(grads, start=1):
+            line = [dh_dp]
             line.extend([zeros_like_eom] * (ii - 1))
             line.append(eom)
             line.extend([zeros_like_eom] * (n_params - ii))
@@ -73,12 +73,12 @@ class ScipyExpmGOAT(ScipyExpm):
 
     @partial(jit, static_argnums=(0, 1))
     def _propagate_gradient(self, n_params, psis_t, eom, grads, steps_arr):
-        def propagateBody(psis_t, index):
-            goat_ham = self._create_GOAT_ham(n_params, eom[index], grads[index])
+        def propagate_body(psis_t, index):
+            goat_ham = self._create_goat_ham(n_params, eom[index], grads[index])
             psis_t = self._propagate_psi(goat_ham, psis_t)
             return psis_t, psis_t
 
-        psis_t, _ = scan(propagateBody, psis_t, steps_arr)
+        psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
 
     def gradient(self, time: Array) -> tuple[Array, Array]:
@@ -86,12 +86,12 @@ class ScipyExpmGOAT(ScipyExpm):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Array of timesteps.
 
         Returns
         -------
-        Tuple[Array, Array]
+        tuple[Array, Array]
             First dimension is time, second dimension is the parameter.
 
         """

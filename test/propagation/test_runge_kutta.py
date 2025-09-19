@@ -5,7 +5,7 @@ import numpy as np
 from paraqeet.propagation.runge_kutta import RungeKutta
 from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
-from test.propagation.common_propagation_tests import needs_initial_state
+from test.propagation.test_common_propagation import needs_initial_state
 
 
 @pytest.fixture
@@ -30,11 +30,11 @@ def test_state_dimension(rk, ts, random_state):
     """
     dim = np.random.randint(1, 100)
     state = random_state(dim)
-    rungeKutta = rk(dim)
-    rungeKutta.set_initial_state(state)
-    propagatedStates = rungeKutta.propagate(ts)
-    assert len(propagatedStates) == len(ts)
-    assert propagatedStates[-1].shape == state.shape
+    runge_kutta = rk(dim)
+    runge_kutta.set_initial_state(state)
+    propagated_states = runge_kutta.propagate(ts)
+    assert len(propagated_states) == len(ts)
+    assert propagated_states[-1].shape == state.shape
 
 
 def test_initial_state(rk, ts):
@@ -63,10 +63,10 @@ def test_time_steps(rk, random_state):
     time = np.array([0])
     dim = np.random.randint(1, 100)
     state = random_state(dim)
-    rungeKutta = rk(dim)
-    rungeKutta.set_initial_state(state)
+    runge_kutta = rk(dim)
+    runge_kutta.set_initial_state(state)
     with pytest.raises(
         ValueError,
         match="Runge-Kutta propagation needs at least two time steps",
     ):
-        rungeKutta.propagate(time)
+        runge_kutta.propagate(time)

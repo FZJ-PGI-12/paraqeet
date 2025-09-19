@@ -35,7 +35,7 @@ class IdentityPropagation(StatePropagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             One-dimensional vector of timestamps.
 
         Returns

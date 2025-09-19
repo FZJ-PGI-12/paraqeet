@@ -19,7 +19,7 @@ class Euler(StatePropagation):
 
     Parameters
     ----------
-    model : Model
+    model: Model
         Represents the equation of motion for a given Hamiltonian.
 
     """
@@ -32,7 +32,7 @@ class Euler(StatePropagation):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             List of optimisable parameters of the system.
 
         """
@@ -45,7 +45,7 @@ class Euler(StatePropagation):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Vector of time samples.
 
         Returns
@@ -57,13 +57,13 @@ class Euler(StatePropagation):
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
         if self._model is not None:
-            equationsOfMotion = self._model.get_matrix(time)
+            equations_of_motion = self._model.get_matrix(time)
         else:
             raise ConfigurationException("No equation of motion is configured.")
 
         dt = time[1:] - time[0:-1]
         states = [self._initial_state]
         for i in range(len(dt)):
-            states.append(states[-1] + dt[i] * equationsOfMotion[i] @ states[-1])
+            states.append(states[-1] + dt[i] * equations_of_motion[i] @ states[-1])
 
         return jnp.array(states)  # Jax arrays are immutable, so listing and then packing for return

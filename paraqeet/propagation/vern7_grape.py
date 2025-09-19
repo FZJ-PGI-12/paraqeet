@@ -49,23 +49,23 @@ class Vern7GRAPE(Vern7):
         return self._target_state
 
     @target_state.setter
-    def target_state(self, targetState: Array) -> None:
+    def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
         ----------
-        targetState : Array
+        target_state: Array
             Target state.
         """
         # For open system check if target state is a density matrixs.
         if self.is_open:
-            if targetState.shape[-1] != targetState.shape[-2]:
+            if target_state.shape[-1] != target_state.shape[-2]:
                 raise ConfigurationException(
-                    f"Obtained a state vector of shape {targetState.shape} as target state. "
+                    f"Obtained a state vector of shape {target_state.shape} as target state. "
                     + "For open system propagation expected a density matrix as the target state."
                 )
 
-        self._target_state = targetState
+        self._target_state = target_state
 
     def _reverse_schrodinger_step(self, state: Array, h: Array, cols: list[Array]):
         return jnp.matmul(state, h)
@@ -92,9 +92,9 @@ class Vern7GRAPE(Vern7):
 
         Parameters
         ----------
-        psis_t : Array
+        psis_t: Array
             Forward propagated state
-        lamdas_t : Array
+        lamdas_t: Array
             Backward propagated state
         """
 
@@ -158,10 +158,10 @@ class Vern7GRAPE(Vern7):
 
         dt = time[1] - time[0]
         interp_time = self._interpolate_time(time, dt)
-        timeGrid = interp_time[:-1] + dt / 2
+        time_grid = interp_time[:-1] + dt / 2
 
-        eom, cols = eom_func(timeGrid)
-        dH_dps = jnp.array(grad_func(time[:-1] + dt / 2)) * dt
+        eom, cols = eom_func(time_grid)
+        dh_dps = jnp.array(grad_func(time[:-1] + dt / 2)) * dt
 
         psis, lamdas = self._forward_and_backward_propagation(
             init_state, target_state, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time[:-1]), 1)
@@ -174,12 +174,12 @@ class Vern7GRAPE(Vern7):
 
         grads = []
 
-        n_params = dH_dps.shape[1]
+        n_params = dh_dps.shape[1]
         for i in range(n_params):
             if self.is_open:
-                fwd_prop_state = vmap(self._commutator, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
+                fwd_prop_state = vmap(self._commutator, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
             else:
-                fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dH_dps[:, i, ...], psis[1:])
+                fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
 
             grad = vmap(jnp.matmul, in_axes=(0, 0))(lamdas[1:], fwd_prop_state)
             grad = jnp.squeeze(grad)

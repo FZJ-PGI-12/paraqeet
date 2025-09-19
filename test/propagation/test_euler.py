@@ -6,7 +6,7 @@ import numpy as np
 from paraqeet.propagation.euler import Euler
 from test.model.dummy_model import DummyEquationsOfMotion
 from test.model.empty_hamiltonian import EmptyHamiltonian
-from test.propagation.common_propagation_tests import needs_initial_state
+from test.propagation.test_common_propagation import needs_initial_state
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ def test_state_dimension_vector(random_state, euler, ts):
 
 def test_state_dimension_matrix(random_matrix, euler, ts):
     """Test the state dimension matrix."""
-    for i in range(10):
+    for _ in range(10):
         dim = np.random.randint(2, 30)
         state = random_matrix(dim, dim)
         propagation = euler(dim)

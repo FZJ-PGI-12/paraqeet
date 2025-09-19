@@ -15,7 +15,7 @@ class StatePropagation(Propagation, ABC):
 
     Parameters
     ----------
-    model : Model
+    model: Model
         Represents the equation of motion for a given Hamiltonian.
 
     """
@@ -45,7 +45,7 @@ class StatePropagation(Propagation, ABC):
 
         Parameters
         ----------
-        state : Array
+        state: Array
             Parameter value to be set as the initial state for the propagation.
 
         """

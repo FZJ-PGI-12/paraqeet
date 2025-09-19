@@ -54,12 +54,12 @@ class ScipyExpmGRAPE(ScipyExpm):
         return self._target_state
 
     @target_state.setter
-    def target_state(self, targetState: Array) -> None:
+    def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
         ----------
-        targetState : Array
+        target_state: Array
             Target state.
         """
         # Verify if `model.ode_propagation` is set to `False`.
@@ -73,24 +73,24 @@ class ScipyExpmGRAPE(ScipyExpm):
         # For open system convert Density Matrix to Vectorized form.
         if self.is_open:
             try:
-                if len(targetState.shape) == 1:  # An (n,) array
-                    targetState = jnp.reshape(targetState, (-1, 1))
+                if len(target_state.shape) == 1:  # An (n,) array
+                    target_state = jnp.reshape(target_state, (-1, 1))
                 # Compare the shapes of target state with the generator of time translation
                 dim_generator = eom.shape[1]
                 # Comparing dim -2 as 0 can be batch dimension
-                if targetState.shape[-2] == jnp.sqrt(dim_generator):
+                if target_state.shape[-2] == jnp.sqrt(dim_generator):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
-                    if targetState.shape[-1] == targetState.shape[-2]:
+                    if target_state.shape[-1] == target_state.shape[-2]:
                         # This is a density matrix
-                        targetState = self._convert_dm_to_vec(targetState, dim_generator)
+                        target_state = self._convert_dm_to_vec(target_state, dim_generator)
             except Exception as e:
                 raise ConfigurationException(
-                    f"Obtained a state vector of shape {targetState.shape} as target state. "
+                    f"Obtained a state vector of shape {target_state.shape} as target state. "
                     + "For open system propagation expected a density matrix or vectorized density matrix "
                     + "as the target state.\n"
                     + f"Raised exception: `{e}`"
                 )
-        self._target_state = targetState
+        self._target_state = target_state
 
     @property
     def use_schirmer_derivative(self) -> bool:
@@ -98,7 +98,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         return self._schirmer_derivative
 
     @use_schirmer_derivative.setter
-    def use_schirmer_derivative(self, schirmerDerivative: bool) -> None:
+    def use_schirmer_derivative(self, schirmer_derivative: bool) -> None:
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
         Parameters
@@ -106,24 +106,24 @@ class ScipyExpmGRAPE(ScipyExpm):
         schirmerDerivative : bool
             If True use Schirmer derivative, if False use Frechet Derivative.
         """
-        self._schirmer_derivative = schirmerDerivative
+        self._schirmer_derivative = schirmer_derivative
 
     @staticmethod
     @jit
     def __sandwich_op_values(
         bwd_propagated_state: Array,
-        Op: Array,
+        op: Array,
         fwd_propagated_state: Array,
     ) -> Array:
         r"""Compute \\langle \\lambda(t) | O | \\psi(t) \\rangle.
 
         Parameters
         ----------
-        bwd_propagated_state : Array
+        bwd_propagated_state: Array
             Backwards propagated states
-        Op : Array
+        op: Array
             Array of operator for each time point.
-        fwd_propagated_state : Array
+        fwd_propagated_state: Array
             Forwards propagated states
 
         Returns
@@ -131,12 +131,12 @@ class ScipyExpmGRAPE(ScipyExpm):
         Array
             Matrix element of the operator for each time point.
         """
-        return jnp.matmul(bwd_propagated_state, jnp.matmul(Op, fwd_propagated_state))
+        return jnp.matmul(bwd_propagated_state, jnp.matmul(op, fwd_propagated_state))
 
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation(
         self,
-        Us,
+        us,
         psis_t,
         lamdas_t,
         steps_arr,
@@ -154,11 +154,11 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
 
         def forward_propagation(psis_t, index):
-            psis_t = Us[index] @ psis_t
+            psis_t = us[index] @ psis_t
             return psis_t, psis_t
 
         def backward_propagation(lamdas_t, index):
-            lamdas_t = lamdas_t @ Us[-index - 1]
+            lamdas_t = lamdas_t @ us[-index - 1]
             return lamdas_t, lamdas_t
 
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
@@ -169,8 +169,8 @@ class ScipyExpmGRAPE(ScipyExpm):
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation_open(
         self,
-        Us,
-        Us_rev,
+        us,
+        us_rev,
         psis_t,
         lamdas_t,
         steps_arr,
@@ -181,18 +181,18 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-        psis_t : Array
+        psis_t: Array
             Forward propagated state
-        lamdas_t : Array
+        lamdas_t: Array
             Backward propagated state
         """
 
         def forward_propagation(psis_t, index):
-            psis_t = Us[index] @ psis_t
+            psis_t = us[index] @ psis_t
             return psis_t, psis_t
 
         def backward_propagation(lamdas_t, index):
-            lamdas_t = Us_rev[index] @ lamdas_t
+            lamdas_t = us_rev[index] @ lamdas_t
             return lamdas_t, lamdas_t
 
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
@@ -207,9 +207,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         Parameters
         ----------
-        ham : Array
+        ham: Array
             -iHdt
-        dh_dp : Array
+        dh_dp: Array
             -i\\frac{\\partial H}{\\partial u} dt
         """
         return expm_frechet(ham, dh_dp)
@@ -227,9 +227,9 @@ class ScipyExpmGRAPE(ScipyExpm):
             -i\\frac{\\partial H}{\\partial u} dt
         """
         zeros = jnp.zeros_like(ham)
-        H_extended = jnp.block([[ham, dh_dp], [zeros, ham]])
-        U_extended = expm(H_extended)
-        return U_extended[:dim, :dim], U_extended[:dim, dim:]
+        h_extended = jnp.block([[ham, dh_dp], [zeros, ham]])
+        u_extended = expm(h_extended)
+        return u_extended[:dim, :dim], u_extended[:dim, dim:]
 
     @staticmethod
     @jit
@@ -246,7 +246,7 @@ class ScipyExpmGRAPE(ScipyExpm):
     @partial(jit, static_argnums=(0,))
     def _propagate_in_time(
         self,
-        Us,
+        us,
         psis_t,
         steps_arr,
     ):
@@ -263,7 +263,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         """
 
         def forward_propagation(psis_t, index):
-            psis_t = Us[index] @ psis_t
+            psis_t = us[index] @ psis_t
             return psis_t, psis_t
 
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
@@ -277,17 +277,17 @@ class ScipyExpmGRAPE(ScipyExpm):
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         dt = time[1] - time[0]
 
-        timeGrid = time[:-1] + dt / 2
+        time_grid = time[:-1] + dt / 2
 
         if self._model is None:
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
         eom_func = self._model.get_matrix
-        eom = eom_func(timeGrid) * dt
+        eom = eom_func(time_grid) * dt
 
-        Us = vmap(self._exponentiate, in_axes=(0,))(eom)
+        us = vmap(self._exponentiate, in_axes=(0,))(eom)
 
-        psis = self._propagate_in_time(Us, init_state, jnp.arange(0, len(timeGrid), 1))
+        psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
 
         # if open system convert back the vectorized density matrices to matrix shape
@@ -310,13 +310,13 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         dt = time[1] - time[0]
 
-        timeGrid = time[:-1] + dt / 2
+        time_grid = time[:-1] + dt / 2
 
-        hams = eom_func(timeGrid) * dt
-        dH_dps = jnp.array(grad_func(timeGrid)) * dt
+        hams = eom_func(time_grid) * dt
+        dh_dps = jnp.array(grad_func(time_grid)) * dt
 
-        Ugrads_list = []
-        n_params = dH_dps.shape[1]
+        u_grads_list = []
+        n_params = dh_dps.shape[1]
 
         dim = hams.shape[-2]
 
@@ -326,13 +326,13 @@ class ScipyExpmGRAPE(ScipyExpm):
             exponentiating_function = self._exponentiate_frechet
 
         for i in range(n_params):
-            Us, dUs = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dH_dps[:, i, ...])
-            Ugrads_list.append(dUs)
+            us, d_us = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dh_dps[:, i, ...])
+            u_grads_list.append(d_us)
 
-        Ugrads = jnp.stack(Ugrads_list, axis=1)
+        u_grads = jnp.stack(u_grads_list, axis=1)
 
         psis, lamdas = self._forward_and_backward_propagation(
-            Us, init_state, target_state, jnp.arange(0, len(timeGrid), 1)
+            us, init_state, target_state, jnp.arange(0, len(time_grid), 1)
         )
 
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
@@ -346,7 +346,7 @@ class ScipyExpmGRAPE(ScipyExpm):
                 self.__sandwich_op_values, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
-                Ugrads[:, i, ...],  # type: ignore
+                u_grads[:, i, ...],  # type: ignore
                 psis[:-1],
             )
             grad = jnp.squeeze(grad)
