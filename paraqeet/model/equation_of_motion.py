@@ -34,7 +34,7 @@ class EquationOfMotion(Optimisable):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             Returns the list of parameters as Quantities.
 
         Raises
@@ -54,7 +54,7 @@ class EquationOfMotion(Optimisable):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -71,7 +71,7 @@ class EquationOfMotion(Optimisable):
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -88,12 +88,12 @@ class EquationOfMotion(Optimisable):
         raise NotImplementedError()
 
     @abstractmethod
-    def gradient(self, t) -> Array:
+    def gradient(self, t: Array) -> Array:
         """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
 
         Parameters
         ----------
-        t
+        t: Array
             Any one-dimensional vector of timestamps.
 
         Raises

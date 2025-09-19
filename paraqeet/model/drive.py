@@ -25,14 +25,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             Operator of the subsystem to which this drive is attached
-        t : chtree.quantity.Array
+        t: paraqeet.quantity.Array
             Vector of time samples.
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
 
@@ -54,7 +54,7 @@ class Drive(Optimisable, ABC):
         ----------
         annihilation_operator
             Operator of the subsystem to which this drive is attached.
-        t : float
+        t: float
             One time point.
 
         Returns
@@ -78,14 +78,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             Operator of the subsystem to which this drive is attached.
-        t : chtree.quantity.Array
+        t: paraqeet.quantity.Array
             Vector of time samples.
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Array of shape [t, p, n, n] with 't' as time, 'p' as number of
             parameters and 'n' as the Hilbert space dimension.
 
@@ -105,9 +105,9 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             Operator of the subsystem to which this drive is attached.
-        t : float
+        t: float
             One time step.
 
         Returns
@@ -125,23 +125,23 @@ class Drive(Optimisable, ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def _repeat(M: Array, num: int) -> Array:
-        """Repeats the matrix M for each timestep in the times array.
+    def _repeat(mat: Array, num: int) -> Array:
+        """Repeats the matrix mat for each timestep in the times array.
 
         Returns an array with shape [t, n, m] where 't' is the
-        number of time steps and 'M' is an 'n' times 'm' matrix.
+        number of time steps and 'mat' is an 'n' times 'm' matrix.
 
         Parameters
         ----------
-        M : chtree.quantity.Array
+        mat: paraqeet.quantity.Array
             Input matrix for repetition.
         num : int
             Number of times of repetition.
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Repeated matrix for further computation.
 
         """
-        return M.reshape((1,) + M.shape).repeat(num, axis=0)
+        return mat.reshape((1,) + mat.shape).repeat(num, axis=0)

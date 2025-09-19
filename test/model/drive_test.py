@@ -39,25 +39,25 @@ def gen(tone):
 @pytest.fixture
 def drive(gen):
     """Return a generator drive object."""
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     return drive
 
 
 def test_drive_get_matrix(drive, time_samples):
     """Test the drive getMatrix method."""
     dim = np.random.randint(2, 10)
-    annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    driveMatrices = drive.get_matrix(annihilationOp, time_samples)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    driveMatrices = drive.get_matrix(annihilation_op, time_samples)
     assert driveMatrices.shape == time_samples.shape + (dim, dim)
 
 
 def test_drive_gradient(tone, drive, time_samples):
     """Test the drive gradient."""
     dim = np.random.randint(2, 10)
-    annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    grads = drive.gradient(annihilationOp, time_samples)
-    toneParams = tone.get_parameters()
-    assert grads.shape == time_samples.shape + (len(toneParams), dim, dim)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    grads = drive.gradient(annihilation_op, time_samples)
+    tone_params = tone.get_parameters()
+    assert grads.shape == time_samples.shape + (len(tone_params), dim, dim)
 
 
 def test_has_parameters(drive):

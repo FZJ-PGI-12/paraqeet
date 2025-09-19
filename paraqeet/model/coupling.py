@@ -23,14 +23,14 @@ class Coupling(Optimisable):
 
     Parameters
     ----------
-    subsystems : List[Hamiltonian]
+    subsystems : list[Hamiltonian]
         The coupled subsystems.
     coefficient : Quantity
         Either a constant coefficient as float or a callable that returns the
         coefficient for a given time.
     is_longitudinal : bool
         Whether the coupling is longitudinal or transversal.
-    useRWA : bool, optional
+    use_rwa : bool, optional
         If the transversal coupling should use the rotating-wave approximation
         or should include double excitation terms.
     """
@@ -39,19 +39,19 @@ class Coupling(Optimisable):
     _coefficient: Quantity
     _total_dims: int
     __is_longitudinal: bool
-    __useRWA: bool
+    __use_rwa: bool
 
     def __init__(
         self,
         subsystems: list[Hamiltonian],
         coefficient: Quantity,
         is_longitudinal: bool,
-        useRWA: bool = False,
+        use_rwa: bool = False,
     ):
         self._subsystems = subsystems
         self._coefficient = coefficient
         self.__is_longitudinal = is_longitudinal
-        self.__useRWA = useRWA
+        self.__use_rwa = use_rwa
         self._total_dims = int(jnp.prod(jnp.array([s.dimension() for s in self.subsystems])))
 
     def get_parameters(self) -> list[Quantity]:
@@ -71,12 +71,13 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        List[Hamiltonian]
+        list[Hamiltonian]
             List of subystems.
 
         """
         return self._subsystems
 
+    # AC: it seems that t is not used in the method below
     def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
@@ -87,15 +88,15 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t : float
+        t: float
             One time step.
 
         Returns
         -------
-        List[List[chtree.quantity.Array]]
+        list[List[paraqeet.quantity.Array]]
             The outer list are the coupling terms. The inner list contains
             matrices for each subsystem. The matrices (Array) have the same
-            shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
+            shape as the subsystem's Hamiltonian.get_matrix_one_time: (n,n)
             with n the subsystem dimension.
 
         """
@@ -111,21 +112,22 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t : chtree.quantity.Array
+        t: paraqeet.quantity.Array
             Array of times
 
         Returns
         -------
-        List[List[chtree.quantity.Array]]
+        list[list[paraqeet.quantity.Array]]
             The outer list are the coupling terms. The inner list represents
             the subsystems. The matrices (Array) have the same shape as the
-            subsystem's Hamiltonian.getMatrix: (t,n,n) with t the time and n
+            subsystem's Hamiltonian.get_matrix: (t,n,n) with t the time and n
             the subsystem dimension.
 
         """
         # Technically, vmap returns "any" but we know the type of get_matrices_one_time is correct.
         return vmap(self.get_matrices_one_time)(t)  # type:ignore
 
+    # AC: it seems that t is not used in the method below
     def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 
@@ -136,12 +138,12 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t : float
+        t: float
             One time point.
 
         Returns
         -------
-        List[List[List[chtree.quantity.Array]]]
+        list[list[list[paraqeet.quantity.Array]]]
             The outer list represents the gradients with respect to
             all optimised parameters. The rest is in the same shape as the
             result of getMatricesOneTime.
@@ -159,15 +161,15 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t : chtree.quantity.Array
+        t: paraqeet.quantity.Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        List[List[chtree.quantity.Array]]
+        list[list[paraqeet.quantity.Array]]
             The outer list represents the gradients with respect to all
             optimised parameters.
-            The rest is in the same shape as the result of getMatrices.
+            The rest is in the same shape as the result of get_matrices.
 
         """
         # Technically, vmap returns "any" but we know the type of gradient_one_time is correct.
@@ -183,7 +185,7 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        List[List[Array]]
+        list[list[Array]]
             A list of operators for each subsystem.
             The subsystems are the outer list.
 
@@ -192,21 +194,21 @@ class Coupling(Optimisable):
             # Number operator (a^\dagger a) for each subsystem
             return [[jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64)) for s in self._subsystems]]
 
-        elif self.__useRWA:
+        elif self.__use_rwa:
             # TODO - How to use RWA for more than 2 subsystems?
 
             if len(self.subsystems) > 2:
                 raise NotImplementedError("RWA is defined for 2 subsystems only")
 
             dimensions = [s.dimension() for s in self.subsystems]
-            annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
+            annihilation_op = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
             return [
-                [annihilationOp[0], annihilationOp[1].T],
-                [annihilationOp[0].T, annihilationOp[1]],
+                [annihilation_op[0], annihilation_op[1].T],
+                [annihilation_op[0].T, annihilation_op[1]],
             ]
 
         else:
             # (a + a^\dagger) for each subsystem
             dimensions = [s.dimension() for s in self.subsystems]
-            annihilationOp = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
-            return [[(a + a.T) for a in annihilationOp]]
+            annihilation_op = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
+            return [[(a + a.T) for a in annihilation_op]]

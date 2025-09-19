@@ -73,7 +73,7 @@ class CustomHamiltonian(Hamiltonian):
         """Return a list of optimisable parameters."""
         return self.__parameters
 
-    def get_matrix_one_time(self, t):
+    def get_matrix_one_time(self, t: Array):
         """Return Hamiltonian as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
         return self.__hamiltonian_function(t, *params)

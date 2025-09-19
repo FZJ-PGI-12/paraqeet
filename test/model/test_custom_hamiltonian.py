@@ -45,7 +45,7 @@ def cos_envelope():
 
 
 @pytest.fixture
-def TLS_hamiltonian(cos_envelope):
+def tls_hamiltonian(cos_envelope):
     """Define a Two level system Hamiltonian."""
 
     def _method(t, amp, freq):
@@ -71,18 +71,18 @@ def gradient_functions():
 
 
 @pytest.fixture
-def TLS(TLS_hamiltonian, gradient_functions):
+def tls(tls_hamiltonian, gradient_functions):
     """Closed system model."""
-    TLS = CustomHamiltonian(
-        hamiltonian_function=TLS_hamiltonian, parameters=[amplitude, frequency], gradient_functions=gradient_functions
+    tls_hamil = CustomHamiltonian(
+        hamiltonian_function=tls_hamiltonian, parameters=[amplitude, frequency], gradient_functions=gradient_functions
     )
-    return TLS
+    return tls_hamil
 
 
 @pytest.fixture
-def fid(TLS):
+def fid(tls):
     """Get the fidelity function"""
-    model = ClosedSystem(TLS)
+    model = ClosedSystem(tls)
     prop = ScipyExpmGOAT(model, res=100e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
@@ -97,9 +97,9 @@ def fid(TLS):
 
 
 @pytest.fixture
-def opt(TLS, fid):
+def opt(tls, fid):
     optmap = OptimisationMap()
-    optmap.add(TLS)
+    optmap.add(tls)
     opt = ScipyOptimiserGradient(fid, optimisables=optmap)
     return opt
 
@@ -114,12 +114,12 @@ def test_shapes(random_matrix):
     for dim in range(2, 10):
 
         def generator(time) -> Array:
-            M = random_matrix(dim, dim)
-            return M + jnp.conjugate(M).T
+            mat = random_matrix(dim, dim)
+            return mat + jnp.conjugate(mat).T
 
-        H = CustomHamiltonian(hamiltonian_function=generator, parameters=[])
-        assert H.dimension() == dim
+        hamil = CustomHamiltonian(hamiltonian_function=generator, parameters=[])
+        assert hamil.dimension() == dim
 
         times = jnp.linspace(0, random.randint(1, 100) * random.random(), random.randint(2, 20))
-        assert H.get_matrix_one_time(times[-1]).shape == (dim, dim)
-        assert H.get_matrix(times).shape == (len(times), dim, dim)
+        assert hamil.get_matrix_one_time(times[-1]).shape == (dim, dim)
+        assert hamil.get_matrix(times).shape == (len(times), dim, dim)

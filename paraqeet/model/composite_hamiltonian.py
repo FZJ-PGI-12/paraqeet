@@ -19,9 +19,9 @@ class CompositeHamiltonian(Hamiltonian):
 
     Parameters
     ----------
-    subsystems : List[Hamiltonian]
+    subsystems : list[Hamiltonian]
         List of Hamiltonains forming the subsystems of a composite system.
-    couplings: List[Coupling], optional
+    couplings: list[Coupling], optional
         List of couplings between the various subsystems
     """
 
@@ -102,12 +102,12 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        t : float
+        t: float
             One time step.
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Hamiltonian of shape [n, n] with 'n' as the Hilbert space
             dimension.
 
@@ -115,15 +115,15 @@ class CompositeHamiltonian(Hamiltonian):
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            subMatrix = subsystem.get_matrix_one_time(t)
-            matrix += self.__tensor_product_with_identity([subMatrix], [n])
+            sub_matrix = subsystem.get_matrix_one_time(t)
+            matrix += self.__tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            subMatrices = coupling.get_matrices_one_time(t)
-            for term in subMatrices:
+            sub_matrices = coupling.get_matrices_one_time(t)
+            for term in sub_matrices:
                 matrix += self.__tensor_product_with_identity(term, indices)
 
         return matrix
@@ -169,8 +169,8 @@ class CompositeHamiltonian(Hamiltonian):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for one_index, subsystem in enumerate(self._subsystems):
-            subGradients = subsystem.gradient_one_time(t)
-            for g in subGradients:
+            sub_gradients = subsystem.gradient_one_time(t)
+            for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
                 gradients.append(self.__tensor_product_with_identity([g], [one_index]))
@@ -179,8 +179,8 @@ class CompositeHamiltonian(Hamiltonian):
         # has more than one non-identity component.
         for coupling in self._couplings:
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            couplingGradient = coupling.gradient_one_time(t)
-            for term in couplingGradient:
+            coupling_gradient = coupling.gradient_one_time(t)
+            for term in coupling_gradient:
                 for g_list in term:
                     grad = self.__tensor_product_with_identity(g_list, indices)
                     if grad.size != 0:
@@ -188,37 +188,37 @@ class CompositeHamiltonian(Hamiltonian):
 
         return jnp.array(gradients)
 
-    def __tensor_product_with_identity(self, M: list[Array], n: list[int]) -> Array:
-        r"""Put the matrices M into a tensor product at positions `n`.
+    def __tensor_product_with_identity(self, mat_list: list[Array], n: list[int]) -> Array:
+        r"""Put the matrices mat_list into a tensor product at positions `n`.
 
         All other positions are identity matrices:
         .. math::
-            1 \\otimes \\dots \\otimes 1 \\otimes M_1 \\otimes 1
-                \\otimes \\dots \\otimes 1 \\otimes M_2 \\dots
+            1 \\otimes \\dots \\otimes 1 \\otimes mat_list_1 \\otimes 1
+                \\otimes \\dots \\otimes 1 \\otimes mat_list_2 \\dots
         The dimensions are assumed to be the same as the subsystems.
 
         Parameters
         ----------
-        M : List[chtree.quantity.Array]
+        mat_list : List[paraqeet.quantity.Array]
             List of Matrices for tensor product
-        n : List[int]
-            List of indices for the each M_i
+        n : list[int]
+            List of indices for the each mat_list_i
 
         Returns
         -------
-        chtree.quantity.Array
-            Tensor product of M_i's with I's.
+        paraqeet.quantity.Array
+            Tensor product of mat_list_i's with I's.
 
         """
         # Create identity matrices for all subsystems and
-        # fill in M at the corresponding indices
-        subMatrices = [jnp.eye(s.dimension()) for s in self._subsystems]
+        # fill in mat_list at the corresponding indices
+        sub_matrices = [jnp.eye(s.dimension()) for s in self._subsystems]
         for i, k in enumerate(n):
-            subMatrices[k] = jnp.array(M[i])
+            sub_matrices[k] = jnp.array(mat_list[i])
 
-        # Tensor product everything in subMatrices
+        # Tensor product everything in sub_matrices
         product = jnp.eye(1)
-        for m in subMatrices:
+        for m in sub_matrices:
             product = jnp.kron(product, m)
 
         return product

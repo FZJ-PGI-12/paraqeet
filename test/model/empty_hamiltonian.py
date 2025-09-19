@@ -27,7 +27,7 @@ class EmptyHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns

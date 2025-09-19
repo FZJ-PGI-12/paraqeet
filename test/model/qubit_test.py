@@ -40,11 +40,11 @@ def gen(tone):
 @pytest.fixture
 def ham(gen):
     """Return a qubit."""
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     return Qubit(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 
 
-def test_getMatrix(ham, time_samples):
+def test_get_matrix(ham, time_samples):
     """Test the getMatrix method."""
     hams = ham.get_matrix(time_samples)
     assert hams.shape == time_samples.shape + (2, 2)
@@ -59,12 +59,12 @@ def test_gradient(gen, ham, time_samples):
     """
     grads = gen.generate_signal_gradient(time_samples)
     ham.set_optimisable_parameters(ham.get_parameters())
-    hamGrads = ham.gradient(time_samples)
-    assert hamGrads.shape == (len(time_samples), grads.shape[1] + 1, 2, 2)
+    ham_grads = ham.gradient(time_samples)
+    assert ham_grads.shape == (len(time_samples), grads.shape[1] + 1, 2, 2)
 
     ham.set_optimisable_parameters([ham.frequency])
-    hamGrads = ham.gradient(time_samples)
-    assert hamGrads.shape == (len(time_samples), 1, 2, 2)
+    ham_grads = ham.gradient(time_samples)
+    assert ham_grads.shape == (len(time_samples), 1, 2, 2)
 
 
 def test_setters_and_getters(ham, random_quantity):

@@ -18,11 +18,11 @@ class RotatingFrameCoupling(Coupling):
 
     Parameters
     ----------
-    subsystems : Set[Hamiltonian]
+    subsystems: list[Hamiltonian]
         A set of Hamiltonians which represent the coupling
-    coefficient : Quantity
+    coefficient: Quantity
         Constant drive coefficient.
-    diffFreq : Quantity
+    diffFreq: Quantity
         Diffrence of drive frequencies for multiple subsystems.
     """
 
@@ -58,11 +58,11 @@ class RotatingFrameCoupling(Coupling):
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")
         dim = self.subsystems[0].dimension()
-        annihilationOps: list[Array] = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
+        annihilation_ops: list[Array] = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
         if len(self.subsystems) == 2:
             dim = self.subsystems[1].dimension()
-            annihilationOps.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
-        return annihilationOps
+            annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
+        return annihilation_ops
 
     def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
@@ -74,26 +74,26 @@ class RotatingFrameCoupling(Coupling):
 
         Parameters
         ----------
-        t : float
+        t: Array
             One time step.
 
         Returns
         -------
-        List[List[chtree.quantity.Array]]
+        list[list[paraqeet.quantity.Array]]
             The outer list are the coupling terms. The inner list contains
             matrices for each subsystem. The matrices (Array) have the same
-            shape as the subsystem's Hamiltonian.getMatrixOneTime: (n,n)
+            shape as the subsystem's Hamiltonian.get_matrix_one_time: (n,n)
             with n the subsystem dimension.
         """
-        annihilationOps = self.__coupling_operators()
-        if len(annihilationOps) > 2:
+        annihilation_ops = self.__coupling_operators()
+        if len(annihilation_ops) > 2:
             raise NotImplementedError()
 
-        annihilationOps[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
-        annihilationOps_conj = [a.conj().T for a in annihilationOps]
-        return [annihilationOps, annihilationOps_conj]
+        annihilation_ops[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
+        annihilation_ops_conj = [a.conj().T for a in annihilation_ops]
+        return [annihilation_ops, annihilation_ops_conj]
 
-    def gradient_one_time(self, t) -> list[list[list[Array]]]:
+    def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
@@ -103,26 +103,26 @@ class RotatingFrameCoupling(Coupling):
 
         Parameters
         ----------
-        t : float
+        t: Array
             One time point.
 
         Returns
         -------
-        List[List[List[chtree.quantity.Array]]]
+        list[list[list[paraqeet.quantity.Array]]]
             The outer list represents the gradients with respect to
             all optimised parameters. The rest is in the same shape as the
-            result of getMatricesOneTime.
+            result of get_matrices_one_time.
 
         """
-        annihilationOps = self.__coupling_operators()
+        annihilation_ops = self.__coupling_operators()
         if self._is_optimised(self._coefficient):
-            annihilationOps[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
-            annihilationOps_conj = [a.conj().T for a in annihilationOps]
-            grads = [[annihilationOps, annihilationOps_conj]]
+            annihilation_ops[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
+            annihilationOps_conj = [a.conj().T for a in annihilation_ops]
+            grads = [[annihilation_ops, annihilationOps_conj]]
         elif self._is_optimised(self.__diff_freq):
-            annihilationOps[0] *= self._coefficient.get_value() * 1j * t
-            annihilationOps_conj = [a.conj().T for a in annihilationOps]
-            grads = [[annihilationOps, annihilationOps_conj]]
+            annihilation_ops[0] *= self._coefficient.get_value() * 1j * t
+            annihilationOps_conj = [a.conj().T for a in annihilation_ops]
+            grads = [[annihilation_ops, annihilationOps_conj]]
         else:
-            grads = [[[jnp.zeros_like(annOp) for annOp in annihilationOps]] * 2]
+            grads = [[[jnp.zeros_like(ann_op) for ann_op in annihilation_ops]] * 2]
         return grads

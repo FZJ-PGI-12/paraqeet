@@ -19,7 +19,7 @@ class Hamiltonian(Optimisable, ABC):
 
     Parameters
     ----------
-    drives : List[Drive], optional
+    drives : list[Drive]
         List of time-dependent drives.
 
     """
@@ -54,7 +54,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        t : chtree.quantity.Array
+        t: Array
             Vector of time samples.
 
         Returns
@@ -71,7 +71,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        t : Array
+        t: Array
             One time point.
 
         Returns
@@ -97,12 +97,12 @@ class Hamiltonian(Optimisable, ABC):
         are included in the gradient that were registered in the Optimisable
         parent class. The order of the gradients should match the order of the
         parameters returned by getParameters. The default implementation calls
-        gradientOneTime for each time step. Subclasses can override this
+        gradient_one_time for each time step. Subclasses can override this
         function for a more efficient implementation.
 
         Parameters
         ----------
-        t : Array
+        t: Array
             Vector of time samples.
 
         Returns
@@ -126,12 +126,12 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        t : float
+        t: Array
             One time step.
 
         Returns
         -------
-        list of Array
+        list[Array]
             Hamiltonian of shape [p, n, n]  with 'p' as the number
             of parameters and 'n' as the Hilbert space dimension.
 
@@ -154,7 +154,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             Returns the combined list of parameters from all drives.
 
         """
@@ -168,14 +168,14 @@ class Hamiltonian(Optimisable, ABC):
 
         This function can be used be Hamiltonian implementations for
         including the drive. The default implementation calls
-        _getDriveMatrixOneTime for each time step. Subclasses can override this
+        _get_drive_matrix_one_time for each time step. Subclasses can override this
         function for a more efficient implementation.
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             The annihilation operator.
-        t : chtree.quantity.Array
+        t : paraqeet.quantity.Array
             Vector of time samples.
 
         Returns
@@ -194,9 +194,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             The annihilation operator.
-        t : float
+        t: Array
             Vector of time samples.
 
         Returns
@@ -206,10 +206,10 @@ class Hamiltonian(Optimisable, ABC):
 
         """
         dim = self.dimension()
-        M = jnp.zeros((dim, dim))
+        mat = jnp.zeros((dim, dim))
         for drive in self._drives:
-            M += drive.get_matrix_one_time(annihilation_operator, t)
-        return M
+            mat += drive.get_matrix_one_time(annihilation_operator, t)
+        return mat
 
     def _get_drive_gradients(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradients of all drives.
@@ -219,9 +219,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             The annihilation operator.
-        t : chtree.quantity.Array
+        t: paraqeet.quantity.Array
             Vector of time samples.
 
         Returns
@@ -231,11 +231,11 @@ class Hamiltonian(Optimisable, ABC):
 
         """
         dim = self.dimension()
-        allGrads = jnp.zeros((t.shape[0], 0, dim, dim))
+        all_grads = jnp.zeros((t.shape[0], 0, dim, dim))
         for drive in self._drives:
             grads = drive.gradient(annihilation_operator, t)
-            allGrads = jnp.append(allGrads, grads, axis=1)
-        return allGrads
+            all_grads = jnp.append(all_grads, grads, axis=1)
+        return all_grads
 
     def _get_drive_gradients_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradients of all drives.
@@ -245,9 +245,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : chtree.quantity.Array
+        annihilation_operator : paraqeet.quantity.Array
             The annihilation operator.
-        t : float
+        t: Array
             One time stamp.
 
         Returns
@@ -257,25 +257,25 @@ class Hamiltonian(Optimisable, ABC):
 
         """
         dim = self.dimension()
-        allGrads = jnp.zeros((0, dim, dim))
+        all_grads = jnp.zeros((0, dim, dim))
         for drive in self._drives:
             grads = drive.gradient_one_time(annihilation_operator, t)
-            allGrads = jnp.append(allGrads, grads, axis=0)
-        return allGrads
+            all_grads = jnp.append(all_grads, grads, axis=0)
+        return all_grads
 
     @staticmethod
-    def _repeat(M: Array, num: int) -> Array:
+    def _repeat(mat: Array, num: int) -> Array:
         """Repeat the matrix across time steps.
 
-        Utility function that repeats the matrix M for each timestep
+        Utility function that repeats the matrix mat for each timestep
         in the `num` array. Returns an array with shape [t, n, m] where
-        't' is the number of time steps and 'M' is an 'n' times 'm' matrix.
+        't' is the number of time steps and 'mat' is an 'n' times 'm' matrix.
 
         Parameters
         ----------
-        M : chtree.quantity.Array
+        mat: paraqeet.quantity.Array
             Matrix for repetition.
-        num : int
+        num: int
             Number of repetitions.
 
         Returns
@@ -284,7 +284,7 @@ class Hamiltonian(Optimisable, ABC):
             Repeated matrix for each time step specified.
 
         """
-        return M.reshape((1,) + M.shape).repeat(num, axis=0)
+        return mat.reshape((1,) + mat.shape).repeat(num, axis=0)
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """
@@ -292,7 +292,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Returns
         -------
-        List[Tuple[Array, Array]]
+        list[Tuple[Array, Array]]
             List of collapse operators
         """
         raise NotImplementedError()

@@ -138,8 +138,8 @@ class OpenSystem(EquationOfMotion):
         rates_and_cols = self._hamiltonian.get_collapseops()
         for rate, col in rates_and_cols:
             superop += rate * jnp.kron(col.conj(), col)
-            superop -= rate / 2 * jnp.kron(jnp.matmul(col.T, col.conj()), identityop)
-            superop -= rate / 2 * jnp.kron(identityop, jnp.matmul(col.conj().T, col))
+            superop -= rate * jnp.kron(jnp.matmul(col.T, col.conj()), identityop) / 2
+            superop -= rate * jnp.kron(identityop, jnp.matmul(col.conj().T, col)) / 2
 
         if self.sparse_superop:
             return BCOO.fromdense(superop)
@@ -147,18 +147,18 @@ class OpenSystem(EquationOfMotion):
 
     def __create_lindbladian_superop(self, t) -> Array | BCOO:
         """Create the Lindbladian superoperator for one time point `t`."""
-        hamSuperop = self.__create_hamiltonian_superop(t)
-        colSuperop = self.__create_collapse_superop()
-        return hamSuperop + colSuperop
+        ham_super_op = self.__create_hamiltonian_superop(t)
+        col_super_op = self.__create_collapse_superop()
+        return ham_super_op + col_super_op
 
     def get_matrix(self, time: Array):
         """
-        Computes the right hand side of the Schrödinger equation without multiplying the state. Used for unitary
-        solvers.
+        Computes the right hand side of the Schrödinger equation without multiplying the state.
+        Used for unitary solvers.
 
         Parameters
         ----------
-        time : Array
+        time: Array
             Vector of time samples
 
         Returns

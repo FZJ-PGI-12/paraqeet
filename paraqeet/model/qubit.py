@@ -23,13 +23,13 @@ class Qubit(Hamiltonian):
     ----------
     frequency : Quantity
         Frequency for characterizing the qubit.
-    drives : List[Drive], optional
+    drives : list[Drive] | None
         List of time-dependent drives.
 
     """
 
     __frequency: Quantity
-    __annihilationOp: Array
+    __annihilation_op: Array
     __drift: Array
     __t1: Quantity | None
     __temp: Quantity | None
@@ -45,7 +45,7 @@ class Qubit(Hamiltonian):
     ):
         super().__init__(drives)
         self.__frequency = frequency
-        self.__annihilationOp = jnp.array(
+        self.__annihilation_op = jnp.array(
             [
                 [0.0, 0.0],
                 [1.0, 0.0],
@@ -101,7 +101,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             Returns the list of parameters of the system.
 
         """
@@ -123,39 +123,39 @@ class Qubit(Hamiltonian):
 
         Parameters
         ----------
-        t : float
+        t: Array
             One time stamp.
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             The repeated drive matrix.
 
         """
-        H = self.__frequency.get_value() * self.__drift
-        return H + self._get_drive_matrix_one_time(self.__annihilationOp, t)
+        hamil = self.__frequency.get_value() * self.__drift
+        return hamil + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
     def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
         ----------
-        t : float
+        t: Array
             One time stamp.
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Returns the gradients of the drive.
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_one_time(self.__annihilationOp, t)
+        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimised(self.__frequency):
-            H = self.__drift.reshape((1, 2, 2))
-            derivatives = jnp.append(derivatives, H, axis=0)
+            hamil = self.__drift.reshape((1, 2, 2))
+            derivatives = jnp.append(derivatives, hamil, axis=0)
 
         return derivatives
 
@@ -177,7 +177,7 @@ class Qubit(Hamiltonian):
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return a list tuples of decay rates and collapse operators for each subsystem."""
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-        col_t1 = self.__annihilationOp
-        col_temp = self.__annihilationOp.T
-        col_t2star = 2 * jnp.matmul(self.__annihilationOp.T, self.__annihilationOp)
+        col_t1 = self.__annihilation_op
+        col_temp = self.__annihilation_op.T
+        col_t2star = 2 * jnp.matmul(self.__annihilation_op.T, self.__annihilation_op)
         return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]

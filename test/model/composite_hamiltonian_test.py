@@ -42,7 +42,7 @@ def gen(tone):
 @pytest.fixture
 def drive(gen):
     """Return a generator drive object."""
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     return drive
 
 
@@ -93,7 +93,7 @@ def uncoupled_transmons(transmon):
 def coupled_transmons(transmon):
     """Return a coupled transmon generating function."""
 
-    def _method(dim1: int, dim2: int, useRWA: bool = False):
+    def _method(dim1: int, dim2: int, use_rwa: bool = False):
         transmon1 = transmon(dim1)
         transmon2 = transmon(dim2)
 
@@ -102,7 +102,7 @@ def coupled_transmons(transmon):
             [transmon1, transmon2],
             is_longitudinal=False,
             coefficient=Quantity(couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"),
-            useRWA=useRWA,
+            use_rwa=use_rwa,
         )
 
         compositeHams = CompositeHamiltonian([transmon1, transmon2], [coupling])
@@ -113,9 +113,9 @@ def coupled_transmons(transmon):
 
 @pytest.fixture
 def coupled_transmons_chain(transmon, random_quantity):
-    def _method(dims: list[int], openSystem: bool = True) -> CompositeHamiltonian:
+    def _method(dims: list[int], open_system: bool = True) -> CompositeHamiltonian:
         transmons = [transmon(d) for d in dims]
-        if openSystem:
+        if open_system:
             for t in transmons:
                 t.temp = random_quantity(1, "K")
                 t.t1 = random_quantity(1, "")
@@ -145,8 +145,8 @@ def test_dimension(coupled_transmons):
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupled_transmons(dim1, dim2)
-        assert H.dimension() == dim1 * dim2
+        hamil = coupled_transmons(dim1, dim2)
+        assert hamil.dimension() == dim1 * dim2
 
 
 def test_get_matrix_one_time(uncoupled_transmons):
@@ -154,8 +154,8 @@ def test_get_matrix_one_time(uncoupled_transmons):
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = uncoupled_transmons(dim1, dim2)
-        hams = H.get_matrix_one_time(0)
+        hamil = uncoupled_transmons(dim1, dim2)
+        hams = hamil.get_matrix_one_time(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -164,8 +164,8 @@ def test_get_matrix_one_time_rwa(coupled_transmons):
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupled_transmons(dim1, dim2, useRWA=True)
-        hams = H.get_matrix_one_time(0)
+        hamil = coupled_transmons(dim1, dim2, use_rwa=True)
+        hams = hamil.get_matrix_one_time(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -174,8 +174,8 @@ def test_get_matrix(coupled_transmons, time_samples):
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupled_transmons(dim1, dim2)
-        hams = H.get_matrix(time_samples)
+        hamil = coupled_transmons(dim1, dim2)
+        hams = hamil.get_matrix(time_samples)
         assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 
@@ -188,11 +188,11 @@ def test_gradient(gen, coupled_transmons, time_samples):
     for _ in np.arange(1, 5):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
-        H = coupled_transmons(dim1, dim2)
-        H.set_optimisable_parameters(H.get_parameters())
+        hamil = coupled_transmons(dim1, dim2)
+        hamil.set_optimisable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
-        hamGrads = H.gradient(time_samples)
-        assert hamGrads.shape == (
+        ham_grads = hamil.gradient(time_samples)
+        assert ham_grads.shape == (
             grads.shape[0],
             grads.shape[1] * 2 + 5,
             dim1 * dim2,
@@ -203,7 +203,7 @@ def test_gradient(gen, coupled_transmons, time_samples):
 def test_collapseops_dimensions(coupled_transmons_chain):
     for _ in np.arange(1, 10):
         dims = [np.random.randint(2, 5) for _ in range(np.random.randint(2, 5))]
-        H = coupled_transmons_chain(dims, True)
-        ops = H.get_collapseops()
+        hamil = coupled_transmons_chain(dims, True)
+        ops = hamil.get_collapseops()
         for rate, op in ops:
-            assert op.shape[0] == op.shape[1] == H.dimension()
+            assert op.shape[0] == op.shape[1] == hamil.dimension()

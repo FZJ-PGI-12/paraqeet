@@ -25,7 +25,7 @@ class Resonator(Hamiltonian):
         Dimension of the harmonic oscillator.
     frequency : Quantity
         Frequency of the harmonic oscillator.
-    drives : List[Drive], optional
+    drives : list[Drive], optional
         List of time-dependent drives of the subsystem.
 
     """
@@ -33,7 +33,7 @@ class Resonator(Hamiltonian):
     __dimension: int
     __frequency: Quantity
     __annihilation_op: Array
-    __numOp: Array
+    __num_op: Array
     __t1: Quantity | None
     __temp: Quantity | None
     __t2star: Quantity | None
@@ -51,7 +51,7 @@ class Resonator(Hamiltonian):
         self.__dimension = dimension
         self.__frequency = frequency
         self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
-        self.__numOp = self.__annihilation_op.T @ self.__annihilation_op
+        self.__num_op = self.__annihilation_op.T @ self.__annihilation_op
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
@@ -121,11 +121,11 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             The drive matrix at a single timestamp.
 
         """
-        H = self.__frequency.get_value() * self.__numOp
+        H = self.__frequency.get_value() * self.__num_op
         return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
     def gradient_one_time(self, t: Array) -> Array:
@@ -138,7 +138,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        chtree.quantity.Array
+        paraqeet.quantity.Array
             Returns the gradients of the drive.
 
         """
@@ -147,7 +147,7 @@ class Resonator(Hamiltonian):
 
         # Combine with the derivative wrt the frequency
         if self._is_optimised(self.__frequency):
-            grad = self.__numOp.reshape((1,) + self.__numOp.shape)
+            grad = self.__num_op.reshape((1,) + self.__num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
 
         return derivatives
@@ -173,11 +173,11 @@ class Resonator(Hamiltonian):
 
         Return
         ------
-        List[Tuple[float, Array]]
+        list[tuple[Array, Array]]
             List of collapse operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         col_t1 = self.__annihilation_op
         col_temp = self.__annihilation_op.T
-        col_t2star = 2 * self.__numOp
+        col_t2star = 2 * self.__num_op
         return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]

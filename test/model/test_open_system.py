@@ -23,11 +23,11 @@ def open_system(
     hamiltonian,
 ):
     def _method(dimension):
-        H = hamiltonian(dimension)
-        H.t1 = Quantity(1e-9, 1e-9, 100e-6)
-        H.temp = Quantity(10e-3, 1e-3, 50e-3)
-        H.t2star = Quantity(10e-9, 1e-9, 100e-6)
-        return OpenSystem(H)
+        hamil = hamiltonian(dimension)
+        hamil.t1 = Quantity(1e-9, 1e-9, 100e-6)
+        hamil.temp = Quantity(10e-3, 1e-3, 50e-3)
+        hamil.t2star = Quantity(10e-9, 1e-9, 100e-6)
+        return OpenSystem(hamil)
 
     return _method
 

@@ -48,7 +48,7 @@ def hamiltonian(gen):
     """Return a resonator object."""
 
     def _method(dimension):
-        drive = DriveOperator(gen, isLongitudinal=False)
+        drive = DriveOperator(gen, is_longitudinal=False)
         return Resonator(
             dimension=dimension,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
@@ -59,12 +59,12 @@ def hamiltonian(gen):
 
 
 @pytest.fixture
-def openResonator():
+def open_resonator():
     """Return an open model for the resonator."""
 
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
-    drive = DriveOperator(generator, isLongitudinal=False)
+    drive = DriveOperator(generator, is_longitudinal=False)
     resonator = Resonator(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
         drives=[drive],
@@ -79,24 +79,24 @@ def openResonator():
 
 
 @pytest.fixture
-def expm(openResonator):
+def expm(open_resonator):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    prop = ScipyExpm(openResonator, res=100e9)
+    prop = ScipyExpm(open_resonator, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
 
 @pytest.fixture
-def ode(openResonator):
+def ode(open_resonator):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    openResonator.ode_propagation = True
-    prop = Vern7(openResonator, res=100e9)
+    open_resonator.ode_propagation = True
+    prop = Vern7(open_resonator, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
@@ -104,8 +104,8 @@ def ode(openResonator):
 def test_get_matrix(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
-        H = hamiltonian(dim)
-        hams = H.get_matrix(time_samples)
+        hamil = hamiltonian(dim)
+        hams = hamil.get_matrix(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 
@@ -117,11 +117,11 @@ def test_gradient(gen, hamiltonian, time_samples):
 
     """
     for dim in np.arange(1, 10):
-        H = hamiltonian(dim)
-        H.set_optimisable_parameters(H.get_parameters())
+        hamil = hamiltonian(dim)
+        hamil.set_optimisable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
-        hamGrads = H.gradient(time_samples)
-        assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
+        ham_grads = hamil.gradient(time_samples)
+        assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
 
 
 def test_decay_expm(expm):

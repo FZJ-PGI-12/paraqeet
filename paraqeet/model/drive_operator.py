@@ -18,17 +18,17 @@ class DriveOperator(Drive):
     ----------
     generator : Generator
         Signal generator stack.
-    isLongitudinal : bool
+    is_longitudinal : bool
         Generator is longitudinal or transversal depending on this boolean.
 
     """
 
     __generator: Generator
-    __isLongitudinal: bool
+    __is_longitudinal: bool
 
-    def __init__(self, generator: Generator, isLongitudinal: bool):
+    def __init__(self, generator: Generator, is_longitudinal: bool):
         self.__generator = generator
-        self.__isLongitudinal = isLongitudinal
+        self.__is_longitudinal = is_longitudinal
 
     @property
     def generator(self) -> Generator:
@@ -47,7 +47,7 @@ class DriveOperator(Drive):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             List of optimizable parameters of the system.
 
         """
@@ -58,7 +58,7 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a : Array
+        a: Array
             Operator for computation.
 
         Returns
@@ -67,7 +67,7 @@ class DriveOperator(Drive):
             Returns the operator for the longitudinal or transverse drive.
 
         """
-        return (jnp.conjugate(a.T) @ a) if self.__isLongitudinal else (jnp.conjugate(a.T) + a)
+        return (jnp.conjugate(a.T) @ a) if self.__is_longitudinal else (jnp.conjugate(a.T) + a)
 
     def get_matrix_one_time(self, a: Array, t: Array) -> Array:
         """Get the one-time matrix of the system.
@@ -77,9 +77,9 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a : Array
+        a: Array
             Operator for longitudinal or transverse drive.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -100,9 +100,9 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a : Array
+        a: Array
             Operator for longitudinal or transverse drive.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -111,6 +111,6 @@ class DriveOperator(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signalGrad = self.__generator.generate_signal_gradient_one_time(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
-        matrix = self._repeat(self._compute_matrix(a), signalGrad.shape[0])
-        return signalGrad * matrix
+        signal_grad = self.__generator.generate_signal_gradient_one_time(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
+        matrix = self._repeat(self._compute_matrix(a), signal_grad.shape[0])
+        return signal_grad * matrix

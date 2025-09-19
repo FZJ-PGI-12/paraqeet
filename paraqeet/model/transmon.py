@@ -21,13 +21,13 @@ class Transmon(Hamiltonian):
 
     Parameters
     ----------
-    dimension : int
+    dimension: int
         Dimension of the anharmonic oscillator.
-    frequency : Quantity
+    frequency: Quantity
         Frequency of the anharmonic oscillator.
-    anharmonicity : Quantity
+    anharmonicity: Quantity
         Anharmonicity of the oscillator.
-    drives : List[Drive], optional
+    drives: list[Drive]
         List of time-dependent drives of the subsystem.
 
     """
@@ -36,7 +36,7 @@ class Transmon(Hamiltonian):
     __frequency: Quantity
     __anharmonicity: Quantity
     __annihilation_op: Array
-    __numOp: Array
+    __num_op: Array
     __anharmonic_term: Array
     __t1: Quantity | None
     __temp: Quantity | None
@@ -57,8 +57,8 @@ class Transmon(Hamiltonian):
         self.__frequency = frequency
         self.__anharmonicity = anharmonicity
         self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
-        self.__numOp = self.__annihilation_op.T @ self.__annihilation_op
-        self.__anharmonic_term = 0.5 * self.__numOp @ (self.__numOp - jnp.eye(self.__dimension))
+        self.__num_op = self.__annihilation_op.T @ self.__annihilation_op
+        self.__anharmonic_term = 0.5 * self.__num_op @ (self.__num_op - jnp.eye(self.__dimension))
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
@@ -136,29 +136,29 @@ class Transmon(Hamiltonian):
 
         Parameters
         ----------
-        t : chtree.quantity.Array
+        t : Array
             Vector of time samples.
 
         Returns
         -------
-        chtree.quantity.Array
+        Array
             The repeated drive matrix.
 
         """
-        H = self.__frequency.get_value() * self.__numOp + self.__anharmonicity.get_value() * self.__anharmonic_term
-        return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
+        hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
+        return hamil + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
     def gradient_one_time(self, t: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
         ----------
-        t : float
+        t: Array
             Single time stamp.
 
         Returns
         -------
-        chtree.quantity.Array
+        Array
             Returns the gradients of the drive.
 
         """
@@ -168,10 +168,10 @@ class Transmon(Hamiltonian):
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads_list = []
         if self._is_optimised(self.__frequency):
-            grads_list.append(self.__numOp)
+            grads_list.append(self.__num_op)
         if self._is_optimised(self.__anharmonicity):
             grads_list.append(self.__anharmonic_term)
-        grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__numOp.shape)
+        grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__num_op.shape)
         gradients = jnp.append(gradients, grads, axis=0)
 
         return gradients
@@ -204,11 +204,11 @@ class Transmon(Hamiltonian):
 
         Return
         ------
-        List[Tuple[float, np.ndarray]]
+        list[tuple[Array, Array]]
             List of collapse operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         col_t1 = self.__annihilation_op
         col_temp = self.__annihilation_op.T
-        col_t2star = 2 * self.__numOp
+        col_t2star = 2 * self.__num_op
         return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]

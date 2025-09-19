@@ -10,7 +10,7 @@ from paraqeet.signal.generator import Generator
 class RotatingFrameDrive(Drive):
     """Drive Hamiltonian in the Frame rotating at the frequency of the drive.
 
-    __signalGenerator: Generator
+    __signal_generator: Generator
         Signal Generator without a LO, like the PWCGenerator
     """
 
@@ -25,7 +25,7 @@ class RotatingFrameDrive(Drive):
 
         Returns
         -------
-        paraqeet.signal.generator.Generator
+        Generator
             Returns the signal generator object from the system.
 
         """
@@ -36,7 +36,7 @@ class RotatingFrameDrive(Drive):
 
         Returns
         -------
-        List[Quantity]
+        list[Quantity]
             List of optimizable parameters of the system.
 
         """
@@ -67,9 +67,9 @@ class RotatingFrameDrive(Drive):
 
         Parameters
         ----------
-        annihilation_operator : Array
+        annihilation_operator: Array
             Operator for longitudinal or transverse drive.
-        t : Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -78,5 +78,5 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        envGrad = self.generator.generate_signal_gradient(jnp.array([t])).reshape((-1, 1, 1))
-        return envGrad * annihilation_operator + jnp.conjugate(envGrad) * annihilation_operator.conj().T
+        env_grad = self.generator.generate_signal_gradient(jnp.array([t])).reshape((-1, 1, 1))
+        return env_grad * annihilation_operator + jnp.conjugate(env_grad) * annihilation_operator.conj().T

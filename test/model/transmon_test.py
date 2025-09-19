@@ -50,7 +50,7 @@ def hamiltonian(gen):
     """Return a transmon object."""
 
     def _method(dimension):
-        drive = DriveOperator(gen, isLongitudinal=False)
+        drive = DriveOperator(gen, is_longitudinal=False)
         drive.set_optimisable_parameters(drive.get_parameters())
         return Transmon(
             dimension=dimension,
@@ -63,12 +63,12 @@ def hamiltonian(gen):
 
 
 @pytest.fixture
-def openTransmon():
+def open_transmon():
     """Return an open model for the resonator."""
 
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
-    drive = DriveOperator(generator, isLongitudinal=False)
+    drive = DriveOperator(generator, is_longitudinal=False)
     resonator = Transmon(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
         anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
@@ -84,24 +84,24 @@ def openTransmon():
 
 
 @pytest.fixture
-def expm(openTransmon):
+def expm(open_transmon):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    prop = ScipyExpm(openTransmon, res=100e9)
+    prop = ScipyExpm(open_transmon, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
 
 @pytest.fixture
-def ode(openTransmon):
+def ode(open_transmon):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    openTransmon.ode_propagation = True
-    prop = Vern7(openTransmon, res=100e9)
+    open_transmon.ode_propagation = True
+    prop = Vern7(open_transmon, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
@@ -109,8 +109,8 @@ def ode(openTransmon):
 def test_get_matrix(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
-        H = hamiltonian(dim)
-        hams = H.get_matrix(time_samples)
+        hamil = hamiltonian(dim)
+        hams = hamil.get_matrix(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 
@@ -122,30 +122,30 @@ def test_gradient(gen, hamiltonian, time_samples):
 
     """
     for dim in np.arange(1, 10):
-        H = hamiltonian(dim)
-        H.set_optimisable_parameters(H.get_parameters())
+        hamil = hamiltonian(dim)
+        hamil.set_optimisable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
-        hamGrads = H.gradient(time_samples)
-        assert hamGrads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
+        ham_grads = hamil.gradient(time_samples)
+        assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
 
 
 def test_get_drive_matrix(hamiltonian, time_samples):
     """Test the getDriveMatrix method of the Hamiltonian."""
     dim = np.random.randint(2, 10)
-    annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    H = hamiltonian(dim)
-    driveMatrix = H._get_drive_matrix(annihilationOp, time_samples)
-    assert driveMatrix.shape == time_samples.shape + (dim, dim)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    hamil = hamiltonian(dim)
+    drive_matrix = hamil._get_drive_matrix(annihilation_op, time_samples)
+    assert drive_matrix.shape == time_samples.shape + (dim, dim)
 
 
 def test_get_drive_gradients(gen, hamiltonian, time_samples):
     """Test the drive gradients of the Hamiltonian."""
     dim = np.random.randint(2, 10)
-    annihilationOp = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    H = hamiltonian(dim)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    hamil = hamiltonian(dim)
     grads = gen.generate_signal_gradient(time_samples)
-    driveGradients = H._get_drive_gradients(annihilationOp, time_samples)
-    assert driveGradients.shape == (grads.shape[0], grads.shape[1], dim, dim)
+    drive_gradients = hamil._get_drive_gradients(annihilation_op, time_samples)
+    assert drive_gradients.shape == (grads.shape[0], grads.shape[1], dim, dim)
 
 
 def test_decay_expm(expm):
@@ -183,31 +183,31 @@ def test_decay_ode(ode):
 
 
 def test_setters_and_getters(hamiltonian, random_quantity):
-    H = hamiltonian(np.random.randint(2, 10))
+    hamil = hamiltonian(np.random.randint(2, 10))
 
     frequency = random_quantity(1)
-    H.frequency = frequency
-    assert H.frequency == frequency
+    hamil.frequency = frequency
+    assert hamil.frequency == frequency
 
     anharmonicity = random_quantity(1)
-    H.anharmonicity = anharmonicity
-    assert H.anharmonicity == anharmonicity
+    hamil.anharmonicity = anharmonicity
+    assert hamil.anharmonicity == anharmonicity
 
 
 def test_needs_parameters_for_decay_rates(hamiltonian):
     for _ in range(10):
         for dim in np.arange(1, 10):
-            H = hamiltonian(dim)
+            hamil = hamiltonian(dim)
             t1 = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
             t2star = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
             temp = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
-            H.t1 = t1
-            H.t2star = t2star
-            H.temp = temp
+            hamil.t1 = t1
+            hamil.t2star = t2star
+            hamil.temp = temp
             if t1 is not None and t2star is not None and temp is not None:
                 # Valid parameters should work
-                H.get_collapseops()
+                hamil.get_collapseops()
             else:
                 # Invalid parameters should raise an exception
                 with pytest.raises(ConfigurationException):
-                    H.get_collapseops()
+                    hamil.get_collapseops()
