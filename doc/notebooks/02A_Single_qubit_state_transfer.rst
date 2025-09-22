@@ -63,10 +63,10 @@ frequency :math:`\omega_q` to be 4.8 GHz and define the Hamiltonian as
 
 .. code:: ipython3
 
-    FREQ = 4.8e9 * 2 * np.pi
+    freq = 4.8e9 * 2 * np.pi
     
-    drive = DriveOperator(gen, isLongitudinal=False)
-    controlled_qubit = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
+    drive = DriveOperator(gen, is_longitudinal=False)
+    controlled_qubit = Qubit(frequency=Quantity(freq, 0.8 * freq, 1.2 * freq), drives=[drive])
     model = ClosedSystem(controlled_qubit)
 
 Textbook values for implementing an :math:`X` rotation on this system at
@@ -78,7 +78,7 @@ optimization procedure.
 
     t_final = 10e-9
     params[0].set_value(0.8 * np.pi / t_final)
-    params[2].set_value(1.01 * FREQ)
+    params[2].set_value(1.01 * freq)
 
 We select a propagation method, piecewise constant exponentation, and
 configure a state transfer problem from :math:`\ket{0}` to
@@ -229,7 +229,7 @@ and parameters close to the textbook values:
 
 .. code:: ipython3
 
-    np.pi / t_final, FREQ
+    np.pi / t_final, freq
 
 
 

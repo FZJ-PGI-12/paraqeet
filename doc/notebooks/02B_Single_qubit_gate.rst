@@ -52,14 +52,14 @@ generator.
 
 .. code:: ipython3
 
-    FREQ = 4.327884e9 * 2 * np.pi
+    freq = 4.327884e9 * 2 * np.pi
     
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(
         frequency=Quantity(
-            FREQ,
-            min_value=FREQ / 4,
-            max_value=FREQ,
+            freq,
+            min_value=freq / 4,
+            max_value=freq,
             unit="Hz",
             name="Qubit frequency",
         ),
@@ -76,7 +76,7 @@ optimization procedure.
 .. code:: ipython3
 
     params[0].set_value(0.5 * np.pi / t_final)
-    params[2].set_value(1.01 * FREQ)
+    params[2].set_value(1.01 * freq)
 
 We select a propagation method, piecewise constant exponentation, and
 configure :math:`\sigma_x` as a target gate. Also we initialize the full
@@ -86,20 +86,20 @@ basis at time 0 with :math:`\mathcal{I}_2`
 
     prop = ScipyExpmGOAT(model, res=500e9)
     
-    X = np.array([[0.0, 1], [1, 0.0]])
-    Y = np.array([[0.0, -1j], [1j, 0.0]])
-    Z = np.array([[1, 0], [0.0, -1]])
+    pauli_x = np.array([[0.0, 1], [1, 0.0]])
+    pauli_y = np.array([[0.0, -1j], [1j, 0.0]])
+    pauli_z = np.array([[1, 0], [0.0, -1]])
     
     prop.set_initial_state(np.identity(2))
-    gateFid = UnitaryFidelity(
+    gate_fid = UnitaryFidelity(
         propagation=prop,
-        gate=X,
+        gate=pauli_x,
         times=np.array([0.0, t_final]),
     )
 
 .. code:: ipython3
 
-    def plotStates():
+    def plot_states():
         """Plot the states."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
@@ -114,7 +114,7 @@ basis at time 0 with :math:`\mathcal{I}_2`
         return fig, ax
     
     
-    plotStates()
+    plot_states()
 
 
 
@@ -135,7 +135,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    gateFid.measure()
+    gate_fid.measure()
 
 
 
@@ -154,7 +154,7 @@ frequency, as in the state transfer example.
 
     optmap = OptimisationMap()
     optmap.add(gen, [params[0], params[2]])
-    opt = ScipyOptimiserGradient(gateFid, optimisables=optmap)
+    opt = ScipyOptimiserGradient(gate_fid, optimisables=optmap)
 
 .. code:: ipython3
 
@@ -171,7 +171,7 @@ frequency, as in the state transfer example.
 
 .. code:: ipython3
 
-    plotStates()
+    plot_states()
 
 
 
@@ -197,16 +197,16 @@ information to identify the problem.
 
 .. code:: ipython3
 
-    def expecationValue(Op, states):
+    def expecation_value(op, states):
         """Get the expectation value across states."""
         ex = []
         for state in states:
-            ex.append(np.real(state.conj() @ Op @ state.T))
+            ex.append(np.real(state.conj() @ op @ state.T))
         return ex
 
 .. code:: ipython3
 
-    def plotPauli():
+    def plot_pauli():
         """Plot the Pauli operators."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
@@ -215,16 +215,16 @@ information to identify the problem.
         fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, sig)
         ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, expecationValue(X, states[:, :, 0]))
-        ax[1].plot(ts / 1e-9, expecationValue(Y, states[:, :, 0]))
-        ax[1].plot(ts / 1e-9, expecationValue(Z, states[:, :, 0]))
+        ax[1].plot(ts / 1e-9, expecation_value(pauli_x, states[:, :, 0]))
+        ax[1].plot(ts / 1e-9, expecation_value(pauli_y, states[:, :, 0]))
+        ax[1].plot(ts / 1e-9, expecation_value(pauli_z, states[:, :, 0]))
         ax[1].set_ylabel(r"Expectation value $\langle\hat\sigma_i\rangle$")
         ax[-1].set_xlabel("Time [ns]")
         ax[1].legend(["X", "Y", "Z"])
         return fig, ax
     
     
-    plotPauli()
+    plot_pauli()
 
 
 
@@ -251,12 +251,12 @@ our drive to shift and inclide the phase parameter in the optimisation.
 
     optmap = OptimisationMap()
     optmap.add(tone, [params[0], params[2], params[3]])
-    opt = ScipyOptimiser(gateFid, optimisables=optmap)
+    opt = ScipyOptimiser(gate_fid, optimisables=optmap)
 
 .. code:: ipython3
 
     params[0].set_value(0.5 * np.pi / t_final)
-    params[2].set_value(1.01 * FREQ)
+    params[2].set_value(1.01 * freq)
     opt.optimise()
 
 
@@ -270,7 +270,7 @@ our drive to shift and inclide the phase parameter in the optimisation.
 
 .. code:: ipython3
 
-    plotPauli()
+    plot_pauli()
 
 
 

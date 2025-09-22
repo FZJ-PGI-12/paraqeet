@@ -30,6 +30,7 @@ initial guess, sampling at 21 points during a gate time of 20ns.
     tone.t_final.set_value(t_final)
     gen = PWCGenerator(envelopes=[tone], tlist=tlist)
     gen.multiply_flat_top = True
+    gen.max_amplitude = 2 * 1e8
 
 We have added the option ``multiplyFlatTop``, to ensure the pulse to
 start and end smoothly at 0 and ``t_final``.
@@ -39,29 +40,22 @@ start and end smoothly at 0 and ``t_final``.
     ts = np.linspace(0, t_final, 501)
     
     plt.plot(ts / 1e-9, tone.compute_output(ts) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="Inphase")
+    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
     plt.plot(
         ts / 1e-9,
         np.imag(gen.generate_signal(ts)) / 1e6,
         ls="--",
-        label="Quadrature",
+        label="out-of-phase",
     )
     
     plt.xlabel("Time [in ns]")
     plt.ylabel("Amplitude [in MHz]")
     plt.legend()
+    plt.show()
 
 
 
-
-.. parsed-literal::
-
-    <matplotlib.legend.Legend at 0x7f4a881f0830>
-
-
-
-
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_7_1.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_7_0.png
 
 
 2. Define Hamiltonian in the rotating frame of drive
@@ -120,13 +114,13 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    def plotStates():
+    def plot_states():
         """Plot the states."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
         sig = gen.generate_signal(ts)
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
+        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, np.real(sig), label="I")
         ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
         ax[0].legend(loc=1)
@@ -134,24 +128,14 @@ As a simple toy model, we use a single spin.
         ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
         ax[1].set_ylabel("Population")
         ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
+        plt.show()
     
     
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_11_1.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_11_0.png
 
 
 .. code:: ipython3
@@ -163,7 +147,7 @@ As a simple toy model, we use a single spin.
 
 .. parsed-literal::
 
-    0.10336679494545331
+    0.10336679494545335
 
 
 
@@ -177,18 +161,18 @@ As a simple toy model, we use a single spin.
     optmap.add(gen)
     optmap.register_params_with_optimisables()
     
-    optGrad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt_grad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
 
 .. code:: ipython3
 
-    optGrad.optimise()
+    opt_grad.optimise()
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 8.091305403468141e-13, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 4.1100456371623295e-13, 'iterations': 7, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -197,21 +181,11 @@ iterations.
 
 .. code:: ipython3
 
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_16_1.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_16_0.png
 
 
 With open system
@@ -236,6 +210,7 @@ Lets first reset the pulse and create a open-system model
     tone.t_final.set_value(t_final)
     gen = PWCGenerator(envelopes=[tone], tlist=tlist)
     gen.multiply_flat_top = True
+    gen.max_amplitude = 5 * 1e8
 
 .. code:: ipython3
 
@@ -280,7 +255,8 @@ Lets first reset the pulse and create a open-system model
     
             hbar_over_kb = 7.638232582257738e-12
             beta = hbar_over_kb / (self.temp.get_value())
-            nbar = jnp.exp(-beta * 5e9)  # inserting typical qubit freq here. TODO - CHECK
+            # inserting typical qubit freq here. TODO - CHECK
+            nbar = jnp.exp(-beta * 5e9)
             gamma_temp = gamma * nbar
             gamma_t1 = gamma * (nbar + 1)
             return [gamma_t1, gamma_temp, gamma_t2star]
@@ -344,13 +320,13 @@ Lets test GRAPE with ODE-propgation
         return pops
     
     
-    def plotStates():
+    def plot_states():
         """Plot the states."""
         ts = np.linspace(0, t_final, 101)
         states = prop.propagate(ts)
         sig = gen.generate_signal(ts)
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
+        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, np.real(sig), label="I")
         ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
         ax[0].legend(loc=1)
@@ -358,24 +334,14 @@ Lets test GRAPE with ODE-propgation
         ax[1].plot(ts / 1e-9, calculate_populations(states, dm=True))
         ax[1].set_ylabel("Population")
         ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
+        plt.show()
     
     
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_24_1.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_24_0.png
 
 
 .. code:: ipython3
@@ -387,7 +353,7 @@ Lets test GRAPE with ODE-propgation
 
 .. parsed-literal::
 
-    0.006921055509936127
+    0.006921055509936116
 
 
 
@@ -403,39 +369,29 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    optGrad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
-    optGrad.set_options({"disp": True})
+    opt_grad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt_grad.set_options({"disp": True})
 
 .. code:: ipython3
 
-    optGrad.optimise()
+    opt_grad.optimise()
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.47646912331612623, 'iterations': 25, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 2, 'value': 0.3986234856331238, 'iterations': 71, 'message': 'ABNORMAL: '}
 
 
 
 .. code:: ipython3
 
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_29_1.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_29_0.png
 
 
 .. code:: ipython3
@@ -447,6 +403,6 @@ Lets test GRAPE with ODE-propgation
 
 .. parsed-literal::
 
-    0.5265180103540705
+    0.6037315068515552
 
 

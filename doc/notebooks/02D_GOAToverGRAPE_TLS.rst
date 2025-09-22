@@ -68,9 +68,9 @@ differentiation to obtain the gradient of the pulse wrt its parameters.
     
         @partial(jit, static_argnums=(0,))
         def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, t: Array):
-            rampUp = 1 + erf((t - t_up) / ramp_time)
-            rampDown = 1 + erf((-t + t_down) / ramp_time)
-            return jnp.squeeze(amp * rampUp * rampDown / 4)
+            ramp_up = 1 + erf((t - t_up) / ramp_time)
+            ramp_down = 1 + erf((-t + t_down) / ramp_time)
+            return jnp.squeeze(amp * ramp_up * ramp_down / 4)
     
         def compute_output(self, t: Array) -> Array:
             """Compute pulse shape."""
@@ -113,29 +113,22 @@ parameters: ``amplitude``, ``t_up``, ``t_down``, ``ramp_time``.
     tone_shape = tone.compute_output(ts)
     
     plt.plot(ts / 1e-9, tone_shape / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="Inphase")
+    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
     plt.plot(
         ts / 1e-9,
         np.imag(gen.generate_signal(ts)) / 1e6,
         ls="--",
-        label="Quadrature",
+        label="out-of-phase",
     )
     
     plt.xlabel("Time [in ns]")
     plt.ylabel("Amplitude [in MHz]")
     plt.legend()
+    plt.show()
 
 
 
-
-.. parsed-literal::
-
-    <matplotlib.legend.Legend at 0x7f9fbc625c40>
-
-
-
-
-.. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_9_1.png
+.. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_9_0.png
 
 
 2. Define Hamiltonian in the rotating frame of drive
@@ -196,13 +189,13 @@ Using GRAPE as the method to propagate and compute the gradients
 
 .. code:: ipython3
 
-    def plotStates():
+    def plot_states():
         """Plot the states."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
         sig = gen.generate_signal(ts)
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
+        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, np.real(sig), label="I")
         ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
         ax[0].legend(loc=1)
@@ -210,24 +203,14 @@ Using GRAPE as the method to propagate and compute the gradients
         ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
         ax[1].set_ylabel("Population")
         ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
+        plt.show()
     
     
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_14_1.png
+.. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_14_0.png
 
 
 3. Optimisation
@@ -247,11 +230,11 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
     optmap.register_params_with_optimisables()
     
     goat = GOATOverGRAPE(zeroone, gen)
-    optGrad = ScipyOptimiserGradient(goat, optimisables=optmap)
+    opt_grad = ScipyOptimiserGradient(goat, optimisables=optmap)
 
 .. code:: ipython3
 
-    optGrad.optimise()
+    opt_grad.optimise()
 
 
 
@@ -267,19 +250,9 @@ iterations.
 
 .. code:: ipython3
 
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_19_1.png
+.. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_19_0.png
 
