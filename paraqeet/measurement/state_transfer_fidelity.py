@@ -79,7 +79,7 @@ class StateTransferFidelity(Measurement):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Overlap between initial and target state in a JAX ArrayLike format.
 
         """
