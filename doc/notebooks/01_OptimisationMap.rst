@@ -171,12 +171,12 @@ properties. The following example selects all amplitudes:
 
 .. code:: ipython3
 
-    def allAmplitudes(par):
+    def all_amplitudes(par):
         """Get the amplitudes."""
         return par.get_name() == "Amplitude"
     
     
-    optmap.filter_parameters(allAmplitudes)
+    optmap.filter_parameters(all_amplitudes)
     optmap.get_all_parameters()
 
 
@@ -229,12 +229,12 @@ Now, we select every parameter with unit “Hz”:
 
 .. code:: ipython3
 
-    def HzFilter(par):
+    def hz_filter(par):
         """Get every parameter with the unit 'Hz'."""
         return par.get_unit() == "Hz"
     
     
-    optmap.filter_parameters(HzFilter)
+    optmap.filter_parameters(hz_filter)
     optmap
 
 

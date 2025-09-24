@@ -25,14 +25,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             Operator of the subsystem to which this drive is attached
-        t: paraqeet.quantity.Array
+        t: Array
             Vector of time samples.
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
 
@@ -78,14 +78,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             Operator of the subsystem to which this drive is attached.
-        t: paraqeet.quantity.Array
+        t: Array
             Vector of time samples.
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Array of shape [t, p, n, n] with 't' as time, 'p' as number of
             parameters and 'n' as the Hilbert space dimension.
 
@@ -105,7 +105,7 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             Operator of the subsystem to which this drive is attached.
         t: float
             One time step.
@@ -133,14 +133,14 @@ class Drive(Optimisable, ABC):
 
         Parameters
         ----------
-        mat: paraqeet.quantity.Array
+        mat: Array
             Input matrix for repetition.
         num : int
             Number of times of repetition.
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Repeated matrix for further computation.
 
         """

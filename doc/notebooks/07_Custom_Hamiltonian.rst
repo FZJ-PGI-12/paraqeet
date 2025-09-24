@@ -8,32 +8,29 @@ In this example we demonstrate how a custom Hamiltonian function
 
     import matplotlib.pyplot as plt
     import jax.numpy as jnp
-    from paraqeet.quantity import Quantity
+    import paraqeet as pq
 
 1. Define the parameters, Hamiltonian function and gradient functions
 ---------------------------------------------------------------------
 
 Define a Hamiltonian as a function of time and optimisable parameters.
-The optimisable paramter need to be of the type ``Quantity``.
+The optimisable paramter need to be of the type ``pq.Quantity``.
 
 Here we define a two level system (TLS) Hamiltonian, with a cosine drive
 (with optimisable paramters Amplitude and Frequency).
 
 .. code:: ipython3
 
-    from paraqeet.quantity import Array
-    
-    
-    amplitude = Quantity(
+    amplitude = pq.Quantity(
         value=jnp.array(1.55e8),
         min_value=jnp.array(0.0),
-        max_value=jnp.array(1e9),
+        max_value=jnp.array(5*1e8),
         unit="Hz",
         name="Amplitude",
         two_pi=True,
     )
     
-    frequency = Quantity(
+    frequency = pq.Quantity(
         value=jnp.array(4.8e9 * 2 * jnp.pi),
         min_value=jnp.array(0.8 * 4.8e9 * 2 * jnp.pi),
         max_value=jnp.array(1.2 * 4.8e9 * 2 * jnp.pi),
@@ -43,30 +40,30 @@ Here we define a two level system (TLS) Hamiltonian, with a cosine drive
     )
     
     
-    def cos_envelope(t: Array, amp, freq):
+    def cos_envelope(t: pq.Array, amp, freq):
         """Define a cosine envelope."""
         return amp * jnp.cos(freq * t)
     
     
-    def TLS_hamiltonian(t: Array, amp, freq):
+    def tls_hamiltonian(t: pq.Array, amp, freq):
         """Define a Two level system Hamiltonian."""
-        return 0.5 * FREQ * sigma_z + sigma_x * cos_envelope(t, amp, freq)
+        return 0.5 * freq * sigma_z + sigma_x * cos_envelope(t, amp, freq)
     
     
     sigma_x = jnp.array([[0j, 1], [1, 0]])
     sigma_z = jnp.diag(jnp.array([1.0, -1.0]))
-    FREQ = 4.8e9 * 2 * jnp.pi
+    freq = 4.8e9 * 2 * jnp.pi
 
 .. code:: ipython3
 
     from paraqeet.model.custom_hamiltonian import CustomHamiltonian
     from paraqeet.model.closed_system import ClosedSystem
     
-    TLS = CustomHamiltonian(
-        hamiltonian_function=TLS_hamiltonian,
+    tls = CustomHamiltonian(
+        hamiltonian_function=tls_hamiltonian,
         parameters=[amplitude, frequency],
     )
-    model = ClosedSystem(TLS)
+    model = ClosedSystem(tls)
 
 2. Define propagation method and measurement function
 -----------------------------------------------------
@@ -79,7 +76,7 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
     
-    t_final = 10e-9
+    t_final = 12e-9
     
     prop = ScipyExpmGOAT(model, res=100e9)
     
@@ -142,18 +139,18 @@ Here we demonstrate both the cases.
 
 .. code:: ipython3
 
-    def grad_amp(t, amp, freq):
+    def grad_amp(t: pq.Array, amp, freq):
         """Gradient of Hamiltonian wrt amplitude."""
         return sigma_x * jnp.cos(freq * t)
     
     
-    def grad_frequency(t, amp, freq):
+    def grad_frequency(t: pq.Array, amp, freq):
         """Gradient of Hamiltonian wrt frequency."""
-        return -sigma_x * amp * t * jnp.sin(freq * t)
+        return -1 * sigma_x * amp * t * jnp.sin(freq * t)
     
     
     analytical_grad_funcs = [grad_amp, grad_frequency]
-    TLS.gradient_functions = analytical_grad_funcs
+    tls.gradient_functions = analytical_grad_funcs
 
 2. Gradient functions using Automatic differentiation
 
@@ -161,7 +158,8 @@ Here we demonstrate both the cases.
 
     from jax import grad
     
-    env_grads = grad(cos_envelope, argnums=(1, 2))  # env_grads(t, amp, freq) returns a tuple of gradients wrt amp and freq
+    # env_grads(t, amp, freq) returns a tuple of gradients wrt amp and freq
+    env_grads = grad(cos_envelope, argnums=(1, 2))
     
     
     def grad_amp(t, amp, freq):
@@ -174,7 +172,7 @@ Here we demonstrate both the cases.
         return sigma_x * env_grads(t, amp, freq)[1]
     
     
-    TLS.gradient_functions = [grad_amp, grad_freq]
+    tls.gradient_functions = [grad_amp, grad_freq]
 
 .. code:: ipython3
 
@@ -185,7 +183,7 @@ Here we demonstrate both the cases.
 
 .. parsed-literal::
 
-    0.48666812955528793
+    0.6404027521371757
 
 
 
@@ -198,7 +196,7 @@ Here we demonstrate both the cases.
     from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
     
     optmap = OptimisationMap()
-    optmap.add(TLS)
+    optmap.add(tls)
     opt = ScipyOptimiserGradient(zeroone, optimisables=optmap)
 
 .. code:: ipython3
@@ -210,7 +208,7 @@ Here we demonstrate both the cases.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 8.659739592076221e-15, 'iterations': 11, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 1.4876988529977098e-14, 'iterations': 9, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 

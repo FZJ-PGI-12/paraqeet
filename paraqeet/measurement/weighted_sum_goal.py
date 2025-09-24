@@ -151,9 +151,9 @@ class WeightedSumGoal(Measurement):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Returns the weighted sum wrt to gradients.
-        paraqeet.quantity.Array
+        Array
             Returns the sum of gradients.
 
         """

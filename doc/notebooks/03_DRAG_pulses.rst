@@ -45,7 +45,7 @@ corrected signal in the DRAGMixer
     
     qubit_levels = 3
     
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     controlled_transmon = Transmon(
         frequency=Quantity(
             freq,
@@ -133,7 +133,7 @@ reference defined above is used.
 
 .. code:: ipython3
 
-    gateFid = UnitaryFidelity(
+    gate_fid = UnitaryFidelity(
         propagation=prop,
         gate=rx(np.pi / 2),
         times=np.array([0.0, t_final]),
@@ -181,7 +181,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    gateFid.measure()
+    gate_fid.measure()
 
 
 
@@ -205,7 +205,7 @@ and the parameters of the cosine tone.
     for i in [0, 2, 3, 4]:
         selected_params.append(params[i])
     optmap.add(gen, selected_params)
-    opt = ScipyOptimiser(gateFid, optimisables=optmap)
+    opt = ScipyOptimiser(gate_fid, optimisables=optmap)
 
 .. code:: ipython3
 
@@ -271,7 +271,7 @@ smaller than initially.
 
 .. code:: ipython3
 
-    gateFid.measure()
+    gate_fid.measure()
 
 
 

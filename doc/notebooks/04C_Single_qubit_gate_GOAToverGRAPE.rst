@@ -29,13 +29,13 @@ The Hamiltonain in the rotating frame of the drive is given by -
     from paraqeet.model.transmon import Transmon
     
     
-    FREQ = 4e9 * 2 * np.pi
-    DIMS = 3
-    ANHARM = -200e6 * 2 * np.pi
+    freq = 4e9 * 2 * np.pi
+    dims = 3
+    anharm = -200e6 * 2 * np.pi
     offset = 2e6 * 2 * np.pi
     
-    drive_freq = FREQ + offset
-    qubit_freq = FREQ - drive_freq
+    drive_freq = freq + offset
+    qubit_freq = freq - drive_freq
 
 First, let’s generate a piecewise constant (PWC) pulse envelope for a
 Flattop Gaussian envelope (defined here with multiple parameters),
@@ -99,7 +99,7 @@ Flattop Gaussian envelope (defined here with multiple parameters),
     
     drag_tone = DRAGMixer(
         tone,
-        deltas=[Quantity(2 * ANHARM, min_value=3 * ANHARM, max_value=ANHARM / 3, unit="Hz", two_pi=True, name="Delta")],
+        deltas=[Quantity(2 * anharm, min_value=3 * anharm, max_value=anharm / 3, unit="Hz", two_pi=True, name="Delta")],
         t_final=Quantity(t_final, 0.9 * t_final, 1, 1 * t_final, name="t_final"),
     )
     drag_tone.multiply_flat_top = True
@@ -136,12 +136,12 @@ Flattop Gaussian envelope (defined here with multiple parameters),
     
     plt.plot(ts / 1e-9, np.real(drag_tone.compute_output(ts)) / 1e6, label="Smooth curve")
     plt.plot(ts / 1e-9, np.imag(drag_tone.compute_output(ts)) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="Inphase")
+    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
     plt.plot(
         ts / 1e-9,
         np.imag(gen.generate_signal(ts)) / 1e6,
         ls="--",
-        label="Quadrature",
+        label="out-of-phase",
     )
     
     plt.xlabel("Time [in ns]")
@@ -153,7 +153,7 @@ Flattop Gaussian envelope (defined here with multiple parameters),
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x7f46007f6510>
+    <matplotlib.legend.Legend at 0x7faeac2da120>
 
 
 
@@ -172,9 +172,9 @@ Flattop Gaussian envelope (defined here with multiple parameters),
             unit="Hz",
             name="Frequency",
         ),
-        anharmonicity=Quantity(ANHARM, 1.2 * ANHARM, 0.8 * ANHARM, unit="Hz", name="Anharmonicity"),
+        anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm, unit="Hz", name="Anharmonicity"),
         drives=[Drive],
-        dimension=DIMS,
+        dimension=dims,
     )
     
     model = ClosedSystem(transmon)
@@ -204,13 +204,13 @@ Flattop Gaussian envelope (defined here with multiple parameters),
 
 .. code:: ipython3
 
-    def plotStates():
+    def plot_states():
         """Plot the states."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
         sig = gen.generate_signal(ts)
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
+        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, np.real(sig), label="I")
         ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
         ax[0].legend(loc=1)
@@ -218,24 +218,14 @@ Flattop Gaussian envelope (defined here with multiple parameters),
         ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
         ax[1].set_ylabel("Population")
         ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
+        plt.show()
     
     
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_12_1.png
+.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_12_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -324,19 +314,9 @@ Optimisation
 
 .. code:: ipython3
 
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_21_1.png
+.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_21_0.png
 

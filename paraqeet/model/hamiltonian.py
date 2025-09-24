@@ -173,9 +173,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             The annihilation operator.
-        t : paraqeet.quantity.Array
+        t : Array
             Vector of time samples.
 
         Returns
@@ -194,7 +194,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             The annihilation operator.
         t: Array
             Vector of time samples.
@@ -219,9 +219,9 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             The annihilation operator.
-        t: paraqeet.quantity.Array
+        t: Array
             Vector of time samples.
 
         Returns
@@ -245,7 +245,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        annihilation_operator : paraqeet.quantity.Array
+        annihilation_operator : Array
             The annihilation operator.
         t: Array
             One time stamp.
@@ -273,7 +273,7 @@ class Hamiltonian(Optimisable, ABC):
 
         Parameters
         ----------
-        mat: paraqeet.quantity.Array
+        mat: Array
             Matrix for repetition.
         num: int
             Number of repetitions.

@@ -94,7 +94,7 @@ form), can take considerably long time.
             two_pi=True,
         ),
     )
-    drive1 = DriveOperator(generator1, isLongitudinal=False)
+    drive1 = DriveOperator(generator1, is_longitudinal=False)
     
     generator2 = IQMixer(
         envelopes=[tone2],
@@ -115,7 +115,7 @@ form), can take considerably long time.
         ),
     )
     
-    drive2 = DriveOperator(generator2, isLongitudinal=False)
+    drive2 = DriveOperator(generator2, is_longitudinal=False)
     
     transmon1 = Transmon(
         dimension=3,
@@ -258,28 +258,28 @@ space to 4 dimensions to compare the propagator to the ideal gate.
     model = ClosedSystem(hamiltonian)
     prop = ScipyExpmGOAT(model, res=100e9)
     
-    X = np.array([[0.0, 1], [1, 0.0]])
-    Y = np.array([[0.0, -1j], [1j, 0.0]])
-    Z = np.array([[1, 0], [0.0, -1]])
+    pauli_x = np.array([[0.0, 1], [1, 0.0]])
+    pauli_y = np.array([[0.0, -1j], [1j, 0.0]])
+    pauli_z = np.array([[1, 0], [0.0, -1]])
     
-    IX = np.kron(np.identity(2), X)
-    IY = np.kron(np.identity(2), Y)
-    IZ = np.kron(np.identity(2), Z)
+    pauli_ix = np.kron(np.identity(2), pauli_x)
+    pauli_iy = np.kron(np.identity(2), pauli_y)
+    pauli_iz = np.kron(np.identity(2), pauli_z)
     
-    ZX = np.exp(1j * np.pi / 4) * np.kron(Z, X)
+    pauli_zx = np.exp(1j * np.pi / 4) * np.kron(pauli_z, pauli_x)
     
-    CRGate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
+    cr_gate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
     
-    CRGate = ZX @ CRGate
+    cr_gate = pauli_zx @ cr_gate
     
     prop.set_initial_state(np.identity(transmon1.dimension() * transmon2.dimension()))
-    gateFid = UnitaryFidelity(
+    gate_fid = UnitaryFidelity(
         propagation=prop,
-        gate=CRGate,
+        gate=cr_gate,
         times=np.array([0.0, t_final]),
     )
-    gateFid.restrict_subsystems([transmon1.dimension(), transmon2.dimension()], [2, 2])
-    gateFid.measure()
+    gate_fid.restrict_subsystems([transmon1.dimension(), transmon2.dimension()], [2, 2])
+    gate_fid.measure()
 
 
 
@@ -292,7 +292,7 @@ space to 4 dimensions to compare the propagator to the ideal gate.
 
 .. code:: ipython3
 
-    def plotPopulation(propagation: Propagation):
+    def plot_population(propagation: Propagation):
         """Plot the population from the Propagation object."""
         basis1 = [i for i in range(transmon1.dimension())]
         basis2 = [i for i in range(transmon2.dimension())]
@@ -302,7 +302,7 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         signal2 = generator2.generate_signal(times)
         states = propagation.propagate(times)
     
-        fig, ax = plt.subplots(3, figsize=(4, 6), sharex=True)
+        _, ax = plt.subplots(3, figsize=(4, 6), sharex=True)
         ax[0].plot(times / 1e-9, signal1)
         ax[0].plot(times / 1e-9, signal2)
         ax[0].set_xlabel("Time [ns]")
@@ -325,7 +325,7 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         plt.show()
     
     
-    plotPopulation(prop)
+    plot_population(prop)
 
 
 
@@ -334,16 +334,16 @@ space to 4 dimensions to compare the propagator to the ideal gate.
 
 .. code:: ipython3
 
-    def expecationValue(Op, states):
+    def expecation_value(Op, states):
         """Get the expected value."""
         ex = []
         for state in states:
-            state = gateFid._preprocess_vector(state)
+            state = gate_fid._preprocess_vector(state)
             ex.append(np.real(state.conj() @ Op @ state.T))
         return ex
     
     
-    def plotPauli():
+    def plot_pauli():
         """Plot the Pauli operators."""
         states = prop.propagate(times)
         sig1 = generator1.generate_signal(times)
@@ -353,21 +353,21 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         ax[0].plot(times / 1e-9, sig1)
         ax[0].plot(times / 1e-9, sig2)
         ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(times / 1e-9, expecationValue(IX, states[:, :, 0]))
-        ax[1].plot(times / 1e-9, expecationValue(IY, states[:, :, 0]))
-        ax[1].plot(times / 1e-9, expecationValue(IZ, states[:, :, 0]))
+        ax[1].plot(times / 1e-9, expecation_value(pauli_ix, states[:, :, 0]))
+        ax[1].plot(times / 1e-9, expecation_value(pauli_iy, states[:, :, 0]))
+        ax[1].plot(times / 1e-9, expecation_value(pauli_iz, states[:, :, 0]))
         ax[1].set_ylabel(r"$\langle 0, x|\hat\sigma_i|0, x\rangle$")
         ax[1].legend(["X", "Y", "Z"])
-        ax[2].plot(times / 1e-9, expecationValue(IX, states[:, :, transmon2.dimension()]))
-        ax[2].plot(times / 1e-9, expecationValue(IY, states[:, :, transmon2.dimension()]))
-        ax[2].plot(times / 1e-9, expecationValue(IZ, states[:, :, transmon2.dimension()]))
+        ax[2].plot(times / 1e-9, expecation_value(pauli_ix, states[:, :, transmon2.dimension()]))
+        ax[2].plot(times / 1e-9, expecation_value(pauli_iy, states[:, :, transmon2.dimension()]))
+        ax[2].plot(times / 1e-9, expecation_value(pauli_iz, states[:, :, transmon2.dimension()]))
         ax[2].set_ylabel(r"$\langle 1, x|\hat\sigma_i|1, x\rangle$")
         ax[-1].set_xlabel("Time [ns]")
         ax[2].legend(["X", "Y", "Z"])
         return fig, ax
     
     
-    plotPauli()
+    plot_pauli()
 
 
 
@@ -408,7 +408,7 @@ The only optimisable parameter is the frequency of transmon 1.
     optmap.add(tone1)
     print(optmap)
     
-    opt = ScipyOptimiserGradient(gateFid, optimisables=optmap)
+    opt = ScipyOptimiserGradient(gate_fid, optimisables=optmap)
     opt.set_options({"ftol": 0.1})
 
 
@@ -450,7 +450,7 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. code:: ipython3
 
-    plotPopulation(prop)
+    plot_population(prop)
 
 
 
@@ -459,7 +459,7 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. code:: ipython3
 
-    plotPauli()
+    plot_pauli()
 
 
 
@@ -473,7 +473,4 @@ The only optimisable parameter is the frequency of transmon 1.
 
 
 .. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_19_1.png
-
-
-
 

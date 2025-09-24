@@ -121,7 +121,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             The drive matrix at a single timestamp.
 
         """
@@ -138,7 +138,7 @@ class Resonator(Hamiltonian):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Returns the gradients of the drive.
 
         """

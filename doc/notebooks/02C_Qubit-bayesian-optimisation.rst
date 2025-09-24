@@ -55,10 +55,10 @@ frequency :math:`\omega_q` to be 4.8 GHz and define the Hamiltonian as
 
 .. code:: ipython3
 
-    FREQ = 4.8e9 * 2 * np.pi
+    freq = 4.8e9 * 2 * np.pi
     
-    drive = DriveOperator(gen, isLongitudinal=False)
-    controlled_qubit = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
+    drive = DriveOperator(gen, is_longitudinal=False)
+    controlled_qubit = Qubit(frequency=Quantity(freq, 0.8 * freq, 1.2 * freq), drives=[drive])
     model = ClosedSystem(controlled_qubit)
 
 Textbook values for implementing an :math:`X` rotation on this system at
@@ -69,7 +69,7 @@ optimization procedure.
 .. code:: ipython3
 
     params[0].set_value(0.5 * np.pi / t_final)
-    params[2].set_value(1.01 * FREQ)
+    params[2].set_value(1.01 * freq)
 
 .. code:: ipython3
 
@@ -95,18 +95,18 @@ basis at time 0 with :math:`\mathcal{I}_2`
 
     prop = ScipyExpmGOAT(model, res=500e9)
     
-    xGate = np.array([[0.0, 1], [1, 0.0]])
+    pauli_x = np.array([[0.0, 1], [1, 0.0]])
     
     prop.set_initial_state(np.identity(2))
-    gateFid = UnitaryFidelity(
+    gate_fid = UnitaryFidelity(
         propagation=prop,
-        gate=xGate,
+        gate=pauli_x,
         times=np.array([0.0, t_final]),
     )
 
 .. code:: ipython3
 
-    def plotTimeEvolution():
+    def plot_time_evolution():
         """Plot the time evolution of the system."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
@@ -121,7 +121,7 @@ basis at time 0 with :math:`\mathcal{I}_2`
         return fig, ax
     
     
-    plotTimeEvolution()
+    plot_time_evolution()
 
 
 
@@ -142,7 +142,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    gateFid.measure()
+    gate_fid.measure()
 
 
 
@@ -173,9 +173,9 @@ to collect all samples that the optimiser takes
     
             Parameters
             ----------
-            params : list[Quantity]
+            params: list[Quantity]
                 List of parameters of the system.
-            infid : Array
+            infid: Array
                 Inverse of fidelity.
     
             """
@@ -184,7 +184,7 @@ to collect all samples that the optimiser takes
     
     optmap = OptimisationMap()
     optmap.add(gen, [params[0], params[2], params[3]])
-    opt = BayesianOptimiser(gateFid, optimisables=optmap, initialSamples=10, iterations=100)
+    opt = BayesianOptimiser(gate_fid, optimisables=optmap, initial_samples=10, iterations=100)
     opt.logger = CustomLogger()
 
 .. code:: ipython3
@@ -202,12 +202,12 @@ to collect all samples that the optimiser takes
     | [35m4        [39m | [35m0.0095249[39m | [35m0.0776334[39m | [35m-0.161610[39m | [35m0.3704390[39m |
     | [39m5        [39m | [39m-.107e-06[39m | [39m-0.591095[39m | [39m0.7562348[39m | [39m-0.945224[39m |
     | [35m6        [39m | [35m0.2036608[39m | [35m0.3409350[39m | [35m-0.165390[39m | [35m0.1173796[39m |
+    | [39m7        [39m | [39m0.0007858[39m | [39m-0.719226[39m | [39m-0.603797[39m | [39m0.6014891[39m |
+    | [39m8        [39m | [39m0.0438829[39m | [39m0.9365231[39m | [39m-0.373151[39m | [39m0.3846452[39m |
 
 
 .. parsed-literal::
 
-    | [39m7        [39m | [39m0.0007858[39m | [39m-0.719226[39m | [39m-0.603797[39m | [39m0.6014891[39m |
-    | [39m8        [39m | [39m0.0438829[39m | [39m0.9365231[39m | [39m-0.373151[39m | [39m0.3846452[39m |
     | [39m9        [39m | [39m-.744e-06[39m | [39m0.7527783[39m | [39m0.7892133[39m | [39m-0.829911[39m |
     | [39m10       [39m | [39m-.607e-06[39m | [39m-0.921890[39m | [39m-0.660339[39m | [39m0.7562850[39m |
 
@@ -239,36 +239,32 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [35m19       [39m | [35m0.4964185[39m | [35m0.5297423[39m | [35m-0.121980[39m | [35m-0.029561[39m |
-
-
-.. parsed-literal::
-
     | [39m20       [39m | [39m0.2971542[39m | [39m0.5591593[39m | [39m-0.177524[39m | [39m-0.092768[39m |
-    | [39m21       [39m | [39m0.4609845[39m | [39m0.5715910[39m | [39m-0.053883[39m | [39m0.0224457[39m |
 
 
 .. parsed-literal::
 
+    | [39m21       [39m | [39m0.4609845[39m | [39m0.5715910[39m | [39m-0.053883[39m | [39m0.0224457[39m |
     | [39m22       [39m | [39m0.4405435[39m | [39m0.6169550[39m | [39m-0.144028[39m | [39m0.0384503[39m |
+
+
+.. parsed-literal::
+
     | [39m23       [39m | [39m0.0011515[39m | [39m0.9867827[39m | [39m-0.644633[39m | [39m0.8585118[39m |
     | [39m24       [39m | [39m-.931e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
     | [39m25       [39m | [39m-.177e-08[39m | [39m-0.877018[39m | [39m-0.657881[39m | [39m0.0207137[39m |
-
-
-.. parsed-literal::
-
     | [39m26       [39m | [39m0.0012021[39m | [39m-0.795254[39m | [39m-0.508318[39m | [39m0.9524448[39m |
+
+
+.. parsed-literal::
+
     | [39m27       [39m | [39m0.2051465[39m | [39m0.3692185[39m | [39m-0.191760[39m | [39m-0.075047[39m |
-
-
-.. parsed-literal::
-
     | [39m28       [39m | [39m0.4125911[39m | [39m0.6886774[39m | [39m-0.046218[39m | [39m0.0114139[39m |
-    | [35m29       [39m | [35m0.5436281[39m | [35m0.4663919[39m | [35m-0.086370[39m | [35m0.0246949[39m |
 
 
 .. parsed-literal::
 
+    | [35m29       [39m | [35m0.5436281[39m | [35m0.4663919[39m | [35m-0.086370[39m | [35m0.0246949[39m |
     | [35m30       [39m | [35m0.6413501[39m | [35m0.4979543[39m | [35m-0.041705[39m | [35m0.1428720[39m |
 
 
@@ -287,10 +283,6 @@ to collect all samples that the optimiser takes
     | [39m33       [39m | [39m0.3013880[39m | [39m0.5579259[39m | [39m-0.130762[39m | [39m0.2397892[39m |
     | [39m34       [39m | [39m0.0138074[39m | [39m0.3362308[39m | [39m-0.840353[39m | [39m-0.837670[39m |
     | [39m35       [39m | [39m0.0013310[39m | [39m-0.483655[39m | [39m0.3866039[39m | [39m0.6740750[39m |
-
-
-.. parsed-literal::
-
     | [39m36       [39m | [39m0.1174572[39m | [39m-0.049565[39m | [39m-0.108954[39m | [39m-0.202153[39m |
 
 
@@ -302,16 +294,12 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m38       [39m | [39m0.7379100[39m | [39m0.5218613[39m | [39m-0.034616[39m | [39m0.2090108[39m |
-
-
-.. parsed-literal::
-
     | [35m39       [39m | [35m0.8490859[39m | [35m0.6323366[39m | [35m-0.032667[39m | [35m0.2707394[39m |
-    | [39m40       [39m | [39m-.044e-07[39m | [39m-0.831439[39m | [39m0.3584873[39m | [39m-0.030378[39m |
 
 
 .. parsed-literal::
 
+    | [39m40       [39m | [39m-.044e-07[39m | [39m-0.831439[39m | [39m0.3584873[39m | [39m-0.030378[39m |
     | [35m41       [39m | [35m0.9025055[39m | [35m0.7107871[39m | [35m-0.024897[39m | [35m0.3139254[39m |
 
 
@@ -331,11 +319,11 @@ to collect all samples that the optimiser takes
 
     | [39m46       [39m | [39m0.2796883[39m | [39m0.7344644[39m | [39m-0.104430[39m | [39m0.3734581[39m |
     | [39m47       [39m | [39m0.5285330[39m | [39m0.4842338[39m | [39m-0.073633[39m | [39m0.0276697[39m |
+    | [39m48       [39m | [39m0.1170918[39m | [39m-0.455283[39m | [39m0.0556825[39m | [39m-0.294502[39m |
 
 
 .. parsed-literal::
 
-    | [39m48       [39m | [39m0.1170918[39m | [39m-0.455283[39m | [39m0.0556825[39m | [39m-0.294502[39m |
     | [39m49       [39m | [39m0.0005530[39m | [39m-0.896720[39m | [39m-0.199863[39m | [39m-0.487141[39m |
 
 
@@ -347,10 +335,6 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m51       [39m | [39m0.6838936[39m | [39m0.8762485[39m | [39m0.0603446[39m | [39m0.7296905[39m |
-
-
-.. parsed-literal::
-
     | [39m52       [39m | [39m0.0067735[39m | [39m0.9691647[39m | [39m-0.042159[39m | [39m0.7514141[39m |
 
 
@@ -362,16 +346,12 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m54       [39m | [39m0.8365565[39m | [39m0.6495542[39m | [39m0.0045080[39m | [39m0.3293315[39m |
-
-
-.. parsed-literal::
-
     | [39m55       [39m | [39m0.8216861[39m | [39m0.7354916[39m | [39m-0.020858[39m | [39m0.2344069[39m |
-    | [39m56       [39m | [39m-.577e-05[39m | [39m-0.879484[39m | [39m-0.954218[39m | [39m0.7154813[39m |
 
 
 .. parsed-literal::
 
+    | [39m56       [39m | [39m-.577e-05[39m | [39m-0.879484[39m | [39m-0.954218[39m | [39m0.7154813[39m |
     | [39m57       [39m | [39m0.7832472[39m | [39m0.5852044[39m | [39m-0.015138[39m | [39m0.4526613[39m |
 
 
@@ -388,11 +368,11 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m60       [39m | [39m0.8320164[39m | [39m0.7867958[39m | [39m0.0324158[39m | [39m0.5959492[39m |
+    | [39m61       [39m | [39m0.4959325[39m | [39m0.7079475[39m | [39m0.1158142[39m | [39m0.5953950[39m |
 
 
 .. parsed-literal::
 
-    | [39m61       [39m | [39m0.4959325[39m | [39m0.7079475[39m | [39m0.1158142[39m | [39m0.5953950[39m |
     | [39m62       [39m | [39m0.1669744[39m | [39m0.1229802[39m | [39m0.1805488[39m | [39m0.0361662[39m |
 
 
@@ -400,16 +380,12 @@ to collect all samples that the optimiser takes
 
     | [39m63       [39m | [39m0.8216539[39m | [39m0.9007799[39m | [39m0.0125311[39m | [39m0.5672909[39m |
     | [39m64       [39m | [39m0.8316071[39m | [39m0.7870544[39m | [39m0.0327162[39m | [39m0.5968212[39m |
-
-
-.. parsed-literal::
-
     | [39m65       [39m | [39m0.0003834[39m | [39m-0.712240[39m | [39m0.6268556[39m | [39m0.2073338[39m |
-    | [39m66       [39m | [39m0.0001571[39m | [39m0.5744876[39m | [39m0.9758150[39m | [39m0.6370951[39m |
 
 
 .. parsed-literal::
 
+    | [39m66       [39m | [39m0.0001571[39m | [39m0.5744876[39m | [39m0.9758150[39m | [39m0.6370951[39m |
     | [39m67       [39m | [39m0.0003994[39m | [39m0.3575027[39m | [39m-0.296749[39m | [39m-0.023575[39m |
 
 
@@ -421,10 +397,6 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m69       [39m | [39m0.6736730[39m | [39m0.8465738[39m | [39m0.0872708[39m | [39m0.5378365[39m |
-
-
-.. parsed-literal::
-
     | [35m70       [39m | [35m0.9500097[39m | [35m1.0      [39m | [35m0.0343604[39m | [35m0.5404349[39m |
 
 
@@ -482,22 +454,18 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m82       [39m | [39m0.8139711[39m | [39m0.8550331[39m | [39m0.0184429[39m | [39m0.3242011[39m |
-
-
-.. parsed-literal::
-
     | [39m83       [39m | [39m0.3778611[39m | [39m0.9226054[39m | [39m0.1628879[39m | [39m0.9119623[39m |
+
+
+.. parsed-literal::
+
     | [39m84       [39m | [39m0.0002142[39m | [39m-0.873608[39m | [39m-0.590417[39m | [39m-0.322908[39m |
-
-
-.. parsed-literal::
-
     | [39m85       [39m | [39m-.995e-06[39m | [39m0.0889854[39m | [39m-1.0     [39m | [39m1.0      [39m |
-    | [39m86       [39m | [39m0.0547662[39m | [39m0.8283655[39m | [39m0.0747172[39m | [39m0.1985934[39m |
 
 
 .. parsed-literal::
 
+    | [39m86       [39m | [39m0.0547662[39m | [39m0.8283655[39m | [39m0.0747172[39m | [39m0.1985934[39m |
     | [39m87       [39m | [39m0.0      [39m | [39m-1.0     [39m | [39m1.0      [39m | [39m1.0      [39m |
 
 
@@ -521,10 +489,6 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m93       [39m | [39m0.0223863[39m | [39m1.0      [39m | [39m0.0519901[39m | [39m-1.0     [39m |
-
-
-.. parsed-literal::
-
     | [39m94       [39m | [39m0.9625406[39m | [39m0.8660557[39m | [39m-0.003959[39m | [39m0.4206908[39m |
 
 
@@ -538,10 +502,6 @@ to collect all samples that the optimiser takes
 
     | [39m97       [39m | [39m0.0001046[39m | [39m-0.012447[39m | [39m-1.0     [39m | [39m0.1514002[39m |
     | [39m98       [39m | [39m0.0001749[39m | [39m-0.765238[39m | [39m-0.898005[39m | [39m0.5169565[39m |
-
-
-.. parsed-literal::
-
     | [39m99       [39m | [39m0.0166398[39m | [39m-0.227062[39m | [39m-0.174050[39m | [39m0.2779688[39m |
 
 
@@ -553,10 +513,6 @@ to collect all samples that the optimiser takes
 .. parsed-literal::
 
     | [39m101      [39m | [39m0.3153274[39m | [39m0.5996019[39m | [39m0.1592724[39m | [39m0.9868877[39m |
-
-
-.. parsed-literal::
-
     | [39m102      [39m | [39m0.6040294[39m | [39m0.7812510[39m | [39m-0.106681[39m | [39m-1.0     [39m |
 
 
@@ -626,7 +582,7 @@ two-dimensional parameter space. The red dot marks the best value.
 
 .. code:: ipython3
 
-    plotTimeEvolution()
+    plot_time_evolution()
 
 
 
@@ -648,7 +604,7 @@ controls.
 
 .. code:: ipython3
 
-    gateFid.measure()
+    gate_fid.measure()
 
 
 

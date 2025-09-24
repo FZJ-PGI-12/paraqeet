@@ -93,7 +93,7 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        list[List[paraqeet.quantity.Array]]
+        list[List[Array]]
             The outer list are the coupling terms. The inner list contains
             matrices for each subsystem. The matrices (Array) have the same
             shape as the subsystem's Hamiltonian.get_matrix_one_time: (n,n)
@@ -112,12 +112,12 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t: paraqeet.quantity.Array
+        t: Array
             Array of times
 
         Returns
         -------
-        list[list[paraqeet.quantity.Array]]
+        list[list[Array]]
             The outer list are the coupling terms. The inner list represents
             the subsystems. The matrices (Array) have the same shape as the
             subsystem's Hamiltonian.get_matrix: (t,n,n) with t the time and n
@@ -143,7 +143,7 @@ class Coupling(Optimisable):
 
         Returns
         -------
-        list[list[list[paraqeet.quantity.Array]]]
+        list[list[list[Array]]]
             The outer list represents the gradients with respect to
             all optimised parameters. The rest is in the same shape as the
             result of getMatricesOneTime.
@@ -161,12 +161,12 @@ class Coupling(Optimisable):
 
         Parameters
         ----------
-        t: paraqeet.quantity.Array
+        t: Array
             One-dimensional vector of timestamps.
 
         Returns
         -------
-        list[list[paraqeet.quantity.Array]]
+        list[list[Array]]
             The outer list represents the gradients with respect to all
             optimised parameters.
             The rest is in the same shape as the result of get_matrices.
