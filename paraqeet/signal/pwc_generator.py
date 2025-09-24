@@ -319,7 +319,7 @@ class PWCGenerator(Generator):
 
         if self.__multiply_flat_top:
             smoothing = self.__compute_envelope(tlist)
-            index = jnp.argmin(jnp.abs(tlist - t_arr))
+            index = jnp.argmin(jnp.abs(jnp.expand_dims(tlist, axis=1) - t_arr), axis=0)
             env = smoothing[index]
         else:
             env = jnp.ones_like(t_arr)
