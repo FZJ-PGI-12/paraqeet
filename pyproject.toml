@@ -89,6 +89,9 @@ module = "cma.*"
 ignore_missing_imports = true
 
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
 # pytest's code coverage configurations
 [tool.coverage.run]
 branch = true
