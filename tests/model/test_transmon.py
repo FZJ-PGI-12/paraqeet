@@ -65,7 +65,6 @@ def hamiltonian(gen):
 @pytest.fixture
 def open_transmon():
     """Return an open model for the resonator."""
-
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
     drive = DriveOperator(generator, is_longitudinal=False)

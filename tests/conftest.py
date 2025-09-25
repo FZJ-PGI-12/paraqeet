@@ -81,7 +81,6 @@ def random_unitary_matrix():
     Generates random unitary matrices for a given dimension.
 
     """
-
     seed = 84
 
     def _method(dim):

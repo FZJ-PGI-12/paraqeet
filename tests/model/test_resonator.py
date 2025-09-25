@@ -61,7 +61,6 @@ def hamiltonian(gen):
 @pytest.fixture
 def open_resonator():
     """Return an open model for the resonator."""
-
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
     drive = DriveOperator(generator, is_longitudinal=False)
