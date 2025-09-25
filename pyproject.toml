@@ -7,10 +7,6 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-include = ["paraqeet*"]  # package names should match these glob patterns (["*"] by default)
-
 [project]
 name = "paraqeet"
 version = "0.9.1"
@@ -67,6 +63,9 @@ gpu = [
 "Source" = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet"
 "Documentation" = "https://paraqeet.readthedocs.io/en/latest/"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.package-data]
 "paraqeet" = ["py.typed"]
 
@@ -88,9 +87,9 @@ ignore_missing_imports = true
 module = "cma.*"
 ignore_missing_imports = true
 
-
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+testpaths = ["tests", "examples"]
 
 # pytest's code coverage configurations
 [tool.coverage.run]
