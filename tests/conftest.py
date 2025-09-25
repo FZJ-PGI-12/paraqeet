@@ -6,8 +6,8 @@ import numpy as np
 from scipy.stats import unitary_group
 
 from paraqeet.quantity import Quantity
-from test.model.dummy_model import DummyEquationsOfMotion
-from test.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.dummy_model import DummyEquationsOfMotion
+from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 LEN_SIG = 20
 

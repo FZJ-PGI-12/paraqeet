@@ -6,8 +6,8 @@ These tests should be independent of specific implementations.
 import numpy as np
 import pytest
 
-from test.measurement.random_measurement import RandomMeasurement
-from test.propagation.random_propagation import RandomPropagation
+from tests.measurement.random_measurement import RandomMeasurement
+from tests.propagation.random_propagation import RandomPropagation
 
 
 def random_state(dimension):

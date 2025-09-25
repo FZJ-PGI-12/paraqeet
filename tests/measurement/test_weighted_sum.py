@@ -1,7 +1,7 @@
 """Test the weighted sum goal."""
 
-from test.propagation.identity_propagation import IdentityPropagation
-from test.measurement.constant_measurement import ConstantMeasurement
+from tests.propagation.identity_propagation import IdentityPropagation
+from tests.measurement.constant_measurement import ConstantMeasurement
 
 import numpy as np
 import pytest

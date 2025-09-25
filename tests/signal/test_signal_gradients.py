@@ -6,7 +6,7 @@ import jax.numpy as jnp
 
 from paraqeet.quantity import Array
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
-from test.dummy_device import FlatTopGaussianEnvelopeAD
+from tests.dummy_device import FlatTopGaussianEnvelopeAD
 
 time = jnp.linspace(0, 10e-6, 100)
 

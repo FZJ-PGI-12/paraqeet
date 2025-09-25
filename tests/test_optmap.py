@@ -9,7 +9,7 @@ from paraqeet.optimisation_map import OptimisationMap
 
 from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
-from test.test_optimisable import DummyOptimisable
+from tests.test_optimisable import DummyOptimisable
 
 TONE = ConstantEnvelope()
 GEN = IQMixer(envelopes=[TONE])

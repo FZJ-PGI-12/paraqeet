@@ -7,8 +7,8 @@ from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelity,
     StateTransferFidelityAD,
 )
-from test.propagation.identity_propagation import IdentityPropagation
-from test.propagation.random_propagation import RandomPropagation
+from tests.propagation.identity_propagation import IdentityPropagation
+from tests.propagation.random_propagation import RandomPropagation
 
 
 @pytest.fixture
