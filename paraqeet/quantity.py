@@ -703,7 +703,7 @@ class Quantity:
         ret = ""
         if len(val) > 1:
             ret = "["
-            delimiter = "; "
+            delimiter = ", "
         else:
             delimiter = " "
         for ii, entry in enumerate(val):
@@ -724,6 +724,9 @@ class Quantity:
                 ret = self.__name + ": " + ret + "]"
             else:
                 ret = self.__name + ": " + ret
+        else:
+            if len(val) > 1:
+                ret = ret + "]"
         return ret
 
     @staticmethod
