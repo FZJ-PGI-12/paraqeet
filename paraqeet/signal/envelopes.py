@@ -567,12 +567,16 @@ class dCRABEnvelope(Envelope):
     _total_num_components: int
     _all_coefficients: list[Quantity]
     _all_frequencies: list[Quantity]
+    __min_frequency: float
+    __max_frequency: float
 
     def __init__(
         self,
         amplitude: Quantity | None = None,
         t_final: Quantity | None = None,
         num_components: int = 2,
+        min_frequency: float = 0.0,
+        max_frequency: float = 2 * jnp.pi * 5.0,
     ):
         self._amplitude = amplitude or Quantity(
             1.55e8,
@@ -610,13 +614,17 @@ class dCRABEnvelope(Envelope):
 
         seed = int(time.time())
         key = jax.random.key(seed)
-        freqs = jax.random.uniform(key, shape=(self._num_components,), minval=0, maxval=2 * jnp.pi * 5.0)
+        self.__min_frequency = min_frequency
+        self.__max_frequency = max_frequency
+        freqs = jax.random.uniform(
+            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+        )
 
         self._all_frequencies = [
             Quantity(
                 freqs[i],
-                min_value=jnp.array(0.0),
-                max_value=jnp.array(2 * jnp.pi * 5.0),
+                min_value=jnp.array(self.__min_frequency),
+                max_value=jnp.array(self.__max_frequency),
                 unit="Hz",
                 name=f"CRAB frequency {i}",
                 two_pi=True,
@@ -660,7 +668,9 @@ class dCRABEnvelope(Envelope):
 
         seed = int(time.time())
         key = jax.random.key(seed)
-        freqs = jax.random.uniform(key, shape=(self._num_components,), minval=0, maxval=2 * jnp.pi * 5.0)
+        freqs = jax.random.uniform(
+            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+        )
 
         self._all_frequencies.extend(
             [
