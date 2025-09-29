@@ -59,7 +59,7 @@ class OptimisationMap:
         """
         if optimisable_quantities is not None:
             params: list[Quantity] = (
-                optimisable_quantities if isinstance(optimisable_quantities, list) else [optimisable_quantities]
+                [optimisable_quantities] if isinstance(optimisable_quantities, Quantity) else optimisable_quantities
             )
         else:
             params = optimisable.get_parameters()
