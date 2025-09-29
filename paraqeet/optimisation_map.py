@@ -163,6 +163,18 @@ class OptimisationMap:
         """
         return self.filter_parameters(lambda quantity: quantity.get_name() == name)
 
+    def freeze_parameters(self, params: Quantity | list[Quantity]) -> None:
+        """Freeze some parameters, specified by specifying the quantity, that won't be optimized further.
+        This uses filter parameters to filter out the specified parameters.
+
+        Parameters
+        ----------
+        params : Quantity | list[Quantity]
+            Parameters to freeze
+        """
+        frozen_parameters_list: list[Quantity] = params if isinstance(params, list) else [params]
+        return self.filter_parameters(lambda quantity: quantity not in frozen_parameters_list)
+
     def to_dict(self) -> dict:
         """Creates a dictionary that contains the values of all quantities that are being optimised, sorted by the
         Optimisable instances to which they belong. The returned dictionary is meant for export using the serialisation
