@@ -39,7 +39,7 @@ class OptimisationMap:
     def add(
         self,
         optimisable: Optimisable,
-        optimisable_quantities: list[Quantity] | None = None,
+        optimisable_quantities: Quantity | list[Quantity] | None = None,
     ):
         """Add an optimisable object and a list of its quantities to the map.
 
@@ -52,12 +52,17 @@ class OptimisationMap:
         ----------
         optimisable: Optimisable
             Input Optimisable object for adding to the map.
-        optimisable_quantities: list[Quantity] | None = None
+        optimisable_quantities: Quantity | list[Quantity] | None = None
             List of all parameters of the optimisable object considered for
             optimisation.
 
         """
-        params = optimisable_quantities or optimisable.get_parameters()
+        if optimisable_quantities is not None:
+            params: list[Quantity] = (
+                optimisable_quantities if isinstance(optimisable_quantities, list) else [optimisable_quantities]
+            )
+        else:
+            params = optimisable.get_parameters()
         self.__optimisable_to_parameter_map[optimisable] = params
         if len(self.__optimisable_to_parameter_map[optimisable]) < 1:
             self.__optimisable_to_parameter_map.pop(optimisable)
