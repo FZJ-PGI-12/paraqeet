@@ -168,14 +168,14 @@ class OptimisationMap:
         """
         return self.filter_parameters(lambda quantity: quantity.get_name() == name)
 
-    def freeze_parameters(self, params: Quantity | list[Quantity]) -> None:
-        """Freeze some parameters, specified by specifying the quantity, that won't be optimized further.
-        This uses filter parameters to filter out the specified parameters.
+    def remove_parameters(self, params: Quantity | list[Quantity]) -> None:
+        """Remove some parameters, specified by specifying the quantity, that won't be optimized further.
+        This uses filter parameters to remove the specified parameters.
 
         Parameters
         ----------
         params : Quantity | list[Quantity]
-            Parameters to freeze
+            Parameters to remove
         """
         frozen_parameters_list: list[Quantity] = params if isinstance(params, list) else [params]
         return self.filter_parameters(lambda quantity: quantity not in frozen_parameters_list)
