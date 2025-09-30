@@ -385,8 +385,10 @@ class DRAGMixer(Waveform):
         for ii, env_tone in enumerate(envelope_tones):
             env_tone.__setattr__(
                 "_" + env_tone.__class__.__name__ + "__delta",
-                Quantity(
-                    deltas[ii].get_value() if deltas else jnp.array(-200e6 * 2 * jnp.pi),
+                deltas[ii]
+                if deltas
+                else Quantity(
+                    jnp.array(-200e6 * 2 * jnp.pi),
                     min_value=jnp.array(-3 * 200e6 * 2 * jnp.pi),
                     max_value=jnp.array(-0.1 * 200e6 * 2 * jnp.pi),
                     unit="Hz",
