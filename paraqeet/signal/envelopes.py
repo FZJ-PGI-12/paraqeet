@@ -707,6 +707,7 @@ class dCRABEnvelope(Envelope):
         for i in range(int(self._total_num_components / 2)):
             env += coeffs[2 * i] * jnp.cos(freqs[2 * i] * t / t_final)
             env += coeffs[2 * i + 1] * jnp.sin(freqs[2 * i + 1] * t / t_final)
+        env /= 2 * jnp.sum(jnp.array(coeffs))
         return jnp.squeeze(amp * env)
 
     def compute_output(self, t: Array) -> Array:
