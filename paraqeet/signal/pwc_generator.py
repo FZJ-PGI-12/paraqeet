@@ -180,7 +180,7 @@ class PWCGenerator(Generator):
         return len(self.tlist)
 
     def __compute_shape(self) -> Array:
-        env = jnp.zeros_like(self.__tlist)
+        env = jnp.zeros_like(self.__tlist, dtype=jnp.complex128)
         for dev in self.__envs:
             env += dev.compute_output(self.__tlist)
         return env
@@ -247,7 +247,7 @@ class PWCGenerator(Generator):
         self,
         inphase: Array,
         outofphase: Array,
-        tlist: Array,
+        dt: Array,
         t: Array,
     ) -> Array:
         """Generate a signal for a single time point 't'.
@@ -272,8 +272,8 @@ class PWCGenerator(Generator):
             Returns the PWC signal value at t.
 
         """
-        index = jnp.argmin(jnp.abs(tlist - t))
-        return inphase[index] + 1j * outofphase[index]
+        index = jnp.array(t / dt, int)
+        return inphase[index] + 1.0j * outofphase[index]
 
     def generate_signal(self, times: Array) -> Array:
         """Generate the PWC signal for time(s) 't'.
@@ -290,6 +290,7 @@ class PWCGenerator(Generator):
 
         """
         tlist = self.__tlist
+        dt = tlist[1] - tlist[0]
         t_arr = jnp.array(times, ndmin=1)
         inphase = self.__inphase.get_value()
         outofphase = self.__outofphase.get_value()
@@ -297,7 +298,7 @@ class PWCGenerator(Generator):
             env = self.__compute_envelope(tlist)
             inphase *= env
             outofphase *= env
-        shape = jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, tlist, t_arr))
+        shape = jnp.squeeze(vmap(self.__pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, dt, t_arr))
         return shape
 
     def generate_signal_gradient(self, times: Array) -> Array:
