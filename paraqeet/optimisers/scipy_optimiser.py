@@ -17,7 +17,7 @@ class ScipyOptimiser(Optimiser):
     ----------
     measure: Measurement
         Implementation of the Measurement class that measures the observable
-        to be minimised.
+        to be maximised.
     optimisable: OptimisationMap
         An optimisation map containing all parameters that can be optimised.
 
