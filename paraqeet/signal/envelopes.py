@@ -656,6 +656,10 @@ class dCRABEnvelope(Envelope):
         params.extend(self._all_frequencies)
         return params
 
+    def get_coefficients_and_frequencies(self):
+        """Return all the coefficients and frequencies used in the CRAB signal."""
+        return self._all_coefficients + self._all_frequencies
+
     def add_new_components(self, seeds: tuple[int, int] | None = None):
         """Add `self._num_components` number of new randomized components to the optimization."""
         if seeds is None:
