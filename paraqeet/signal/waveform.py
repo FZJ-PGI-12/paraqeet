@@ -365,6 +365,10 @@ class DRAGMixer(Waveform):
             params += [self.__get_tone_delta(tone)]
         return params
 
+    def get_envelopes(self) -> list[Waveform]:
+        """Return envelopes from the DRAGMixer."""
+        return self.__envs
+
     @staticmethod
     def __add_deltas(envelope_tones: list[Waveform], deltas: list[Quantity] | None) -> None:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
