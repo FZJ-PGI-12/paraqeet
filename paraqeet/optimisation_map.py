@@ -67,17 +67,61 @@ class OptimisationMap:
         if len(self.__optimisable_to_parameter_map[optimisable]) < 1:
             self.__optimisable_to_parameter_map.pop(optimisable)
 
-    def remove(self, optimisable: Optimisable):
-        """Remove the given parameter from the sytem.
+    def append(
+        self,
+        optimisable: Optimisable,
+        optimisable_quantities: Quantity | list[Quantity] | None = None,
+    ):
+        """Append an optimisable object and a list of its quantities to the map.
+
+        This method is similar to the `add` method, but instead of overwritting the
+        existing entries, this appends the specified list of quantities to the
+        already existing quantities.
 
         Parameters
         ----------
         optimisable: Optimisable
-            Parameter to be removed.
+            Input Optimisable object for adding to the map.
+        optimisable_quantities: Quantity | list[Quantity] | None = None
+            List of all parameters of the optimisable object considered for
+            optimisation.
+
+        """
+        if optimisable_quantities is not None:
+            params: list[Quantity] = (
+                [optimisable_quantities] if isinstance(optimisable_quantities, Quantity) else optimisable_quantities
+            )
+        else:
+            params = optimisable.get_parameters()
+
+        if optimisable in self.__optimisable_to_parameter_map:
+            self.__optimisable_to_parameter_map[optimisable].extend(params)
+        else:
+            self.__optimisable_to_parameter_map[optimisable] = params
+        if len(self.__optimisable_to_parameter_map[optimisable]) < 1:
+            self.__optimisable_to_parameter_map.pop(optimisable)
+
+    def remove(self, optimisable: Optimisable, params: Quantity | list[Quantity] | None = None):
+        """Remove the given optimisable or parameter(s) from the optimisation map.
+
+        If params is None, it removes the optimisable from the optimisation map.
+        Else it only removes the specific parameter from the optimisation map.
+
+        Parameters
+        ----------
+        optimisable: Optimisable
+            Optimisable to be removed.
+        params: Quantity | list[Quanitity] | None.
+            Parameter(s) to be removed from the optimisation map. If None removes the optimisable.
 
         """
         try:
-            self.__optimisable_to_parameter_map.pop(optimisable)
+            if params is None:
+                self.__optimisable_to_parameter_map.pop(optimisable)
+            else:
+                parameters_list: list[Quantity] = params if isinstance(params, list) else [params]
+                self.filter_parameters(lambda quantity: quantity not in parameters_list)
+
         # removed the bare except catch.
         except Exception as e:
             raise Exception(e)
@@ -167,18 +211,6 @@ class OptimisationMap:
 
         """
         return self.filter_parameters(lambda quantity: quantity.get_name() == name)
-
-    def remove_parameters(self, params: Quantity | list[Quantity]) -> None:
-        """Remove some parameters, specified by specifying the quantity, that won't be optimized further.
-        This uses filter parameters to remove the specified parameters.
-
-        Parameters
-        ----------
-        params : Quantity | list[Quantity]
-            Parameters to remove
-        """
-        frozen_parameters_list: list[Quantity] = params if isinstance(params, list) else [params]
-        return self.filter_parameters(lambda quantity: quantity not in frozen_parameters_list)
 
     def to_dict(self) -> dict:
         """Creates a dictionary that contains the values of all quantities that are being optimised, sorted by the
