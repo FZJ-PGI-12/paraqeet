@@ -83,9 +83,12 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
         for env, coeffs_and_freqs in zip(relevant_optimisables, current_coeffs_and_freqs):
             self._optimisables.remove(env, coeffs_and_freqs)
 
-        self._optimisables.register_params_with_optimisables()
+        # Restart the optimization process
+        self.optimise()
 
     def _callback_function(self, intermediate_result):
+        self._num_iteration += 1
+
         if self._num_iteration // self._super_iteration_every > self._max_super_iteration_num:
             raise StopIteration("Maximum number of super iterations performed.")
 
@@ -96,5 +99,3 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
             if self._num_iteration % self._super_iteration_every == 0:
                 print(f"==== Starting super-iteration {self._num_iteration // self._super_iteration_every} ====")
                 self._dcrab_super_iteration()
-
-        self._num_iteration += 1
