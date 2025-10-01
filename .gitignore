@@ -54,6 +54,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# Linters / formatters
+.ruff_cache/
+ruff-report.json
+
 # Translations
 *.mo
 *.pot

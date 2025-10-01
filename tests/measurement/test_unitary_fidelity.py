@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from test.propagation.identity_propagation import IdentityPropagation
-from test.propagation.random_propagation import RandomPropagation
+from tests.propagation.identity_propagation import IdentityPropagation
+from tests.propagation.random_propagation import RandomPropagation
 
 
 @pytest.fixture

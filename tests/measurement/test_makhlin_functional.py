@@ -5,8 +5,8 @@ import pytest
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.makhlin_functional import MakhlinFunctional
-from test.propagation.identity_propagation import IdentityPropagation
-from test.propagation.random_propagation import RandomPropagation
+from tests.propagation.identity_propagation import IdentityPropagation
+from tests.propagation.random_propagation import RandomPropagation
 
 iswap = np.array([[1.0, 0, 0, 0], [0, 0, 1.0j, 0], [0, 1.0j, 0, 0], [0, 0, 0, 1.0]])
 cnot = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])

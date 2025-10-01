@@ -9,8 +9,8 @@ from paraqeet.quantity import Array
 
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Quantity
-from test.model.dummy_model import DummyEquationsOfMotion
-from test.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.dummy_model import DummyEquationsOfMotion
+from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 
 class RandomPropagation(Propagation):

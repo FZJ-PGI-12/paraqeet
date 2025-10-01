@@ -13,7 +13,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/paraqeet)](https://pypi.org/project/paraqeet/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paraqeet)]((https://pypi.org/project/paraqeet/))
 
-*Note: This is a preview version, a 1.0 release is forthcoming.*
+*Note: This is a preview version, a 1.0.0 release is forthcoming.*
 
 Choose a pulse parametrisation, simulate a quantum system, and optimise. 
 

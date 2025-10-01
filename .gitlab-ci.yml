@@ -41,7 +41,7 @@ before_script:
 test:
   stage: tests
   script:
-    - pytest test -n 16 --cov=paraqeet --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
+    - pytest tests -n 16 --cov=paraqeet --junitxml=report.xml  --cov-report term --cov-report xml:coverage.xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
