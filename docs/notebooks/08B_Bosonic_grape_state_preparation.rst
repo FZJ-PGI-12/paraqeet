@@ -1,5 +1,5 @@
 Arbitrary bosonic state preparation using GRAPE
-===============================
+===============================================
 
 In this notebook, we implement a standard application of GRAPE, namely
 the preparation of an arbitrary state of a bosonic mode, such a resonant
@@ -78,8 +78,7 @@ Let :math:`\varepsilon(t) = (\varepsilon_{r}(t), \varepsilon_{q}(t))`.
 For a fixed time :math:`T`, the system evolves to a state
 :math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t)) | \Psi_{\mathrm{initial}} \rangle`.
 We thus want to maximize the state fidelity, i.e., the overlap between
-:math:`| \Psi_{\mathrm{target}} \rangle` and $\| :raw-latex:`\Psi`(t)
-:raw-latex:`\rangle `$:
+:math:`| \Psi_{\mathrm{target}} \rangle` and :math:`| \Psi(t) \rangle`:
 
 .. math::
 
@@ -148,12 +147,12 @@ Similarly one can plot the qubit tone.
     ts = np.linspace(0, t_final, 1001)
     
     plt.plot(ts / 1e-9, tone_res.compute_output(ts) / 1e6 / 2 * np.pi, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen_res.generate_signal(ts)) / 1e6 / 2 * np.pi, ls="--", label="Inphase")
+    plt.plot(ts / 1e-9, np.real(gen_res.generate_signal(ts)) / 1e6 / 2 * np.pi, ls="--", label="in-phase")
     plt.plot(
         ts / 1e-9,
         np.imag(gen_res.generate_signal(ts)) / 1e6,
         ls="--",
-        label="Quadrature",
+        label="out-of-phase",
     )
     
     plt.xlabel("Time [in ns]")
@@ -198,12 +197,8 @@ resonator, it is necessary to introduce a Fock state truncation number
 :math:`N_{\mathrm{T}}`. This creates the problem that given certain
 pulses :math:`\mathcal{F}` depends on the choice of
 :math:`N_{\mathrm{T}}`. Following [Heeres2017], we thus consider
-$N_{:raw-latex:`\mathrm{T}`}
-:raw-latex:`\in `{N_{:raw-latex:`\mathrm{T}`}^{(:raw-latex:`\mathrm{min}`)},
-N_{:raw-latex:`\mathrm{T}`}^{(:raw-latex:`\mathrm{min}`)} + 1,
-:raw-latex:`\dots`,
-N_{:raw-latex:`\mathrm{T}`}^{(:raw-latex:`\mathrm{max}`)} } $, and
-introduce a penalty when having different values of fidelities for
+:math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
+and introduce a penalty when having different values of fidelities for
 different truncation numbers. Thus, we create different systems, and
 accordingly fidelity measures, for the different Fock truncation
 numbers.
@@ -299,10 +294,9 @@ consecutive square differences of the pulse pixels as cost function (see
 Eqs. 21 in the supplementary material of [Heeres2017]) for both the
 resonator and the qubit pulses:
 
-.. math::
+.. math:: g_{\mathrm{smooth}, r} (\varepsilon(t)) = 1.0 - \frac{1}{(N_{\mathrm{PWC}} - 1) R_r^2}\sum_{n=0}^{N_{\mathrm{PWC}} - 1} | \varepsilon_{r}((n+1) \Delta t) - \varepsilon_{r}((n) \Delta t) |^2,
 
-
-   g_{\mathrm{smooth}, r} (\varepsilon(t)) = 1.0 - \frac{1}{(N_{\mathrm{PWC}} - 1) R_r^2}\sum_{n=0}^{N_{\mathrm{PWC}} - 1} | \varepsilon_{r}((n+1) \Delta t) - \varepsilon_{r}((n) \Delta t) |^2, \quad g_{\mathrm{smooth}, q} (\varepsilon(t)) = 1.0- \frac{1}{(N_{\mathrm{PWC}} - 1) R_q^2} \sum_{n=0}^{N_{\mathrm{PWC}} - 1} | \varepsilon_{q}((n+1) \Delta t) - \varepsilon_{q}((n) \Delta t) |^2
+.. math:: \quad g_{\mathrm{smooth}, q} (\varepsilon(t)) = 1.0- \frac{1}{(N_{\mathrm{PWC}} - 1) R_q^2} \sum_{n=0}^{N_{\mathrm{PWC}} - 1} | \varepsilon_{q}((n+1) \Delta t) - \varepsilon_{q}((n) \Delta t) |^2
 
 .. code:: ipython3
 
@@ -432,10 +426,10 @@ which are quite poor! We now proceed with the pulse optimization.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.pwc_generator.PWCGenerator'> ====
-    [Inphase: 3.13e+03  6.69e+03  1.37e+04  2.71e+04  5.15e+04  9.38e+04  1.64e+05  2.76e+05  4.46e+05  6.93e+05  1.03e+06  1.48e+06  2.04e+06  2.7e+06  3.43e+06  4.19e+06  4.92e+06  5.54e+06  6.01e+06  6.25e+06  6.25e+06  6.01e+06  5.54e+06  4.92e+06  4.19e+06  3.43e+06  2.7e+06  2.04e+06  1.48e+06  1.03e+06  6.93e+05  4.46e+05  2.76e+05  1.64e+05  9.38e+04  5.15e+04  2.71e+04  1.37e+04  6.69e+03  3.13e+03  , Outphase: 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ]
+    [Inphase: 3.13e+03  6.69e+03  1.37e+04  2.71e+04  5.15e+04  9.38e+04  1.64e+05  2.76e+05  4.46e+05  6.93e+05  1.03e+06  1.48e+06  2.04e+06  2.7e+06  3.43e+06  4.19e+06  4.92e+06  5.54e+06  6.01e+06  6.25e+06  6.25e+06  6.01e+06  5.54e+06  4.92e+06  4.19e+06  3.43e+06  2.7e+06  2.04e+06  1.48e+06  1.03e+06  6.93e+05  4.46e+05  2.76e+05  1.64e+05  9.38e+04  5.15e+04  2.71e+04  1.37e+04  6.69e+03  3.13e+03  , out-of-phase: 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ]
     
     ==== <class 'paraqeet.signal.pwc_generator.PWCGenerator'> ====
-    [Inphase: 3.13e+03  6.69e+03  1.37e+04  2.71e+04  5.15e+04  9.38e+04  1.64e+05  2.76e+05  4.46e+05  6.93e+05  1.03e+06  1.48e+06  2.04e+06  2.7e+06  3.43e+06  4.19e+06  4.92e+06  5.54e+06  6.01e+06  6.25e+06  6.25e+06  6.01e+06  5.54e+06  4.92e+06  4.19e+06  3.43e+06  2.7e+06  2.04e+06  1.48e+06  1.03e+06  6.93e+05  4.46e+05  2.76e+05  1.64e+05  9.38e+04  5.15e+04  2.71e+04  1.37e+04  6.69e+03  3.13e+03  , Outphase: 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ]
+    [Inphase: 3.13e+03  6.69e+03  1.37e+04  2.71e+04  5.15e+04  9.38e+04  1.64e+05  2.76e+05  4.46e+05  6.93e+05  1.03e+06  1.48e+06  2.04e+06  2.7e+06  3.43e+06  4.19e+06  4.92e+06  5.54e+06  6.01e+06  6.25e+06  6.25e+06  6.01e+06  5.54e+06  4.92e+06  4.19e+06  3.43e+06  2.7e+06  2.04e+06  1.48e+06  1.03e+06  6.93e+05  4.46e+05  2.76e+05  1.64e+05  9.38e+04  5.15e+04  2.71e+04  1.37e+04  6.69e+03  3.13e+03  , out-of-phase: 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ]
 
 
 
@@ -448,8 +442,8 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    CPU times: user 2min 16s, sys: 1.08 s, total: 2min 17s
-    Wall time: 39 s
+    CPU times: user 2min 16s, sys: 1.15 s, total: 2min 17s
+    Wall time: 38.9 s
 
 
 
@@ -490,10 +484,11 @@ The new fidelities are
 Setting truncation to higher values
 -----------------------------------
 
-Here we increase the system truncation to 30 and 31 levels and rerun the entire simulation. 
+Here we increase the system truncation to 30 and 31 levels and rerun the
+entire simulation.
 
-*Note - The following takes about 10-15 mins to run on a cluster (might take more depending 
-on the number of CPU cores available).*
+*Note - The following takes about 10-15 mins to run on a cluster (might
+take more depending on the number of CPU cores available).*
 
 We first reset the generator parameters (by redefining them), and
 redefine the resonator with higher truncation numbers.
@@ -616,8 +611,8 @@ truncation numbers
 
 .. parsed-literal::
 
-    CPU times: user 8h 37min 3s, sys: 25min 48s, total: 9h 2min 52s
-    Wall time: 12min 35s
+    CPU times: user 8h 32min 44s, sys: 25min 25s, total: 8h 58min 10s
+    Wall time: 12min 23s
 
 
 

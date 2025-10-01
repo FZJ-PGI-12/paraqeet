@@ -36,7 +36,7 @@ class Measurement(Optimisable):
         Returns
         -------
         Array or float
-            This abstract method must return a paraqeet.quantity.Array or a float when
+            This abstract method must return an Array or a float when
             implemented by subclasses. Might return multiple values.
 
         Raises
@@ -64,7 +64,7 @@ class Measurement(Optimisable):
         Returns
         -------
         Array
-            Returns a paraqeet.quantity.Array if implemented by a subclass.
+            Returns an Array if implemented by a subclass.
 
         """
         raise NotImplementedError()

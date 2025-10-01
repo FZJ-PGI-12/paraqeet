@@ -128,7 +128,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             The repeated drive matrix.
 
         """
@@ -145,7 +145,7 @@ class Qubit(Hamiltonian):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Returns the gradients of the drive.
 
         """

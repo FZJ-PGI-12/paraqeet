@@ -107,7 +107,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Hamiltonian of shape [n, n] with 'n' as the Hilbert space
             dimension.
 
@@ -199,14 +199,14 @@ class CompositeHamiltonian(Hamiltonian):
 
         Parameters
         ----------
-        mat_list : List[paraqeet.quantity.Array]
+        mat_list : List[Array]
             List of Matrices for tensor product
         n : list[int]
             List of indices for the each mat_list_i
 
         Returns
         -------
-        paraqeet.quantity.Array
+        Array
             Tensor product of mat_list_i's with I's.
 
         """

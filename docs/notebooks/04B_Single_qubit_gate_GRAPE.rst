@@ -34,12 +34,12 @@ Gaussian pulse
     ts = np.linspace(0, t_final, 1001)
     
     plt.plot(ts / 1e-9, tone.compute_output(ts) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="Inphase")
+    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
     plt.plot(
         ts / 1e-9,
         np.imag(gen.generate_signal(ts)) / 1e6,
         ls="--",
-        label="Quadrature",
+        label="out-of-phase",
     )
     
     plt.xlabel("Time [in ns]")
@@ -51,7 +51,7 @@ Gaussian pulse
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x7f988c1988c0>
+    <matplotlib.legend.Legend at 0x7f44ec27c770>
 
 
 
@@ -78,13 +78,13 @@ The Hamiltonain in the rotating frame of the drive is given by -
     from paraqeet.model.transmon import Transmon
     
     
-    FREQ = 7.86e9 * 2 * np.pi
-    DIMS = 3
-    ANHARM = -50e6 * 2 * np.pi
+    freq = 7.86e9 * 2 * np.pi
+    dims = 3
+    anharm = -50e6 * 2 * np.pi
     offset = 5e6 * 2 * np.pi
     
-    drive_freq = FREQ + offset
-    qubit_freq = FREQ - drive_freq
+    drive_freq = freq + offset
+    qubit_freq = freq - drive_freq
     
     Drive = RotatingFrameDrive(gen)
     transmon = Transmon(
@@ -95,9 +95,9 @@ The Hamiltonain in the rotating frame of the drive is given by -
             unit="Hz",
             name="Frequency",
         ),
-        anharmonicity=Quantity(ANHARM, 1.2 * ANHARM, 0.8 * ANHARM, unit="Hz", name="Anharmonicity"),
+        anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm, unit="Hz", name="Anharmonicity"),
         drives=[Drive],
-        dimension=DIMS,
+        dimension=dims,
     )
     
     model = ClosedSystem(transmon)
@@ -127,13 +127,13 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    def plotStates():
+    def plot_states():
         """Plot the states."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
         sig = gen.generate_signal(ts)
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
+        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, np.real(sig), label="I")
         ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
         ax[0].legend(loc=1)
@@ -141,24 +141,14 @@ The Hamiltonain in the rotating frame of the drive is given by -
         ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
         ax[1].set_ylabel("Population")
         ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
+        plt.show()
     
     
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_11_1.png
+.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_11_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -172,7 +162,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    0.3097264170189859
+    0.3097264170189858
 
 
 
@@ -201,7 +191,7 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.4339515847238147e-08, 'iterations': 13, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.2687367540186187e-09, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -209,46 +199,29 @@ frequency, as in the state transfer example.
 
     ts = np.linspace(0, t_final, 1001)
     
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="Inphase")
+    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
     plt.plot(
         ts / 1e-9,
         np.imag(gen.generate_signal(ts)) / 1e6,
         ls="--",
-        label="Quadrature",
+        label="out-of-phase",
     )
     
     plt.xlabel("Time [in ns]")
     plt.ylabel("Amplitude [in MHz]")
     plt.legend()
+    plt.show()
 
 
 
-
-.. parsed-literal::
-
-    <matplotlib.legend.Legend at 0x7f976813b9b0>
-
-
-
-
-.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_17_1.png
+.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_17_0.png
 
 
 .. code:: ipython3
 
-    plotStates()
+    plot_states()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_18_1.png
+.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_18_0.png
 

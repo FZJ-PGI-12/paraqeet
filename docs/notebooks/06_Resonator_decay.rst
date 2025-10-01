@@ -32,14 +32,14 @@ Exponentiating the full Lindbladian super-operator
 
 .. code:: ipython3
 
-    FREQ = 6.02e9 * 2 * np.pi
-    DIMS = 5
+    freq = 6.02e9 * 2 * np.pi
+    dims = 5
     
-    drive = DriveOperator(gen, isLongitudinal=False)
+    drive = DriveOperator(gen, is_longitudinal=False)
     resonator = Resonator(
-        frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
+        frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
         drives=[drive],
-        dimension=DIMS,
+        dimension=dims,
         t1=Quantity(value=10e-9, min_value=10e-9, max_value=1000e-9, unit="s"),
         t2star=Quantity(value=50e-7, min_value=10e-9, max_value=100e-6, unit="s"),
         temp=Quantity(value=50e-3, min_value=10e-3, max_value=10e-2, unit="K"),
@@ -94,7 +94,7 @@ Exponentiating the full Lindbladian super-operator
         return state
     
     
-    init_dm = generate_basis_state(DIMS, 4, dm=True)
+    init_dm = generate_basis_state(dims, 4, dm=True)
     init_dm
 
 
@@ -160,7 +160,7 @@ Exponentiating the full Lindbladian super-operator
     
     plt.figure()
     plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(DIMS)])
+    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
     plt.xlabel("Time [ns]")
     plt.ylabel("Population")
     plt.show()
@@ -191,7 +191,7 @@ Exponentiating the full Lindbladian super-operator
         return state
     
     
-    coherent_state = generate_coherent_state(DIMS, 1.5, dm=True)
+    coherent_state = generate_coherent_state(dims, 1.5, dm=True)
 
 plot coherent state populations
 
@@ -220,7 +220,7 @@ plot coherent state populations
         for i in range(len(states)):
             pops.append(calculate_populations(states[i], dm=dm))
     
-        def getPlotParamsDict(index):
+        def get_plot_params_dict(index):
             plot_parms_dict = {"alpha": alpha}
             if colors is not None:
                 plot_parms_dict["color"] = colors[index]
@@ -234,7 +234,7 @@ plot coherent state populations
         ax = fig.add_axes([0, 0, 1, 1])
     
         for i in range(len(states)):
-            ax.bar(range(len(state_labels)), pops[i], **getPlotParamsDict(i))
+            ax.bar(range(len(state_labels)), pops[i], **get_plot_params_dict(i))
     
         xticks_latex = []
         for i in state_labels:
@@ -263,11 +263,11 @@ plot coherent state populations
 
 .. code:: ipython3
 
-    state_labels = [(i,) for i in range(DIMS)]
+    state_labels = [(i,) for i in range(dims)]
     
     plot_population_distribution(
         states=[coherent_state],
-        dims=(DIMS,),
+        dims=(dims,),
         state_labels=state_labels,
         dm=True,
         labels=[r"$|\alpha\rangle$"],
@@ -299,7 +299,7 @@ plot coherent state populations
     
     plt.figure()
     plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(DIMS)])
+    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
     plt.xlabel("Time [ns]")
     plt.ylabel("Population")
     plt.show()
@@ -329,7 +329,7 @@ Set ``model.ode_propagation = True``
     
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
-    init_dm = generate_basis_state(DIMS, 4, dm=True)
+    init_dm = generate_basis_state(dims, 4, dm=True)
     
     prop = Vern7(model, res=100e9)
     prop.set_initial_state(init_dm)
@@ -341,7 +341,7 @@ Set ``model.ode_propagation = True``
     
     plt.figure()
     plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(DIMS)])
+    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
     plt.xlabel("Time [ns]")
     plt.ylabel("Population")
     plt.show()
@@ -356,13 +356,13 @@ Set ``model.ode_propagation = True``
 
 .. code:: ipython3
 
-    coherent_state = generate_coherent_state(DIMS, 1.5, dm=True)
+    coherent_state = generate_coherent_state(dims, 1.5, dm=True)
     
-    state_labels = [(i,) for i in range(DIMS)]
+    state_labels = [(i,) for i in range(dims)]
     
     plot_population_distribution(
         states=[coherent_state],
-        dims=(DIMS,),
+        dims=(dims,),
         state_labels=state_labels,
         dm=True,
         labels=[r"$|\alpha\rangle$"],
@@ -394,7 +394,7 @@ Set ``model.ode_propagation = True``
     
     plt.figure()
     plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(DIMS)])
+    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
     plt.xlabel("Time [ns]")
     plt.ylabel("Population")
     plt.show()
@@ -402,5 +402,4 @@ Set ``model.ode_propagation = True``
 
 
 .. image:: 06_Resonator_decay_files/06_Resonator_decay_30_0.png
-
 

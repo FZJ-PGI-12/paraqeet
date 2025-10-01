@@ -35,12 +35,12 @@ Constrain piece-wise constant pulses to vary smoothly
     def plot_pulse(ts: np.ndarray, tone: GaussEnvelope):
         """Function to plot the pulse."""
         plt.plot(ts / 1e-9, tone_qubit.compute_output(ts) / 1e6 / 2 * np.pi, label="Initial smooth curve")
-        plt.plot(ts / 1e-9, np.real(gen_qubit.generate_signal(ts)) / 1e6 / 2 * np.pi, ls="--", label="Inphase")
+        plt.plot(ts / 1e-9, np.real(gen_qubit.generate_signal(ts)) / 1e6 / 2 * np.pi, ls="--", label="in-phase")
         plt.plot(
             ts / 1e-9,
             np.imag(gen_qubit.generate_signal(ts)) / 1e6,
             ls="--",
-            label="Quadrature",
+            label="out-of-phase",
         )
     
         plt.xlabel("Time [in ns]")

@@ -43,7 +43,7 @@ class GOATOverGRAPE(Measurement):
 
         """
         grape = self.__measurement
-        self.__gen._update_inphase_and_quadrature()
+        self.__gen._update_inphase_and_outofphase()
         return grape.measure()
 
     def measure_normalised_scalar(self) -> float:
@@ -56,7 +56,7 @@ class GOATOverGRAPE(Measurement):
 
         """
         grape = self.__measurement
-        self.__gen._update_inphase_and_quadrature()
+        self.__gen._update_inphase_and_outofphase()
         return grape.measure_normalised_scalar()
 
     def measure_with_gradient(self) -> tuple[float, Array]:
@@ -72,7 +72,7 @@ class GOATOverGRAPE(Measurement):
 
         """
         grape = self.__measurement
-        self.__gen._update_inphase_and_quadrature()
+        self.__gen._update_inphase_and_outofphase()
         control_gradients = self.__gen._get_partial_derivatives()
         function_value, grape_gradients = grape.measure_with_gradient()
         goat_gradients = control_gradients.T @ grape_gradients
