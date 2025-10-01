@@ -577,6 +577,7 @@ class dCRABEnvelope(Envelope):
         num_components: int = 2,
         min_frequency: float = 0.0,
         max_frequency: float = 2 * jnp.pi * 5.0,
+        seeds: tuple[int, int] | None = None,
     ):
         self._amplitude = amplitude or Quantity(
             1.55e8,
@@ -597,7 +598,11 @@ class dCRABEnvelope(Envelope):
 
         self._num_components = num_components
 
-        seed = int(time.time())
+        if seeds is None:
+            seed = int(time.time() + 10)  # to make sure the seeds are different for the two cases
+        else:
+            seed = seeds[0]
+
         key = jax.random.key(seed)
         coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=0, maxval=1)
 
@@ -612,7 +617,11 @@ class dCRABEnvelope(Envelope):
             for i in range(self._num_components)
         ]
 
-        seed = int(time.time())
+        if seeds is None:
+            seed = int(time.time() + 10)  # to make sure the seeds are different for the two cases
+        else:
+            seed = seeds[1]
+
         key = jax.random.key(seed)
         self.__min_frequency = min_frequency
         self.__max_frequency = max_frequency
@@ -647,9 +656,13 @@ class dCRABEnvelope(Envelope):
         params.extend(self._all_frequencies)
         return params
 
-    def add_new_components(self):
+    def add_new_components(self, seeds: tuple[int, int] | None = None):
         """Add `self._num_components` number of new randomized components to the optimization."""
-        seed = int(time.time())
+        if seeds is None:
+            seed = int(time.time())
+        else:
+            seed = seeds[0]
+
         key = jax.random.key(seed)
         coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=0, maxval=1)
 
@@ -666,7 +679,11 @@ class dCRABEnvelope(Envelope):
             ]
         )
 
-        seed = int(time.time())
+        if seeds is None:
+            seed = int(time.time())
+        else:
+            seed = seeds[1]
+
         key = jax.random.key(seed)
         freqs = jax.random.uniform(
             key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
