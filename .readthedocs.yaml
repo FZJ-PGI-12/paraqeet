@@ -12,7 +12,7 @@ build:
   jobs:
     pre_build:
       - pip install -e .
-      - sphinx-apidoc -o $READTHEDOCS_REPOSITORY_PATH/docs/source $READTHEDOCS_REPOSITORY_PATH/paraqeet
+      - sphinx-apidoc -o $READTHEDOCS_REPOSITORY_PATH/docs/source $READTHEDOCS_REPOSITORY_PATH/src/paraqeet
 
     # You can also specify other tool versions:
     # nodejs: "20"
