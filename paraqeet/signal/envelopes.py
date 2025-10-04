@@ -599,7 +599,7 @@ class dCRABEnvelope(Envelope):
         self._num_components = num_components
 
         if seeds is None:
-            seed = int(time.time() + 10)  # to make sure the seeds are different for the two cases
+            seed = int(1e6 * time.time())
         else:
             seed = seeds[0]
 
@@ -618,7 +618,7 @@ class dCRABEnvelope(Envelope):
         ]
 
         if seeds is None:
-            seed = int(time.time() + 10)  # to make sure the seeds are different for the two cases
+            seed = int(1e6 * time.time() + 10)  # to make sure the seeds are different for the two cases
         else:
             seed = seeds[1]
 
