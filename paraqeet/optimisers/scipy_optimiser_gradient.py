@@ -20,13 +20,13 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
     """
 
-    __grad_cache: Array  # of shape (n_parameters,)
-    __scales: Array
+    _grad_cache: Array  # of shape (n_parameters,)
+    _scales: Array
 
     def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
         super().__init__(measure, optimisables)
         params = self._optimisables.get_all_parameters()
-        self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
+        self._scales = jnp.array([p.get_scale() for p in params]).flatten()
 
     def optimise(self) -> OptimisationResult:
         """Optimise via the Scipy optimizer gradient model.
@@ -104,7 +104,7 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             params[index].set_reduced_value(val)
             log.append(params[index])
         fun, grad = self._measure.measure_with_gradient()
-        self.__grad_cache = grad
+        self._grad_cache = grad
 
         infid = 1.0 - fun
         if self._logger:
@@ -128,4 +128,4 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             Returns the gradient of a measurement result.
 
         """
-        return -1 * self.__grad_cache * self.__scales
+        return -1 * self._grad_cache * self._scales
