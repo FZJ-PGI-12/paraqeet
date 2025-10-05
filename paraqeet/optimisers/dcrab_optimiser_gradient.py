@@ -152,17 +152,20 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
             print(f"Backtracking some steps and setting some parameters to zero. Got num values = {num_values}")
             if num_values in self._old_parameters_dict:
                 # for index, val in enumerate(np.split(values, self._old_opt_idxs_dict[num_values][:-1])):
-                # self._old_parameters_dict[num_values][index].set_reduced_value(val)
-                # log.append(self._old_parameters_dict[num_values][index])
+                #     self._old_parameters_dict[num_values][index].set_reduced_value(val)
+                #     log.append(self._old_parameters_dict[num_values][index])
 
                 # for param in params:
                 #     if param not in self._old_parameters_dict[num_values]:
                 #         param.set_reduced_value(np.array([-1]))
 
+                ids = [id(i) for i in self._old_parameters_dict[num_values]]
                 j = 0
                 for ii in range(len(params)):
-                    if params[ii] in self._old_parameters_dict[num_values]:
-                        params[ii].set_reduced_value(values[j])
+                    if id(params[ii]) in ids:
+                        if j >= num_values:
+                            raise Exception("j exceeds num_values")
+                        params[ii].set_reduced_value(np.array([values[j]]))
                         j += 1
                     else:
                         params[ii].set_reduced_value(np.array([-1]))
