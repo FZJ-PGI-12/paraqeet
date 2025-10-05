@@ -226,7 +226,7 @@ class Quantity:
         if unit is None:
             if not all(qty.get_unit() == quantities[0].get_unit() for qty in quantities):
                 raise ValueError(
-                    f"All quantities in creation on {name} " f"must have the same unit if no unit is specified."
+                    f"All quantities in creation on {name} must have the same unit if no unit is specified."
                 )
             unit = quantities[0].get_unit()
 
@@ -397,7 +397,10 @@ class Quantity:
         """Set reduced value limit for parameter."""
         value_fixed = self.__fix_parameter_types(value)
         if value_fixed.shape != self.__shape:
-            raise IncompatibleQuantityException("The new value must have the same shape as the old value")
+            raise IncompatibleQuantityException(
+                f"The new value must have the same shape as the old value. \
+                Got shape {value_fixed.shape}, expected shape {self.__shape}."
+            )
         self.__value = value_fixed
 
     def get_min_value(self) -> Array:
