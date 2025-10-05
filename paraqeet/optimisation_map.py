@@ -126,6 +126,23 @@ class OptimisationMap:
         except Exception as e:
             raise Exception(e)
 
+    def replace(
+        self,
+        optimisable: Optimisable,
+        old_parameters: Quantity | list[Quantity],
+        new_parameters: Quantity | list[Quantity],
+    ) -> None:
+        """Perform an in-place substitution of the old and new parameters.
+        This helps to keeps the ordering of parameters the same while replacing parameters.
+        """
+        old_parameters_list = old_parameters if isinstance(old_parameters, list) else [old_parameters]
+        new_parameters_list = new_parameters if isinstance(new_parameters, list) else [new_parameters]
+
+        for old_param, new_param in zip(old_parameters_list, new_parameters_list):
+            for i, param in enumerate(self.__optimisable_to_parameter_map[optimisable]):
+                if id(param) == id(old_param):
+                    self.__optimisable_to_parameter_map[optimisable][i] = new_param
+
     def get_optimisables(self) -> set[Optimisable]:
         """Return all optimisable objects that were added to this map.
 
