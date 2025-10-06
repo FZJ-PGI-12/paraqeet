@@ -229,6 +229,17 @@ class OptimisationMap:
         """
         return self.filter_parameters(lambda quantity: quantity.get_name() == name)
 
+    def remove_by_name(self, name: str):
+        """Remove parameters by name of parameter.
+
+        Parameters
+        ----------
+        name : str
+            Name of parameter to be filtered with.
+
+        """
+        return self.filter_parameters(lambda quantity: name not in quantity.get_name())
+
     def to_dict(self) -> dict:
         """Creates a dictionary that contains the values of all quantities that are being optimised, sorted by the
         Optimisable instances to which they belong. The returned dictionary is meant for export using the serialisation
