@@ -599,17 +599,17 @@ class DCRABEnvelope(Envelope):
         self._num_components = num_components
 
         if seeds is None:
-            seed = int(1e6 * time.time())
+            seed = int(1e7 * time.time())
         else:
             seed = seeds[0]
 
         key = jax.random.key(seed)
-        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=0, maxval=1)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-1, maxval=1)
 
         self._all_coefficients = [
             Quantity(
                 coeffs[i],
-                min_value=jnp.array(0.0),
+                min_value=jnp.array(-1.0),
                 max_value=jnp.array(1.0),
                 unit="",
                 name=f"CRAB coefficient {i}",
@@ -618,7 +618,7 @@ class DCRABEnvelope(Envelope):
         ]
 
         if seeds is None:
-            seed = int(1e6 * time.time() + 10)  # to make sure the seeds are different for the two cases
+            seed = int(1e7 * time.time() + 10)  # to make sure the seeds are different for the two cases
         else:
             seed = seeds[1]
 
@@ -663,18 +663,19 @@ class DCRABEnvelope(Envelope):
     def add_new_components(self, seeds: tuple[int, int] | None = None):
         """Add `self._num_components` number of new randomized components to the optimization."""
         if seeds is None:
-            seed = int(time.time())
+            seed = int(1e7 * time.time())
         else:
             seed = seeds[0]
 
+        # Limit max coeff value so that the new components do not derail the optimisation.
         key = jax.random.key(seed)
-        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=0, maxval=1)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-0.3, maxval=0.3)
 
         self._all_coefficients.extend(
             [
                 Quantity(
                     coeffs[i],
-                    min_value=jnp.array(0.0),
+                    min_value=jnp.array(-1.0),
                     max_value=jnp.array(1.0),
                     unit="",
                     name=f"CRAB coefficient {i + self._total_num_components}",
@@ -684,7 +685,7 @@ class DCRABEnvelope(Envelope):
         )
 
         if seeds is None:
-            seed = int(time.time())
+            seed = int(1e7 * time.time() + 10)
         else:
             seed = seeds[1]
 
@@ -709,6 +710,16 @@ class DCRABEnvelope(Envelope):
 
         self._total_num_components += self._num_components
 
+    def remove_small_coefficients(self, tol: float = 1e-7) -> None:
+        """Remove coefficients (and corresponding frequencies) that are smaller than a tolerance."""
+        removed_coeffs = []
+        for i, coeff in enumerate(self._all_coefficients):
+            if jnp.abs(coeff.get_value()) < tol:
+                removed_coeffs.append(i)
+
+        self._all_coefficients = [coeff for i, coeff in enumerate(self._all_coefficients) if i not in removed_coeffs]
+        self._all_frequencies = [freq for i, freq in enumerate(self._all_frequencies) if i not in removed_coeffs]
+
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, *params: Array) -> Array:  # type: ignore
         """Compute the CRAB pulse.
@@ -728,7 +739,7 @@ class DCRABEnvelope(Envelope):
         for i in range(int(self._total_num_components / 2)):
             env += coeffs[2 * i] * jnp.cos(freqs[2 * i] * t / t_final)
             env += coeffs[2 * i + 1] * jnp.sin(freqs[2 * i + 1] * t / t_final)
-        env /= 2 * jnp.sum(jnp.array(coeffs))
+        env /= 2 * jnp.sum(jnp.abs(jnp.array(coeffs)))
         return jnp.squeeze(amp * env)
 
     def compute_output(self, t: Array) -> Array:
