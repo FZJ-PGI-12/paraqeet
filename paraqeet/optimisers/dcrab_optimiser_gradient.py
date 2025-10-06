@@ -142,11 +142,11 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         if self._super_iteration_num > self._max_super_iteration_num:
             raise StopIteration("Maximum number of super iterations performed.")
 
-        if np.abs(intermediate_result.fun - self._previous_fid) < 1e-6:
+        if np.abs(intermediate_result.fun - self._previous_fid) < 1e-7:
             self._super_iteration_num += 1
 
             print("\n")
-            print(f"==== Decrease in infidelity less than {1e-6} ====")
+            print(f"==== Decrease in infidelity less than {1e-7} ====")
             print(f"==== Starting super-iteration {self._super_iteration_num} ====")
             print(f"* Current lowest infidelity = {self._best_fid: .3f}")
 

@@ -669,7 +669,7 @@ class DCRABEnvelope(Envelope):
 
         # Limit max coeff value so that the new components do not derail the optimisation.
         key = jax.random.key(seed)
-        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-0.3, maxval=0.3)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-0.5, maxval=0.5)
 
         self._all_coefficients.extend(
             [
@@ -719,6 +719,7 @@ class DCRABEnvelope(Envelope):
 
         self._all_coefficients = [coeff for i, coeff in enumerate(self._all_coefficients) if i not in removed_coeffs]
         self._all_frequencies = [freq for i, freq in enumerate(self._all_frequencies) if i not in removed_coeffs]
+        self._total_num_components = len(self._all_coefficients)
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, *params: Array) -> Array:  # type: ignore
