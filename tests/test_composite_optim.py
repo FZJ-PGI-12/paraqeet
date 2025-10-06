@@ -1,18 +1,18 @@
-"""Test composite optimisation."""
+"""Test composite optimization."""
 
 import pytest
 import numpy as np
 
 from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
 
-from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.optimization_map import OptimizationMap
 from paraqeet.quantity import Quantity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.coupling import Coupling
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 
 from paraqeet.model.closed_system import ClosedSystem
@@ -140,36 +140,36 @@ def coupled_transmons(tone):
 
     tone1_amp = tone1.get_parameters()[0]
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone1, [tone1_amp])
     return gate_fid, optmap
 
 
 @pytest.fixture
 def opt(coupled_transmons):
-    """Return Scipy optimiser from coupled transmons."""
+    """Return Scipy optimizer from coupled transmons."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimiser(measure, optimisables=optmap)
+    opt = ScipyOptimizer(measure, optimizables=optmap)
     opt.set_options({"maxiter": 5})
     return opt
 
 
 @pytest.fixture
 def grad_opt(coupled_transmons):
-    """Return Scipy optimiser gradient."""
+    """Return Scipy optimizer gradient."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimiserGradient(measure, optimisables=optmap)
+    opt = ScipyOptimizerGradient(measure, optimizables=optmap)
     opt.set_options({"maxiter": 2})
     return opt
 
 
 def test_optim_finite_diff(opt):
-    """Test optimisation via finite differences."""
-    res = opt.optimise()
+    """Test optimization via finite differences."""
+    res = opt.optimize()
     assert res.value < 0.1
 
 
 def test_optim_goat(grad_opt):
-    """Test GOAT optimisation."""
-    res = grad_opt.optimise()
+    """Test GOAT optimization."""
+    res = grad_opt.optimize()
     assert res.value < 0.1

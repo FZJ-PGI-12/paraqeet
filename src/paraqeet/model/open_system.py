@@ -79,7 +79,7 @@ class OpenSystem(EquationOfMotion):
             self._get_matrix_method = vmap(self.__create_lindbladian_superop)
 
     def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimisable parameters.
+        """Get a list of optimizable parameters.
 
         Returns
         -------

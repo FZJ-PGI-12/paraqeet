@@ -110,8 +110,8 @@ the resonator and qubit pulses, respectively.
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.measurement.smoothness import Smoothness
 
 We initialize our pulses as simple Gaussian envelopes. Additionally, we
@@ -409,12 +409,12 @@ which are quite poor! We now proceed with the pulse optimization.
 .. code:: ipython3
 
     max_iter = 1000  # set to 1000 for a good result; set to 10 for a quick example
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen_res, gen_res.get_parameters())
     optmap.add(gen_qubit, gen_qubit.get_parameters())
-    opt = ScipyOptimiserGradient(goal, optimisables=optmap)
+    opt = ScipyOptimizerGradient(goal, optimizables=optmap)
     opt.set_options({"maxfun": max_iter})
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
 .. code:: ipython3
 
@@ -437,7 +437,7 @@ which are quite poor! We now proceed with the pulse optimization.
 .. code:: ipython3
 
     %%time
-    opt.optimise()
+    opt.optimize()
 
 
 .. parsed-literal::
@@ -561,7 +561,7 @@ lets also add the smoothness penalty to the measurement
     
     goal = WeightedSumGoal(meas_list, weights, sum_of_squares_options=sum_of_squares_options)
 
-And then plot the dynamics of the resonator under the unoptimised pulse
+And then plot the dynamics of the resonator under the unoptimized pulse
 
 .. code:: ipython3
 
@@ -572,7 +572,7 @@ And then plot the dynamics of the resonator under the unoptimised pulse
 .. image:: 08B_Bosonic_grape_state_preparation_files/08B_Bosonic_grape_state_preparation_33_0.png
 
 
-Initial fidelity before optimisation
+Initial fidelity before optimization
 
 .. code:: ipython3
 
@@ -590,23 +590,23 @@ Initial fidelity before optimisation
     Fidelity at N_T=31 = 0.019189780990880208
 
 
-We redefine the optimiser and perform the optimisation again with higher
+We redefine the optimizer and perform the optimization again with higher
 truncation numbers
 
 .. code:: ipython3
 
     max_iter = 1000  # set to 1000 for a good result; set to 10 for a quick example
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen_res, gen_res.get_parameters())
     optmap.add(gen_qubit, gen_qubit.get_parameters())
-    opt = ScipyOptimiserGradient(goal, optimisables=optmap)
+    opt = ScipyOptimizerGradient(goal, optimizables=optmap)
     opt.set_options({"maxfun": max_iter})
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
 .. code:: ipython3
 
     %%time
-    opt.optimise()
+    opt.optimize()
 
 
 .. parsed-literal::
@@ -641,7 +641,7 @@ The new fidelities are
     Fidelity at N_T=31 = 0.9755700654718467
 
 
-And the dynamics of the system under these optimised pulses looks like
+And the dynamics of the system under these optimized pulses looks like
 the following
 
 .. code:: ipython3

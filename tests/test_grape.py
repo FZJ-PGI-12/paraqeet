@@ -1,4 +1,4 @@
-"""Testing the GRAPE optimisation of a TLS system."""
+"""Testing the GRAPE optimization of a TLS system."""
 
 import pytest
 import numpy as np
@@ -12,8 +12,8 @@ from paraqeet.model.open_system import OpenSystem
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.vern7_grape import Vern7GRAPE
 
 T_FINAL = 20e-9
@@ -81,19 +81,19 @@ def states(model, request):
 
 @pytest.fixture
 def opt_map(pwc_gen):
-    """Create an optimisation map."""
-    optmap = OptimisationMap()
+    """Create an optimization map."""
+    optmap = OptimizationMap()
     optmap.add(pwc_gen)
     return optmap
 
 
 @pytest.fixture
 def opt(states, opt_map):
-    """Create a scipy optimiser gradient object over states."""
-    return ScipyOptimiserGradient(measure=states, optimisables=opt_map)
+    """Create a scipy optimizer gradient object over states."""
+    return ScipyOptimizerGradient(measure=states, optimizables=opt_map)
 
 
 def test_optim_grape(opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = opt.optimise()
+    res = opt.optimize()
     assert res.value < 1e-2

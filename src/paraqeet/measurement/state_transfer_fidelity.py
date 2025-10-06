@@ -180,7 +180,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 class StateTransferFidelityGRAPE(StateTransferFidelity):
     """Fidelity measure that compares overlap of the initial and final state.
 
-    For GRAPE the optimisable parameters are vector quantities.
+    For GRAPE the optimizable parameters are vector quantities.
 
     Parameters
     ----------

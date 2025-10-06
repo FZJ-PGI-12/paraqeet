@@ -6,7 +6,7 @@ from paraqeet.quantity import Quantity
 
 
 class Logger:
-    """Abstract base class that can be used as a callback in the optimiser."""
+    """Abstract base class that can be used as a callback in the optimizer."""
 
     _start_time: datetime
     _stop_time: datetime

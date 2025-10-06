@@ -6,8 +6,8 @@ from paraqeet.model.custom_hamiltonian import CustomHamiltonian
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 
 sigma_x = jnp.array([[0j, 1], [1, 0]])
 sigma_z = jnp.diag(jnp.array([1.0, -1.0]))
@@ -98,15 +98,15 @@ def fid(tls):
 
 @pytest.fixture
 def opt(tls, fid):
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tls)
-    opt = ScipyOptimiserGradient(fid, optimisables=optmap)
+    opt = ScipyOptimizerGradient(fid, optimizables=optmap)
     return opt
 
 
-def test_optimisation(opt):
-    """Test gradient based optimisation."""
-    res = opt.optimise()
+def test_optimization(opt):
+    """Test gradient based optimization."""
+    res = opt.optimize()
     assert res.value < 1e-4
 
 

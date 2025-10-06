@@ -51,7 +51,7 @@ def hamiltonian(gen):
 
     def _method(dimension):
         drive = DriveOperator(gen, is_longitudinal=False)
-        drive.set_optimisable_parameters(drive.get_parameters())
+        drive.set_optimizable_parameters(drive.get_parameters())
         return Transmon(
             dimension=dimension,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
@@ -122,7 +122,7 @@ def test_gradient(gen, hamiltonian, time_samples):
     """
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hamil.set_optimisable_parameters(hamil.get_parameters())
+        hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
         ham_grads = hamil.gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)

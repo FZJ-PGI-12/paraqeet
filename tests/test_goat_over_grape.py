@@ -18,8 +18,8 @@ from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 
 
@@ -132,12 +132,12 @@ def fid(model):
 
 @pytest.fixture
 def opt_grad(tone, fid, gen):
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
     goat = GOATOverGRAPE(fid, gen)
-    optGrad = ScipyOptimiserGradient(goat, optimisables=optmap)
+    optGrad = ScipyOptimizerGradient(goat, optimizables=optmap)
     return optGrad
 
 
@@ -152,5 +152,5 @@ def test_can_measure(tone, fid, gen):
 
 
 def test_goat_over_grape(opt_grad):
-    res = opt_grad.optimise()
+    res = opt_grad.optimize()
     assert res.value < 1e-4

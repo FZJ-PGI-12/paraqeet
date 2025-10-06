@@ -5,10 +5,10 @@ from abc import abstractmethod
 from paraqeet.quantity import Array
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 
 
-class Propagation(Optimisable):
+class Propagation(Optimizable):
     """Abstract base class for any implementation of the equations of motion.
 
     The right-hand side of the equation is provided by the underlying model.

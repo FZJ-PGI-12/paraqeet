@@ -1,18 +1,18 @@
-"""Testing the qubit optimisations."""
+"""Testing the qubit optimizations."""
 
 import pytest
 import numpy as np
 
 from paraqeet.logger import Logger
-from paraqeet.optimisation_map import OptimisationMap
+from paraqeet.optimization_map import OptimizationMap
 from paraqeet.quantity import Quantity
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.qubit import Qubit
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
-from paraqeet.optimisers.cmaes_optimiser import CMAEsOptimiser
-from paraqeet.optimisers.bayesian_optimiser import BayesianOptimiser
+from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
+from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
+from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
 
 from paraqeet.model.closed_system import ClosedSystem
 
@@ -48,45 +48,45 @@ ZEROONE = StateTransferFidelity(
 
 @pytest.fixture
 def opt():
-    """Create ScipyOptimiser optimiser."""
-    optmap = OptimisationMap()
+    """Create ScipyOptimizer optimizer."""
+    optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return ScipyOptimiser(ZEROONE, optimisables=optmap)
+    return ScipyOptimizer(ZEROONE, optimizables=optmap)
 
 
 @pytest.fixture
 def cma_opt():
-    """Create CMAEs optimiser."""
-    optmap = OptimisationMap()
+    """Create CMAEs optimizer."""
+    optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return CMAEsOptimiser(ZEROONE, optimisables=optmap)
+    return CMAEsOptimizer(ZEROONE, optimizables=optmap)
 
 
 @pytest.fixture
 def bay_opt():
-    """Create Bayesian optimiser."""
-    optmap = OptimisationMap()
+    """Create Bayesian optimizer."""
+    optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return BayesianOptimiser(ZEROONE, optimisables=optmap)
+    return BayesianOptimizer(ZEROONE, optimizables=optmap)
 
 
 def test_optim(opt) -> None:
     """Check that the optimization goes below threshold."""
     opt.logger = Logger()
-    res = opt.optimise()
+    res = opt.optimize()
     assert res.value < 1e-4
 
 
-def test_cma(cma_opt: CMAEsOptimiser) -> None:
+def test_cma(cma_opt: CMAEsOptimizer) -> None:
     """Check that the optimization goes below threshold."""
     cma_opt.logger = Logger()
-    res = cma_opt.optimise()
+    res = cma_opt.optimize()
     assert res.value < 1e-4
 
 
-def test_baysian(bay_opt: BayesianOptimiser) -> None:
+def test_baysian(bay_opt: BayesianOptimizer) -> None:
     """Check that the optimization goes below threshold."""
     bay_opt.logger = Logger()
     bay_opt.iterations = 200
-    res = bay_opt.optimise()
+    res = bay_opt.optimize()
     assert res.value < 1e-3

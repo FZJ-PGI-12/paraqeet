@@ -1,14 +1,14 @@
-"""Class definition of a Drive optimisable model."""
+"""Class definition of a Drive optimizable model."""
 
 from abc import ABC
 
 from jax import vmap
 from paraqeet.quantity import Array
 
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 
 
-class Drive(Optimisable, ABC):
+class Drive(Optimizable, ABC):
     """Represents a time-dependent drive on a subsystem.
 
     This can for example be a microwave or flux drive.

@@ -8,14 +8,14 @@ First, we make the necessary imports.
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.optimisation_map import OptimisationMap
+    from paraqeet.optimization_map import OptimizationMap
     from paraqeet.quantity import Quantity
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.model.qubit import Qubit
-    from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -147,18 +147,18 @@ As expected, we get a partial transfer and a low fidelity.
 
 
 We define an optimizer and link our fidelity measure as a goal function
-and the parameters of the cosine tone and optimise just amplitude and
+and the parameters of the cosine tone and optimize just amplitude and
 frequency, as in the state transfer example.
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen, [params[0], params[2]])
-    opt = ScipyOptimiserGradient(gate_fid, optimisables=optmap)
+    opt = ScipyOptimizerGradient(gate_fid, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 
@@ -245,19 +245,19 @@ information to identify the problem.
 Instead, we look at the expecation values of the three Pauli operators
 and observe that the qubit is rotating at its eigenfrequency along the
 Z-axis. We can mitigate this problem by allowing the rotation axis of
-our drive to shift and inclide the phase parameter in the optimisation.
+our drive to shift and inclide the phase parameter in the optimization.
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone, [params[0], params[2], params[3]])
-    opt = ScipyOptimiser(gate_fid, optimisables=optmap)
+    opt = ScipyOptimizer(gate_fid, optimizables=optmap)
 
 .. code:: ipython3
 
     params[0].set_value(0.5 * np.pi / t_final)
     params[2].set_value(1.01 * freq)
-    opt.optimise()
+    opt.optimize()
 
 
 

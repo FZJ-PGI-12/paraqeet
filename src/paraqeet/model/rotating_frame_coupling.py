@@ -42,7 +42,7 @@ class RotatingFrameCoupling(Coupling):
     def get_parameters(self) -> list[Quantity]:
         """Return the coupling coeffecient and the difference frequency.
 
-        NOTE - Optimisation using relational quantities can be optimise the
+        NOTE - Optimization using relational quantities can be optimize the
         drive frequencies for the two subsystems.
 
         Parameters
@@ -110,16 +110,16 @@ class RotatingFrameCoupling(Coupling):
         -------
         list[list[list[Array]]]
             The outer list represents the gradients with respect to
-            all optimised parameters. The rest is in the same shape as the
+            all optimized parameters. The rest is in the same shape as the
             result of get_matrices_one_time.
 
         """
         annihilation_ops = self.__coupling_operators()
-        if self._is_optimised(self._coefficient):
+        if self._is_optimized(self._coefficient):
             annihilation_ops[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
             annihilationOps_conj = [a.conj().T for a in annihilation_ops]
             grads = [[annihilation_ops, annihilationOps_conj]]
-        elif self._is_optimised(self.__diff_freq):
+        elif self._is_optimized(self.__diff_freq):
             annihilation_ops[0] *= self._coefficient.get_value() * 1j * t
             annihilationOps_conj = [a.conj().T for a in annihilation_ops]
             grads = [[annihilation_ops, annihilationOps_conj]]

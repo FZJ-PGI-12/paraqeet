@@ -17,7 +17,7 @@ jax.config.update("jax_enable_x64", True)
 class Resonator(Hamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
-    The only optimisable parameter is the frequency.
+    The only optimizable parameter is the frequency.
 
     Parameters
     ----------
@@ -146,7 +146,7 @@ class Resonator(Hamiltonian):
         derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivative wrt the frequency
-        if self._is_optimised(self.__frequency):
+        if self._is_optimized(self.__frequency):
             grad = self.__num_op.reshape((1,) + self.__num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
 

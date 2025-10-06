@@ -146,7 +146,7 @@ def test_gradient_shape(coupling, time_samples):
         for term in grad:
             for i, ops in enumerate(term):
                 assert np.size(ops) == 0
-    coup.set_optimisable_parameters(coup.get_parameters())
+    coup.set_optimizable_parameters(coup.get_parameters())
     grads = coup.gradient(time_samples)
     for grad in grads:
         for term in grad:
@@ -158,7 +158,7 @@ def test_gradient_shape(coupling, time_samples):
     dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, is_longitudinal=False, use_rwa=True)
-    coup.set_optimisable_parameters(coup.get_parameters())
+    coup.set_optimizable_parameters(coup.get_parameters())
     grads = coup.gradient(time_samples)
     for grad in grads:
         for term in grad:

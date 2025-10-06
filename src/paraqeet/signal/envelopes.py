@@ -271,7 +271,7 @@ class FlatTopGaussianEnvelope(Envelope):
     def _evaluate(self, amp: Array, t_final: Array, t: Array | float):  # type: ignore
         """Compute the output of the device.
 
-        Explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimizable parameters.
 
         Parameters
         ----------
@@ -286,7 +286,7 @@ class FlatTopGaussianEnvelope(Envelope):
         -------
         Array
             Returns the output of the device that explicitly depends
-            on the optimisable parameters.
+            on the optimizable parameters.
 
         """
         ramp_time = t_final / 10
@@ -303,7 +303,7 @@ class FlatTopGaussianEnvelope(Envelope):
     def _evaluate_time_grad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
-        Explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimizable parameters.
 
         Parameters
         ----------
@@ -318,7 +318,7 @@ class FlatTopGaussianEnvelope(Envelope):
         -------
         Array
             Returns the output of the device that explicitly depends
-            on the optimisable parameters.
+            on the optimizable parameters.
 
         """
         ramp_time = t_final / 10
@@ -339,7 +339,7 @@ class FlatTopGaussianEnvelope(Envelope):
     def _evaluate_t_final_grad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
-        Explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimizable parameters.
 
         Parameters
         ----------
@@ -354,7 +354,7 @@ class FlatTopGaussianEnvelope(Envelope):
         -------
         Array
             Returns the output of the device that explicitly depends
-            on the optimisable parameters.
+            on the optimizable parameters.
 
         """
         ramp_time = t_final / 10
@@ -408,9 +408,9 @@ class FlatTopGaussianEnvelope(Envelope):
         t_arr = jnp.array(t, ndmin=1)
 
         grads = []
-        if self._is_optimised(self.amplitude):
+        if self._is_optimized(self.amplitude):
             grads.append(self._evaluate(jnp.array([1.0]), t_final, t_arr))
-        if self._is_optimised(self.t_final):
+        if self._is_optimized(self.t_final):
             grads.append(self._evaluate_t_final_grad(amp, t_final, t_arr))
         return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t_arr.shape[0], 0))
 

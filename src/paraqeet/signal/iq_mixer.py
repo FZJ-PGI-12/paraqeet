@@ -23,7 +23,7 @@ class IQMixer(Generator):
 
     __envs: list[Waveform]
     __phase: Quantity
-    _optimisable_parameters: list[Quantity] = []
+    _optimizable_parameters: list[Quantity] = []
 
     def __init__(
         self,
@@ -61,19 +61,19 @@ class IQMixer(Generator):
         pars += [self.__phase]
         return pars
 
-    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
-        """Set specified parameters to be optimised.
+    def set_optimizable_parameters(self, params: list[Quantity]) -> None:
+        """Set specified parameters to be optimized.
 
         Parameters
         ----------
         params : list[Quantity]
         """
-        super().set_optimisable_parameters(params)
+        super().set_optimizable_parameters(params)
 
         for dev in self.__envs:
-            dev.set_optimisable_parameters(params)
+            dev.set_optimizable_parameters(params)
 
-        self.__lo.set_optimisable_parameters(params)
+        self.__lo.set_optimizable_parameters(params)
 
     def __complex_signal(self, t: Array) -> Array:
         """Generate a signal for time(s) 't'.
@@ -122,7 +122,7 @@ class IQMixer(Generator):
         .. math::
             signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
 
-        Derivative of the signal wrt optimisable parameter of envelope would be
+        Derivative of the signal wrt optimizable parameter of envelope would be
 
         .. math::
             0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
@@ -166,7 +166,7 @@ class IQMixer(Generator):
 
         # Collect LO gradients
         lo_freq = self.__lo.get_parameters()[0]
-        if self._is_optimised(lo_freq):
+        if self._is_optimized(lo_freq):
             gradients = jnp.append(
                 gradients,
                 jnp.expand_dims(0.5j * times * sig, 1),
@@ -174,7 +174,7 @@ class IQMixer(Generator):
             )
 
         # Collect gradient of Phase
-        if self._is_optimised(self.__phase):
+        if self._is_optimized(self.__phase):
             gradients = jnp.append(
                 gradients,
                 jnp.expand_dims(-0.5j * sig, 1),
@@ -190,7 +190,7 @@ class IQMixer(Generator):
         .. math::
             signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
 
-        Derivative of the signal wrt optimisable parameter of envelope would be
+        Derivative of the signal wrt optimizable parameter of envelope would be
 
         .. math::
             0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
@@ -234,11 +234,11 @@ class IQMixer(Generator):
 
         # Collect LO gradients
         lo_freq = self.__lo.get_parameters()[0]
-        if self._is_optimised(lo_freq):
+        if self._is_optimized(lo_freq):
             gradients = jnp.append(gradients, 0.5j * time * sig, axis=0)
 
         # Collect gradient of Phase
-        if self._is_optimised(self.__phase):
+        if self._is_optimized(self.__phase):
             gradients = jnp.append(
                 gradients,
                 -0.5j * sig,

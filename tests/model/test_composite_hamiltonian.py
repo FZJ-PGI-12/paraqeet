@@ -28,7 +28,7 @@ def time_samples():
 def tone():
     """Return a cosine tone."""
     tone = FlatTopGaussianEnvelope()
-    tone.set_optimisable_parameters(tone.get_parameters())
+    tone.set_optimizable_parameters(tone.get_parameters())
     return tone
 
 
@@ -189,7 +189,7 @@ def test_gradient(gen, coupled_transmons, time_samples):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2)
-        hamil.set_optimisable_parameters(hamil.get_parameters())
+        hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
         ham_grads = hamil.gradient(time_samples)
         assert ham_grads.shape == (

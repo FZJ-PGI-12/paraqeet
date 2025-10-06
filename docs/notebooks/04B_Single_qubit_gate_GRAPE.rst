@@ -1,4 +1,4 @@
-Single spin Part 3: Single qubit gate optimisation using GRAPE
+Single spin Part 3: Single qubit gate optimization using GRAPE
 ==============================================================
 
 1. Generate a PWC pulse shape
@@ -169,22 +169,22 @@ As expected, we get a partial transfer and a low fidelity.
 3. Opimisation
 --------------
 
-We define an optimiser and link our fidelity measure as a goal function
-and the parameters of the cosine tone and optimise just amplitude and
+We define an optimizer and link our fidelity measure as a goal function
+and the parameters of the cosine tone and optimize just amplitude and
 frequency, as in the state transfer example.
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen, params)
-    opt = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt = ScipyOptimizerGradient(zeroone, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 

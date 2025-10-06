@@ -9,7 +9,7 @@ ParaQeet -  A quantum optimal control toolkit with simple parameter management
 
 You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
 
-Choose a pulse parametrisation, simulate a quantum system, and optimise.
+Choose a pulse parametrisation, simulate a quantum system, and optimize.
 
 Combining Quantum Optimal Control methods with automatic differentiation with JAX.
 Aimed at resource efficient computation.

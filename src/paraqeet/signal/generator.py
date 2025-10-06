@@ -4,10 +4,10 @@ from abc import abstractmethod
 
 from paraqeet.quantity import Array
 
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 
 
-class Generator(Optimisable):
+class Generator(Optimizable):
     """Signal generation stack.
 
     Contrary to most quantum simulators, paraqeet includes a detailed simulation

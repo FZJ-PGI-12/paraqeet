@@ -28,7 +28,7 @@ def test_output_shapes(local_oscillator, random_time_vector):
     output = local_oscillator.compute_output(random_time_vector)
     assert output.shape == (len(random_time_vector),)
 
-    local_oscillator.set_optimisable_parameters(local_oscillator.get_parameters())
+    local_oscillator.set_optimizable_parameters(local_oscillator.get_parameters())
     gradient = local_oscillator.compute_gradient(random_time_vector)
     assert gradient.shape == (len(random_time_vector), len(local_oscillator.get_parameters()))
 

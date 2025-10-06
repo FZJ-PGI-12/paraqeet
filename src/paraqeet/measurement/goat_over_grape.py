@@ -31,7 +31,7 @@ class GOATOverGRAPE(Measurement):
     def __init__(self, measurement: StateTransferFidelityGRAPE, gen: PWCGenerator):
         self.__measurement = measurement
         self.__gen = gen
-        gen.set_optimisable_parameters(gen.get_parameters())
+        gen.set_optimizable_parameters(gen.get_parameters())
 
     def measure(self) -> Array | float:
         """Sum of plain weighted measurements.
@@ -61,7 +61,7 @@ class GOATOverGRAPE(Measurement):
 
     def measure_with_gradient(self) -> tuple[float, Array]:
         """Compute gradients with GRAPE and use the chain rule
-        to provide the gradients for the optimiser.
+        to provide the gradients for the optimizer.
 
         Returns
         -------

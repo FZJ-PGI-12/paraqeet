@@ -2,4 +2,4 @@
 
 from paraqeet.quantity import Quantity as Quantity
 from paraqeet.quantity import Array as Array
-from paraqeet.optimisation_map import OptimisationMap as OptimisationMap
+from paraqeet.optimization_map import OptimizationMap as OptimizationMap

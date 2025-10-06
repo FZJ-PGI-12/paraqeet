@@ -1,6 +1,6 @@
 """Class definition of the Scipy piecewise exponential propagation model.
 
-Uses the GRAPE optimisation method.
+Uses the GRAPE optimization method.
 Assumes that the signal is piecewise constant (PWC) without an LO and the
 Hamiltonian is defined in the rotating frame of drive.
 
@@ -356,7 +356,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
     def __gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
         raise NotImplementedError(
-            "Currently ScipyExpmGRAPE is not supported for open system optimisation."
+            "Currently ScipyExpmGRAPE is not supported for open system optimization."
             + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
         )
 

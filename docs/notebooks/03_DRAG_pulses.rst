@@ -8,13 +8,13 @@ First, we make the necessary imports.
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.optimisation_map import OptimisationMap
+    from paraqeet.optimization_map import OptimizationMap
     from paraqeet.quantity import Quantity
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.model.transmon import Transmon
-    from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+    from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -127,7 +127,7 @@ corrected signal in the DRAGMixer
             dtype=np.complex128,
         )
 
-Set up measure that is optimised. In this case, the gate fidelity
+Set up measure that is optimized. In this case, the gate fidelity
 between the propagator resulting from the pulse simulation and the ideal
 reference defined above is used.
 
@@ -192,7 +192,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 
 
-3. Optimisation
+3. Optimization
 ---------------
 
 We define an optimizer and link our fidelity measure as a goal function
@@ -200,16 +200,16 @@ and the parameters of the cosine tone.
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     selected_params = []
     for i in [0, 2, 3, 4]:
         selected_params.append(params[i])
     optmap.add(gen, selected_params)
-    opt = ScipyOptimiser(gate_fid, optimisables=optmap)
+    opt = ScipyOptimizer(gate_fid, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 
@@ -220,7 +220,7 @@ and the parameters of the cosine tone.
 
 
 
-Print all parameters that were optimised.
+Print all parameters that were optimized.
 
 .. code:: ipython3
 

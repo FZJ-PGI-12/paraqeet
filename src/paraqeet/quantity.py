@@ -695,7 +695,7 @@ class Quantity:
         return self.__str__()
 
     def __str__(self):
-        """Human readable representation of the parameters set to optimise."""
+        """Human readable representation of the parameters set to optimize."""
         return self.__to_string(self.get_value())
 
     def __to_string(self, val: Array):

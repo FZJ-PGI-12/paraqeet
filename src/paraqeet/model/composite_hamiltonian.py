@@ -59,8 +59,8 @@ class CompositeHamiltonian(Hamiltonian):
             params += coupling.get_parameters()
         return params
 
-    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
-        """Set optimisable parameters for the system.
+    def set_optimizable_parameters(self, params: list[Quantity]) -> None:
+        """Set optimizable parameters for the system.
 
         Forward parameters to the subsystems and couplings.
         All of them should find their own parameters in the list.
@@ -72,9 +72,9 @@ class CompositeHamiltonian(Hamiltonian):
 
         """
         for subsystem in self._subsystems:
-            subsystem.set_optimisable_parameters(params)
+            subsystem.set_optimizable_parameters(params)
         for coupling in self._couplings:
-            coupling.set_optimisable_parameters(params)
+            coupling.set_optimizable_parameters(params)
 
     def dimension(self) -> int:
         """Return the dimension of the system.

@@ -2,7 +2,7 @@ Using a custom Hamiltonian function with ParaQeet
 =================================================
 
 In this example we demonstrate how a custom Hamiltonian function
-``H(t, params)`` can be used to simulate and optimise quantum systems.
+``H(t, params)`` can be used to simulate and optimize quantum systems.
 
 .. code:: ipython3
 
@@ -13,11 +13,11 @@ In this example we demonstrate how a custom Hamiltonian function
 1. Define the parameters, Hamiltonian function and gradient functions
 ---------------------------------------------------------------------
 
-Define a Hamiltonian as a function of time and optimisable parameters.
-The optimisable paramter need to be of the type ``pq.Quantity``.
+Define a Hamiltonian as a function of time and optimizable parameters.
+The optimizable paramter need to be of the type ``pq.Quantity``.
 
 Here we define a two level system (TLS) Hamiltonian, with a cosine drive
-(with optimisable paramters Amplitude and Frequency).
+(with optimizable paramters Amplitude and Frequency).
 
 .. code:: ipython3
 
@@ -123,11 +123,11 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 .. image:: 07_Custom_Hamiltonian_files/07_Custom_Hamiltonian_9_1.png
 
 
-3. Gradient based optimisation
+3. Gradient based optimization
 ------------------------------
 
-While using the above setup one can perform gradient free optimisation.
-To do a gradient based optimisation, we need to provide the gradient of
+While using the above setup one can perform gradient free optimization.
+To do a gradient based optimization, we need to provide the gradient of
 the Hamiltonian wrt each parameter in the Hamiltonian function.
 
 These gradient functions can be written as analytical functions or
@@ -187,21 +187,21 @@ Here we demonstrate both the cases.
 
 
 
-4. Create optmap and optimise
+4. Create optmap and optimize
 -----------------------------
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tls)
-    opt = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt = ScipyOptimizerGradient(zeroone, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 

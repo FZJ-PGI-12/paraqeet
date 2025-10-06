@@ -11,7 +11,7 @@ from paraqeet.exceptions import ConfigurationException
 from jax import grad, jit, vmap
 from jax.scipy.special import erf
 
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity
 
 import jax
@@ -19,7 +19,7 @@ import jax
 jax.config.update("jax_enable_x64", True)
 
 
-class Waveform(Optimisable):
+class Waveform(Optimizable):
     """Classical electronics."""
 
     _gradient_function: Callable | None = None
@@ -44,8 +44,8 @@ class Waveform(Optimisable):
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
-    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
-        """Set optimisable parameters for optimisation.
+    def set_optimizable_parameters(self, params: list[Quantity]) -> None:
+        """Set optimizable parameters for optimization.
 
         Parameters
         ----------
@@ -53,11 +53,11 @@ class Waveform(Optimisable):
             Input list of parameters to be set.
 
         """
-        super().set_optimisable_parameters(params)
+        super().set_optimizable_parameters(params)
 
         self._grad_arg_nums = ()
         for i, param in enumerate(self.get_parameters()):
-            if self._is_optimised(param):
+            if self._is_optimized(param):
                 self._grad_arg_nums += (i,)
 
         # Recompute gradient function
@@ -118,7 +118,7 @@ class Waveform(Optimisable):
 
         Uses Automatic differentiation.
         The `_evaluate` method should be a `pure` function (should take the
-        optimisable parameters as function arguments and doesn't depend on
+        optimizable parameters as function arguments and doesn't depend on
         global variables).
         Refer to https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
         for functionally `pure` functions.
@@ -269,7 +269,7 @@ class LocalOscillator(Waveform):
         t_arr = jnp.array(t, ndmin=1)
 
         grads = jnp.empty((t.shape[0], 0))
-        if self._is_optimised(self.__lo_freq):
+        if self._is_optimized(self.__lo_freq):
             grads = jnp.reshape(1j * t_arr * self._evaluate(freq, t_arr), (-1, 1))
 
         return grads
@@ -456,8 +456,8 @@ class DRAGMixer(Waveform):
         deltas = [self.__get_tone_delta(tone).get_value() for tone in self.__envs]
         return self._evaluate(t, *deltas)
 
-    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
-        """Set specified parameters to be optimised.
+    def set_optimizable_parameters(self, params: list[Quantity]) -> None:
+        """Set specified parameters to be optimized.
 
         Also add the indices to `__grad_arg_nums` to compute the gradients.
 
@@ -465,10 +465,10 @@ class DRAGMixer(Waveform):
         ----------
         params: list[Quantity]
         """
-        super().set_optimisable_parameters(params)
+        super().set_optimizable_parameters(params)
 
         for tone in self.__envs:
-            tone.set_optimisable_parameters(params)
+            tone.set_optimizable_parameters(params)
 
     def compute_gradient(self, t: Array) -> Array:
         """Generate gradient of the signal for an array of time.
@@ -505,7 +505,7 @@ class DRAGMixer(Waveform):
 
         # Collect gradients wrt deltas
         for i, tone in enumerate(self.__envs):
-            if self._is_optimised(deltas[i]):
+            if self._is_optimized(deltas[i]):
                 grad = 1j / (delta_values[i] ** 2) * tone.compute_time_gradient(t)
                 grad = jnp.expand_dims(grad * smoothing, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)

@@ -17,7 +17,7 @@ jax.config.update("jax_enable_x64", True)
 class Transmon(Hamiltonian):
     """Hamiltonian of an anharmonic oscillator.
 
-    Optimisable parameters are the ground frequency and the anharmonicity.
+    Optimizable parameters are the ground frequency and the anharmonicity.
 
     Parameters
     ----------
@@ -167,9 +167,9 @@ class Transmon(Hamiltonian):
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads_list = []
-        if self._is_optimised(self.__frequency):
+        if self._is_optimized(self.__frequency):
             grads_list.append(self.__num_op)
-        if self._is_optimised(self.__anharmonicity):
+        if self._is_optimized(self.__anharmonicity):
             grads_list.append(self.__anharmonic_term)
         grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__num_op.shape)
         gradients = jnp.append(gradients, grads, axis=0)

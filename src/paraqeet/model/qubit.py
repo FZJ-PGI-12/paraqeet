@@ -153,7 +153,7 @@ class Qubit(Hamiltonian):
         derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, t)
 
         # Combine with the derivative wrt the frequency
-        if self._is_optimised(self.__frequency):
+        if self._is_optimized(self.__frequency):
             hamil = self.__drift.reshape((1, 2, 2))
             derivatives = jnp.append(derivatives, hamil, axis=0)
 

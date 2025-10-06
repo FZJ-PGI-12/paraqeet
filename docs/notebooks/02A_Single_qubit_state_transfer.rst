@@ -9,13 +9,13 @@ First, we make the necessary imports.
     
     import numpy as np
     
-    from paraqeet.optimisation_map import OptimisationMap
+    from paraqeet.optimization_map import OptimizationMap
     from paraqeet.quantity import Quantity
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.model.qubit import Qubit
     from paraqeet.propagation.scipy_expm import ScipyExpm
-    from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+    from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     
     from paraqeet.model.closed_system import ClosedSystem
     
@@ -149,7 +149,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 
 
-Optimisation
+Optimization
 ------------
 
 We define an optimizer and link our fidelity measure as a goal function
@@ -157,13 +157,13 @@ and the parameters of the cosine tone.
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone, params)
-    opt = ScipyOptimiser(zeroone, optimisables=optmap)
+    opt = ScipyOptimizer(zeroone, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 

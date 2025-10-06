@@ -61,7 +61,7 @@ def test_gradient_dimensions(coupling):
     dim2 = np.random.randint(2, 10)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2)
-    coup.set_optimisable_parameters(coup.get_parameters())
+    coup.set_optimizable_parameters(coup.get_parameters())
 
     times = np.linspace(0.0, np.random.randint(1, 10) * np.random.rand(), np.random.randint(1, 10))
     mat = coup.gradient_one_time(times[-1])
@@ -70,7 +70,7 @@ def test_gradient_dimensions(coupling):
         for j in range(len(dims)):
             assert mat[0][i][j].shape == (dims[j], dims[j])
 
-    coup.set_optimisable_parameters([coup.get_parameters()[1]])
+    coup.set_optimizable_parameters([coup.get_parameters()[1]])
     mat = coup.gradient(times)
     for i in range(len(mat[0])):  # iterate the coupling terms
         assert len(mat[0][i]) == len(dims)  # two subsystems

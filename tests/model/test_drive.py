@@ -25,7 +25,7 @@ def time_samples():
 def tone():
     """Generate a sinusoidal tone."""
     tone = FlatTopGaussianEnvelope()
-    tone.set_optimisable_parameters(tone.get_parameters())
+    tone.set_optimizable_parameters(tone.get_parameters())
     return tone
 
 

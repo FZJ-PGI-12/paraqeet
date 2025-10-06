@@ -16,13 +16,13 @@ class CustomHamiltonian(Hamiltonian):
     Here we expect a Hamiltonian function of the form `H(t, *params)`.
     Here `params` is a list of scalars (**NOT `Quantity`**).
 
-    But, `parameters` is a list of `Quantity` that would be optimised.
+    But, `parameters` is a list of `Quantity` that would be optimized.
 
     It is advised to make the Hamiltonian function vmap and jit compatible.
     Furthermore, it is advised to write the Hamiltonian function in a way such that
     it takes a single time point (scalar) as input and returns  a jax array of dimensions [n, n].
 
-    Additionally, to optimise the parameters, one needs to pass a list of
+    Additionally, to optimize the parameters, one needs to pass a list of
     gradient functions correspoding to each parameter, in the same order as the parameter list.
 
     To use open system simulation, provide a list of tuples of decay rates and corresponding collapse opearators.
@@ -70,7 +70,7 @@ class CustomHamiltonian(Hamiltonian):
         return self.get_matrix_one_time(jnp.array([0.0])).shape[1]
 
     def get_parameters(self) -> list[Quantity]:
-        """Return a list of optimisable parameters."""
+        """Return a list of optimizable parameters."""
         return self.__parameters
 
     def get_matrix_one_time(self, t: Array):

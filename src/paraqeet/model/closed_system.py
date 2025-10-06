@@ -46,12 +46,12 @@ class ClosedSystem(EquationOfMotion):
             self._get_matrix_method = self.__get_eom
 
     def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimisable parameters.
+        """Get a list of optimizable parameters.
 
         Returns
         -------
         List[Quantity]
-            List of optimisable parameters of the system.
+            List of optimizable parameters of the system.
 
         """
         return self._hamiltonian.get_parameters()

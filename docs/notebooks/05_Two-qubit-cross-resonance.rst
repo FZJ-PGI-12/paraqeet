@@ -1,4 +1,4 @@
-Gradient-based optimisation of a cross-resonance gate between two transmons
+Gradient-based optimization of a cross-resonance gate between two transmons
 ===========================================================================
 
 .. code:: ipython3
@@ -16,9 +16,9 @@ Gradient-based optimisation of a cross-resonance gate between two transmons
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
     from paraqeet.model.transmon import Transmon
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.optimisation_map import OptimisationMap
+    from paraqeet.optimization_map import OptimizationMap
     from paraqeet.quantity import Quantity
     
     np.set_printoptions(linewidth=400)
@@ -30,12 +30,12 @@ The sytem consists of two coupled transmons with three levels each. We
 fix the transmon frequency and anharmonicity to values that don’t have
 any unwanted frequency collisions. The coupling strength is fixed as
 well. These parameters have to be specified as Quantites with a range,
-but we will not pass them to the optimised in order to keep them fixed.
+but we will not pass them to the optimized in order to keep them fixed.
 Additionally, the first transmon is driven at the frequency of the
 second one to apply a cross-resonance (CR) gate. The second transmon is
 driven to fix the phases of the gate.
 
-Here the tone values are set such that the optimisation process is fast.
+Here the tone values are set such that the optimization process is fast.
 Generally with a lot of parameters ``ScipyExpmGOAT`` (in its current
 form), can take considerably long time.
 
@@ -383,11 +383,11 @@ space to 4 dimensions to compare the propagator to the ideal gate.
 .. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_12_1.png
 
 
-Optimisation
+Optimization
 ------------
 
 We define an optimizer and link our fidelity measure as a goal function.
-The only optimisable parameter is the frequency of transmon 1.
+The only optimizable parameter is the frequency of transmon 1.
 
 .. code:: ipython3
 
@@ -404,11 +404,11 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone1)
     print(optmap)
     
-    opt = ScipyOptimiserGradient(gate_fid, optimisables=optmap)
+    opt = ScipyOptimizerGradient(gate_fid, optimizables=optmap)
     opt.set_options({"ftol": 0.1})
 
 
@@ -437,7 +437,7 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 

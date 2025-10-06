@@ -1,6 +1,6 @@
 """Class definition of the Scipy piecewise exponential propagation model.
 
-Uses the GOAT optimisation method.
+Uses the GOAT optimization method.
 
 """
 
@@ -41,7 +41,7 @@ class ScipyExpmGOAT(ScipyExpm):
         return psi_t
 
     def _create_goat_ham(self, n_params, eom, grads):
-        """Create a Hamiltonian for the GOAT optimisation method.
+        """Create a Hamiltonian for the GOAT optimization method.
 
         Parameters
         ----------
@@ -55,7 +55,7 @@ class ScipyExpmGOAT(ScipyExpm):
         Returns
         -------
         Array
-            Hamiltonian for the GOAT optimisation method.
+            Hamiltonian for the GOAT optimization method.
 
         """
         line = [eom]

@@ -72,7 +72,7 @@ class Smoothness(Measurement):
         """Measure with gradient.
 
         Compute the measurement value as in measure_normalised_scalar()
-        and the gradient with respect to all parameters in the optimisation map.
+        and the gradient with respect to all parameters in the optimization map.
         For parameters that are not in the passed PWCGenerator the partial derivative
         if simply zero.
 
@@ -82,8 +82,8 @@ class Smoothness(Measurement):
             Tuple of function value as bare float and gradient of shape (n_parameters,)
 
         """
-        opt_pwc_params = self._pwc_generator.optimisable_parameters
-        opt_params = self._pwc_generator.all_optimisable_parameters
+        opt_pwc_params = self._pwc_generator.optimizable_parameters
+        opt_params = self._pwc_generator.all_optimizable_parameters
 
         def get_partial_derivative(n, vec):
             """Derivatives of the smoothness measure for 3 cases: starting point, center and end point.

@@ -10,8 +10,8 @@ Constrain piece-wise constant pulses to vary smoothly
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
     from paraqeet.measurement.smoothness import Smoothness
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 
 .. code:: ipython3
 
@@ -58,12 +58,12 @@ Constrain piece-wise constant pulses to vary smoothly
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen_qubit, gen_qubit.get_parameters())
     # We add dummy parameters to check if the gradient is computed
     # correctly by padding zeros
     # optmap.add(tone_qubit, tone_qubit.get_parameters())
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
 .. code:: ipython3
 
@@ -83,13 +83,13 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    opt = ScipyOptimiserGradient(smoothness, optimisables=optmap)
+    opt = ScipyOptimizerGradient(smoothness, optimizables=optmap)
     max_iter = 200
     opt.set_options({"maxiter": max_iter})
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize()
 
 
 

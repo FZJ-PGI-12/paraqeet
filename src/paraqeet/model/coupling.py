@@ -1,4 +1,4 @@
-"""Class definition of a coupling optimisable model."""
+"""Class definition of a coupling optimizable model."""
 
 import jax
 import jax.numpy as jnp
@@ -6,19 +6,19 @@ from paraqeet.quantity import Array
 from jax import vmap
 
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Coupling(Optimisable):
-    """Create a coupling optimisable model.
+class Coupling(Optimizable):
+    """Create a coupling optimizable model.
 
     Represents the coupling of two or more subsystems in a composite
     Hamiltonian. This class implements longitudinal and transversal
     coupling with a constant scalar coefficient.
-    The coefficient is the only optimisable parameter.
+    The coefficient is the only optimizable parameter.
     Subclasses can alter the behavior by overriding the getMatrix function.
 
     Parameters
@@ -145,12 +145,12 @@ class Coupling(Optimisable):
         -------
         list[list[list[Array]]]
             The outer list represents the gradients with respect to
-            all optimised parameters. The rest is in the same shape as the
+            all optimized parameters. The rest is in the same shape as the
             result of getMatricesOneTime.
 
         """
         coup_ops = self.__coupling_operators()
-        if self._is_optimised(self._coefficient):
+        if self._is_optimized(self._coefficient):
             grads = [coup_ops]
         else:
             grads = [[[jnp.empty((0, 0)) for _ in sub] for sub in coup_ops]]
@@ -168,7 +168,7 @@ class Coupling(Optimisable):
         -------
         list[list[Array]]
             The outer list represents the gradients with respect to all
-            optimised parameters.
+            optimized parameters.
             The rest is in the same shape as the result of get_matrices.
 
         """

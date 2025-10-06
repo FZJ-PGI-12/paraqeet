@@ -23,7 +23,7 @@ def time_samples():
 def gen():
     """Return cosine signal generator object."""
     tone = ConstantEnvelope()
-    tone.set_optimisable_parameters(tone.get_parameters())
+    tone.set_optimizable_parameters(tone.get_parameters())
     return IQMixer(envelopes=[tone])
 
 
@@ -73,13 +73,13 @@ def test_get_parameters(gen_multiple_tones):
 def test_gradient_one_time(gen):
     """Test the generate signal gradient one time function."""
     print(gen.get_parameters())
-    gen.set_optimisable_parameters(gen.get_parameters())
+    gen.set_optimizable_parameters(gen.get_parameters())
     grads = gen.generate_signal_gradient_one_time(np.array([0]))
     assert grads.shape == (len(gen.get_parameters()),)
 
 
 def test_gradient_shape(gen, time_samples):
     """Test the generate signal gradient function."""
-    gen.set_optimisable_parameters(gen.get_parameters())
+    gen.set_optimizable_parameters(gen.get_parameters())
     grads = gen.generate_signal_gradient(time_samples)
     assert grads.shape == (time_samples.shape[0], len(gen.get_parameters()))

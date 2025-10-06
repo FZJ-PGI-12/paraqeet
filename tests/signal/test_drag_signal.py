@@ -101,13 +101,13 @@ def test_get_parameters(gen_multiple_tones):
 
 def test_gradient_shape(gen, time_samples):
     """Test the length of the signal gradient."""
-    gen.set_optimisable_parameters(gen.get_parameters())
+    gen.set_optimizable_parameters(gen.get_parameters())
     grads = gen.generate_signal_gradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]
 
 
 def test_gradient_flattop(flattop, time_samples):
     """Test the length of the gradient of flattop signal."""
-    flattop.set_optimisable_parameters(flattop.get_parameters())
+    flattop.set_optimizable_parameters(flattop.get_parameters())
     grads = flattop.generate_signal_gradient(time_samples)
     assert grads.shape[0] == time_samples.shape[0]

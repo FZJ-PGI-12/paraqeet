@@ -1,4 +1,4 @@
-Single qubit gate optimisation using GOAT over GRAPE
+Single qubit gate optimization using GOAT over GRAPE
 ====================================================
 
 .. code:: ipython3
@@ -244,7 +244,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 
 We define an optimizer and link our fidelity measure as a goal function
-and the parameters of the cosine tone and optimise just amplitude and
+and the parameters of the cosine tone and optimize just amplitude and
 frequency, as in the state transfer example.
 
 .. code:: ipython3
@@ -264,25 +264,25 @@ frequency, as in the state transfer example.
 
 
 
-Optimisation
+Optimization
 ------------
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-    from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+    from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
     
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(drag_tone)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
     
     goat = GOATOverGRAPE(zeroone, gen)
     
-    opt = ScipyOptimiser(goat, optimisables=optmap)
-    optgrad = ScipyOptimiserGradient(goat, optimisables=optmap)
+    opt = ScipyOptimizer(goat, optimizables=optmap)
+    optgrad = ScipyOptimizerGradient(goat, optimizables=optmap)
 
 .. code:: ipython3
 
@@ -301,7 +301,7 @@ Optimisation
 
 .. code:: ipython3
 
-    optgrad.optimise()
+    optgrad.optimize()
 
 
 

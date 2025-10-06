@@ -34,7 +34,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
     def _evaluate(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
-        Explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimizable parameters.
 
         Parameters
         ----------
@@ -49,7 +49,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         -------
         Array
             Returns the output of the device that explicitly depends
-            on the optimisable parameters.
+            on the optimizable parameters.
 
         """
         ramp_time = t_final / 10
@@ -66,7 +66,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
     def _evaluate_time_grad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
-        Explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimizable parameters.
 
         Parameters
         ----------
@@ -81,7 +81,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         -------
         Array
             Returns the output of the device that explicitly depends
-            on the optimisable parameters.
+            on the optimizable parameters.
 
         """
         ramp_time = t_final / 10
@@ -102,7 +102,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
     def _evaluate_tfinal_grad(self, amp: Array, t_final: Array, t: Array):
         """Compute the output of the device.
 
-        Explicitly depends on the optimisable parameters.
+        Explicitly depends on the optimizable parameters.
 
         Parameters
         ----------
@@ -117,7 +117,7 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         -------
         Array
             Returns the output of the device that explicitly depends
-            on the optimisable parameters.
+            on the optimizable parameters.
 
         """
         ramp_time = t_final / 10

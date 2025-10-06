@@ -37,8 +37,8 @@ class PWCGenerator(Generator):
         The in-phase component of the pulse
     __outofphase: Quantity
         The out-of-phase component of the pulse
-    _optimisable_paramters: list[Quantity]
-        List of own parameters that would be optimised by the optimiser.
+    _optimizable_paramters: list[Quantity]
+        List of own parameters that would be optimized by the optimizer.
     __multiply_flat_top: bool
         Flag to multiply flat-top-Gaussain pulse to the signal to ensure it
         starts and ends at zero.
@@ -55,7 +55,7 @@ class PWCGenerator(Generator):
     __max_amplitude: float
     __inphase: Quantity
     __outofphase: Quantity
-    _optimisable_parameters: list[Quantity] = []
+    _optimizable_parameters: list[Quantity] = []
     __multiply_flat_top: bool = False
 
     def __init__(
@@ -227,16 +227,16 @@ class PWCGenerator(Generator):
         """
         return [self.__inphase, self.__outofphase]
 
-    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
-        """Set specified parameters to be optimised.
+    def set_optimizable_parameters(self, params: list[Quantity]) -> None:
+        """Set specified parameters to be optimized.
 
-        Optimisable paramters can be inphase and out-of-phase.
+        Optimizable paramters can be inphase and out-of-phase.
 
         Parameters
         ----------
         params : list[Quantity]
         """
-        super().set_optimisable_parameters(params)
+        super().set_optimizable_parameters(params)
 
     @partial(jit, static_argnums=(0,))
     def __pwc_signal(
@@ -324,9 +324,9 @@ class PWCGenerator(Generator):
         else:
             env = jnp.ones_like(t_arr)
 
-        if self._is_optimised(self.__inphase):
+        if self._is_optimized(self.__inphase):
             grads.append(env)
-        if self._is_optimised(self.__outofphase):
+        if self._is_optimized(self.__outofphase):
             grads.append(1j * env)
 
         if len(grads) > 0:
@@ -361,9 +361,9 @@ class PWCGenerator(Generator):
         else:
             env = 1
 
-        if self._is_optimised(self.__inphase):
+        if self._is_optimized(self.__inphase):
             grads.append(env)
-        if self._is_optimised(self.__outofphase):
+        if self._is_optimized(self.__outofphase):
             grads.append(1j * env)
 
         return jnp.stack(grads, axis=0) if len(grads) > 0 else jnp.empty((0,))

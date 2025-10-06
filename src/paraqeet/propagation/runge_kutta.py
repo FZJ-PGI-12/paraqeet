@@ -37,7 +37,7 @@ class RungeKutta(StatePropagation):
         Returns
         -------
         list[Quantity]
-            List of optimisable parameters of the system.
+            List of optimizable parameters of the system.
 
         """
         return []

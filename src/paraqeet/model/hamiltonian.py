@@ -6,11 +6,11 @@ import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.drive import Drive
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity, Array
 
 
-class Hamiltonian(Optimisable, ABC):
+class Hamiltonian(Optimizable, ABC):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines
@@ -94,7 +94,7 @@ class Hamiltonian(Optimisable, ABC):
         Returns the gradient of the matrix representation of the Hamiltonian
         with respect to each parameter for each time step in t. Implementations
         must make sure that only derivatives with respect to those parameters
-        are included in the gradient that were registered in the Optimisable
+        are included in the gradient that were registered in the Optimizable
         parent class. The order of the gradients should match the order of the
         parameters returned by getParameters. The default implementation calls
         gradient_one_time for each time step. Subclasses can override this
@@ -121,7 +121,7 @@ class Hamiltonian(Optimisable, ABC):
         with respect to each parameter for one time step t.
         Implementations must make sure that only derivatives with respect
         to those parameters are included in the gradient that were registered
-        in the Optimisable parent class. The order of the gradients should match
+        in the Optimizable parent class. The order of the gradients should match
         the order of the parameters returned by getParameters.
 
         Parameters

@@ -153,19 +153,19 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
     
-    opt_grad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt_grad = ScipyOptimizerGradient(zeroone, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt_grad.optimise()
+    opt_grad.optimize()
 
 
 
@@ -359,22 +359,22 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
 .. code:: ipython3
 
-    opt_grad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt_grad = ScipyOptimizerGradient(zeroone, optimizables=optmap)
     opt_grad.set_options({"disp": True})
 
 .. code:: ipython3
 
-    opt_grad.optimise()
+    opt_grad.optimize()
 
 
 

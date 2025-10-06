@@ -1,15 +1,15 @@
-"""Class definition of the optimisable model."""
+"""Class definition of the optimizable model."""
 
 from abc import abstractmethod
 
 from paraqeet.quantity import Array
 
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity
 
 
-class EquationOfMotion(Optimisable):
+class EquationOfMotion(Optimizable):
     """Represents the equation of motion for a given Hamiltonian.
 
     Implementations can for example be the Schrödinger equation for a

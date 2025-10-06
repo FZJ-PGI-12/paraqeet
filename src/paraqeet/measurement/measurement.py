@@ -2,11 +2,11 @@
 
 import jax.numpy as jnp
 
-from paraqeet.optimisable import Optimisable
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
 
-class Measurement(Optimisable):
+class Measurement(Optimizable):
     """Represents any observable and the process of measurement itself.
 
     The observable is measured after the propagation class
@@ -59,7 +59,7 @@ class Measurement(Optimisable):
         """Measure the normalised observable.
 
         Returns a single scalar value between 0 and 1, 1 representing the perfect result, required for use with most
-        optimisations. This function must be implemented by subclasses.
+        optimizations. This function must be implemented by subclasses.
 
         Returns
         -------

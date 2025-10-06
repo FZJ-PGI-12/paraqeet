@@ -26,8 +26,8 @@ where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
     
     from paraqeet.signal.pwc_generator import PWCGenerator
 
-Lets define a ``FlatTopGaussianEnvelope`` with multiple optimisable
-parameters to check if the optimisation of all the parameters works when
+Lets define a ``FlatTopGaussianEnvelope`` with multiple optimizable
+parameters to check if the optimization of all the parameters works when
 we rebuild them with GRAPE propagation. We can rely on Automatic
 differentiation to obtain the gradient of the pulse wrt its parameters.
 
@@ -82,7 +82,7 @@ differentiation to obtain the gradient of the pulse wrt its parameters.
 
 Define the ``Envelope`` and the ``PWCGenerator``. The ``PWCGenerator``
 is used to produce the pixelated pulse shape for computing the gradients
-using GRAPE. The optimisation would be performed on the ``Envelope``
+using GRAPE. The optimization would be performed on the ``Envelope``
 parameters: ``amplitude``, ``t_up``, ``t_down``, ``ramp_time``.
 
 .. code:: ipython3
@@ -213,7 +213,7 @@ Using GRAPE as the method to propagate and compute the gradients
 .. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_14_0.png
 
 
-3. Optimisation
+3. Optimization
 ---------------
 
 Finally, we define the ``GOATOverGRAPE`` fideltiy that chains together
@@ -221,20 +221,20 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
     
     goat = GOATOverGRAPE(zeroone, gen)
-    opt_grad = ScipyOptimiserGradient(goat, optimisables=optmap)
+    opt_grad = ScipyOptimizerGradient(goat, optimizables=optmap)
 
 .. code:: ipython3
 
-    opt_grad.optimise()
+    opt_grad.optimize()
 
 
 
