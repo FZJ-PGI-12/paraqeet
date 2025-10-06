@@ -8,7 +8,7 @@ from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimisation_map import OptimisationMap
 from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
 from paraqeet.quantity import Quantity
-from paraqeet.signal.envelopes import dCRABEnvelope
+from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.waveform import DRAGMixer
 
 import warnings
@@ -16,13 +16,13 @@ import warnings
 warnings.simplefilter("once")
 
 
-class dCRABOptimiserGradient(ScipyOptimiserGradient):
+class DCRABOptimiserGradient(ScipyOptimiserGradient):
     """A dCRAB optimisation method.
 
     Implements dCRAB optimisation involving super-iterations that adds additional
     optimisation components to the dCRAB envelope and freezes the older parameters.
 
-    *Note - This works with a `dCRABEnvelope` or a `DRAGMixer` with `list[dCRABEnvelope]` as envelopes.*
+    *Note - This works with a `DCRABEnvelope` or a `DRAGMixer` with `list[DCRABEnvelope]` as envelopes.*
 
     _num_iteration: int
         Current iteration number.
@@ -74,7 +74,7 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
 
         dcrab_envs = []
         for opt in optimisables:
-            if isinstance(opt, dCRABEnvelope):
+            if isinstance(opt, DCRABEnvelope):
                 dcrab_envs.append(opt)
                 relevant_optimisables.append(opt)
             elif isinstance(opt, DRAGMixer):
@@ -86,7 +86,7 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
             try:
                 env.add_new_components(seeds=None)  # Setting the seeds to be None for now.
             except Exception as e:
-                raise ConfigurationException(f"Non `dCRABEnvelope` encountered. \n Raised exception {e}")
+                raise ConfigurationException(f"Non `DCRABEnvelope` encountered. \n Raised exception {e}")
 
         # Add new parameters to optmap
         new_coeffs_and_freqs = [env.get_coefficients_and_frequencies() for env in dcrab_envs]

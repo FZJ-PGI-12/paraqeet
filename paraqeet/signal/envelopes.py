@@ -526,7 +526,7 @@ class GaussEnvelope(Envelope):
         return env_time_deriv  # type: ignore
 
 
-class dCRABEnvelope(Envelope):
+class DCRABEnvelope(Envelope):
     r"""Create a dCRAB pulse envelope.
 
     The dCRAB pulse is given as a sum of sinusoidal components as [Müller2022]
