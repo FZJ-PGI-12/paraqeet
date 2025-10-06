@@ -11,6 +11,10 @@ from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import dCRABEnvelope
 from paraqeet.signal.waveform import DRAGMixer
 
+import warnings
+
+warnings.simplefilter("once")
+
 
 class dCRABOptimiserGradient(ScipyOptimiserGradient):
     """A dCRAB optimisation method.
@@ -35,7 +39,7 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
     ----------
     measure: Measurement
         Measurement class that measures the observable to be maximised.
-    optimisable: OptimisationMap
+    optimisation_map: OptimisationMap
         An optimisation map containing all parameters that can be optimised.
     """
 
@@ -51,12 +55,12 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
     def __init__(
         self,
         measure: Measurement,
-        optimisables: OptimisationMap,
+        optimisation_map: OptimisationMap,
         super_iteration_every: int = 30,
         max_super_iteration_num: int = 10,
         print_every_iteration_num: int = 5,
     ):
-        super().__init__(measure, optimisables)
+        super().__init__(measure, optimisation_map)
         self._super_iteration_every = super_iteration_every
         self._max_super_iteration_num = max_super_iteration_num
         self._num_print_every = print_every_iteration_num
@@ -65,7 +69,7 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
         self._old_opt_idxs_dict = {}
 
     def _dcrab_super_iteration(self) -> None:
-        optimisables = list(self._optimisables.get_optimisables())
+        optimisables = list(self._optimisation_map.get_optimisables())
         relevant_optimisables = []
 
         dcrab_envs = []
@@ -87,10 +91,10 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
         # Add new parameters to optmap
         new_coeffs_and_freqs = [env.get_coefficients_and_frequencies() for env in dcrab_envs]
         for env, coeffs_and_freqs in zip(relevant_optimisables, new_coeffs_and_freqs):
-            self._optimisables.add(env, coeffs_and_freqs)
+            self._optimisation_map.add(env, coeffs_and_freqs)
 
         # Get all parameters and update scales for optimistaion
-        params = self._optimisables.get_all_parameters()
+        params = self._optimisation_map.get_all_parameters()
         self._scales = jnp.array([p.get_scale() for p in params]).flatten()
 
         # Restart the optimization process
@@ -112,7 +116,7 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
         if self._num_iteration >= self._super_iteration_every:
             if self._num_iteration % self._super_iteration_every == 0:
                 print(f"==== Starting super-iteration {self._num_iteration // self._super_iteration_every} ====")
-                current_params = self._optimisables.get_all_parameters()
+                current_params = self._optimisation_map.get_all_parameters()
                 self._old_parameters_dict[len(current_params)] = current_params
                 self._old_opt_idxs_dict[len(current_params)] = self._opt_idxs
 
@@ -144,27 +148,19 @@ class dCRABOptimiserGradient(ScipyOptimiserGradient):
 
         """
         log = []
-        params = self._optimisables.get_all_parameters()
+        params = self._optimisation_map.get_all_parameters()
 
         # Check for edge case when best result has fewer parameters than the current iteration.
         if len(params) != len(values):
             num_values = len(values)
-            print(f"Backtracking some steps and setting some parameters to zero. Got num values = {num_values}")
+            warnings.warn(f"Backtracking some steps and setting some parameters to zero. Got num values = {num_values}")
             if num_values in self._old_parameters_dict:
-                # for index, val in enumerate(np.split(values, self._old_opt_idxs_dict[num_values][:-1])):
-                #     self._old_parameters_dict[num_values][index].set_reduced_value(val)
-                #     log.append(self._old_parameters_dict[num_values][index])
-
-                # for param in params:
-                #     if param not in self._old_parameters_dict[num_values]:
-                #         param.set_reduced_value(np.array([-1]))
-
                 ids = [id(i) for i in self._old_parameters_dict[num_values]]
                 j = 0
                 for ii in range(len(params)):
                     if id(params[ii]) in ids:
                         if j >= num_values:
-                            raise Exception("j exceeds num_values")
+                            raise Exception("Possibly duplicate entries in the optmap.")
                         params[ii].set_reduced_value(np.array([values[j]]))
                         j += 1
                     else:

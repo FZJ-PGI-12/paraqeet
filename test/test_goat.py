@@ -103,25 +103,25 @@ def opt_map(gen):
 @pytest.fixture
 def grad_opt(states, opt_map):
     """Create a scipy optimiser gradient object over states."""
-    return ScipyOptimiserGradient(measure=states, optimisables=opt_map)
+    return ScipyOptimiserGradient(measure=states, optimisation_map=opt_map)
 
 
 @pytest.fixture
 def grad_gates_opt(gates, opt_map):
     """Create a scipy optimiser gradient object over gates."""
-    return ScipyOptimiserGradient(measure=gates, optimisables=opt_map)
+    return ScipyOptimiserGradient(measure=gates, optimisation_map=opt_map)
 
 
 @pytest.fixture
 def opt(states, opt_map):
     """Create a scipy optimiser object over states."""
-    return ScipyOptimiser(measure=states, optimisables=opt_map)
+    return ScipyOptimiser(measure=states, optimisation_map=opt_map)
 
 
 @pytest.fixture
 def gates_opt(gates, opt_map):
     """Create a scipy optimiser gradient object over gates."""
-    return ScipyOptimiser(measure=gates, optimisables=opt_map)
+    return ScipyOptimiser(measure=gates, optimisation_map=opt_map)
 
 
 def test_optim_finite_diff(opt) -> None:

@@ -100,7 +100,7 @@ def fid(tls):
 def opt(tls, fid):
     optmap = OptimisationMap()
     optmap.add(tls)
-    opt = ScipyOptimiserGradient(fid, optimisables=optmap)
+    opt = ScipyOptimiserGradient(fid, optimisation_map=optmap)
     return opt
 
 

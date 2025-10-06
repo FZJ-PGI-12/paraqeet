@@ -18,7 +18,7 @@ class ScipyOptimiser(Optimiser):
     measure: Measurement
         Implementation of the Measurement class that measures the observable
         to be maximised.
-    optimisable: OptimisationMap
+    optimisation_map: OptimisationMap
         An optimisation map containing all parameters that can be optimised.
 
     """
@@ -29,8 +29,8 @@ class ScipyOptimiser(Optimiser):
     _method: str
     _callback: Callable | None
 
-    def __init__(self, measure: Measurement, optimisables: OptimisationMap):
-        super().__init__(measure, optimisables)
+    def __init__(self, measure: Measurement, optimisation_map: OptimisationMap):
+        super().__init__(measure, optimisation_map)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
         self._callback = None
@@ -99,11 +99,11 @@ class ScipyOptimiser(Optimiser):
             self._logger.start()
 
         self._build_optimisable_index_list()
-        self._optimisables.register_params_with_optimisables()
+        self._optimisation_map.register_params_with_optimisables()
 
         # Collect the initial values of all parameters
         init = []
-        for qty in self._optimisables.get_all_parameters():
+        for qty in self._optimisation_map.get_all_parameters():
             init.append(qty.get_reduced_value())  # reduced values are between [-1, 1]
 
         opt_res = minimize(
@@ -143,7 +143,7 @@ class ScipyOptimiser(Optimiser):
 
         """
         log = []
-        params = self._optimisables.get_all_parameters()
+        params = self._optimisation_map.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])

@@ -137,7 +137,7 @@ def opt_grad(tone, fid, gen):
     optmap.register_params_with_optimisables()
 
     goat = GOATOverGRAPE(fid, generators=gen, generators_order=[0])
-    optGrad = ScipyOptimiserGradient(goat, optimisables=optmap)
+    optGrad = ScipyOptimiserGradient(goat, optimisation_map=optmap)
     return optGrad
 
 

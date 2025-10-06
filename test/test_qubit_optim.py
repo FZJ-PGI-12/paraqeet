@@ -51,7 +51,7 @@ def opt():
     """Create ScipyOptimiser optimiser."""
     optmap = OptimisationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return ScipyOptimiser(ZEROONE, optimisables=optmap)
+    return ScipyOptimiser(ZEROONE, optimisation_map=optmap)
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ def cma_opt():
     """Create CMAEs optimiser."""
     optmap = OptimisationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return CMAEsOptimiser(ZEROONE, optimisables=optmap)
+    return CMAEsOptimiser(ZEROONE, optimisation_map=optmap)
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def bay_opt():
     """Create Bayesian optimiser."""
     optmap = OptimisationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return BayesianOptimiser(ZEROONE, optimisables=optmap)
+    return BayesianOptimiser(ZEROONE, optimisation_map=optmap)
 
 
 def test_optim(opt) -> None:
