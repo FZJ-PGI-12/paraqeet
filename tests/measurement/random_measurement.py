@@ -25,18 +25,8 @@ class RandomMeasurement(Measurement):
         super().__init__(times=times)
         self.__propagation = propagation
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get parameters of the system.
 
-        Returns
-        -------
-        list[Quantity]
-            The list of parameters of the system.
-
-        """
-        return []
-
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self) -> float:
         """Return the result of measurement.
 
         Returns
@@ -46,3 +36,7 @@ class RandomMeasurement(Measurement):
 
         """
         return float(np.random.random())
+    
+    # TODO: implement gradient
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+        raise NotImplementedError("Gradient not implemented for RandomMeasurement")

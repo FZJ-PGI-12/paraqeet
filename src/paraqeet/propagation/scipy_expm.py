@@ -50,18 +50,6 @@ class ScipyExpm(StatePropagation):
         """Set the resolution of the propagation."""
         self._res = res
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimizable parameters of the system.
-
-        Note: Method has no optimizable parameters.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns an empty list.
-
-        """
-        return []
 
     def _construct_times(self, time, ti):
         """Construct one-dimensional vector of time.
@@ -289,3 +277,23 @@ class ScipyExpm(StatePropagation):
             dim = int(jnp.sqrt(eom.shape[-1]))
             psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
         return psis_arr
+    
+    # TODO: implement gradient method
+    def gradient(self, time: Array) -> tuple[Array, Array]:
+        """Return the gradient of the system.
+
+        Parameters
+        ----------
+        time: Array
+            Any one-dimensional vector of timestamps.
+
+        Returns
+        -------
+        Array
+            Returns the gradient of the system.
+
+
+        """
+        raise NotImplementedError("Gradient method is not yet implemented for ScipyExpm propagation.")
+    
+    # TODO: implement get_collapseops method

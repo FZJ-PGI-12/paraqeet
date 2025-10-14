@@ -1,14 +1,12 @@
 """Class definition of the State propagation model."""
 
-from abc import ABC
-
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.quantity import Array
 from paraqeet.propagation.propagation import Propagation
 
 
-class StatePropagation(Propagation, ABC):
+class StatePropagation(Propagation):
     """Propagation implementation that need an initial state.
 
     This implements the set_initial_state function.

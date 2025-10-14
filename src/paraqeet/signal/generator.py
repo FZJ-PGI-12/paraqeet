@@ -33,13 +33,8 @@ class Generator(Optimizable):
         Array
             Returns the scalar signal vector.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass 
 
     @abstractmethod
     def generate_signal_gradient(self, times: Array) -> Array:
@@ -59,13 +54,9 @@ class Generator(Optimizable):
         Array
             Returns the signal gradient vector.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def generate_signal_gradient_one_time(self, time: Array) -> Array:
@@ -82,10 +73,5 @@ class Generator(Optimizable):
         -------
         Array
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass

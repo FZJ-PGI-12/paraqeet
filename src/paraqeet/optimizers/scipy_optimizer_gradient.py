@@ -103,7 +103,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
-        fun, grad = self._measure.measure_with_gradient()
+        fun, grad = self._measure.calculate_normalized_scalar_and_gradient()
         self.__grad_cache = grad
 
         infid = 1.0 - fun

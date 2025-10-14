@@ -47,11 +47,9 @@ class MixedStateTransferFidelity(Measurement):
         # store the sqrt of the density matrix to simplify the measurement
         self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
 
-    def get_parameters(self) -> list[Quantity]:
-        """Returns an empty list."""
-        return []
 
-    def measure(self) -> Array:
+    # TODO: missing type hinting
+    def measure(self):
         """Measure overlap between initial and final state of density matrices.
 
         Returns
@@ -77,3 +75,13 @@ class MixedStateTransferFidelity(Measurement):
         # density matrix
         product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
         return jnp.abs(jnp.trace(sclin.sqrtm(product))) ** 2
+    
+    #  TODO: implement normalized scalar calculation
+    def calculate_normalized_scalar(self) -> float:
+        raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")
+
+    #  TODO: implement gradient calculation
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+        raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")
+    
+    

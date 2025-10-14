@@ -79,17 +79,11 @@ class Waveform(Optimizable):
 
     @abstractmethod
     def _evaluate(self, *args, **kwargs) -> Array:
-        """Evaluate the output of the system.
-
-        Abstract method.
-
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
+        """
+        Evaluate the output of the system.
 
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def compute_output(self, t: Array) -> Array:
@@ -105,13 +99,8 @@ class Waveform(Optimizable):
         Array
             Output of the computation.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     def compute_gradient(self, t: Array) -> Array:
         """Compute the gradient of the `_evaluate` method.
@@ -413,7 +402,7 @@ class DRAGMixer(Waveform):
         ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
         return ramp_up * ramp_down / 4
 
-    def _evaluate(self, t, *deltas) -> Array:
+    def _evaluate(self, t: Array, *deltas) -> Array:
         """Compute the DRAG Envelope using deltas.
 
         Explicit function depending on deltas to compute gradients using AD.

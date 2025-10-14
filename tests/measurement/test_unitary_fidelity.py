@@ -102,8 +102,3 @@ def test_incompatible_shape(identity_propagation, random_unitary_matrix):
                 measurement.measure()
 
 
-def test_no_parameters(identity_propagation, random_unitary_matrix):
-    """Test the no parameter case."""
-    state = random_unitary_matrix(np.random.randint(2, 30))
-    measurement = UnitaryFidelity(identity_propagation, state, np.array([1.0]))
-    assert measurement.get_parameters() == []

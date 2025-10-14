@@ -1,7 +1,5 @@
 """Class definition for a matrix representation of a Hamiltonian."""
-
-from abc import ABC
-
+from abc import abstractmethod
 import jax.numpy as jnp
 from jax import vmap
 
@@ -10,7 +8,7 @@ from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity, Array
 
 
-class Hamiltonian(Optimizable, ABC):
+class Hamiltonian(Optimizable):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines
@@ -29,6 +27,7 @@ class Hamiltonian(Optimizable, ABC):
     def __init__(self, drives: list[Drive] | None = None):
         self._drives = [d for d in drives if d is not None] if drives else []
 
+    @abstractmethod
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of this Hamiltonian.
 
@@ -37,13 +36,8 @@ class Hamiltonian(Optimizable, ABC):
         int
             Returns the dimension of the Hilbert space of this Hamiltonian.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
-        """
-        raise NotImplementedError()
+       """
+        pass
 
     def get_matrix(self, t: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
@@ -66,6 +60,7 @@ class Hamiltonian(Optimizable, ABC):
         """
         return jnp.array(vmap(self.get_matrix_one_time)(t))
 
+    @abstractmethod
     def get_matrix_one_time(self, t: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
@@ -80,13 +75,8 @@ class Hamiltonian(Optimizable, ABC):
             Hamiltonian of shape [n, n]  with `n` as the Hilbert space
             dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     def gradient(self, t: Array) -> Array:
         """Return the gradient of the system.
@@ -114,6 +104,7 @@ class Hamiltonian(Optimizable, ABC):
         """
         return vmap(self.gradient_one_time)(t)
 
+    @abstractmethod
     def gradient_one_time(self, t: Array) -> Array:
         """Return the one-time gradient of the system.
 
@@ -136,7 +127,7 @@ class Hamiltonian(Optimizable, ABC):
             of parameters and 'n' as the Hilbert space dimension.
 
         """
-        raise NotImplementedError()
+        pass
 
     @property
     def drives(self) -> list[Drive]:
@@ -286,6 +277,7 @@ class Hamiltonian(Optimizable, ABC):
         """
         return mat.reshape((1,) + mat.shape).repeat(num, axis=0)
 
+    @abstractmethod
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """
         Return a list tuples of decay rates and collapse operators for each subsystem.
@@ -295,4 +287,4 @@ class Hamiltonian(Optimizable, ABC):
         list[Tuple[Array, Array]]
             List of collapse operators
         """
-        raise NotImplementedError()
+        pass

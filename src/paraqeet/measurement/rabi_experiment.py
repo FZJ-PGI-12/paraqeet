@@ -3,10 +3,11 @@
 import jax.numpy as jnp
 
 from paraqeet.measurement.measurement import Measurement
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity
 
 
-class RabiExperiment(Measurement):
+class RabiExperiment(Measurement, Optimizable):
     """Analytic model of the general Rabi formula.
 
     Parameters
@@ -28,7 +29,7 @@ class RabiExperiment(Measurement):
         self.__freq = Quantity(0.6 * qubit_freq, 0, 10e9)
         self.__time = Quantity(0.6e-9, 0, 10e-9)
 
-    def get_parameters(self):
+    def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters accessible in this measurement.
 
         Returns
@@ -57,3 +58,12 @@ class RabiExperiment(Measurement):
         t = self.__time.get_value()
         diff_sq = (q_freq - freq) ** 2
         return jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * t) / jnp.sqrt(1 + diff_sq / (amp**2))) ** 2
+    
+    # TODO: implement normalized scalar calculation
+    def calculate_normalized_scalar(self) -> float:
+        raise NotImplementedError("This method is not implemented for RabiExperiment.")
+    
+    # TODO: implement gradient calculation
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, jnp.ndarray]:
+        raise NotImplementedError("This method is not implemented for RabiExperiment.") 
+    

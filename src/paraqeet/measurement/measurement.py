@@ -2,11 +2,10 @@
 
 import jax.numpy as jnp
 
-from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
+from abc import ABC, abstractmethod 
 
-
-class Measurement(Optimizable):
+class Measurement(ABC):
     """Represents any observable and the process of measurement itself.
 
     The observable is measured after the propagation class
@@ -31,7 +30,7 @@ class Measurement(Optimizable):
     def measure(self) -> Array | float:
         """Measure the observable and returns the value.
 
-        Abstract Method. This function must be implemented by subclasses.
+        The default implementation of this function is to call measure_normalised_scalar().
 
         Returns
         -------
@@ -39,13 +38,9 @@ class Measurement(Optimizable):
             This abstract method must return an Array or a float when
             implemented by subclasses. Might return multiple values.
 
-        Raises
-        ------
-        NotImplementedError
-            If a subclass does not implement the measure method, raise an error.
 
         """
-        return self.measure_normalised_scalar()
+        return self.calculate_normalized_scalar()
 
     def measure_scalar(self) -> float:
         """Measure the observable.
@@ -53,9 +48,10 @@ class Measurement(Optimizable):
         Returns a scalar value. This function must be implemented by subclasses, unless identical to
         self.measure_normalised_scalar().
         """
-        return self.measure_normalised_scalar()
+        return self.calculate_normalized_scalar()
 
-    def measure_normalised_scalar(self) -> float:
+    @abstractmethod
+    def calculate_normalized_scalar(self) -> float:
         """Measure the normalised observable.
 
         Returns a single scalar value between 0 and 1, 1 representing the perfect result, required for use with most
@@ -67,9 +63,10 @@ class Measurement(Optimizable):
             Returns an Array if implemented by a subclass.
 
         """
-        raise NotImplementedError()
+        pass
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    @abstractmethod
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measureNormalised()
@@ -80,14 +77,8 @@ class Measurement(Optimizable):
         Tuple[float, Array]
             Tuple of function value as bare float and gradient of shape (n_parameters,)
 
-        Raises
-        ------
-        NotImplementedError
-            If a subclass does not implement the measureWithGradient method,
-            raise an error.
-
         """
-        raise NotImplementedError()
+        pass
 
     def restrict_subsystems(
         self,

@@ -1,6 +1,6 @@
 """Class definition of a Drive optimizable model."""
 
-from abc import ABC
+from abc import abstractmethod
 
 from jax import vmap
 from paraqeet.quantity import Array
@@ -8,13 +8,12 @@ from paraqeet.quantity import Array
 from paraqeet.optimizable import Optimizable
 
 
-class Drive(Optimizable, ABC):
+class Drive(Optimizable):
     """Represents a time-dependent drive on a subsystem.
 
     This can for example be a microwave or flux drive.
 
     """
-
     def get_matrix(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 
@@ -36,14 +35,10 @@ class Drive(Optimizable, ABC):
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
         return vmap(self.get_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
+    @abstractmethod
     def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 
@@ -62,13 +57,8 @@ class Drive(Optimizable, ABC):
         Array
             Matrix of shape [n, n]  with `n` as the Hilbert space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     def gradient(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradient of the system.
@@ -89,14 +79,11 @@ class Drive(Optimizable, ABC):
             Array of shape [t, p, n, n] with 't' as time, 'p' as number of
             parameters and 'n' as the Hilbert space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
 
         """
         return vmap(self.gradient_one_time, in_axes=(None, 0))(annihilation_operator, t)
 
+    @abstractmethod
     def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
         """Get the one-time gradient of the system.
 
@@ -116,13 +103,8 @@ class Drive(Optimizable, ABC):
             Array of shape [p, n, n] with 'p' as the number
             of parameters and 'n' as the  Hilbert space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     @staticmethod
     def _repeat(mat: Array, num: int) -> Array:

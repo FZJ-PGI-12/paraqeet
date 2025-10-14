@@ -219,7 +219,7 @@ class CMAEsOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1.0 - self._measure.measure_normalised_scalar()
+        infid = 1.0 - self._measure.calculate_normalized_scalar()
 
         if self._logger:
             self._logger.log(log, infid)

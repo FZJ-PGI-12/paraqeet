@@ -3,7 +3,6 @@
 import jax.numpy as jnp
 from paraqeet.quantity import Array
 
-from paraqeet.quantity import Quantity
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
 
@@ -35,17 +34,6 @@ class ConstantMeasurement(Measurement):
         self.__propagation = propagation
         self.__value = value
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get the system parameters.
-
-        Parameters
-        ----------
-        list[Quantity]
-            List of parameters of the system.
-
-        """
-        return []
-
     def measure(self) -> Array:
         """Get the measurement value.
 
@@ -57,7 +45,13 @@ class ConstantMeasurement(Measurement):
         """
         return self.__value
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    # TODO: implement calculate_normalized_scalar method
+    def calculate_normalized_scalar(self) -> float:
+        raise NotImplementedError("This method is not implemented for ConstantMeasurement.")
+    
+    # TODO: the signature of this method does not match the one in the base class Measurement
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Get measurement value and gradient"""
         grad = jnp.array([self.__value, 0.0])
         return self.__value, grad
+    

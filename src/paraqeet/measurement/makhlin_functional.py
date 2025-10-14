@@ -6,7 +6,6 @@ from paraqeet.quantity import Array
 from paraqeet.exceptions import ConfigurationException, IncompatibleLayersException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity
 
 
 class MakhlinFunctional(Measurement):
@@ -44,18 +43,8 @@ class MakhlinFunctional(Measurement):
         self.__propagation = propagation
         self.__ideal_invariants = ideal_invariants
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get the parameters of the system.
 
-        Returns
-        -------
-        list[Quantity]
-            Returns the list of parameters of the system.
-
-        """
-        return []
-
-    def measure(self) -> Array:
+    def measure(self) -> Array | float:
         """Measure distance of the propagator to a perfect entangler.
 
         Returns
@@ -116,3 +105,13 @@ class MakhlinFunctional(Measurement):
             jnp.imag(tr_sq) / 16,
             jnp.real(tr_sq - tr / det) / 4,
         )
+    
+
+    # TODO: implement normalized scalar calculation
+    def calculate_normalized_scalar(self) -> float:
+        raise NotImplementedError("This method is not implemented for MakhlinFunctional.")
+    
+    # TODO: implement gradient calculation
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+        raise NotImplementedError("This method is not implemented for MakhlinFunctional.")
+    

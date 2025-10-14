@@ -46,7 +46,7 @@ class GOATOverGRAPE(Measurement):
         self.__gen._update_inphase_and_outofphase()
         return grape.measure()
 
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self) -> float:
         """Passthrough the measurement.
 
         Returns
@@ -57,9 +57,9 @@ class GOATOverGRAPE(Measurement):
         """
         grape = self.__measurement
         self.__gen._update_inphase_and_outofphase()
-        return grape.measure_normalised_scalar()
+        return grape.calculate_normalized_scalar()
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 
@@ -74,6 +74,6 @@ class GOATOverGRAPE(Measurement):
         grape = self.__measurement
         self.__gen._update_inphase_and_outofphase()
         control_gradients = self.__gen._get_partial_derivatives()
-        function_value, grape_gradients = grape.measure_with_gradient()
+        function_value, grape_gradients = grape.calculate_normalized_scalar_and_gradient()
         goat_gradients = control_gradients.T @ grape_gradients
         return function_value, goat_gradients

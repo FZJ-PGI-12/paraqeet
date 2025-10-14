@@ -1,14 +1,13 @@
 """Class definition of the Propagation model."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from paraqeet.quantity import Array
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.optimizable import Optimizable
 
 
-class Propagation(Optimizable):
+class Propagation(ABC):
     """Abstract base class for any implementation of the equations of motion.
 
     The right-hand side of the equation is provided by the underlying model.
@@ -25,6 +24,7 @@ class Propagation(Optimizable):
     def __init__(self, model: EquationOfMotion | None):
         self._model = model
 
+    @abstractmethod
     def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
 
@@ -36,13 +36,8 @@ class Propagation(Optimizable):
         state: Array
             Parameter value to be set as the initial state for the propagation.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def propagate(self, time: Array) -> Array:
@@ -63,14 +58,11 @@ class Propagation(Optimizable):
         Array
             Returns the solution of the equations of motion.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute this part of the chain rule for a gradient trace.
 
@@ -90,10 +82,6 @@ class Propagation(Optimizable):
         tuple[Array Array]
             Computes part of the chain rune for a gradient trace.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass

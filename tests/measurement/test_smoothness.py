@@ -42,7 +42,7 @@ def test_smoothness_init(pwc_gen):
 def test_smoothness_measure(pwc_gen):
     smoothness = Smoothness(pwc_generator=pwc_gen)
     expected_measured_value = 0.9999547789963114
-    assert np.abs(smoothness.measure_normalised_scalar() - expected_measured_value) < 1e-8
+    assert np.abs(smoothness.calculate_normalized_scalar() - expected_measured_value) < 1e-8
 
 
 def test_smoothness_gradient(pwc_gen, another_tone):
@@ -57,7 +57,7 @@ def test_smoothness_gradient(pwc_gen, another_tone):
     assert len(optmap.get_all_parameters()) == len(another_tone.optimizable_parameters) + len(
         pwc_gen.optimizable_parameters
     )
-    _, gradient = smoothness.measure_with_gradient()
+    _, gradient = smoothness.calculate_normalized_scalar_and_gradient()
     num_opt_params = 0
     for param in optmap.get_all_parameters():
         num_opt_params += param.get_value().shape[0]

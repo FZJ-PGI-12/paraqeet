@@ -143,7 +143,7 @@ class BayesianOptimizer(Optimizer):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        fidelity = self._measure.measure_normalised_scalar()
+        fidelity = self._measure.calculate_normalized_scalar()
 
         if self._logger:
             self._logger.log(log, fidelity)

@@ -1,11 +1,11 @@
 """Class definition for the Optimizable model."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from paraqeet.quantity import Quantity
 
 
-class Optimizable:
+class Optimizable(ABC):
     """Optimizable parameter model.
 
     This interface must be implemented by any class that provides optimizable
@@ -38,7 +38,7 @@ class Optimizable:
             Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass
 
     @property
     def name(self) -> str | None:

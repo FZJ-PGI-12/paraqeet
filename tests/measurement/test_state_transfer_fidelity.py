@@ -36,9 +36,9 @@ def test_limits_vectors(random_state):
             assert 0.0 <= m
             m = measurement.measure_scalar()
             assert 0.0 <= m
-            m = measurement.measure_normalised_scalar()
+            m = measurement.calculate_normalized_scalar()
             assert 0.0 <= m <= 1.0
-            m, grad = measurement.measure_with_gradient()
+            m, grad = measurement.calculate_normalized_scalar_and_gradient()
             assert 0.0 <= m
 
 
@@ -110,16 +110,3 @@ def test_incompatible_shape(identity_propagation, random_state):
             with pytest.raises(Exception):
                 fid_AD.measure()
 
-
-def test_no_parameters(identity_propagation, random_state):
-    """Test the no parameter case."""
-    state = random_state(np.random.randint(2, 30))
-    measurement = StateTransferFidelity(identity_propagation, state, state, np.array([1.0]))
-    assert measurement.get_parameters() == []
-    _, grad = measurement.measure_with_gradient()
-    assert len(grad) == 0
-
-    measurement = StateTransferFidelityAD(identity_propagation, state, state, np.array([1.0]))
-    assert measurement.get_parameters() == []
-    _, grad = measurement.measure_with_gradient()
-    assert len(grad) == 0

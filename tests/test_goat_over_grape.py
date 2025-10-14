@@ -79,6 +79,20 @@ class SpinRWA(Hamiltonian):
     def gradient(self, t):
         """Gradient is just the drive matrix."""
         return self._drives[0].gradient(self.sigma_p, t)
+    
+    # TODO: implement dimension-method from Hamiltonian
+    def dimension(self) -> int:
+        raise NotImplementedError()
+    
+    #  TODO: implement get_collapseops method from Hamiltonian
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
+        raise NotImplementedError()
+
+    #  TODO: implement get_parameters method from Optimizable
+    def get_parameters(self):
+        raise NotImplementedError()
+    
+
 
 
 @pytest.fixture
@@ -144,9 +158,9 @@ def opt_grad(tone, fid, gen):
 def test_can_measure(tone, fid, gen):
     fid = GOATOverGRAPE(fid, gen)
     assert 0 <= fid.measure()
-    assert 0 <= fid.measure_normalised_scalar() <= 1
+    assert 0 <= fid.calculate_normalized_scalar() <= 1
 
-    value, grad = fid.measure_with_gradient()
+    value, grad = fid.calculate_normalized_scalar_and_gradient()
     assert 0 <= value
     testing.assert_array_less(np.zeros_like(grad), grad)
 

@@ -147,6 +147,7 @@ class CompositeHamiltonian(Hamiltonian):
         """
         return vmap(self._gradient_one_time)(t)
 
+    # TODO: is this method supposed to override the one in the base class Hamiltonian? If so, why is it protected?
     def _gradient_one_time(self, t: Array) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
@@ -234,3 +235,8 @@ class CompositeHamiltonian(Hamiltonian):
             for rate, col_op in rates_and_cols:
                 all_collapse_ops.append((rate, self.__tensor_product_with_identity([col_op], [n])))
         return all_collapse_ops
+
+
+    # TODO: implement gradient_one_time method from the base class Hamiltonian
+    def gradient_one_time(self, t):
+        raise NotImplementedError("This method is not implemented yet!")

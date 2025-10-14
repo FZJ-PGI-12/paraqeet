@@ -96,9 +96,6 @@ class WeightedSumGoal(Measurement):
         """Returns the list of measurement included in the sum of square difference cost function"""
         return self.__measurements_in_sum_of_squares
 
-    def get_parameters(self) -> list[Quantity]:
-        """Returns an empty list."""
-        return []
 
     def measure(self) -> Array | float:
         """Sum of plain weighted measurements.
@@ -123,7 +120,7 @@ class WeightedSumGoal(Measurement):
             sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
         return sum_meas
 
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self) -> float:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -132,7 +129,7 @@ class WeightedSumGoal(Measurement):
             Returns the normalized weighted sum.
 
         """
-        values = [m.measure_normalised_scalar() for m in self.__measurements]
+        values = [m.calculate_normalized_scalar() for m in self.__measurements]
         sum_meas = 0.0
         for ii, w in enumerate(self.__weights):
             sum_meas += w * values[ii]
@@ -146,7 +143,7 @@ class WeightedSumGoal(Measurement):
             sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
         return float(sum_meas)
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns
@@ -157,7 +154,7 @@ class WeightedSumGoal(Measurement):
             Returns the sum of gradients.
 
         """
-        values_and_gradients = [m.measure_with_gradient() for m in self.__measurements]
+        values_and_gradients = [m.calculate_normalized_scalar_and_gradient() for m in self.__measurements]
         sum_meas = jnp.array(0)
         sum_grads = jnp.zeros_like(values_and_gradients[0][1])
         for ii, w in enumerate(self.__weights):

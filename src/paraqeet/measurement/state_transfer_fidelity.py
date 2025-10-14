@@ -74,7 +74,7 @@ class StateTransferFidelity(Measurement):
     def _overlap_dm(target_state, final_state):
         return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self) -> float:
         """Measure overlap between initial and target state.
 
         Returns
@@ -89,7 +89,7 @@ class StateTransferFidelity(Measurement):
         f = self._overlap(self._target_state, final_state)
         return self._fid(f)
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -108,16 +108,6 @@ class StateTransferFidelity(Measurement):
             g = self._overlap(self._target_state, dg_dp)
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
         return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
-
-    def get_parameters(self) -> list[Quantity]:
-        """Get the parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            List of parameters of the system.
-        """
-        return []
 
 
 class StateTransferFidelityAD(StateTransferFidelity):
@@ -149,7 +139,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         super().__init__(propagation, initial_state, target_state, times)
         self.__gradient_function = None
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -198,7 +188,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     _propagation: StatePropagation
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns

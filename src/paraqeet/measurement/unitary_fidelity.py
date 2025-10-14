@@ -54,16 +54,6 @@ class UnitaryFidelity(Measurement):
         self.__basis_states = basis_states
         self.set_ideal_gate(gate)
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns the parameters of the system.
-
-        """
-        return []
 
     @staticmethod
     def __fid(overlaps: Array) -> float:
@@ -82,7 +72,7 @@ class UnitaryFidelity(Measurement):
         """
         return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self) -> float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -98,7 +88,7 @@ class UnitaryFidelity(Measurement):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self.__fid(jnp.asarray(overlaps))
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns

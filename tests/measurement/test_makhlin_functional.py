@@ -101,12 +101,6 @@ def test_incompatible_shape():
             _ = measurement.measure()
 
 
-def test_parameters():
-    propagation = RandomPropagation(4, True)
-    measurement = MakhlinFunctional(propagation, np.array([1.0]))
-    assert len(measurement.get_parameters()) == 0
-
-
 def test_measurement_needs_time():
     propagation = RandomPropagation(4, True)
     measurement = MakhlinFunctional(propagation, None)

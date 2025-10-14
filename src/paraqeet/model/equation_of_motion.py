@@ -6,7 +6,6 @@ from paraqeet.quantity import Array
 
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Quantity
 
 
 class EquationOfMotion(Optimizable):
@@ -27,23 +26,7 @@ class EquationOfMotion(Optimizable):
 
     def __init__(self, hamiltonian: Hamiltonian):
         self._hamiltonian = hamiltonian
-
-    @abstractmethod
-    def get_parameters(self) -> list[Quantity]:
-        """Abstract method to get parameters of the model.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns the list of parameters as Quantities.
-
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
-        """
-        raise NotImplementedError()
+        
 
     def get_right_hand_side(self, time: Array, state: Array) -> Array:
         """Return the right-hand side of the equations of motion.
@@ -85,7 +68,7 @@ class EquationOfMotion(Optimizable):
             Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def gradient(self, t: Array) -> Array:
@@ -102,4 +85,4 @@ class EquationOfMotion(Optimizable):
             Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass
