@@ -1,6 +1,6 @@
 """Data class definition for the optimization result object."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
@@ -79,7 +79,7 @@ class OptimizationResult:
         return str(as_dict)
 
 
-class Optimizer:
+class Optimizer(ABC):
     """Base class for all classes that implement an optimization algorithm.
 
     The class accepts a list of optimizable parameters from the lower layers
@@ -175,13 +175,8 @@ class Optimizer:
             Result of optimization via the OptimizationResult object.
             (status, value, iterations and the raw result)
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     def _build_optimizable_index_list(self):
         """Build the optimizable index list.
