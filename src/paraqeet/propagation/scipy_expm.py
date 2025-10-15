@@ -11,7 +11,6 @@ from jax.scipy.linalg import expm
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity
 
 import jax
 
@@ -49,7 +48,6 @@ class ScipyExpm(StatePropagation):
     def resolution(self, res: float):
         """Set the resolution of the propagation."""
         self._res = res
-
 
     def _construct_times(self, time, ti):
         """Construct one-dimensional vector of time.
@@ -277,7 +275,7 @@ class ScipyExpm(StatePropagation):
             dim = int(jnp.sqrt(eom.shape[-1]))
             psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
         return psis_arr
-    
+
     # TODO: implement gradient method
     def gradient(self, time: Array) -> tuple[Array, Array]:
         """Return the gradient of the system.
@@ -295,5 +293,5 @@ class ScipyExpm(StatePropagation):
 
         """
         raise NotImplementedError("Gradient method is not yet implemented for ScipyExpm propagation.")
-    
+
     # TODO: implement get_collapseops method

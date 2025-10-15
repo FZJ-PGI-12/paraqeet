@@ -14,6 +14,7 @@ class Drive(Optimizable):
     This can for example be a microwave or flux drive.
 
     """
+
     def get_matrix(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 

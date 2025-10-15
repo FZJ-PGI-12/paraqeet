@@ -100,5 +100,3 @@ def test_incompatible_shape(identity_propagation, random_unitary_matrix):
             measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
             with pytest.raises(Exception):
                 measurement.measure()
-
-

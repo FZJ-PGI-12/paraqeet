@@ -58,12 +58,11 @@ class RabiExperiment(Measurement, Optimizable):
         t = self.__time.get_value()
         diff_sq = (q_freq - freq) ** 2
         return jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * t) / jnp.sqrt(1 + diff_sq / (amp**2))) ** 2
-    
+
     # TODO: implement normalized scalar calculation
     def calculate_normalized_scalar(self) -> float:
         raise NotImplementedError("This method is not implemented for RabiExperiment.")
-    
+
     # TODO: implement gradient calculation
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, jnp.ndarray]:
-        raise NotImplementedError("This method is not implemented for RabiExperiment.") 
-    
+        raise NotImplementedError("This method is not implemented for RabiExperiment.")

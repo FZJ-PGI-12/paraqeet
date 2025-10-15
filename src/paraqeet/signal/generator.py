@@ -34,7 +34,7 @@ class Generator(Optimizable):
             Returns the scalar signal vector.
 
         """
-        pass 
+        pass
 
     @abstractmethod
     def generate_signal_gradient(self, times: Array) -> Array:

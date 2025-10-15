@@ -2,7 +2,6 @@
 
 import numpy as np
 from paraqeet.quantity import Array
-from paraqeet.quantity import Quantity
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
 
@@ -25,7 +24,6 @@ class RandomMeasurement(Measurement):
         super().__init__(times=times)
         self.__propagation = propagation
 
-
     def calculate_normalized_scalar(self) -> float:
         """Return the result of measurement.
 
@@ -36,7 +34,7 @@ class RandomMeasurement(Measurement):
 
         """
         return float(np.random.random())
-    
+
     # TODO: implement gradient
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         raise NotImplementedError("Gradient not implemented for RandomMeasurement")

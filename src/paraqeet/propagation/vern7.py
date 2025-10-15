@@ -6,7 +6,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.quantity import Quantity, Array
+from paraqeet.quantity import Array
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.state_propagation import StatePropagation
 

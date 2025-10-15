@@ -48,10 +48,9 @@ class ConstantMeasurement(Measurement):
     # TODO: implement calculate_normalized_scalar method
     def calculate_normalized_scalar(self) -> float:
         raise NotImplementedError("This method is not implemented for ConstantMeasurement.")
-    
+
     # TODO: the signature of this method does not match the one in the base class Measurement
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Get measurement value and gradient"""
         grad = jnp.array([self.__value, 0.0])
         return self.__value, grad
-    

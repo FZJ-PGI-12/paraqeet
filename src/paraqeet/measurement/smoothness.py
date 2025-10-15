@@ -7,7 +7,7 @@ References
 
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array
 
 import jax
 import jax.numpy as jnp

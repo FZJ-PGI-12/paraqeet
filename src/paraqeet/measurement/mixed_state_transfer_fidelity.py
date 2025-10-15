@@ -7,7 +7,6 @@ import jax.scipy.linalg as sclin
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity
 
 
 class MixedStateTransferFidelity(Measurement):
@@ -47,7 +46,6 @@ class MixedStateTransferFidelity(Measurement):
         # store the sqrt of the density matrix to simplify the measurement
         self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
 
-
     # TODO: missing type hinting
     def measure(self):
         """Measure overlap between initial and final state of density matrices.
@@ -75,13 +73,14 @@ class MixedStateTransferFidelity(Measurement):
         # density matrix
         product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
         return jnp.abs(jnp.trace(sclin.sqrtm(product))) ** 2
-    
+
     #  TODO: implement normalized scalar calculation
     def calculate_normalized_scalar(self) -> float:
+        """Calculate the normalized scalar value of the measurement."""
         raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")
 
     #  TODO: implement gradient calculation
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+        """Calculate the normalized scalar value and gradient of the measurement.
+        """
         raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")
-    
-    

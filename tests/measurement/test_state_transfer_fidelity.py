@@ -109,4 +109,3 @@ def test_incompatible_shape(identity_propagation, random_state):
                 fid.measure()
             with pytest.raises(Exception):
                 fid_AD.measure()
-

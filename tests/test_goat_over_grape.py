@@ -79,11 +79,11 @@ class SpinRWA(Hamiltonian):
     def gradient(self, t):
         """Gradient is just the drive matrix."""
         return self._drives[0].gradient(self.sigma_p, t)
-    
+
     # TODO: implement dimension-method from Hamiltonian
     def dimension(self) -> int:
         raise NotImplementedError()
-    
+
     #  TODO: implement get_collapseops method from Hamiltonian
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         raise NotImplementedError()
@@ -91,8 +91,6 @@ class SpinRWA(Hamiltonian):
     #  TODO: implement get_parameters method from Optimizable
     def get_parameters(self):
         raise NotImplementedError()
-    
-
 
 
 @pytest.fixture

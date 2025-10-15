@@ -1,4 +1,5 @@
 """Class definition for a matrix representation of a Hamiltonian."""
+
 from abc import abstractmethod
 import jax.numpy as jnp
 from jax import vmap
@@ -36,7 +37,7 @@ class Hamiltonian(Optimizable):
         int
             Returns the dimension of the Hilbert space of this Hamiltonian.
 
-       """
+        """
         pass
 
     def get_matrix(self, t: Array) -> Array:

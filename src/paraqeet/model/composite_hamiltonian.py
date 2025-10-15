@@ -236,7 +236,6 @@ class CompositeHamiltonian(Hamiltonian):
                 all_collapse_ops.append((rate, self.__tensor_product_with_identity([col_op], [n])))
         return all_collapse_ops
 
-
     # TODO: implement gradient_one_time method from the base class Hamiltonian
     def gradient_one_time(self, t):
         raise NotImplementedError("This method is not implemented yet!")

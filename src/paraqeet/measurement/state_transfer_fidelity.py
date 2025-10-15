@@ -4,7 +4,7 @@ import warnings
 from collections.abc import Callable
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array
 from jax import grad, jit
 
 from paraqeet.measurement.measurement import Measurement

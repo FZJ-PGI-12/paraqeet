@@ -3,7 +3,8 @@
 import jax.numpy as jnp
 
 from paraqeet.quantity import Array
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod
+
 
 class Measurement(ABC):
     """Represents any observable and the process of measurement itself.

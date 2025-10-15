@@ -6,7 +6,6 @@ from paraqeet.quantity import Array
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.measurement import Measurement
-from paraqeet.quantity import Quantity
 import itertools
 
 
@@ -95,7 +94,6 @@ class WeightedSumGoal(Measurement):
     def measurements_in_sum_of_squares(self) -> list[Measurement]:
         """Returns the list of measurement included in the sum of square difference cost function"""
         return self.__measurements_in_sum_of_squares
-
 
     def measure(self) -> Array | float:
         """Sum of plain weighted measurements.

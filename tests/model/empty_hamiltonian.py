@@ -41,19 +41,19 @@ class EmptyHamiltonian(Hamiltonian):
     def get_parameters(self) -> list[Quantity]:
         """ """
         return []
-    
+
     # TODO: implement abstract methods from Hamiltonian
     def dimension(self) -> int:
         raise NotImplementedError("Method not implemented yet.")
-    
+
     # TODO: implement abstract methods from Hamiltonian
     def get_matrix_one_time(self, t: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
-    
+
     # TODO: implement abstract methods from Hamiltonian
     def gradient_one_time(self, t: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
-    
+
     # TODO: implement abstract methods from Hamiltonian
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         raise NotImplementedError("Method not implemented yet.")

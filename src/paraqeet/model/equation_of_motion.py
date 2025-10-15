@@ -26,7 +26,6 @@ class EquationOfMotion(Optimizable):
 
     def __init__(self, hamiltonian: Hamiltonian):
         self._hamiltonian = hamiltonian
-        
 
     def get_right_hand_side(self, time: Array, state: Array) -> Array:
         """Return the right-hand side of the equations of motion.

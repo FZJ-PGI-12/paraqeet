@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity, Array
+from paraqeet.quantity import Array
 
 import jax
 
@@ -53,7 +53,6 @@ class UnitaryFidelity(Measurement):
             basis_states = jnp.eye(gate.shape[0])
         self.__basis_states = basis_states
         self.set_ideal_gate(gate)
-
 
     @staticmethod
     def __fid(overlaps: Array) -> float:

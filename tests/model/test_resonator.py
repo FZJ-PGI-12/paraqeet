@@ -83,7 +83,7 @@ def expm(open_resonator):
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    prop = ScipyEx     pm(open_resonator, res=100e9)
+    prop = ScipyExpm(open_resonator, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
