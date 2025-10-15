@@ -1,10 +1,12 @@
 """Class definition of a closed model."""
 
 from collections.abc import Callable
+
 import jax.numpy as jnp
-from paraqeet.quantity import Quantity, Array
-from paraqeet.model.hamiltonian import Hamiltonian
+
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.quantity import Array, Quantity
 
 
 class ClosedSystem(EquationOfMotion):

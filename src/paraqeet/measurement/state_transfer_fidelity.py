@@ -3,14 +3,13 @@
 import warnings
 from collections.abc import Callable
 
+import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 from jax import grad, jit
 
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.state_propagation import StatePropagation
-
-import jax
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 

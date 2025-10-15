@@ -4,9 +4,9 @@ import jax.numpy as jnp
 from jax import jit, vmap
 from jax.scipy.special import erf
 
-from paraqeet.quantity import Quantity, Array
-from paraqeet.signal.waveform import Waveform
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
+from paraqeet.signal.waveform import Waveform
 
 
 class PWCGenerator(Generator):

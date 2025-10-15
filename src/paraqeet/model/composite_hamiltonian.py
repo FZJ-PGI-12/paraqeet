@@ -2,12 +2,13 @@
 
 import jax
 import jax.numpy as jnp
-from jax import vmap
 import numpy as np
+from jax import vmap
+
+from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import Coupling
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity, Array
-from paraqeet.exceptions import IncompatibleLayersException
+from paraqeet.quantity import Array, Quantity
 
 
 class CompositeHamiltonian(Hamiltonian):
@@ -238,4 +239,5 @@ class CompositeHamiltonian(Hamiltonian):
 
     # TODO: implement gradient_one_time method from the base class Hamiltonian
     def gradient_one_time(self, t):
+        """Calculate the gradient at one time point."""
         raise NotImplementedError("This method is not implemented yet!")

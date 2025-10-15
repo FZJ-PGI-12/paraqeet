@@ -2,8 +2,8 @@
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.open_system import OpenSystem
-from paraqeet.quantity import Array
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
 class StatePropagation(Propagation):

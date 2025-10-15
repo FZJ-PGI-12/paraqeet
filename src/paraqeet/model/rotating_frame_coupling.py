@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 from paraqeet.model.coupling import Coupling
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity, Array
+from paraqeet.quantity import Array, Quantity
 
 
 class RotatingFrameCoupling(Coupling):

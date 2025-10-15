@@ -1,14 +1,14 @@
 """Test the random propagation model."""
 
 from functools import partial
-from jax import jit
-import numpy as np
+
 import jax.numpy as jnp
+import numpy as np
+from jax import jit
 from scipy.stats import unitary_group
-from paraqeet.quantity import Array
 
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 

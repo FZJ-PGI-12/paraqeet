@@ -1,12 +1,12 @@
 """Class definition for a mixed state transfer fidelity model."""
 
-from paraqeet.quantity import Array
 import jax.numpy as jnp
 import jax.scipy.linalg as sclin
 
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
 class MixedStateTransferFidelity(Measurement):
@@ -81,6 +81,5 @@ class MixedStateTransferFidelity(Measurement):
 
     #  TODO: implement gradient calculation
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
-        """Calculate the normalized scalar value and gradient of the measurement.
-        """
+        """Calculate the normalized scalar value and gradient of the measurement."""
         raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")

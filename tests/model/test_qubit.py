@@ -1,14 +1,14 @@
 """Test the Qubit model."""
 
-import pytest
 import numpy as np
+import pytest
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.quantity import Quantity
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.qubit import Qubit
-from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 FREQ = 4.8e9 * 2 * np.pi
 LEN_SIG = 1001

@@ -1,15 +1,15 @@
 """Test the composite Hamiltonian model."""
 
-import pytest
 import numpy as np
+import pytest
 
-from paraqeet.quantity import Quantity
+from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
 from paraqeet.model.coupling import Coupling
-from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
-from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.transmon import Transmon
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 LEN_SIG = 101
 

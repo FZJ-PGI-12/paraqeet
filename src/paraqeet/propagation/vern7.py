@@ -2,17 +2,16 @@
 
 from functools import partial
 
-import numpy as np
+import jax
 import jax.numpy as jnp
+import numpy as np
+from jax import jit
+from jax.lax import dynamic_slice_in_dim, scan
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.quantity import Array
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.state_propagation import StatePropagation
-
-import jax
-from jax import jit
-from jax.lax import scan, dynamic_slice_in_dim
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 

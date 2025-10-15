@@ -1,15 +1,16 @@
 """Test the weighted sum goal."""
 
-from tests.propagation.identity_propagation import IdentityPropagation
-from tests.measurement.constant_measurement import ConstantMeasurement
+import itertools
 
 import numpy as np
 import pytest
+
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
 from paraqeet.quantity import Array
-import itertools
+from tests.measurement.constant_measurement import ConstantMeasurement
+from tests.propagation.identity_propagation import IdentityPropagation
 
 
 @pytest.fixture

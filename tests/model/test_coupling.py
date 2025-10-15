@@ -1,11 +1,11 @@
 """Test the coupling model."""
 
-import pytest
 import numpy as np
+import pytest
 
-from paraqeet.quantity import Quantity
 from paraqeet.model.coupling import Coupling
 from paraqeet.model.transmon import Transmon
+from paraqeet.quantity import Quantity
 
 COUPLINGSTR = 25e6 * 2 * np.pi
 LEN_SIG = 101

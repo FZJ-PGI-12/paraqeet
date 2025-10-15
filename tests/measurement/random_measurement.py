@@ -1,9 +1,10 @@
 """Class definition of a random measurement model for testing."""
 
 import numpy as np
-from paraqeet.quantity import Array
+
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
 class RandomMeasurement(Measurement):

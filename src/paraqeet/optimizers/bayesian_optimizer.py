@@ -2,10 +2,10 @@
 
 from bayes_opt import BayesianOptimization
 
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
-from paraqeet.exceptions import ConfigurationException
 
 
 class BayesianOptimizer(Optimizer):

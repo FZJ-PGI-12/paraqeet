@@ -2,13 +2,12 @@
 
 from functools import partial
 
-import numpy as np
 import jax.numpy as jnp
-
-from paraqeet.quantity import Array
+import numpy as np
 from jax import jit
 from jax.scipy.special import erf
 
+from paraqeet.quantity import Array
 from paraqeet.signal.envelopes import Envelope
 
 

@@ -3,10 +3,9 @@
 import pytest
 from numpy.testing import assert_almost_equal
 
-from paraqeet.optimization_map import OptimizationMap
 from paraqeet.measurement.rabi_experiment import RabiExperiment
+from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-
 
 FREQ = 4.8e9
 RABI_NAME = "Analytic Rabi Model"

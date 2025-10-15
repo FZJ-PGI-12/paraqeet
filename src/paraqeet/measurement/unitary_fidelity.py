@@ -1,12 +1,11 @@
 """Class definition of the unitary fidelity model."""
 
+import jax
 import jax.numpy as jnp
 
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
-
-import jax
 
 jax.config.update("jax_enable_x64", True)
 

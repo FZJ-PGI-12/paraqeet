@@ -2,10 +2,9 @@
 
 from abc import abstractmethod
 
-from paraqeet.quantity import Array
-
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.optimizable import Optimizable
+from paraqeet.quantity import Array
 
 
 class EquationOfMotion(Optimizable):

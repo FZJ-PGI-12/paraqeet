@@ -5,23 +5,24 @@ from functools import partial
 
 import jax.numpy as jnp
 import numpy as np
+import numpy.testing as testing
+import pytest
 from jax import jit
 from jax.scipy.special import erf
-import pytest
-import numpy.testing as testing
 
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.measurement.state_transfer_fidelity import (
+    StateTransferFidelityGRAPE,
+)
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraqeet.optimization_map import OptimizationMap
-from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
-
 
 T_FINAL = 20e-9
 TLIST = jnp.linspace(0, T_FINAL, 26)

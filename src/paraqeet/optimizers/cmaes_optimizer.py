@@ -159,7 +159,7 @@ class CMAEsOptimizer(Optimizer):
                 sigmas.append(es.sigma)
                 if iter > sigma_conv:
                     if all(sigmas[-(i + 1)] < sigmas[-(i + 2)] for i in range(sigma_conv - 1)):
-                        print(f"ParaQeet:STATUS: Shrunk cloud for {sigma_conv} steps. " "Switching to gradients.")
+                        print(f"ParaQeet:STATUS: Shrunk cloud for {sigma_conv} steps. Switching to gradients.")
                         break
 
             if sigma_check:

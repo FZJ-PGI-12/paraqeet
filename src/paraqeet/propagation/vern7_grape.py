@@ -1,16 +1,16 @@
 """Class definition of the 7th-order Verner ODE solver for GRAPE."""
 
 from functools import partial
-from jax import jit, vmap
-from jax.lax import scan, dynamic_slice_in_dim
-import jax.numpy as jnp
 
-from paraqeet.quantity import Array
+import jax
+import jax.numpy as jnp
+from jax import jit, vmap
+from jax.lax import dynamic_slice_in_dim, scan
+
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.vern7 import Vern7
-
-import jax
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 

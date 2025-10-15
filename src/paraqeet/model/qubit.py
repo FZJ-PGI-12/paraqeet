@@ -3,11 +3,9 @@
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.quantity import Array
-
 from paraqeet.model.drive import Drive
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 
 
 class Qubit(Hamiltonian):

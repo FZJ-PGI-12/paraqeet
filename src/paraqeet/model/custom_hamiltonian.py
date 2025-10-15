@@ -2,12 +2,13 @@
 
 from collections.abc import Callable
 from typing import Any
-from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Array, Quantity
 
 import jax.numpy as jnp
 from jax import vmap
+
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.quantity import Array, Quantity
 
 
 class CustomHamiltonian(Hamiltonian):

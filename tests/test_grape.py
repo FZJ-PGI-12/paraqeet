@@ -1,20 +1,22 @@
 """Testing the GRAPE optimization of a TLS system."""
 
-import pytest
 import numpy as np
+import pytest
 
+from paraqeet.measurement.state_transfer_fidelity import (
+    StateTransferFidelityGRAPE,
+)
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.qubit import Qubit
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.vern7_grape import Vern7GRAPE
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import GaussEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.model.qubit import Qubit
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.open_system import OpenSystem
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.optimization_map import OptimizationMap
-from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.vern7_grape import Vern7GRAPE
 
 T_FINAL = 20e-9
 FREQ = 1e6

@@ -1,13 +1,14 @@
 """Class definition of an open system."""
 
 from collections.abc import Callable
-from paraqeet.quantity import Array, Quantity
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.hamiltonian import Hamiltonian
 
 import jax.numpy as jnp
-from jax import vmap, jit
+from jax import jit, vmap
 from jax.experimental.sparse import BCOO
+
+from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.quantity import Array, Quantity
 
 
 class OpenSystem(EquationOfMotion):

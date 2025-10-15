@@ -2,12 +2,11 @@
 
 import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 from jax import vmap
 
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 

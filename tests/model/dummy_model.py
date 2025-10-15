@@ -1,10 +1,8 @@
 """Class definition of the Dummy model for testing."""
 
-from paraqeet.quantity import Array
-
-from paraqeet.quantity import Quantity
-from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.quantity import Array, Quantity
 
 
 class DummyEquationsOfMotion(EquationOfMotion):

@@ -1,8 +1,7 @@
 """Testing the configuration functions."""
 
-import pytest
-
 import numpy as np
+import pytest
 from scipy.stats import unitary_group
 
 from paraqeet.quantity import Quantity

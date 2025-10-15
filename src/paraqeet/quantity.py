@@ -7,9 +7,9 @@ from collections.abc import Callable
 from sys import float_info
 from typing import Self
 
-import numpy as np
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from paraqeet.exceptions import IncompatibleQuantityException
 
@@ -226,7 +226,7 @@ class Quantity:
         if unit is None:
             if not all(qty.get_unit() == quantities[0].get_unit() for qty in quantities):
                 raise ValueError(
-                    f"All quantities in creation on {name} " f"must have the same unit if no unit is specified."
+                    f"All quantities in creation on {name} must have the same unit if no unit is specified."
                 )
             unit = quantities[0].get_unit()
 

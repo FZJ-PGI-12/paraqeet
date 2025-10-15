@@ -1,9 +1,8 @@
 """Class definition for the Sinusoidal generator model."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
 from paraqeet.signal.waveform import LocalOscillator, Waveform
 

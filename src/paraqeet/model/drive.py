@@ -3,9 +3,9 @@
 from abc import abstractmethod
 
 from jax import vmap
-from paraqeet.quantity import Array
 
 from paraqeet.optimizable import Optimizable
+from paraqeet.quantity import Array
 
 
 class Drive(Optimizable):

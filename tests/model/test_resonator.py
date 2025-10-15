@@ -1,16 +1,16 @@
 """Test the Resonator model."""
 
-import pytest
 import numpy as np
+import pytest
 
+from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.resonator import Resonator
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
-from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.resonator import Resonator
-from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 DIMS = 3
 FREQ = 4.8e9 * 2 * np.pi

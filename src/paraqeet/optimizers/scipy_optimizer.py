@@ -2,9 +2,9 @@
 
 from collections.abc import Callable
 
-
-from scipy.optimize import minimize
 import numpy as np
+from scipy.optimize import minimize
+
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer

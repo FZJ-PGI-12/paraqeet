@@ -1,12 +1,11 @@
 """Test the Generator Drive model."""
 
-import pytest
 import numpy as np
+import pytest
 
+from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
-from paraqeet.model.drive_operator import DriveOperator
-
 
 LEN_SIG = 101
 

@@ -1,24 +1,21 @@
 """Testing the qubit optimizations."""
 
-import pytest
 import numpy as np
+import pytest
 
 from paraqeet.logger import Logger
-from paraqeet.optimization_map import OptimizationMap
-from paraqeet.quantity import Quantity
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.qubit import Qubit
-from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
+from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
-
-from paraqeet.model.closed_system import ClosedSystem
-
-from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
+from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
+from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import ConstantEnvelope
-
+from paraqeet.signal.iq_mixer import IQMixer
 
 TONE = ConstantEnvelope()
 GEN = IQMixer(envelopes=[TONE])

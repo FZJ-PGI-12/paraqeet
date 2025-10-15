@@ -5,16 +5,14 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any
 
+import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array
-from paraqeet.exceptions import ConfigurationException
 from jax import grad, jit, vmap
 from jax.scipy.special import erf
 
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Quantity
-
-import jax
+from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
@@ -79,10 +77,7 @@ class Waveform(Optimizable):
 
     @abstractmethod
     def _evaluate(self, *args, **kwargs) -> Array:
-        """
-        Evaluate the output of the system.
-
-        """
+        """Evaluate the output of the system."""
         pass
 
     @abstractmethod

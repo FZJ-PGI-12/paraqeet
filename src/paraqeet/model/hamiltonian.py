@@ -1,12 +1,13 @@
 """Class definition for a matrix representation of a Hamiltonian."""
 
 from abc import abstractmethod
+
 import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.drive import Drive
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Quantity, Array
+from paraqeet.quantity import Array, Quantity
 
 
 class Hamiltonian(Optimizable):

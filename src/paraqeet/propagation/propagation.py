@@ -2,9 +2,8 @@
 
 from abc import ABC, abstractmethod
 
-from paraqeet.quantity import Array
-
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.quantity import Array
 
 
 class Propagation(ABC):

@@ -1,10 +1,11 @@
-from paraqeet.measurement.smoothness import Smoothness
-from paraqeet.signal.envelopes import GaussEnvelope
-from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.quantity import Quantity
-from paraqeet.optimization_map import OptimizationMap
 import numpy as np
 import pytest
+
+from paraqeet.measurement.smoothness import Smoothness
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import GaussEnvelope
+from paraqeet.signal.pwc_generator import PWCGenerator
 
 
 @pytest.fixture

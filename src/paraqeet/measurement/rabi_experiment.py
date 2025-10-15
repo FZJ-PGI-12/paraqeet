@@ -61,8 +61,10 @@ class RabiExperiment(Measurement, Optimizable):
 
     # TODO: implement normalized scalar calculation
     def calculate_normalized_scalar(self) -> float:
+        """Calculate normalized scalar value."""
         raise NotImplementedError("This method is not implemented for RabiExperiment.")
 
     # TODO: implement gradient calculation
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, jnp.ndarray]:
+        """Calculate normalized scalar value and gradient."""
         raise NotImplementedError("This method is not implemented for RabiExperiment.")

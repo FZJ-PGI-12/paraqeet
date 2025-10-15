@@ -5,15 +5,14 @@ Uses the GOAT optimization method.
 """
 
 from functools import partial
+
+import jax.numpy as jnp
 from jax import jit, vmap
 from jax.lax import scan
 
-import jax.numpy as jnp
-
-from paraqeet.quantity import Array
-
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.quantity import Array
 
 
 class ScipyExpmGOAT(ScipyExpm):

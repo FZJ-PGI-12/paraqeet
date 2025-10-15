@@ -1,8 +1,7 @@
 """Class definition for the Scipy optimizer gradient model."""
 
-import numpy as np
 import jax.numpy as jnp
-from paraqeet.quantity import Array
+import numpy as np
 from scipy.optimize import minimize
 
 from paraqeet.exceptions import IncompatibleOptimizationMap
@@ -10,6 +9,7 @@ from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
+from paraqeet.quantity import Array
 
 
 class ScipyOptimizerGradient(ScipyOptimizer):

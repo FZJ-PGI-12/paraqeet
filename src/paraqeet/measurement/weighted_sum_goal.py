@@ -1,12 +1,13 @@
 """Class definition of the Weighted Sum Goal model."""
 
+import itertools
+
 import jax.numpy as jnp
 import numpy as np
-from paraqeet.quantity import Array
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.measurement import Measurement
-import itertools
+from paraqeet.quantity import Array
 
 
 class WeightedSumGoal(Measurement):
@@ -54,7 +55,7 @@ class WeightedSumGoal(Measurement):
         self.__sum_of_squares_options = sum_of_squares_options
         if len(measurements) != len(weights):
             raise ConfigurationException(
-                f"Incompatible number of measurements {len(measurements)}" " and weights {len(weights)}"
+                f"Incompatible number of measurements {len(measurements)} and weights {{len(weights)}}"
             )
         if sum_of_squares_options is not None:
             expected_keys = ["weight", "meas_bool"]

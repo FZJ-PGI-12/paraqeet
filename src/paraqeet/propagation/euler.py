@@ -1,12 +1,11 @@
 """Class definition of the Euler propagation model."""
 
-from paraqeet.quantity import Array
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 
 
 class Euler(StatePropagation):

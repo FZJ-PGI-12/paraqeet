@@ -1,15 +1,12 @@
 """Class definition of the Resonator Hamiltonian model."""
 
+import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.quantity import Array
-
 from paraqeet.model.drive import Drive
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity
-
-import jax
+from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 

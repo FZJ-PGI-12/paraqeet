@@ -1,7 +1,9 @@
 """Class definition of the Weighted Sum Goal model."""
 
 from paraqeet.measurement.measurement import Measurement
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.measurement.state_transfer_fidelity import (
+    StateTransferFidelityGRAPE,
+)
 from paraqeet.quantity import Array
 from paraqeet.signal.pwc_generator import PWCGenerator
 

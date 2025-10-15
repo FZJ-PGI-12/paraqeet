@@ -5,12 +5,12 @@ References
 [Heeres2017] R. Heeres et al., Nat. Comm. 8, 94 (2017)
 """
 
-from paraqeet.measurement.measurement import Measurement
-from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.quantity import Array
-
 import jax
 import jax.numpy as jnp
+
+from paraqeet.measurement.measurement import Measurement
+from paraqeet.quantity import Array
+from paraqeet.signal.pwc_generator import PWCGenerator
 
 jax.config.update("jax_enable_x64", True)
 

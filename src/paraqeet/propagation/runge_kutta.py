@@ -6,7 +6,7 @@ from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity, Array
+from paraqeet.quantity import Array, Quantity
 
 
 class RungeKutta(StatePropagation):

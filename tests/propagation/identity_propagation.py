@@ -1,9 +1,9 @@
 """Test the identity propagation model."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
+
 from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 
 
 class IdentityPropagation(StatePropagation):

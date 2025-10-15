@@ -1,7 +1,7 @@
 """Test the Euler propagation model."""
 
-import pytest
 import numpy as np
+import pytest
 
 from paraqeet.propagation.euler import Euler
 from tests.model.dummy_model import DummyEquationsOfMotion

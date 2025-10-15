@@ -1,10 +1,10 @@
 """Class definition for a mock system that always returns the same value."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
 class ConstantMeasurement(Measurement):

@@ -1,11 +1,14 @@
 """Class definition of the Makhlin functional."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 
-from paraqeet.exceptions import ConfigurationException, IncompatibleLayersException
+from paraqeet.exceptions import (
+    ConfigurationException,
+    IncompatibleLayersException,
+)
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
 class MakhlinFunctional(Measurement):
@@ -110,7 +113,7 @@ class MakhlinFunctional(Measurement):
         """
         Calculate normalized scalar value.
 
-         Raises
+        Raises
         ------
         NotImplementedError
             This method is not implemented for MakhlinFunctional.

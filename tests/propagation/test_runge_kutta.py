@@ -1,7 +1,8 @@
 """Test the Runge-Kutta propagation model."""
 
-import pytest
 import numpy as np
+import pytest
+
 from paraqeet.propagation.runge_kutta import RungeKutta
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptyHamiltonian

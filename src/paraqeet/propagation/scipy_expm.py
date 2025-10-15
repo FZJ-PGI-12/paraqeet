@@ -2,8 +2,8 @@
 
 from functools import partial
 
+import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm
@@ -11,8 +11,7 @@ from jax.scipy.linalg import expm
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.state_propagation import StatePropagation
-
-import jax
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 

@@ -1,10 +1,9 @@
 """Class definition of the Generator Drive model."""
 
-from paraqeet.quantity import Array
 import jax.numpy as jnp
 
 from paraqeet.model.drive import Drive
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
 
 

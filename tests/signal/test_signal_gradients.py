@@ -1,8 +1,8 @@
 """Test the signal gradient functions."""
 
-import pytest
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
+import pytest
 
 from paraqeet.quantity import Array
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope

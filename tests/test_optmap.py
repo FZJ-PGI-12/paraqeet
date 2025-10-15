@@ -1,14 +1,14 @@
 """Testing the optimization map."""
 
+import random
+
 import numpy as np
 import pytest
-import random
 
 from paraqeet.exceptions import ConfigurationException, SerialisationException
 from paraqeet.optimization_map import OptimizationMap
-
-from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 from tests.test_optimizable import DummyOptimizable
 
 TONE = ConstantEnvelope()

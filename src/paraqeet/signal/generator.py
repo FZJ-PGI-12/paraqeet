@@ -2,9 +2,8 @@
 
 from abc import abstractmethod
 
-from paraqeet.quantity import Array
-
 from paraqeet.optimizable import Optimizable
+from paraqeet.quantity import Array
 
 
 class Generator(Optimizable):
