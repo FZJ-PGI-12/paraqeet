@@ -45,7 +45,7 @@ def model():
 def random_state():
     """Return a random state generating method.
 
-    Generates random normalised states for a given dimension.
+    Generates random normalized states for a given dimension.
 
     """
 
@@ -61,7 +61,7 @@ def random_matrix():
     """Return a random matrix generating method.
 
     Generates random matrix for given dimensions n and m.
-    The matrix is normalised to have trace 1.
+    The matrix is normalized to have trace 1.
 
     """
 

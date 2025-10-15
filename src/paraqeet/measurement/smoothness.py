@@ -67,7 +67,7 @@ class Smoothness(Measurement):
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
-        Compute the measurement value as in measure_normalised_scalar()
+        Compute the measurement value as in measure_normalized_scalar()
         and the gradient with respect to all parameters in the optimization map.
         For parameters that are not in the passed PWCGenerator the partial derivative
         if simply zero.

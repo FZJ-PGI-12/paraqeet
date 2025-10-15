@@ -32,7 +32,7 @@ class Measurement(ABC):
     def measure(self) -> Array | float:
         """Measure the observable and returns the value.
 
-        The default implementation of this function is to call measure_normalised_scalar().
+        The default implementation of this function is to call measure_normalized_scalar().
 
         Returns
         -------
@@ -48,13 +48,13 @@ class Measurement(ABC):
         """Measure the observable.
 
         Returns a scalar value. This function must be implemented by subclasses, unless identical to
-        self.measure_normalised_scalar().
+        self.measure_normalized_scalar().
         """
         return self.calculate_normalized_scalar()
 
     @abstractmethod
     def calculate_normalized_scalar(self) -> float:
-        """Measure the normalised observable.
+        """Measure the normalized observable.
 
         Returns a single scalar value between 0 and 1, 1 representing the perfect result, required for use with most
         optimizations. This function must be implemented by subclasses.
@@ -71,7 +71,7 @@ class Measurement(ABC):
     def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
         """Measure with gradient.
 
-        Compute the measurement value as in measureNormalised()
+        Compute the measurement value as in measurenormalized()
         but with the gradient wrt to parameters.
 
         Returns

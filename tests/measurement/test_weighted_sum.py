@@ -118,8 +118,8 @@ def test_weighted_sum_goal_mismatched_weights():
         WeightedSumGoal(measurements=[], weights=[0.2, 0.3, 0.5])
 
 
-def test_weighted_sum_goal_weights_not_normalised():
-    """Test the not normalised weighted sum goal function.
+def test_weighted_sum_goal_weights_not_normalized():
+    """Test the not normalized weighted sum goal function.
 
     Raises
     ------
