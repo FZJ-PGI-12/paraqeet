@@ -35,6 +35,11 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         super().__init__(pwc_generator.tlist)
         self._pwc_generator = pwc_generator
 
+    # TODO: check the implementation of the method measure
+    def measure(self) -> Array | float:
+        """Return measurement in the range [0, 1]."""
+        return self.calculate_normalized_scalar()
+
     def calculate_normalized_scalar(self) -> float:
         """Returns the normalized sum of consecutive square differences of the pulse.
         As the maximums difference is twice the maximum amplitude, the normalization

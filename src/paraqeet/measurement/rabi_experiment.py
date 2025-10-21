@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 
 
 class RabiExperiment(NormalizableMeasurement, Optimizable):
@@ -39,6 +39,11 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
 
         """
         return [self.__amp, self.__freq, self.__time]
+
+    #  TODO: Check the implementation method measure
+    def measure(self) -> Array | float:
+        """Return measurement in the range [0, 1]."""
+        return self.calculate_normalized_scalar()
 
     def calculate_normalized_scalar(self):
         """Carry out a measurement operation.

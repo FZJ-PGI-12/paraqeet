@@ -25,6 +25,10 @@ class RandomMeasurement(NormalizableMeasurement):
         super().__init__(times=times)
         self.__propagation = propagation
 
+    # TODO: Check the implementation method measure
+    def measure(self) -> Array | float:
+        return self.calculate_normalized_scalar()
+
     def calculate_normalized_scalar(self) -> float:
         """Return the result of measurement.
 

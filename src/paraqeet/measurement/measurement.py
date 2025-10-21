@@ -29,6 +29,7 @@ class Measurement(ABC):
     def __init__(self, times: Array):
         self._times = times
 
+    @abstractmethod
     def measure(self) -> Array | float:
         """Measure the observable and returns the value.
 
@@ -40,19 +41,15 @@ class Measurement(ABC):
 
 
         """
-        # TODO: implement default behavior for non-normalizable measurements
-        # return self.calculate_normalized_scalar()
-        raise NotImplementedError("Subclasses must implement the measure() method.")
+        pass
 
-    def measure_scalar(self) -> float:
-        """Measure the observable.
+    # @abstractmethod
+    # def measure_scalar(self) -> float:
+    #     """Measure the observable.
 
-        Returns a scalar value. This function must be implemented by subclasses, unless identical to
-        self.measure_normalized_scalar().
-        """
-        #  TODO: implement default behavior for non-normalizable measurements
-        # return self.calculate_normalized_scalar()
-        raise NotImplementedError("Subclasses must implement the measure_scalar() method.")
+    #     Returns a scalar value.
+    #     """
+    #     pass
 
     def restrict_subsystems(
         self,

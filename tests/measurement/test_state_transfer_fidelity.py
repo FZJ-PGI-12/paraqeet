@@ -34,8 +34,9 @@ def test_limits_vectors(random_state):
         for _ in range(20):
             m = measurement.measure()
             assert 0.0 <= m
-            m = measurement.measure_scalar()
-            assert 0.0 <= m
+            #  TODO: since the method measure_scalar is removed, update the tests accordingly
+            # m = measurement.measure_scalar()
+            # assert 0.0 <= m
             m = measurement.calculate_normalized_scalar()
             assert 0.0 <= m <= 1.0
             m, grad = measurement.calculate_value_and_gradient()
