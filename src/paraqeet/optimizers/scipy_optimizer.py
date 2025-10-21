@@ -5,7 +5,7 @@ from collections.abc import Callable
 import numpy as np
 from scipy.optimize import minimize
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 
@@ -23,13 +23,13 @@ class ScipyOptimizer(Optimizer):
 
     """
 
-    _measure: Measurement
+    _measure: NormalizableMeasurement
     _opt_idxs: list[int]
     _options: dict
     _method: str
     _callback: Callable | None
 
-    def __init__(self, measure: Measurement, optimizables: OptimizationMap):
+    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap):
         super().__init__(measure, optimizables)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"

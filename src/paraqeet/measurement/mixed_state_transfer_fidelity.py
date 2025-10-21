@@ -73,13 +73,3 @@ class MixedStateTransferFidelity(Measurement):
         # density matrix
         product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
         return jnp.abs(jnp.trace(sclin.sqrtm(product))) ** 2
-
-    #  TODO: implement normalized scalar calculation
-    def calculate_normalized_scalar(self) -> float:
-        """Calculate the normalized scalar value of the measurement."""
-        raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")
-
-    #  TODO: implement gradient calculation
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
-        """Calculate the normalized scalar value and gradient of the measurement."""
-        raise NotImplementedError("This method is not implemented for MixedStateTransferFidelity.")

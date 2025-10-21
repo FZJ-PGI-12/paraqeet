@@ -1,6 +1,7 @@
 """Class definition of the Weighted Sum Goal model."""
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
@@ -8,7 +9,7 @@ from paraqeet.quantity import Array
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 
-class GOATOverGRAPE(Measurement):
+class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
     """Combine GRAPE propagation with analytic gradients of GOAT via chain rule.
 
     Parameters
@@ -61,7 +62,7 @@ class GOATOverGRAPE(Measurement):
         self.__gen._update_inphase_and_outofphase()
         return grape.calculate_normalized_scalar()
 
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 
@@ -76,6 +77,6 @@ class GOATOverGRAPE(Measurement):
         grape = self.__measurement
         self.__gen._update_inphase_and_outofphase()
         control_gradients = self.__gen._get_partial_derivatives()
-        function_value, grape_gradients = grape.calculate_normalized_scalar_and_gradient()
+        function_value, grape_gradients = grape.calculate_value_and_gradient()
         goat_gradients = control_gradients.T @ grape_gradients
         return function_value, goat_gradients

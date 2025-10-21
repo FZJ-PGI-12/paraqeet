@@ -7,14 +7,15 @@ import jax
 import jax.numpy as jnp
 from jax import grad, jit
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.propagation.state_propagation import StatePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class StateTransferFidelity(Measurement):
+class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     """Fidelity measure that compares overlap of the initial and final state.
 
     Parameters
@@ -88,7 +89,7 @@ class StateTransferFidelity(Measurement):
         f = self._overlap(self._target_state, final_state)
         return self._fid(f)
 
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -138,7 +139,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         super().__init__(propagation, initial_state, target_state, times)
         self.__gradient_function = None
 
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -187,7 +188,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     _propagation: StatePropagation
 
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns

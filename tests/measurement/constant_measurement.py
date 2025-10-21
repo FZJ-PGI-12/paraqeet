@@ -2,12 +2,13 @@
 
 import jax.numpy as jnp
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class ConstantMeasurement(Measurement):
+class ConstantMeasurement(Measurement, Differentiable):
     """Mock implementation that always returns the same value.
 
     Parameters
@@ -45,12 +46,7 @@ class ConstantMeasurement(Measurement):
         """
         return self.__value
 
-    # TODO: implement calculate_normalized_scalar method
-    def calculate_normalized_scalar(self) -> float:
-        raise NotImplementedError("This method is not implemented for ConstantMeasurement.")
-
-    # TODO: the signature of this method does not match the one in the base class Measurement
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Get measurement value and gradient"""
         grad = jnp.array([self.__value, 0.0])
         return self.__value, grad

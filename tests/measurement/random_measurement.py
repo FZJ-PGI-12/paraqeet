@@ -2,12 +2,12 @@
 
 import numpy as np
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class RandomMeasurement(Measurement):
+class RandomMeasurement(NormalizableMeasurement):
     """Mock class that returns a random measurement value between 0 and 1.
 
     Parameters
@@ -35,7 +35,3 @@ class RandomMeasurement(Measurement):
 
         """
         return float(np.random.random())
-
-    # TODO: implement gradient
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
-        raise NotImplementedError("Gradient not implemented for RandomMeasurement")

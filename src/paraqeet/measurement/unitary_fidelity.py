@@ -3,14 +3,15 @@
 import jax
 import jax.numpy as jnp
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class UnitaryFidelity(Measurement):
+class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     """Unitary fidelity measurement model.
 
     Fidelity measure that compares the propagator with a desired gate
@@ -86,7 +87,7 @@ class UnitaryFidelity(Measurement):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self.__fid(jnp.asarray(overlaps))
 
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns

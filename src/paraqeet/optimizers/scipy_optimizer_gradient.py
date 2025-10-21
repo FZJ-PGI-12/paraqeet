@@ -4,8 +4,9 @@ import jax.numpy as jnp
 import numpy as np
 from scipy.optimize import minimize
 
-from paraqeet.exceptions import IncompatibleOptimizationMap
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.differentiable import Differentiable
+from paraqeet.exceptions import IncompatibleOptimizationMap, IncompatibleQuantityException
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
@@ -23,7 +24,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
     __grad_cache: Array  # of shape (n_parameters,)
     __scales: Array
 
-    def __init__(self, measure: Measurement, optimizables: OptimizationMap) -> None:
+    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap) -> None:
         super().__init__(measure, optimizables)
         params = self._optimizables.get_all_parameters()
         self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
@@ -103,13 +104,20 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
-        fun, grad = self._measure.calculate_normalized_scalar_and_gradient()
-        self.__grad_cache = grad
+        # TODO: what if the self._measure is not Differentiable?
+        if isinstance(self._measure, Differentiable):
+            fun, grad = self._measure.calculate_value_and_gradient()
+            self.__grad_cache = grad
 
-        infid = 1.0 - fun
-        if self._logger:
-            self._logger.log(log, infid)
-        return 1 - fun
+            infid = 1.0 - fun
+            if self._logger:
+                self._logger.log(log, infid)
+            return 1 - fun
+        # TODO: which fallback value can be returned here?
+        raise IncompatibleQuantityException(
+            "Gradient-based optimizer requires a Differentiable measurement; "
+            "provided measurement does not implement Differentiable."
+        )
 
     def _lookup_jac(self, values) -> Array:
         """Update the parameter values.

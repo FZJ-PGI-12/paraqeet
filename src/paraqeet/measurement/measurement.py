@@ -32,8 +32,6 @@ class Measurement(ABC):
     def measure(self) -> Array | float:
         """Measure the observable and returns the value.
 
-        The default implementation of this function is to call measure_normalized_scalar().
-
         Returns
         -------
         Array or float
@@ -42,7 +40,9 @@ class Measurement(ABC):
 
 
         """
-        return self.calculate_normalized_scalar()
+        # TODO: implement default behavior for non-normalizable measurements
+        # return self.calculate_normalized_scalar()
+        raise NotImplementedError("Subclasses must implement the measure() method.")
 
     def measure_scalar(self) -> float:
         """Measure the observable.
@@ -50,37 +50,9 @@ class Measurement(ABC):
         Returns a scalar value. This function must be implemented by subclasses, unless identical to
         self.measure_normalized_scalar().
         """
-        return self.calculate_normalized_scalar()
-
-    @abstractmethod
-    def calculate_normalized_scalar(self) -> float:
-        """Measure the normalized observable.
-
-        Returns a single scalar value between 0 and 1, 1 representing the perfect result, required for use with most
-        optimizations. This function must be implemented by subclasses.
-
-        Returns
-        -------
-        Array
-            Returns an Array if implemented by a subclass.
-
-        """
-        pass
-
-    @abstractmethod
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
-        """Measure with gradient.
-
-        Compute the measurement value as in measurenormalized()
-        but with the gradient wrt to parameters.
-
-        Returns
-        -------
-        Tuple[float, Array]
-            Tuple of function value as bare float and gradient of shape (n_parameters,)
-
-        """
-        pass
+        #  TODO: implement default behavior for non-normalizable measurements
+        # return self.calculate_normalized_scalar()
+        raise NotImplementedError("Subclasses must implement the measure_scalar() method.")
 
     def restrict_subsystems(
         self,
@@ -187,3 +159,27 @@ class Measurement(ABC):
                 states = self.__projector.T @ states
                 states = jnp.squeeze(states, axis=-1)
         return states
+
+
+class NormalizableMeasurement(Measurement):
+    """An abstract class for measurements providing normalized scalar value.
+
+    Subclasses must implement the calculate_normalized_scalar() method which would
+    return a measured value between 0 and 1.
+    """
+
+    # TODO: doc string is outdated
+    @abstractmethod
+    def calculate_normalized_scalar(self) -> float:
+        """Measure the normalized observable.
+
+        Returns a single scalar value between 0 and 1.
+        This function must be implemented by subclasses.
+
+        Returns
+        -------
+        float
+            Returns a float if implemented by a subclass.
+
+        """
+        pass

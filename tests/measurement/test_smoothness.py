@@ -58,7 +58,7 @@ def test_smoothness_gradient(pwc_gen, another_tone):
     assert len(optmap.get_all_parameters()) == len(another_tone.optimizable_parameters) + len(
         pwc_gen.optimizable_parameters
     )
-    _, gradient = smoothness.calculate_normalized_scalar_and_gradient()
+    _, gradient = smoothness.calculate_value_and_gradient()
     num_opt_params = 0
     for param in optmap.get_all_parameters():
         num_opt_params += param.get_value().shape[0]

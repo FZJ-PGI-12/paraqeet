@@ -107,20 +107,3 @@ class MakhlinFunctional(Measurement):
             jnp.imag(tr_sq) / 16,
             jnp.real(tr_sq - tr / det) / 4,
         )
-
-    # TODO: implement normalized scalar calculation
-    def calculate_normalized_scalar(self) -> float:
-        """
-        Calculate normalized scalar value.
-
-        Raises
-        ------
-        NotImplementedError
-            This method is not implemented for MakhlinFunctional.
-        """
-        raise NotImplementedError("This method is not implemented for MakhlinFunctional.")
-
-    # TODO: implement gradient calculation
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
-        """Calculate normalized scalar value and gradient."""
-        raise NotImplementedError("This method is not implemented for MakhlinFunctional.")

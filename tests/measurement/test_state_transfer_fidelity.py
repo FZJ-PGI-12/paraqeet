@@ -38,7 +38,7 @@ def test_limits_vectors(random_state):
             assert 0.0 <= m
             m = measurement.calculate_normalized_scalar()
             assert 0.0 <= m <= 1.0
-            m, grad = measurement.calculate_normalized_scalar_and_gradient()
+            m, grad = measurement.calculate_value_and_gradient()
             assert 0.0 <= m
 
 

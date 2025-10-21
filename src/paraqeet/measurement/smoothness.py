@@ -8,14 +8,15 @@ References
 import jax
 import jax.numpy as jnp
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.quantity import Array
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Smoothness(Measurement):
+class Smoothness(NormalizableMeasurement, Differentiable):
     """Smoothness of a pulse. It follows the definition in
     Heeres et al., https://arxiv.org/abs/1608.02430 (2017), in particular
     Eqs. 23 and 24 of the supplementary material.
@@ -64,7 +65,7 @@ class Smoothness(Measurement):
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
         return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
 
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, Array]:
+    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measure_normalized_scalar()

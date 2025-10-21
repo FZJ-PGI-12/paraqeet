@@ -107,6 +107,9 @@ class Hamiltonian(Optimizable):
         return vmap(self.gradient_one_time)(t)
 
     @abstractmethod
+    # TODO: move this method to Differentiable
+    #  Hamiltonian is not Differentiable
+    #  Subclasses which do not implement this method yet are not Differentiables either
     def gradient_one_time(self, t: Array) -> Array:
         """Return the one-time gradient of the system.
 

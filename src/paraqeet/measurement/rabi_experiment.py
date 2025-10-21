@@ -2,12 +2,12 @@
 
 import jax.numpy as jnp
 
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity
 
 
-class RabiExperiment(Measurement, Optimizable):
+class RabiExperiment(NormalizableMeasurement, Optimizable):
     """Analytic model of the general Rabi formula.
 
     Parameters
@@ -40,7 +40,7 @@ class RabiExperiment(Measurement, Optimizable):
         """
         return [self.__amp, self.__freq, self.__time]
 
-    def measure_normalized_scalar(self):
+    def calculate_normalized_scalar(self):
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,
@@ -58,13 +58,3 @@ class RabiExperiment(Measurement, Optimizable):
         t = self.__time.get_value()
         diff_sq = (q_freq - freq) ** 2
         return jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * t) / jnp.sqrt(1 + diff_sq / (amp**2))) ** 2
-
-    # TODO: implement normalized scalar calculation
-    def calculate_normalized_scalar(self) -> float:
-        """Calculate normalized scalar value."""
-        raise NotImplementedError("This method is not implemented for RabiExperiment.")
-
-    # TODO: implement gradient calculation
-    def calculate_normalized_scalar_and_gradient(self) -> tuple[float, jnp.ndarray]:
-        """Calculate normalized scalar value and gradient."""
-        raise NotImplementedError("This method is not implemented for RabiExperiment.")
