@@ -6,7 +6,7 @@ from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
-
+# TODO: is RabiExperiment really a NormalizableMeasurement?
 class RabiExperiment(NormalizableMeasurement, Optimizable):
     """Analytic model of the general Rabi formula.
 
@@ -23,7 +23,6 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
     __time: Quantity
 
     def __init__(self, qubit_freq: float) -> None:
-        super().__init__(jnp.asarray(0.0))
         self.__qubit_freq = Quantity(qubit_freq, 0.0, 10e9)
         self.__amp = Quantity(60e6, 0, 100e6, "Hz")
         self.__freq = Quantity(0.6 * qubit_freq, 0, 10e9)
@@ -40,12 +39,12 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """
         return [self.__amp, self.__freq, self.__time]
 
-    #  TODO: Check the implementation method measure
-    def measure(self) -> Array | float:
+    #  TODO: Check the implementation of the method measure. Why times are not used?
+    def measure(self, times: Array) -> Array | float:
         """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar()
+        return self.calculate_normalized_scalar(times)
 
-    def calculate_normalized_scalar(self):
+    def calculate_normalized_scalar(self, times: Array) -> float:
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,

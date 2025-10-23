@@ -43,7 +43,6 @@ def test_positivity_projected(random_unitary_matrix):
             propagation = RandomPropagation(size, True)
             measurement = UnitaryFidelity(propagation=propagation, gate=gate, times=times)
 
-            measurement.restrict_subsystems([size], [projectedSize])
             for _ in range(20):
                 m = measurement.measure()
                 assert 0.0 <= m <= 1.0

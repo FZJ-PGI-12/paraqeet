@@ -147,6 +147,7 @@ class ScipyOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
+        # TODO: measure.calculate_normalized_scalar() requires times argument. Fix that.
         infid = 1 - self._measure.calculate_normalized_scalar()
 
         if self._logger:

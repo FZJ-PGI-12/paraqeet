@@ -134,7 +134,6 @@ def coupled_transmons(tone):
         gate=cr_gate,
         times=np.array([0.0, T_FINAL]),
     )
-    gate_fid.restrict_subsystems([3, 3], [2, 2])
 
     tone1_amp = tone1.get_parameters()[0]
 

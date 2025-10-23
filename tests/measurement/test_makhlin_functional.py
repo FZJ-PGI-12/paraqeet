@@ -23,12 +23,11 @@ def test_positivity():
     propagation = RandomPropagation(4, True)
     times = np.array([1.0])
     measurement = MakhlinFunctional(
-        propagation,
-        times,
+        propagation
     )
 
     for i in range(100):
-        m = measurement.measure()
+        m = measurement.measure(times)
         assert 0.0 <= m
 
 
@@ -52,8 +51,8 @@ def test_local_gates():
     for gate in gates1 + gates2:
         propagation = IdentityPropagation()
         propagation.set_initial_state(gate)
-        measurement = MakhlinFunctional(propagation, np.array([1.0]))
-        m = measurement.measure()
+        measurement = MakhlinFunctional(propagation)
+        m = measurement.measure(np.array([1.0]))
         np.testing.assert_almost_equal(m, 2.0)
 
 
@@ -62,8 +61,8 @@ def test_perfect_entanglers():
     for gate in [iswap, cnot]:
         propagation = IdentityPropagation()
         propagation.set_initial_state(gate)
-        measurement = MakhlinFunctional(propagation, np.array([1.0]))
-        m = measurement.measure()
+        measurement = MakhlinFunctional(propagation)
+        m = measurement.measure(np.array([1.0]))
         np.testing.assert_almost_equal(m, 0.0)
 
 
@@ -79,8 +78,8 @@ def test_invariants():
     propagation = IdentityPropagation()
     for gate, invariants in expectedInvariants:
         propagation.set_initial_state(gate)
-        measurement = MakhlinFunctional(propagation, np.array([1.0]), np.array(invariants))
-        m = measurement.measure()
+        measurement = MakhlinFunctional(propagation, np.array(invariants))
+        m = measurement.measure(np.array([1.0]))
         np.testing.assert_almost_equal(m, 0.0)
 
 
@@ -96,13 +95,13 @@ def test_incompatible_shape():
     incompatibleDimensions = np.delete(np.arange(2, 30), 2)
     for dim in incompatibleDimensions:
         propagation = RandomPropagation(dim, True)
-        measurement = MakhlinFunctional(propagation, np.array([1.0]))
+        measurement = MakhlinFunctional(propagation)
         with pytest.raises(Exception):
-            _ = measurement.measure()
+            _ = measurement.measure(np.array([1.0]))
 
 
 def test_measurement_needs_time():
     propagation = RandomPropagation(4, True)
     measurement = MakhlinFunctional(propagation, None)
     with pytest.raises(ConfigurationException):
-        measurement.measure()
+        measurement.measure(times=None)

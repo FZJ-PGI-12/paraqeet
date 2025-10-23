@@ -338,7 +338,6 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         """Get the expected value."""
         ex = []
         for state in states:
-            state = gate_fid._preprocess_vector(state)
             ex.append(np.real(state.conj() @ Op @ state.T))
         return ex
     

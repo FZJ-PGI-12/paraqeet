@@ -21,15 +21,14 @@ class RandomMeasurement(NormalizableMeasurement):
 
     __propagation: Propagation
 
-    def __init__(self, propagation: Propagation, times: Array):
-        super().__init__(times=times)
+    def __init__(self, propagation: Propagation):
         self.__propagation = propagation
 
     # TODO: Check the implementation method measure
-    def measure(self) -> Array | float:
-        return self.calculate_normalized_scalar()
+    def measure(self, times: Array) -> Array | float:
+        return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> float:
         """Return the result of measurement.
 
         Returns
