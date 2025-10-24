@@ -517,3 +517,95 @@ class DRAGMixer(Waveform):
                 gradients = jnp.append(gradients, grad, axis=1)
 
         return jnp.array(gradients)
+
+
+class FlatTopGaussianFilter(Waveform):
+    """A shape filter that forces the pulse to smoothly start and end at zero.
+    This filter multiplies the input pulse with a flat-top Gaussian pulse.
+
+    This is similar to `PWCGenerator.multiply_flat_top = True`.
+    """
+
+    _envs: list[Waveform]
+    _t_final: Quantity
+
+    def __init__(self, envelopes: Waveform | list[Waveform], t_final: Quantity):
+        self._envs = envelopes if isinstance(envelopes, list) else [envelopes]
+        self._t_final = t_final
+
+    def get_parameters(self) -> list[Quantity]:
+        """Return a list of parameters.
+
+        Collects and returns a list of parameters from the tone, generator
+        and the carrier signal.
+
+        Returns
+        -------
+        list[Quantity]
+            All Parameters describing the signal.
+        """
+        params = list()
+        for tone in self._envs:
+            params += tone.get_parameters()
+        return params
+
+    def get_envelopes(self) -> list[Waveform]:
+        """Return envelopes from the DRAGMixer."""
+        return self._envs
+
+    @partial(jit, static_argnums=(0,))
+    def __compute_flat_top_envelope(self, t):
+        t_final = self._t_final.get_value()
+        ramp_time = t_final / 25
+        ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
+        ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
+        return ramp_up * ramp_down / 4
+
+    def compute_output(self, t: Array | float) -> Array:
+        """Evaluate a carrier signal from an input time vector.
+
+        Parameters
+        ----------
+        t: Array
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        Array
+            Returns a vector carrier signal.
+        """
+        total_env: Array = jnp.zeros_like(t, dtype=jnp.complex128)
+        for tone in self._envs:
+            total_env += tone.compute_output(t)
+
+        flattop_env = self.__compute_flat_top_envelope(t)
+        total_env *= flattop_env
+        return jnp.squeeze(total_env)
+
+    def compute_gradient(self, t: Array) -> Array:
+        """Generate gradient of the signal for an array of time.
+
+        Collect and return the parameter gradients from the Tone and the carrier
+        Tone. Compute the gradient of the generator parameters by AD.
+        The order of the gradients should match the order of paramters in
+        `self.get_parameter()` method
+
+        Parameters
+        ----------
+        t: Array
+            An array of time points.
+
+        Returns
+        -------
+        Array
+            Array of gradients wrt each parameter for each time point.
+        """
+        gradients = jnp.zeros(shape=(t.shape[0], 0))
+
+        smoothing = self.__compute_flat_top_envelope(t)
+
+        # Collect gradients wrt envelope parameters
+        for tone in self._envs:
+            grads = tone.compute_gradient(t)
+            gradients = jnp.append(gradients, grads * jnp.expand_dims(smoothing, axis=1), axis=1)
+        return jnp.array(gradients)
