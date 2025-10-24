@@ -101,14 +101,14 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         # Add new parameters to the dCRAB envelope
         for env in dcrab_envs:
             try:
-                env.add_new_components(seeds=None)  # Setting the seeds to be None for now.
+                env.add_new_components(seed=None)  # Setting the seeds to be None for now.
             except Exception as e:
                 raise ConfigurationException(f"Non `DCRABEnvelope` encountered. \n Raised exception {e}")
 
         # Add new parameters to optmap
-        new_coeffs_and_freqs = [env.get_coefficients_and_frequencies() for env in dcrab_envs]
-        for env, coeffs_and_freqs in zip(relevant_optimisables, new_coeffs_and_freqs):
-            params = [env.get_parameters()[0]] + coeffs_and_freqs  # Add pulse amplitude to optimisation
+        new_coeffs_freqs_and_phases = [env.get_coefficients_frequencies_and_phases() for env in dcrab_envs]
+        for env, coeffs_freqs_phases in zip(relevant_optimisables, new_coeffs_freqs_and_phases):
+            params = [env.get_parameters()[0]] + coeffs_freqs_phases  # Add pulse amplitude to optimisation
             if isinstance(env, DRAGMixer):
                 params.append(env.get_parameters()[-1])  # Add pulse delta to optimisation if it is a DRAG tone.
             self._optimisation_map.add(env, params)

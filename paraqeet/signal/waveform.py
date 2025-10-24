@@ -8,7 +8,7 @@ from typing import Any
 import jax.numpy as jnp
 from paraqeet.quantity import Array
 from paraqeet.exceptions import ConfigurationException
-from jax import grad, jit, vmap
+from jax import grad, jacfwd, jit, vmap
 from jax.scipy.special import erf
 
 from paraqeet.optimisable import Optimisable
@@ -40,7 +40,7 @@ class Waveform(Optimisable):
             A tuple of ints.
 
         """
-        grads = grad(signal_function, argnums=argnums)
+        grads = jacfwd(signal_function, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
