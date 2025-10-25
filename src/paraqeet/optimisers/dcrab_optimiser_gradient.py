@@ -139,7 +139,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             self._best_fid = intermediate_result.fun
             self._best_params = intermediate_result.x
 
-        if self._super_iteration_num > self._max_super_iteration_num:
+        if self._super_iteration_num >= self._max_super_iteration_num:
             raise StopIteration("Maximum number of super iterations performed.")
 
         if np.abs(intermediate_result.fun - self._previous_fid) < 1e-7:
