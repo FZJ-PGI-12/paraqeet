@@ -1,7 +1,7 @@
 """Test the weighted sum goal."""
 
-from test.propagation.identity_propagation import IdentityPropagation
-from test.measurement.constant_measurement import ConstantMeasurement
+from tests.propagation.identity_propagation import IdentityPropagation
+from tests.measurement.constant_measurement import ConstantMeasurement
 
 import numpy as np
 import pytest
@@ -76,7 +76,8 @@ def test_weighted_sum_goal_sum_of_squares(random_meas):
 
 def test_weighted_sum_goal_sum_of_squares_gradient():
     """Test the gradient only for the sum of squares
-    part of the cost function"""
+    part of the cost function
+    """
     num_meas = 10
     weights = np.zeros(num_meas)
     weight_sum_of_squares = 1.0

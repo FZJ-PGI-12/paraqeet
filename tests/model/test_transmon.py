@@ -1,19 +1,21 @@
-"""Test the Resonator model."""
+"""Test the Transmon object."""
 
 import pytest
 import numpy as np
 
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.resonator import Resonator
+from paraqeet.model.transmon import Transmon
 from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
 
 DIMS = 3
 FREQ = 4.8e9 * 2 * np.pi
+ANHARMONICITY = -200e6 * 2 * np.pi
 LEN_SIG = 1001
 T1 = Quantity(1e-9, 1e-9, 100e-6)
 TEMP = Quantity(10e-3, 1e-3, 50e-3)
@@ -45,13 +47,15 @@ def gen(tone):
 
 @pytest.fixture
 def hamiltonian(gen):
-    """Return a resonator object."""
+    """Return a transmon object."""
 
     def _method(dimension):
         drive = DriveOperator(gen, is_longitudinal=False)
-        return Resonator(
+        drive.set_optimisable_parameters(drive.get_parameters())
+        return Transmon(
             dimension=dimension,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
+            anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
             drives=[drive],
         )
 
@@ -59,14 +63,14 @@ def hamiltonian(gen):
 
 
 @pytest.fixture
-def open_resonator():
+def open_transmon():
     """Return an open model for the resonator."""
-
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
     drive = DriveOperator(generator, is_longitudinal=False)
-    resonator = Resonator(
+    resonator = Transmon(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
+        anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
         drives=[drive],
         dimension=DIMS,
     )
@@ -79,24 +83,24 @@ def open_resonator():
 
 
 @pytest.fixture
-def expm(open_resonator):
+def expm(open_transmon):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    prop = ScipyExpm(open_resonator, res=100e9)
+    prop = ScipyExpm(open_transmon, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
 
 @pytest.fixture
-def ode(open_resonator):
+def ode(open_transmon):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    open_resonator.ode_propagation = True
-    prop = Vern7(open_resonator, res=100e9)
+    open_transmon.ode_propagation = True
+    prop = Vern7(open_transmon, res=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
@@ -113,7 +117,7 @@ def test_gradient(gen, hamiltonian, time_samples):
     """Test the gradients of the system.
 
     The Hamiltonian should have all derivatives of the drive
-    plus the derivative w.r.t. the resonator frequency.
+    plus the derivative w.r.t. the frequency and anharmonicity.
 
     """
     for dim in np.arange(1, 10):
@@ -121,7 +125,26 @@ def test_gradient(gen, hamiltonian, time_samples):
         hamil.set_optimisable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
         ham_grads = hamil.gradient(time_samples)
-        assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
+        assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
+
+
+def test_get_drive_matrix(hamiltonian, time_samples):
+    """Test the getDriveMatrix method of the Hamiltonian."""
+    dim = np.random.randint(2, 10)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    hamil = hamiltonian(dim)
+    drive_matrix = hamil._get_drive_matrix(annihilation_op, time_samples)
+    assert drive_matrix.shape == time_samples.shape + (dim, dim)
+
+
+def test_get_drive_gradients(gen, hamiltonian, time_samples):
+    """Test the drive gradients of the Hamiltonian."""
+    dim = np.random.randint(2, 10)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    hamil = hamiltonian(dim)
+    grads = gen.generate_signal_gradient(time_samples)
+    drive_gradients = hamil._get_drive_gradients(annihilation_op, time_samples)
+    assert drive_gradients.shape == (grads.shape[0], grads.shape[1], dim, dim)
 
 
 def test_decay_expm(expm):
@@ -156,3 +179,34 @@ def test_decay_ode(ode):
 
     # Check the ground state population
     assert np.isclose(final_state[0, 0], 1)
+
+
+def test_setters_and_getters(hamiltonian, random_quantity):
+    hamil = hamiltonian(np.random.randint(2, 10))
+
+    frequency = random_quantity(1)
+    hamil.frequency = frequency
+    assert hamil.frequency == frequency
+
+    anharmonicity = random_quantity(1)
+    hamil.anharmonicity = anharmonicity
+    assert hamil.anharmonicity == anharmonicity
+
+
+def test_needs_parameters_for_decay_rates(hamiltonian):
+    for _ in range(10):
+        for dim in np.arange(1, 10):
+            hamil = hamiltonian(dim)
+            t1 = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+            t2star = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+            temp = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+            hamil.t1 = t1
+            hamil.t2star = t2star
+            hamil.temp = temp
+            if t1 is not None and t2star is not None and temp is not None:
+                # Valid parameters should work
+                hamil.get_collapseops()
+            else:
+                # Invalid parameters should raise an exception
+                with pytest.raises(ConfigurationException):
+                    hamil.get_collapseops()

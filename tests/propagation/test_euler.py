@@ -4,9 +4,9 @@ import pytest
 import numpy as np
 
 from paraqeet.propagation.euler import Euler
-from test.model.dummy_model import DummyEquationsOfMotion
-from test.model.empty_hamiltonian import EmptyHamiltonian
-from test.propagation.test_common_propagation import needs_initial_state
+from tests.model.dummy_model import DummyEquationsOfMotion
+from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.propagation.test_common_propagation import needs_initial_state
 
 
 @pytest.fixture

@@ -47,5 +47,5 @@ pre-commit install
     pip install matplotlib nbconvert ipykernel pandoc
   ```
   ```bash
-    for notebook in examples/*.ipynb; do jupyter nbconvert --execute --to rst --output-dir doc/notebooks $notebook; done
+    for notebook in examples/*.ipynb; do jupyter nbconvert --execute --to rst --output-dir docs/notebooks $notebook; done
   ```

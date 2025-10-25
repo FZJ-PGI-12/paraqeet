@@ -13,7 +13,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/paraqeet)](https://pypi.org/project/paraqeet/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paraqeet)]((https://pypi.org/project/paraqeet/))
 
-*Note: This is a preview version, a 1.0 release is forthcoming.*
+*Note: This is a preview version, a 1.0.0 release is forthcoming.*
 
 Choose a pulse parametrisation, simulate a quantum system, and optimise. 
 
@@ -24,7 +24,7 @@ We use a top-down approach to make the codebase modular.
 Each module interacts only with the module above it in hierarchy. 
 
 <div align="center">
-  <center><img src="https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/raw/main/doc/layers.png" alt="Layers" width="60%"/></center>
+  <center><img src="https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/raw/main/docs/layers.png" alt="Layers" width="60%"/></center>
 </div>
 
 Currently implementated optimization methods

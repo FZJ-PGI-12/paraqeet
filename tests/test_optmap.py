@@ -9,7 +9,7 @@ from paraqeet.optimisation_map import OptimisationMap
 
 from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
-from test.test_optimisable import DummyOptimisable
+from tests.test_optimisable import DummyOptimisable
 
 TONE = ConstantEnvelope()
 GEN = IQMixer(envelopes=[TONE])
@@ -107,7 +107,8 @@ def test_optimisables_are_added(optmap, dummy_optimisable) -> None:
 
 def test_access_to_all_optimisables_parameters(optmap, dummy_optimisable) -> None:
     """Test for accessing all the otpimisable parameters in the optmap from
-    the Optimisable objects."""
+    the Optimisable objects.
+    """
     opt1 = dummy_optimisable(1)
     opt2 = dummy_optimisable(2)
     optmap.add(opt1)
