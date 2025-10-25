@@ -66,6 +66,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
     _super_iteration_since: int = 0
     _super_iteration_num: int = 0
     _fallback_optimisation: Optimiser | None
+    _super_iteration_tol: float
 
     def __init__(
         self,
@@ -75,6 +76,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         max_super_iteration_num: int = 10,
         print_every_iteration_num: int = 5,
         fallback_optimisation: Optimiser | None = None,
+        super_iteration_tol: float = 1e-7,
     ):
         super().__init__(measure, optimisation_map)
         self._super_iteration_every = super_iteration_every
@@ -84,6 +86,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         self._old_parameters_dict = {}
         self._old_opt_idxs_dict = {}
         self._fallback_optimisation = fallback_optimisation
+        self._super_iteration_tol = super_iteration_tol
 
     def _dcrab_super_iteration(self) -> None:
         optimisables = list(self._optimisation_map.get_optimisables())
@@ -140,13 +143,13 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             self._best_params = intermediate_result.x
 
         if self._super_iteration_num >= self._max_super_iteration_num:
-            raise StopIteration("Maximum number of super iterations performed.")
+            raise StopIteration("Maximum number of super iterations performed. Stopping optimisation.")
 
-        if np.abs(intermediate_result.fun - self._previous_fid) < 1e-7:
+        if np.abs(intermediate_result.fun - self._previous_fid) < self._super_iteration_tol:
             self._super_iteration_num += 1
 
             print("\n")
-            print(f"==== Decrease in infidelity less than {1e-7} ====")
+            print(f"==== Decrease in infidelity less than {self._super_iteration_tol} ====")
             print(f"==== Starting super-iteration {self._super_iteration_num} ====")
             print(f"* Current lowest infidelity = {self._best_fid: .3f}")
 
