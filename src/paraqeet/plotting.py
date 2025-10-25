@@ -34,7 +34,16 @@ mpl.rcParams["figure.titlesize"] = "medium"
 
 # Specifying a custom color palette
 default_colors = mpl.rcParams["axes.prop_cycle"].by_key()["color"]
-custom_colors = ["#18428A", "#FF9258", "#57B870", "#BF433B"] + default_colors
+custom_colors = [
+    "#18428A",
+    "#FF9258",
+    "#57B870",
+    "#BF433B",
+    "#FF00A6",
+    "#FFCC33",
+    "#008B8B",
+    "#9B5DE5",
+] + default_colors
 
 mpl.rcParams["axes.prop_cycle"] = mpl.cycler(color=custom_colors)  # type: ignore
 
@@ -44,9 +53,11 @@ def plot_signal_and_dynamics(
     propagation: Propagation,
     times: Array,
     axes=None,
+    state_labels: list[str] | None = None,
     linestyle="-",
     label="",
     alpha=1,
+    linewidth=1.5,
 ):
     """Plot the signal and the correspoding dynamics.
 
@@ -54,18 +65,45 @@ def plot_signal_and_dynamics(
     This can be used to plot multiple signals and dyanmics on the same plot.
     """
     states = propagation.propagate(times)
-    sig = generator.generate_signal(times) / 1e6
+    sig = generator.generate_signal(times) / 1e6 / (2 * np.pi)
 
     if axes is None:
-        _, axes = plt.subplots(2, figsize=(4, 4), sharex=True, dpi=100)
+        _, axes = plt.subplots(2, figsize=(4, 5), sharex=True, dpi=100)
 
-    axes[0].plot(times / 1e-9, np.real(sig), label="Re " + label, ls=linestyle, alpha=alpha)
-    axes[0].plot(times / 1e-9, np.imag(sig), label="Imag " + label, ls=linestyle, alpha=alpha)
+    axes[0].plot(
+        times / 1e-9,
+        np.real(sig),
+        label="Re " + label,
+        ls=linestyle,
+        alpha=alpha,
+        linewidth=linewidth,
+    )
+    axes[0].plot(
+        times / 1e-9,
+        np.imag(sig),
+        label="Imag " + label,
+        ls=linestyle,
+        alpha=alpha,
+        linewidth=linewidth,
+    )
     axes[0].legend(loc=1)
-    axes[0].set_ylabel("Field [MHz]")
-    axes[1].plot(times / 1e-9, np.abs(states)[:, :, 0] ** 2)
+    axes[0].set_ylabel("Amplitude \n" + r"[MHz / $2\pi$]")
+
+    axes[1].plot(
+        times / 1e-9,
+        np.abs(states)[:, :, 0] ** 2,
+        ls=linestyle,
+        alpha=alpha,
+        linewidth=linewidth,
+    )
     axes[1].set_ylabel("Population")
     axes[-1].set_xlabel("Time [ns]")
+    if state_labels is not None:
+        axes[1].legend(state_labels)
+
+    axes[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    axes[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+
     return axes
 
 
@@ -76,19 +114,35 @@ def plot_signal(
     linestyle="-",
     label="",
     alpha=1,
+    linewidth=1.5,
 ):
     """Plot signal from Generator or Envelope."""
     if isinstance(device, Generator):
-        sig = device.generate_signal(times) / 1e6
+        sig = device.generate_signal(times) / 1e6 / (2 * np.pi)
     else:
-        sig = device.compute_output(times) / 1e6
+        sig = device.compute_output(times) / 1e6 / (2 * np.pi)
 
     if axes is None:
-        _, axes = plt.subplots(1, figsize=(5, 3), dpi=100)
+        _, axes = plt.subplots(1, figsize=(4, 3), dpi=100)
 
-    axes.plot(times / 1e-9, np.real(sig), label="Re " + label, ls=linestyle, alpha=alpha)
-    axes.plot(times / 1e-9, np.imag(sig), label="Imag " + label, ls=linestyle, alpha=alpha)
-    axes.set_ylabel("Field [MHz]")
+    axes.plot(
+        times / 1e-9,
+        np.real(sig),
+        label="Re " + label,
+        ls=linestyle,
+        alpha=alpha,
+        linewidth=linewidth,
+    )
+    axes.plot(
+        times / 1e-9,
+        np.imag(sig),
+        label="Imag " + label,
+        ls=linestyle,
+        alpha=alpha,
+        linewidth=linewidth,
+    )
+    axes.grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    axes.set_ylabel(r"Amplitude [MHz / $2\pi$]")
     axes.set_xlabel("Time [ns]")
     axes.legend()
     return axes
