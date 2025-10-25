@@ -204,8 +204,8 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         if len(params) != len(values):
             num_values = len(values)
             warnings.warn(
-                f"Backtracking to previous best fidelity or stopping the optimisation. \
-                Going to step with {num_values} parameters."
+                "Stopping the optimisation or backtracking to previous best fidelity."
+                + f" Going to step with {num_values} parameters."
             )
             if num_values in self._old_parameters_dict:
                 ids = [id(i) for i in self._old_parameters_dict[num_values]]
@@ -312,7 +312,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
 
         return OptimisationResult(
             status=(OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED),
-            value=result.fun,
+            value=self._best_fid,
             iterations=result.nfev,
             message=result.message,
             raw_result=result,
