@@ -762,8 +762,8 @@ class DCRABEnvelope(Envelope):
             [
                 Quantity(
                     freqs[i],
-                    min_value=jnp.array(0.0),
-                    max_value=jnp.array(2 * jnp.pi * 5.0),
+                    min_value=jnp.array(self.__min_frequency),
+                    max_value=jnp.array(self.__max_frequency),
                     unit="Hz",
                     name=f"CRAB Re frequency {i + self._total_num_components}",
                     two_pi=True,
@@ -814,8 +814,8 @@ class DCRABEnvelope(Envelope):
             [
                 Quantity(
                     freqs[i],
-                    min_value=jnp.array(0.0),
-                    max_value=jnp.array(2 * jnp.pi * 5.0),
+                    min_value=jnp.array(self.__min_frequency),
+                    max_value=jnp.array(self.__max_frequency),
                     unit="Hz",
                     name=f"CRAB Im frequency {i + self._total_num_components}",
                     two_pi=True,
