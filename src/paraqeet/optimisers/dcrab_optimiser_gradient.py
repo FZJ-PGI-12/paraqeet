@@ -133,7 +133,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
 
     def _callback_function(self, intermediate_result):
         if self._num_iteration % self._num_print_every == 0:
-            print(f"Iteration number = {self._num_iteration} \t  Infidelity  = {intermediate_result.fun:.3f}")
+            print(f"Iteration number = {self._num_iteration} \t  Infidelity  = {intermediate_result.fun:.3e}")
 
         self._num_iteration += 1
         self._super_iteration_since += 1
@@ -151,7 +151,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             print("\n")
             print(f"==== Decrease in infidelity less than {self._super_iteration_tol} ====")
             print(f"==== Starting super-iteration {self._super_iteration_num} ====")
-            print(f"* Current lowest infidelity = {self._best_fid: .3f}")
+            print(f"* Current lowest infidelity = {self._best_fid: .3e}")
 
             current_params = self._optimisation_map.get_all_parameters()
             self._old_parameters_dict[len(current_params)] = current_params
