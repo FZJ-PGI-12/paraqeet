@@ -15,9 +15,7 @@ matplotlib_inline.backend_inline.set_matplotlib_formats("pdf", "svg")
 
 # Specifying the custom plotting fonts
 mpl.rcParams["font.family"] = "serif"
-mpl.rcParams["font.serif"] = "Palatino"
-mpl.rcParams["text.usetex"] = True
-mpl.rcParams["text.latex.preamble"] = r"\usepackage{amsmath} \usepackage{amssymb} \usepackage{siunitx}[=v2]"
+mpl.rcParams["font.serif"] = "Tex Gyre Pagella"
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.size"] = " 10.0"
 mpl.rcParams["axes.labelsize"] = " 11.0"
