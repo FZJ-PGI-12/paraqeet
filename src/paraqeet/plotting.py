@@ -5,6 +5,7 @@ import matplotlib_inline.backend_inline
 import matplotlib as mpl
 
 import numpy as np
+import json
 
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
@@ -143,4 +144,47 @@ def plot_signal(
     axes.set_ylabel(r"Amplitude [MHz / $2\pi$]")
     axes.set_xlabel("Time [ns]")
     axes.legend()
+    return axes
+
+
+def plot_infidelity_vs_evaluation_from_logs(
+    log_path: str,
+    axes=None,
+    linestyle: str = "-",
+    label: str = "",
+    alpha=1,
+    linewidth=1.5,
+):
+    """Plot Infidelity vs Evaluation from json log file.
+
+    Parameters
+    ----------
+    log_path : str
+        Path to json log file.
+    """
+    with open(log_path) as file:
+        log = [json.loads(line) for line in file]
+
+    infidelities = []
+    for eval in log:
+        infidelities.append(eval["Goal"])
+
+    if axes is None:
+        _, axes = plt.subplots(1, figsize=(4, 4), sharex=True, dpi=100)
+
+    axes.plot(
+        range(len(infidelities)),
+        infidelities,
+        label=label,
+        ls=linestyle,
+        alpha=alpha,
+        linewidth=linewidth,
+    )
+    axes.axhline(np.min(infidelities), color="red", ls="--", alpha=0.7)
+    axes.set_yscale("log")
+    axes.legend(loc=1)
+    axes.set_ylabel("Infidelity")
+    axes.set_xlabel("Evaluation number")
+    axes.grid(True, linestyle=(1, (1, 5)), linewidth=1)
+
     return axes
