@@ -67,6 +67,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
     _super_iteration_num: int = 0
     _fallback_optimisation: Optimiser | None
     _super_iteration_tol: float
+    _seed: int | None = None
 
     def __init__(
         self,
@@ -77,6 +78,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         print_every_iteration_num: int = 5,
         fallback_optimisation: Optimiser | None = None,
         super_iteration_tol: float = 1e-7,
+        seed: int | None = None,
     ):
         super().__init__(measure, optimisation_map)
         self._super_iteration_every = super_iteration_every
@@ -87,6 +89,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         self._old_opt_idxs_dict = {}
         self._fallback_optimisation = fallback_optimisation
         self._super_iteration_tol = super_iteration_tol
+        self._seed = seed
 
     def _dcrab_super_iteration(self) -> None:
         optimisables = list(self._optimisation_map.get_optimisables())
@@ -104,7 +107,11 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         # Add new parameters to the dCRAB envelope
         for env in dcrab_envs:
             try:
-                env.add_new_components(seed=None)  # Setting the seeds to be None for now.
+                if self._seed is not None:
+                    seed = self._super_iteration_num * self._seed
+                else:
+                    seed = None
+                env.add_new_components(seed=seed)
             except Exception as e:
                 raise ConfigurationException(f"Non `DCRABEnvelope` encountered. \n Raised exception {e}")
 
