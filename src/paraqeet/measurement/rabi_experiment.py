@@ -6,6 +6,7 @@ from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
+
 # TODO: is RabiExperiment really a NormalizableMeasurement?
 class RabiExperiment(NormalizableMeasurement, Optimizable):
     """Analytic model of the general Rabi formula.

@@ -5,7 +5,10 @@ import numpy as np
 from scipy.optimize import minimize
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.exceptions import IncompatibleOptimizationMap, IncompatibleQuantityException
+from paraqeet.exceptions import (
+    IncompatibleOptimizationMap,
+    IncompatibleQuantityException,
+)
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult

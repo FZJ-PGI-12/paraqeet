@@ -2,8 +2,6 @@
 
 from abc import ABC, abstractmethod
 
-import jax.numpy as jnp
-
 from paraqeet.quantity import Array
 
 
