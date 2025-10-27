@@ -202,8 +202,8 @@ def plot_infidelity_vs_evaluation_from_logs(
     )
     axes.axhline(np.min(infidelities), color="red", ls="--", alpha=0.7)
     axes.set_yscale("log")
-    axes.set_ylim(bottom=0.1 * min(infidelities))
-    axes.text(x=len(infidelities) * 0.1, y=0.2 * min(infidelities), s=f"Minimum infidelity = {min(infidelities):.3e}")
+    axes.set_ylim(bottom=0.7 * min(infidelities))
+    axes.text(x=len(infidelities) * 0.1, y=0.8 * min(infidelities), s=f"Minimum infidelity = {min(infidelities):.3e}")
 
     axes.legend(loc=1)
     axes.set_ylabel("Infidelity")
