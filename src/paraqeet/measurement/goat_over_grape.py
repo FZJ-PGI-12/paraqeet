@@ -52,6 +52,10 @@ class GOATOverGRAPE(Measurement):
         # we generate the num_pwc_pixel in the ascending order of subsystem number (0, 1, 2 ...)
         self._num_pwc_pixels = [self._gens[i].get_number_of_pwc_pixels() for i in self._gens_order]
 
+    def get_parameters(self):
+        """Return measurement specific parameters. This class does not contain any optimisable parameters."""
+        return []
+
     def pad_with_zeros(self, grad: Array, subsys_num: int) -> Array:
         """Pad gradient with zeros depending on the subsystem number and number of PWC pixels in the pulses.
 
