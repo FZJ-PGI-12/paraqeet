@@ -91,8 +91,7 @@ def fid(tls):
     zeroone = StateTransferFidelity(
         propagation=prop,
         initial_state=init,
-        target_state=target,
-        times=jnp.array([0.0, t_final]),
+        target_state=target
     )
     return zeroone
 

@@ -109,7 +109,8 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             log.append(params[index])
         # TODO: what if the self._measure is not Differentiable?
         if isinstance(self._measure, Differentiable):
-            fun, grad = self._measure.calculate_value_and_gradient()
+            # TODO: times argument missing! Fix that.
+            fun, grad = self._measure.value_and_gradient()
             self.__grad_cache = grad
 
             infid = 1.0 - fun
