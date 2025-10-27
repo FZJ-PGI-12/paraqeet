@@ -98,10 +98,11 @@ class ScipyExpm(StatePropagation):
         # Verify if `model.ode_propagation` is set to `False`.
         # ode_propgation returns hamiltonian and collapse operators separately.
         eom = self._model.get_matrix(jnp.array([0.0]))
-        dim_generator = eom.shape[1]
 
         if len(eom) == 2:
             raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
+
+        dim_generator = eom.shape[1]
 
         state = self.__check_and_fix_state_shape(state, dim_generator)
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
