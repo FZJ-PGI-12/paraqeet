@@ -15,7 +15,7 @@ from paraqeet.quantity import Array
 from paraqeet.signal.waveform import Waveform
 from paraqeet.signal.generator import Generator
 
-matplotlib_inline.backend_inline.set_matplotlib_formats("pdf", "svg")
+matplotlib_inline.backend_inline.set_matplotlib_formats("png")
 
 # Specifying the custom plotting fonts
 mpl.rcParams["font.family"] = "serif"
@@ -33,6 +33,8 @@ mpl.rcParams["ytick.major.size"] = "3.0"
 mpl.rcParams["ytick.major.width"] = "1.0"
 mpl.rcParams["axes.titlesize"] = "medium"
 mpl.rcParams["figure.titlesize"] = "medium"
+plt.rcParams["figure.dpi"] = 125  # Set default DPI for all figures
+plt.rcParams["savefig.dpi"] = 300  # Higher DPI for saved files
 
 # Specifying a custom color palette
 default_colors = mpl.rcParams["axes.prop_cycle"].by_key()["color"]
@@ -86,7 +88,7 @@ def plot_signal_and_dynamics(
     sig = generator.generate_signal(times) / 1e6 / (2 * np.pi)
 
     if axes is None:
-        _, axes = plt.subplots(2, figsize=(4, 5), sharex=True, dpi=100)
+        _, axes = plt.subplots(2, figsize=(4, 5), sharex=True)
 
     axes[0].plot(
         times / 1e-9,
@@ -140,7 +142,7 @@ def plot_signal(
         sig = device.compute_output(times) / 1e6 / (2 * np.pi)
 
     if axes is None:
-        _, axes = plt.subplots(1, figsize=(4, 3), dpi=100)
+        _, axes = plt.subplots(1, figsize=(4, 3))
 
     axes.plot(
         times / 1e-9,
@@ -188,7 +190,7 @@ def plot_infidelity_vs_evaluation_from_logs(
         infidelities.append(eval["Goal"])
 
     if axes is None:
-        _, axes = plt.subplots(1, figsize=(4, 4), sharex=True, dpi=100)
+        _, axes = plt.subplots(1, figsize=(4, 4), sharex=True)
 
     axes.plot(
         range(len(infidelities)),
