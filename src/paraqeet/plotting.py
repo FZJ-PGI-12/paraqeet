@@ -73,7 +73,7 @@ def plot_signal_and_dynamics(
             if dm:
                 pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))
             else:
-                pops = jnp.abs(states) ** 2
+                pops = jnp.abs(states[:, :, 0]) ** 2
                 pops = jnp.reshape(pops, [pops.shape[0], pops.shape[1]])
         else:
             if dm:
