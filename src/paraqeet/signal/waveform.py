@@ -561,6 +561,9 @@ class FlatTopGaussianFilter(Waveform):
         ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
         return ramp_up * ramp_down / 4
 
+    def _evaluate(self, t):
+        return self.__compute_flat_top_envelope(t)
+
     def compute_output(self, t: Array | float) -> Array:
         """Evaluate a carrier signal from an input time vector.
 
