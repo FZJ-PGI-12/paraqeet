@@ -53,6 +53,7 @@ class NormalizableMeasurement(Measurement):
 
         Returns a single scalar value between 0 and 1.
         This function must be implemented by subclasses.
+        
         Parameters
         ----------
         times : Array

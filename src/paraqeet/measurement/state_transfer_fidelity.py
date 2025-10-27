@@ -79,6 +79,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     def calculate_normalized_scalar(self, times: Array) -> float:
         """Measure overlap between initial and target state.
+        
         Parameters
         ----------
         times : Array

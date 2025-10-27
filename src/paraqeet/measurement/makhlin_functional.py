@@ -46,6 +46,7 @@ class MakhlinFunctional(Measurement):
 
     def measure(self, times: Array) -> Array | float:
         """Measure distance of the propagator to a perfect entangler.
+        
         Parameters
         ----------
         times : Array
