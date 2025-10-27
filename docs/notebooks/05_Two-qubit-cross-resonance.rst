@@ -174,7 +174,7 @@ form), can take considerably long time.
 
 .. parsed-literal::
 
-    [Amp: 190 MHz x 2pi , Gate time: 150 ns ] [Amp: 9.18 MHz x 2pi , Gate time: 150 ns ]
+    [Amp: 190 MHz x 2pi, Gate time: 150 ns] [Amp: 9.18 MHz x 2pi, Gate time: 150 ns]
 
 
 .. code:: ipython3
@@ -192,13 +192,13 @@ form), can take considerably long time.
 
 .. code:: ipython3
 
-    times = np.linspace(0, t_final, 201)
-    signal1 = generator1.generate_signal(times)
-    signal2 = generator2.generate_signal(times)
+    from paraqeet.plotting import plot_signal
     
-    plt.figure()
-    plt.plot(times, signal1)
-    plt.plot(times, signal2)
+    times = np.linspace(0, t_final, 201)
+    fig, ax = plt.subplots(1, figsize=(5, 3))
+    plot_signal(tone1, times, ax, linestyle="-", label="Drive 1")
+    plot_signal(tone2, times, ax, linestyle="-", label="Drive 2")
+    ax.legend(loc=1, frameon=True)
     plt.show()
 
 
@@ -296,7 +296,7 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         """Plot the population from the Propagation object."""
         basis1 = [i for i in range(transmon1.dimension())]
         basis2 = [i for i in range(transmon2.dimension())]
-        labels = [f"{i},{j}" for (i, j) in itertools.product(basis1, basis2)]
+        labels = [rf"$|{i},{j}\rangle$" for (i, j) in itertools.product(basis1, basis2)]
     
         signal1 = generator1.generate_signal(times)
         signal2 = generator2.generate_signal(times)
@@ -307,11 +307,13 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         ax[0].plot(times / 1e-9, signal2)
         ax[0].set_xlabel("Time [ns]")
         ax[0].set_ylabel("Signal [Hz]")
+        ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
         ax[1].plot(times / 1e-9, np.abs(states)[:, :, 0] ** 2, label=labels)
         ax[1].set_xlabel("Time [ns]")
         ax[1].set_ylabel("Population")
         ax[1].legend(ncols=2)
+        ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
         ax[2].plot(
             times / 1e-9,
@@ -321,6 +323,8 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         ax[2].set_xlabel("Time [ns]")
         ax[2].set_ylabel("Population")
         ax[2].legend(ncols=2)
+        ax[2].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         plt.tight_layout()
         plt.show()
     
@@ -353,17 +357,23 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         ax[0].plot(times / 1e-9, sig1)
         ax[0].plot(times / 1e-9, sig2)
         ax[0].set_ylabel("Field [MHz]")
+        ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[1].plot(times / 1e-9, expecation_value(pauli_ix, states[:, :, 0]))
         ax[1].plot(times / 1e-9, expecation_value(pauli_iy, states[:, :, 0]))
         ax[1].plot(times / 1e-9, expecation_value(pauli_iz, states[:, :, 0]))
         ax[1].set_ylabel(r"$\langle 0, x|\hat\sigma_i|0, x\rangle$")
         ax[1].legend(["X", "Y", "Z"])
+        ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[2].plot(times / 1e-9, expecation_value(pauli_ix, states[:, :, transmon2.dimension()]))
         ax[2].plot(times / 1e-9, expecation_value(pauli_iy, states[:, :, transmon2.dimension()]))
         ax[2].plot(times / 1e-9, expecation_value(pauli_iz, states[:, :, transmon2.dimension()]))
         ax[2].set_ylabel(r"$\langle 1, x|\hat\sigma_i|1, x\rangle$")
         ax[-1].set_xlabel("Time [ns]")
         ax[2].legend(["X", "Y", "Z"])
+        ax[2].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         return fig, ax
     
     
@@ -374,7 +384,7 @@ space to 4 dimensions to compare the propagator to the ideal gate.
 
 .. parsed-literal::
 
-    (<Figure size 400x600 with 3 Axes>,
+    (<Figure size 500x750 with 3 Axes>,
      array([<Axes: ylabel='Field [MHz]'>, <Axes: ylabel='$\\langle 0, x|\\hat\\sigma_i|0, x\\rangle$'>, <Axes: xlabel='Time [ns]', ylabel='$\\langle 1, x|\\hat\\sigma_i|1, x\\rangle$'>], dtype=object))
 
 
@@ -398,7 +408,7 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    [Amp: 190 MHz x 2pi , Gate time: 150 ns ]
+    [Amp: 190 MHz x 2pi, Gate time: 150 ns]
 
 
 
@@ -408,14 +418,14 @@ The only optimisable parameter is the frequency of transmon 1.
     optmap.add(tone1)
     print(optmap)
     
-    opt = ScipyOptimiserGradient(gate_fid, optimisables=optmap)
+    opt = ScipyOptimiserGradient(gate_fid, optimisation_map=optmap)
     opt.set_options({"ftol": 0.1})
 
 
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.FlatTopGaussianEnvelope'> ====
-    [Amp: 190 MHz x 2pi , Gate time: 150 ns ]
+    [Amp: 190 MHz x 2pi, Gate time: 150 ns]
     
     
 
@@ -430,7 +440,7 @@ The only optimisable parameter is the frequency of transmon 1.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.FlatTopGaussianEnvelope'> ====
-    [Amp: 190 MHz x 2pi , Gate time: 150 ns ]
+    [Amp: 190 MHz x 2pi, Gate time: 150 ns]
 
 
 
@@ -466,7 +476,7 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    (<Figure size 400x600 with 3 Axes>,
+    (<Figure size 500x750 with 3 Axes>,
      array([<Axes: ylabel='Field [MHz]'>, <Axes: ylabel='$\\langle 0, x|\\hat\\sigma_i|0, x\\rangle$'>, <Axes: xlabel='Time [ns]', ylabel='$\\langle 1, x|\\hat\\sigma_i|1, x\\rangle$'>], dtype=object))
 
 

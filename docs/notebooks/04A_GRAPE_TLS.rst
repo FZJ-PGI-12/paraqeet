@@ -37,20 +37,13 @@ start and end smoothly at 0 and ``t_final``.
 
 .. code:: ipython3
 
+    from paraqeet.plotting import plot_signal
+    
     ts = np.linspace(0, t_final, 501)
-    
-    plt.plot(ts / 1e-9, tone.compute_output(ts) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
-    plt.plot(
-        ts / 1e-9,
-        np.imag(gen.generate_signal(ts)) / 1e6,
-        ls="--",
-        label="out-of-phase",
-    )
-    
-    plt.xlabel("Time [in ns]")
-    plt.ylabel("Amplitude [in MHz]")
-    plt.legend()
+    fig, ax = plt.subplots(1, figsize=(5, 3))
+    plot_signal(tone, ts, ax, linestyle="-", label="Smooth")
+    plot_signal(gen, ts, ax, linestyle="--", label="PWC")
+    ax.legend(loc=1, frameon=True)
     plt.show()
 
 
@@ -114,24 +107,10 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    def plot_states():
-        """Plot the states."""
-        ts = np.linspace(0, t_final, 1001)
-        states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
+    from paraqeet.plotting import plot_signal_and_dynamics
     
-        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, np.real(sig), label="I")
-        ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
-        ax[0].legend(loc=1)
-        ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        plt.show()
-    
-    
-    plot_states()
+    ts = np.linspace(0.0, t_final, 101)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
@@ -161,7 +140,7 @@ As a simple toy model, we use a single spin.
     optmap.add(gen)
     optmap.register_params_with_optimisables()
     
-    opt_grad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt_grad = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
 
 .. code:: ipython3
 
@@ -181,7 +160,7 @@ iterations.
 
 .. code:: ipython3
 
-    plot_states()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
@@ -301,43 +280,8 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    from jax import vmap
-    
-    
-    def calculate_populations(states, dm=False):
-        """Calculate state populations from density matrices and vectorized dm."""
-        if len(states.shape) > 2:
-            if dm:
-                pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))
-            else:
-                pops = jnp.abs(states) ** 2
-                pops = jnp.reshape(pops, [pops.shape[0], pops.shape[1]])
-        else:
-            if dm:
-                pops = jnp.diag(states)
-            else:
-                pops = jnp.abs(states) ** 2
-        return pops
-    
-    
-    def plot_states():
-        """Plot the states."""
-        ts = np.linspace(0, t_final, 101)
-        states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
-    
-        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, np.real(sig), label="I")
-        ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
-        ax[0].legend(loc=1)
-        ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, calculate_populations(states, dm=True))
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        plt.show()
-    
-    
-    plot_states()
+    ts = np.linspace(0, t_final, 101)
+    plot_signal_and_dynamics(gen, prop, times=ts, state_labels=[r"$\rho_0$", r"$\rho_1$"]);
 
 
 
@@ -369,7 +313,7 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    opt_grad = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt_grad = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
     opt_grad.set_options({"disp": True})
 
 .. code:: ipython3
@@ -387,7 +331,7 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    plot_states()
+    plot_signal_and_dynamics(gen, prop, times=ts, state_labels=[r"$\rho_0$", r"$\rho_1$"]);
 
 
 

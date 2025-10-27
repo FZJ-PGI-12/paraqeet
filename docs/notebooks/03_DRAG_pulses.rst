@@ -5,7 +5,6 @@ First, we make the necessary imports.
 
 .. code:: ipython3
 
-    import matplotlib.pyplot as plt
     import numpy as np
     
     from paraqeet.optimisation_map import OptimisationMap
@@ -81,11 +80,11 @@ corrected signal in the DRAGMixer
 
 .. parsed-literal::
 
-    [Amplitude: 24.7 MHz x 2pi ,
-     t_final: 20 ns ,
-     Delta: -1.26 GHz ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi,
+     t_final: 20 ns,
+     Delta: -1.26 GHz,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 0 rad]
 
 
 
@@ -103,11 +102,11 @@ corrected signal in the DRAGMixer
 
 .. parsed-literal::
 
-    [Amplitude: 47.7 MHz x 2pi ,
-     t_final: 20 ns ,
-     Delta: -2.51 GHz ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 0 rad ]
+    [Amplitude: 47.7 MHz x 2pi,
+     t_final: 20 ns,
+     Delta: -2.51 GHz,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 0 rad]
 
 
 
@@ -144,37 +143,14 @@ population transfer,i.e., an X-gate.
 
 .. code:: ipython3
 
-    def make_plot():
-        """Plot the signal and population transfer."""
-        ts = np.linspace(0, params[1].get_value()[0], 801)
-        states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
+    from paraqeet.plotting import plot_signal_and_dynamics
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, sig)
-        ax[0].set_ylabel("Field [Hz]")
-        ax[1].plot(ts / 1e-9, np.abs(states)[..., 0] ** 2)
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        plt.grid()
-        return fig, ax
-    
-    
-    make_plot()
+    ts = np.linspace(0.0, t_final, 1001)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [Hz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_14_1.png
+.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_14_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -205,7 +181,7 @@ and the parameters of the cosine tone.
     for i in [0, 2, 3, 4]:
         selected_params.append(params[i])
     optmap.add(gen, selected_params)
-    opt = ScipyOptimiser(gate_fid, optimisables=optmap)
+    opt = ScipyOptimiser(gate_fid, optimisation_map=optmap)
 
 .. code:: ipython3
 
@@ -248,21 +224,11 @@ population transfer,i.e., an X-gate.
 
 .. code:: ipython3
 
-    make_plot()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [Hz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_23_1.png
+.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_23_0.png
 
 
 We can see from the plot and optimizer output that we have found better

@@ -31,32 +31,18 @@ Gaussian pulse
 
 .. code:: ipython3
 
-    ts = np.linspace(0, t_final, 1001)
+    from paraqeet.plotting import plot_signal
     
-    plt.plot(ts / 1e-9, tone.compute_output(ts) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
-    plt.plot(
-        ts / 1e-9,
-        np.imag(gen.generate_signal(ts)) / 1e6,
-        ls="--",
-        label="out-of-phase",
-    )
-    
-    plt.xlabel("Time [in ns]")
-    plt.ylabel("Amplitude [in MHz]")
-    plt.legend()
+    ts = np.linspace(0, t_final, 501)
+    fig, ax = plt.subplots(1, figsize=(5, 3))
+    plot_signal(tone, ts, ax, linestyle="-", label="Smooth")
+    plot_signal(gen, ts, ax, linestyle="--", label="PWC")
+    ax.legend(loc=1, frameon=True)
+    plt.show()
 
 
 
-
-.. parsed-literal::
-
-    <matplotlib.legend.Legend at 0x7f44ec27c770>
-
-
-
-
-.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_6_1.png
+.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_6_0.png
 
 
 2. Define Hamiltonian in the rotating frame of drive
@@ -127,24 +113,10 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    def plot_states():
-        """Plot the states."""
-        ts = np.linspace(0, t_final, 1001)
-        states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
+    from paraqeet.plotting import plot_signal_and_dynamics
     
-        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, np.real(sig), label="I")
-        ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
-        ax[0].legend(loc=1)
-        ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        plt.show()
-    
-    
-    plot_states()
+    ts = np.linspace(0.0, t_final, 101)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
@@ -180,7 +152,7 @@ frequency, as in the state transfer example.
     
     optmap = OptimisationMap()
     optmap.add(gen, params)
-    opt = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
 
 .. code:: ipython3
 
@@ -197,31 +169,9 @@ frequency, as in the state transfer example.
 
 .. code:: ipython3
 
-    ts = np.linspace(0, t_final, 1001)
-    
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
-    plt.plot(
-        ts / 1e-9,
-        np.imag(gen.generate_signal(ts)) / 1e6,
-        ls="--",
-        label="out-of-phase",
-    )
-    
-    plt.xlabel("Time [in ns]")
-    plt.ylabel("Amplitude [in MHz]")
-    plt.legend()
-    plt.show()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
 .. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_17_0.png
-
-
-.. code:: ipython3
-
-    plot_states()
-
-
-
-.. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_18_0.png
 

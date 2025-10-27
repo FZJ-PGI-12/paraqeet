@@ -137,26 +137,24 @@ require fix ranges for the minimum and maximum amplitudes.
         t_final=Quantity(t_final, 1 / 2 * t_final, 2 * t_final),
     )
     gen_res = PWCGenerator(envelopes=[tone_res], tlist=tlist)
+    gen_res.multiply_flat_top = True
+    
     gen_qubit = PWCGenerator(envelopes=[tone_qubit], tlist=tlist)
+    gen_qubit.multiply_flat_top = True
 
 We plot the resonator tone and compare it to its smooth version.
 Similarly one can plot the qubit tone.
 
 .. code:: ipython3
 
+    from paraqeet.plotting import plot_signal
+    
     ts = np.linspace(0, t_final, 1001)
+    fig, ax = plt.subplots(1, figsize=(5, 3))
     
-    plt.plot(ts / 1e-9, tone_res.compute_output(ts) / 1e6 / 2 * np.pi, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen_res.generate_signal(ts)) / 1e6 / 2 * np.pi, ls="--", label="in-phase")
-    plt.plot(
-        ts / 1e-9,
-        np.imag(gen_res.generate_signal(ts)) / 1e6,
-        ls="--",
-        label="out-of-phase",
-    )
+    plot_signal(tone_res, ts, ax, linestyle="-", label="Smooth")
+    plot_signal(gen_res, ts, ax, linestyle="--", label="PWC")
     
-    plt.xlabel("Time [in ns]")
-    plt.ylabel("Amplitude [in MHz]")
     plt.legend()
     plt.show()
 
@@ -336,10 +334,9 @@ dynamics.
 
 .. code:: ipython3
 
-    def plot_states_and_fock_number():
+    def plot_states_and_fock_number(item=0):
         """Plot the states."""
-        item = 0
-        ts = np.linspace(0, t_final, 1001)
+        ts = np.linspace(0, t_final, n_times)
         states = prop_list[item].propagate(ts)
         sig_res = gen_res.generate_signal(ts)
         sig_qubit = gen_qubit.generate_signal(ts)
@@ -353,20 +350,26 @@ dynamics.
             n_fock_avg[k] = np.real((states[k].conj().T @ fock_number_op_list[item] @ states[k])[0, 0])
     
         _, ax = plt.subplots(4, figsize=(4, 10), sharex=True)
-        ax[0].plot(ts / 1e-9, np.real(sig_res) / 1e6, label="I")
-        ax[0].plot(ts / 1e-9, np.imag(sig_res) / 1e6, label="Q")
+        ax[0].plot(ts / 1e-9, np.real(sig_res) / 1e6 / (2 * np.pi), label="I")
+        ax[0].plot(ts / 1e-9, np.imag(sig_res) / 1e6 / (2 * np.pi), label="Q")
         ax[0].legend(loc=1)
-        ax[0].set_ylabel("Field [MHz]")
+        ax[0].set_ylabel(r"Field [MHz / $2\pi$]")
         ax[0].set_title("Resonator")
-        ax[1].plot(ts / 1e-9, np.real(sig_qubit) / 1e6, label="I")
-        ax[1].plot(ts / 1e-9, np.imag(sig_qubit) / 1e6, label="Q")
+        ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
+        ax[1].plot(ts / 1e-9, np.real(sig_qubit) / 1e6 / (2 * np.pi), label="I")
+        ax[1].plot(ts / 1e-9, np.imag(sig_qubit) / 1e6 / (2 * np.pi), label="Q")
         ax[1].legend(loc=1)
-        ax[1].set_ylabel("Field [MHz]")
+        ax[1].set_ylabel(r"Field [MHz / $2\pi$]")
         ax[1].set_title("Qubit")
+        ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[2].plot(ts / 1e-9, pop_initial_state, label="$|0,0 \\rangle$")
         ax[2].plot(ts / 1e-9, pop_target_state, label="$|2, 0 \\rangle$")
         ax[2].legend(loc="best")
         ax[2].set_ylabel("Population")
+        ax[2].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[3].plot(ts / 1e-9, n_fock_avg)
         ax[3].set_ylabel("$\\langle n \\rangle$")
         if n_fock_truncation_list[item] < 10:
@@ -374,7 +377,10 @@ dynamics.
         else:
             y_fock_ticks = np.arange(n_fock_truncation_list[item])[::5]
         ax[3].set_yticks(y_fock_ticks)
-        ax[3].grid(axis="y")
+        ax[3].grid(axis="y", which="major")
+        ax[3].minorticks_on()
+        ax[3].grid(True, axis="x", linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[-1].set_xlabel("Time [ns]")
         plt.show()
     
@@ -396,12 +402,8 @@ We can compute the fidelities for the different truncation numbers
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.20391965494497966
-
-
-.. parsed-literal::
-
-    Fidelity at N_T=4 = 0.143585707648637
+    Fidelity at N_T=3 = 0.2067436053211263
+    Fidelity at N_T=4 = 0.14197098648890233
 
 
 which are quite poor! We now proceed with the pulse optimization.
@@ -412,7 +414,7 @@ which are quite poor! We now proceed with the pulse optimization.
     optmap = OptimisationMap()
     optmap.add(gen_res, gen_res.get_parameters())
     optmap.add(gen_qubit, gen_qubit.get_parameters())
-    opt = ScipyOptimiserGradient(goal, optimisables=optmap)
+    opt = ScipyOptimiserGradient(goal, optimisation_map=optmap)
     opt.set_options({"maxfun": max_iter})
     optmap.register_params_with_optimisables()
 
@@ -426,10 +428,10 @@ which are quite poor! We now proceed with the pulse optimization.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.pwc_generator.PWCGenerator'> ====
-    [Inphase: 3.13e+03  6.69e+03  1.37e+04  2.71e+04  5.15e+04  9.38e+04  1.64e+05  2.76e+05  4.46e+05  6.93e+05  1.03e+06  1.48e+06  2.04e+06  2.7e+06  3.43e+06  4.19e+06  4.92e+06  5.54e+06  6.01e+06  6.25e+06  6.25e+06  6.01e+06  5.54e+06  4.92e+06  4.19e+06  3.43e+06  2.7e+06  2.04e+06  1.48e+06  1.03e+06  6.93e+05  4.46e+05  2.76e+05  1.64e+05  9.38e+04  5.15e+04  2.71e+04  1.37e+04  6.69e+03  3.13e+03  , out-of-phase: 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ]
+    [Inphase: [3.13e+03, 6.69e+03, 1.37e+04, 2.71e+04, 5.15e+04, 9.38e+04, 1.64e+05, 2.76e+05, 4.46e+05, 6.93e+05, 1.03e+06, 1.48e+06, 2.04e+06, 2.7e+06, 3.43e+06, 4.19e+06, 4.92e+06, 5.54e+06, 6.01e+06, 6.25e+06, 6.25e+06, 6.01e+06, 5.54e+06, 4.92e+06, 4.19e+06, 3.43e+06, 2.7e+06, 2.04e+06, 1.48e+06, 1.03e+06, 6.93e+05, 4.46e+05, 2.76e+05, 1.64e+05, 9.38e+04, 5.15e+04, 2.71e+04, 1.37e+04, 6.69e+03, 3.13e+03], out-of-phase: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     
     ==== <class 'paraqeet.signal.pwc_generator.PWCGenerator'> ====
-    [Inphase: 3.13e+03  6.69e+03  1.37e+04  2.71e+04  5.15e+04  9.38e+04  1.64e+05  2.76e+05  4.46e+05  6.93e+05  1.03e+06  1.48e+06  2.04e+06  2.7e+06  3.43e+06  4.19e+06  4.92e+06  5.54e+06  6.01e+06  6.25e+06  6.25e+06  6.01e+06  5.54e+06  4.92e+06  4.19e+06  3.43e+06  2.7e+06  2.04e+06  1.48e+06  1.03e+06  6.93e+05  4.46e+05  2.76e+05  1.64e+05  9.38e+04  5.15e+04  2.71e+04  1.37e+04  6.69e+03  3.13e+03  , out-of-phase: 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ]
+    [Inphase: [3.13e+03, 6.69e+03, 1.37e+04, 2.71e+04, 5.15e+04, 9.38e+04, 1.64e+05, 2.76e+05, 4.46e+05, 6.93e+05, 1.03e+06, 1.48e+06, 2.04e+06, 2.7e+06, 3.43e+06, 4.19e+06, 4.92e+06, 5.54e+06, 6.01e+06, 6.25e+06, 6.25e+06, 6.01e+06, 5.54e+06, 4.92e+06, 4.19e+06, 3.43e+06, 2.7e+06, 2.04e+06, 1.48e+06, 1.03e+06, 6.93e+05, 4.46e+05, 2.76e+05, 1.64e+05, 9.38e+04, 5.15e+04, 2.71e+04, 1.37e+04, 6.69e+03, 3.13e+03], out-of-phase: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 
 
@@ -442,15 +444,15 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    CPU times: user 2min 16s, sys: 1.15 s, total: 2min 17s
-    Wall time: 38.9 s
+    CPU times: user 2min 22s, sys: 998 ms, total: 2min 23s
+    Wall time: 40 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0022876645204834567, 'iterations': 175, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.004241814930537657, 'iterations': 158, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -477,8 +479,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9587725309766322
-    Fidelity at N_T=4 = 0.9742004963529665
+    Fidelity at N_T=3 = 0.9475693477178125
+    Fidelity at N_T=4 = 0.9631119242149566
 
 
 Setting truncation to higher values
@@ -487,8 +489,9 @@ Setting truncation to higher values
 Here we increase the system truncation to 30 and 31 levels and rerun the
 entire simulation.
 
-*Note - The following takes about 10-15 mins to run on a cluster (might
-take more depending on the number of CPU cores available).*
+*Note - The following takes about 10-15 mins to run on an AMD-EPYC Milan
+processor with 128 cores and 256GB RAM (might take more depending on the
+number of CPU cores available).*
 
 We first reset the generator parameters (by redefining them), and
 redefine the resonator with higher truncation numbers.
@@ -583,10 +586,6 @@ Initial fidelity before optimisation
 .. parsed-literal::
 
     Fidelity at N_T=30 = 0.0191897809908802
-
-
-.. parsed-literal::
-
     Fidelity at N_T=31 = 0.019189780990880208
 
 
@@ -599,7 +598,7 @@ truncation numbers
     optmap = OptimisationMap()
     optmap.add(gen_res, gen_res.get_parameters())
     optmap.add(gen_qubit, gen_qubit.get_parameters())
-    opt = ScipyOptimiserGradient(goal, optimisables=optmap)
+    opt = ScipyOptimiserGradient(goal, optimisation_map=optmap)
     opt.set_options({"maxfun": max_iter})
     optmap.register_params_with_optimisables()
 
@@ -611,8 +610,8 @@ truncation numbers
 
 .. parsed-literal::
 
-    CPU times: user 8h 32min 44s, sys: 25min 25s, total: 8h 58min 10s
-    Wall time: 12min 23s
+    CPU times: user 8h 40min 3s, sys: 25min 27s, total: 9h 5min 31s
+    Wall time: 12min 48s
 
 
 
@@ -634,10 +633,6 @@ The new fidelities are
 .. parsed-literal::
 
     Fidelity at N_T=30 = 0.9756092572351025
-
-
-.. parsed-literal::
-
     Fidelity at N_T=31 = 0.9755700654718467
 
 

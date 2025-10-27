@@ -5,8 +5,6 @@ First, we make the necessary imports.
 
 .. code:: ipython3
 
-    import matplotlib.pyplot as plt
-    
     import numpy as np
     
     from paraqeet.optimisation_map import OptimisationMap
@@ -45,10 +43,10 @@ We can inspect the pre-defined parameters with
 
 .. parsed-literal::
 
-    [Amplitude: 24.7 MHz x 2pi ,
-     t_final: 32 ns ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi,
+     t_final: 32 ns,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 0 rad]
 
 
 
@@ -102,36 +100,14 @@ Population dynamics
 
 .. code:: ipython3
 
-    def make_plot():
-        """Plot the signal."""
-        ts = np.linspace(0, t_final, 1001)
-        states = np.reshape(prop.propagate(ts), (-1, 2))
-        sig = gen.generate_signal(ts)
+    from paraqeet.plotting import plot_signal_and_dynamics
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, sig)
-        ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, np.abs(states) ** 2)
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
-    
-    
-    make_plot()
+    ts = np.linspace(0.0, t_final, 101)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 02A_Single_qubit_state_transfer_files/02A_Single_qubit_state_transfer_13_1.png
+.. image:: 02A_Single_qubit_state_transfer_files/02A_Single_qubit_state_transfer_13_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -159,7 +135,7 @@ and the parameters of the cosine tone.
 
     optmap = OptimisationMap()
     optmap.add(tone, params)
-    opt = ScipyOptimiser(zeroone, optimisables=optmap)
+    opt = ScipyOptimiser(zeroone, optimisation_map=optmap)
 
 .. code:: ipython3
 
@@ -176,21 +152,11 @@ and the parameters of the cosine tone.
 
 .. code:: ipython3
 
-    make_plot()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 02A_Single_qubit_state_transfer_files/02A_Single_qubit_state_transfer_19_1.png
+.. image:: 02A_Single_qubit_state_transfer_files/02A_Single_qubit_state_transfer_19_0.png
 
 
 We can see from the plot and optimizer output that we have found good
@@ -218,10 +184,10 @@ controls.
 
 .. parsed-literal::
 
-    [Amplitude: 50.2 MHz x 2pi ,
-     t_final: 32 ns ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 615 µrad ]
+    [Amplitude: 50.2 MHz x 2pi,
+     t_final: 32 ns,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 615 µrad]
 
 
 

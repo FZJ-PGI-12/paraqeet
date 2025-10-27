@@ -35,10 +35,10 @@ We define some signal generator and look at its parameters:
 
 .. parsed-literal::
 
-    [Amplitude: 24.7 MHz x 2pi ,
-     t_final: 32 ns ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi,
+     t_final: 32 ns,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 0 rad]
 
 
 
@@ -64,10 +64,10 @@ We can get a list output of all parameters with
 
 .. parsed-literal::
 
-    [Amplitude: 24.7 MHz x 2pi ,
-     t_final: 32 ns ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi,
+     t_final: 32 ns,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 0 rad]
 
 
 
@@ -84,7 +84,7 @@ configuration.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi , t_final: 32 ns , lo_freq: 4.8 GHz x 2pi , Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi, t_final: 32 ns, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
 
 
 
@@ -105,7 +105,7 @@ If we just want to optimise just the frequency, we set
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [lo_freq: 4.8 GHz x 2pi ]
+    [lo_freq: 4.8 GHz x 2pi]
 
 
 
@@ -137,11 +137,11 @@ added.
 
 .. parsed-literal::
 
-    [lo_freq: 4.8 GHz x 2pi ,
-     Amplitude: 24.7 MHz x 2pi ,
-     t_final: 32 ns ,
-     lo_freq: 4.8 GHz x 2pi ,
-     Phase: 0 rad ]
+    [lo_freq: 4.8 GHz x 2pi,
+     Amplitude: 24.7 MHz x 2pi,
+     t_final: 32 ns,
+     lo_freq: 4.8 GHz x 2pi,
+     Phase: 0 rad]
 
 
 
@@ -155,10 +155,10 @@ added.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [lo_freq: 4.8 GHz x 2pi ]
+    [lo_freq: 4.8 GHz x 2pi]
     
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi , t_final: 32 ns , lo_freq: 4.8 GHz x 2pi , Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi, t_final: 32 ns, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
 
 
 
@@ -184,7 +184,7 @@ properties. The following example selects all amplitudes:
 
 .. parsed-literal::
 
-    [Amplitude: 24.7 MHz x 2pi ]
+    [Amplitude: 24.7 MHz x 2pi]
 
 
 
@@ -198,7 +198,7 @@ properties. The following example selects all amplitudes:
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi ]
+    [Amplitude: 24.7 MHz x 2pi]
 
 
 
@@ -217,10 +217,10 @@ Adding back all parameters:
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi , t_final: 32 ns , lo_freq: 4.8 GHz x 2pi , Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi, t_final: 32 ns, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
     
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi , t_final: 32 ns , lo_freq: 4.8 GHz x 2pi , Phase: 0 rad ]
+    [Amplitude: 24.7 MHz x 2pi, t_final: 32 ns, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
 
 
 
@@ -243,10 +243,10 @@ Now, we select every parameter with unit “Hz”:
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi , lo_freq: 4.8 GHz x 2pi ]
+    [Amplitude: 24.7 MHz x 2pi, lo_freq: 4.8 GHz x 2pi]
     
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
-    [Amplitude: 24.7 MHz x 2pi , lo_freq: 4.8 GHz x 2pi ]
+    [Amplitude: 24.7 MHz x 2pi, lo_freq: 4.8 GHz x 2pi]
 
 
 

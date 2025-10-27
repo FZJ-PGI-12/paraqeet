@@ -24,7 +24,7 @@ Here we define a two level system (TLS) Hamiltonian, with a cosine drive
     amplitude = pq.Quantity(
         value=jnp.array(1.55e8),
         min_value=jnp.array(0.0),
-        max_value=jnp.array(5*1e8),
+        max_value=jnp.array(5 * 1e8),
         unit="Hz",
         name="Amplitude",
         two_pi=True,
@@ -91,6 +91,9 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 
 .. code:: ipython3
 
+    import paraqeet.plotting  # import the configuration from plotting
+    
+    
     def make_plot():
         """Plot the signal."""
         ts = jnp.linspace(0, t_final, 1001)
@@ -100,8 +103,12 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
         fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, sig)
         ax[0].set_ylabel("Field [MHz]")
+        ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[1].plot(ts / 1e-9, jnp.abs(states) ** 2)
         ax[1].set_ylabel("Population")
+        ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[-1].set_xlabel("Time [ns]")
         return fig, ax
     
@@ -113,7 +120,7 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 
 .. parsed-literal::
 
-    (<Figure size 400x400 with 2 Axes>,
+    (<Figure size 500x500 with 2 Axes>,
      array([<Axes: ylabel='Field [MHz]'>,
             <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
 
@@ -197,7 +204,7 @@ Here we demonstrate both the cases.
     
     optmap = OptimisationMap()
     optmap.add(tls)
-    opt = ScipyOptimiserGradient(zeroone, optimisables=optmap)
+    opt = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
 
 .. code:: ipython3
 
@@ -221,7 +228,7 @@ Here we demonstrate both the cases.
 
 .. parsed-literal::
 
-    (<Figure size 400x400 with 2 Axes>,
+    (<Figure size 500x500 with 2 Axes>,
      array([<Axes: ylabel='Field [MHz]'>,
             <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
 

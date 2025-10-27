@@ -46,34 +46,6 @@ Exponentiating the full Lindbladian super-operator
     )
     model = OpenSystem(resonator)
 
-.. code:: ipython3
-
-    resonator.get_decay_rates()
-
-
-
-
-.. parsed-literal::
-
-    [Array([1.00309401e+08], dtype=float64),
-     Array([309400.57749512], dtype=float64),
-     Array([100000.], dtype=float64)]
-
-
-
-.. code:: ipython3
-
-    1 / resonator.t1.get_value()
-
-
-
-
-.. parsed-literal::
-
-    Array([1.e+08], dtype=float64)
-
-
-
 1. Fock state decay -
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -119,24 +91,26 @@ Exponentiating the full Lindbladian super-operator
     
     prop = ScipyExpm(model, res=100e9)
     prop.set_initial_state(init_dm)
-    states = prop.propagate(ts)
 
 .. code:: ipython3
 
-    states.shape
+    from paraqeet.plotting import plot_signal_and_dynamics
+    
+    ts = np.linspace(0.0, t_final, 101)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
 
 
 
-
-.. parsed-literal::
-
-    (101, 5, 5)
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_9_0.png
 
 
+2. Coherent state decay -
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
     from jax import vmap
+    from jax.scipy.special import factorial
     
     
     def calculate_populations(states, dm=False):
@@ -145,7 +119,7 @@ Exponentiating the full Lindbladian super-operator
             if dm:
                 pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))
             else:
-                pops = jnp.abs(states) ** 2
+                pops = jnp.abs(states[:, :, 0]) ** 2
                 pops = jnp.reshape(pops, [pops.shape[0], pops.shape[1]])
         else:
             if dm:
@@ -153,29 +127,6 @@ Exponentiating the full Lindbladian super-operator
             else:
                 pops = jnp.abs(states) ** 2
         return pops
-
-.. code:: ipython3
-
-    pops = calculate_populations(states, dm=True)
-    
-    plt.figure()
-    plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
-    plt.xlabel("Time [ns]")
-    plt.ylabel("Population")
-    plt.show()
-
-
-
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_13_0.png
-
-
-2. Coherent state decay -
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: ipython3
-
-    from jax.scipy.special import factorial
     
     
     def generate_coherent_state(dim, alpha, dm=False):
@@ -202,7 +153,6 @@ plot coherent state populations
         dims,
         state_labels,
         dm=False,
-        dpi=100,
         labels=None,
         xticks_spacing=3,
         grid=True,
@@ -211,7 +161,6 @@ plot coherent state populations
         alpha=1.0,
         grid_alpha=0.7,
         figsize=(3, 3),
-        filename=None,
         show_legend=True,
         barwidth=None,
     ):
@@ -230,7 +179,7 @@ plot coherent state populations
                 plot_parms_dict["width"] = barwidth
             return plot_parms_dict
     
-        fig = plt.figure(figsize=figsize, dpi=dpi)
+        fig = plt.figure(figsize=figsize)
         ax = fig.add_axes([0, 0, 1, 1])
     
         for i in range(len(states)):
@@ -257,9 +206,6 @@ plot coherent state populations
         ax.set_title(title)
         ax.set_xlabel("State")
         ax.set_ylabel("Population")
-    
-        if filename is not None:
-            plt.savefig(filename, bbox_inches="tight")
 
 .. code:: ipython3
 
@@ -271,7 +217,6 @@ plot coherent state populations
         state_labels=state_labels,
         dm=True,
         labels=[r"$|\alpha\rangle$"],
-        dpi=100,
         grid=False,
         colors=["#57b977"],
         alpha=0.9,
@@ -281,7 +226,7 @@ plot coherent state populations
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_18_0.png
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_14_0.png
 
 
 .. code:: ipython3
@@ -291,22 +236,12 @@ plot coherent state populations
     
     prop = ScipyExpm(model, res=100e9)
     prop.set_initial_state(coherent_state)
-    states = prop.propagate(ts)
-
-.. code:: ipython3
-
-    pops = calculate_populations(states, dm=True)
     
-    plt.figure()
-    plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
-    plt.xlabel("Time [ns]")
-    plt.ylabel("Population")
-    plt.show()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_20_0.png
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_15_0.png
 
 
 2. Using ``Vern7``
@@ -333,22 +268,12 @@ Set ``model.ode_propagation = True``
     
     prop = Vern7(model, res=100e9)
     prop.set_initial_state(init_dm)
-    states = prop.propagate(ts)
-
-.. code:: ipython3
-
-    pops = calculate_populations(states, dm=True)
     
-    plt.figure()
-    plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
-    plt.xlabel("Time [ns]")
-    plt.ylabel("Population")
-    plt.show()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_26_0.png
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_20_0.png
 
 
 2. Coherent state decay
@@ -366,7 +291,6 @@ Set ``model.ode_propagation = True``
         state_labels=state_labels,
         dm=True,
         labels=[r"$|\alpha\rangle$"],
-        dpi=100,
         grid=False,
         colors=["#57b977"],
         alpha=0.9,
@@ -376,7 +300,7 @@ Set ``model.ode_propagation = True``
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_28_0.png
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_22_0.png
 
 
 .. code:: ipython3
@@ -386,20 +310,10 @@ Set ``model.ode_propagation = True``
     
     prop = Vern7(model, res=100e9)
     prop.set_initial_state(coherent_state)
-    states = prop.propagate(ts)
-
-.. code:: ipython3
-
-    pops = calculate_populations(states, dm=True)
     
-    plt.figure()
-    plt.plot(ts / 1e-9, pops)
-    plt.legend([rf"$|{i}\rangle$" for i in range(dims)])
-    plt.xlabel("Time [ns]")
-    plt.ylabel("Population")
-    plt.show()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_30_0.png
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_23_0.png
 
