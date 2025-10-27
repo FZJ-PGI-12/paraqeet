@@ -105,10 +105,10 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
                 relevant_optimisables.append(opt)  # type:ignore
 
         # Add new parameters to the dCRAB envelope
-        for env in dcrab_envs:
+        for n, env in enumerate(dcrab_envs):
             try:
                 if self._seed is not None:
-                    seed = self._super_iteration_num * self._seed
+                    seed = (n + 1) * self._super_iteration_num * self._seed
                 else:
                     seed = None
                 env.add_new_components(seed=seed)
