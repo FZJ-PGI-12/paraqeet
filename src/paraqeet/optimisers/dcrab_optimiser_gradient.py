@@ -113,7 +113,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
                     seed = None
                 env.add_new_components(seed=seed)
             except Exception as e:
-                raise ConfigurationException(f"Non `DCRABEnvelope` encountered. \n Raised exception {e}")
+                raise ConfigurationException(f"Non-`DCRABEnvelope` encountered. \n Raised exception {e}")
 
         # Add new parameters to optmap
         new_coeffs_freqs_and_phases = [env.get_coefficients_frequencies_and_phases() for env in dcrab_envs]

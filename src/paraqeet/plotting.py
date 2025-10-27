@@ -7,6 +7,9 @@ import matplotlib as mpl
 import numpy as np
 import json
 
+import jax.numpy as jnp
+from jax import vmap
+
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 from paraqeet.signal.waveform import Waveform
@@ -51,18 +54,34 @@ def plot_signal_and_dynamics(
     generator: Generator,
     propagation: Propagation,
     times: Array,
-    axes=None,
     state_labels: list[str] | None = None,
-    linestyle="-",
-    label="",
-    alpha=1,
-    linewidth=1.5,
+    axes=None,
+    linestyle: str = "-",
+    label: str = "",
+    alpha: float = 1.0,
+    linewidth: float = 1.5,
 ):
     """Plot the signal and the correspoding dynamics.
 
     If fig or ax is provided then ax[0] is used to plot the signal and ax[1] for dynamics.
     This can be used to plot multiple signals and dyanmics on the same plot.
     """
+
+    def calculate_populations(states, dm=False):
+        """Calculate state populations from density matrices and vectorized dm."""
+        if len(states.shape) > 2:
+            if dm:
+                pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))
+            else:
+                pops = jnp.abs(states) ** 2
+                pops = jnp.reshape(pops, [pops.shape[0], pops.shape[1]])
+        else:
+            if dm:
+                pops = jnp.diag(states)
+            else:
+                pops = jnp.abs(states) ** 2
+        return pops
+
     states = propagation.propagate(times)
     sig = generator.generate_signal(times) / 1e6 / (2 * np.pi)
 
@@ -87,10 +106,11 @@ def plot_signal_and_dynamics(
     )
     axes[0].legend(loc=1)
     axes[0].set_ylabel("Amplitude \n" + r"[MHz / $2\pi$]")
+    axes[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
 
     axes[1].plot(
         times / 1e-9,
-        np.abs(states)[:, :, 0] ** 2,
+        calculate_populations(states, dm=propagation.is_open),
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
@@ -99,8 +119,6 @@ def plot_signal_and_dynamics(
     axes[-1].set_xlabel("Time [ns]")
     if state_labels is not None:
         axes[1].legend(state_labels)
-
-    axes[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     axes[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
 
     return axes
@@ -110,10 +128,10 @@ def plot_signal(
     device: Generator | Waveform,
     times: Array,
     axes=None,
-    linestyle="-",
-    label="",
-    alpha=1,
-    linewidth=1.5,
+    linestyle: str = "-",
+    label: str = "",
+    alpha: float = 1.0,
+    linewidth: float = 1.5,
 ):
     """Plot signal from Generator or Envelope."""
     if isinstance(device, Generator):
@@ -152,8 +170,8 @@ def plot_infidelity_vs_evaluation_from_logs(
     axes=None,
     linestyle: str = "-",
     label: str = "",
-    alpha=1,
-    linewidth=1.5,
+    alpha: float = 1.0,
+    linewidth: float = 1.5,
 ):
     """Plot Infidelity vs Evaluation from json log file.
 
