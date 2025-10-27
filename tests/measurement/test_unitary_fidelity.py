@@ -20,8 +20,9 @@ def test_positivity(random_unitary_matrix, random_basis_vectors):
         for i in range(50):
             propagation = RandomPropagation(dim, True)
             gate = random_unitary_matrix(dim)
-            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
-            m = measurement.measure()
+            measurement = UnitaryFidelity(propagation, gate)
+            times = np.array([1.0])
+            m = measurement.measure(times=times)
             assert 0.0 <= m
 
             # gate must have at least two dimensions
@@ -29,8 +30,8 @@ def test_positivity(random_unitary_matrix, random_basis_vectors):
             basisStates = random_basis_vectors(dim, subDim)
             # gate is defined on the subspace.
             gate = random_unitary_matrix(subDim)
-            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]), basisStates)
-            m = measurement.measure()
+            measurement = UnitaryFidelity(propagation, gate, basisStates)
+            m = measurement.measure(times=times)
             assert 0.0 <= m
 
 
@@ -41,10 +42,11 @@ def test_positivity_projected(random_unitary_matrix):
         for projectedSize in range(2, size):
             gate = random_unitary_matrix(projectedSize)
             propagation = RandomPropagation(size, True)
-            measurement = UnitaryFidelity(propagation=propagation, gate=gate, times=times)
+            measurement = UnitaryFidelity(propagation=propagation, gate=gate)
 
             for _ in range(20):
-                m = measurement.measure()
+                # TODO: fix array dimensions
+                m = measurement.measure(times=times)
                 assert 0.0 <= m <= 1.0
 
 
@@ -56,8 +58,8 @@ def test_equality(identity_propagation, random_unitary_matrix):
             np.testing.assert_almost_equal(np.conjugate(gate.T) @ gate, np.eye(dim))
             propagation = IdentityPropagation()
             propagation.set_initial_state(gate)
-            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
-            m = measurement.measure()
+            measurement = UnitaryFidelity(propagation, gate)
+            m = measurement.measure(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0)
 
 
@@ -69,8 +71,8 @@ def test_projection(identity_propagation, random_basis_vectors):
             init_state = random_basis_vectors(dim + 4, dim)
             propagation = identity_propagation
             propagation.set_initial_state(gate)
-            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]), basis_states=init_state)
-            m = measurement.measure()
+            measurement = UnitaryFidelity(propagation, gate, basis_states=init_state)
+            m = measurement.measure(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0)
 
 
@@ -96,6 +98,6 @@ def test_incompatible_shape(identity_propagation, random_unitary_matrix):
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             propagation = RandomPropagation(np.random.choice(dimensions), True)
 
-            measurement = UnitaryFidelity(propagation, gate, np.array([1.0]))
+            measurement = UnitaryFidelity(propagation, gate)
             with pytest.raises(Exception):
-                measurement.measure()
+                measurement.measure(times=np.array([1.0]))
