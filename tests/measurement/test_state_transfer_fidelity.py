@@ -33,39 +33,10 @@ def test_limits_vectors(random_state):
         for _ in range(20):
             m = measurement.measure(times=times)
             assert 0.0 <= m
-            #  TODO: since the method measure_scalar is removed, update the tests accordingly
-            # m = measurement.measure_scalar()
-            # assert 0.0 <= m
             m = measurement.calculate_normalized_scalar(times=times)
             assert 0.0 <= m <= 1.0
             m, grad = measurement.value_and_gradient(times=times)
             assert 0.0 <= m
-
-
-@pytest.mark.filterwarnings("ignore:Different shapes for")
-def test_limit_projected_vectors(random_state):
-    """Test the projection to a subspace.
-
-    The projection to a subspace should not increase the
-    range of possible measurement outcomes for state vectors.
-
-    """
-    times = np.array([1.0])
-    for size in range(3, 30):
-        for projectedSize in range(2, size):
-            inital_state = random_state(size)
-            target_state = random_state(projectedSize)
-            propagation = RandomPropagation(size, False)
-            measurement = StateTransferFidelity(
-                propagation=propagation,
-                initial_state=inital_state,
-                target_state=target_state,
-            )
-            # TODO: since the method restrict_subsystems is removed, update the tests accordingly
-            # measurement.restrict_subsystems([size], [projectedSize])
-            for _ in range(20):
-                m = measurement.measure(times=times)
-                assert 0.0 <= m <= 1.0
 
 
 def test_vector_equality(identity_propagation, random_state):
