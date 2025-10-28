@@ -8,6 +8,7 @@ from scipy.optimize import minimize
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
+from paraqeet.quantity import Array
 
 
 class ScipyOptimizer(Optimizer):
@@ -28,12 +29,14 @@ class ScipyOptimizer(Optimizer):
     _options: dict
     _method: str
     _callback: Callable | None
+    _times: Array
 
-    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap):
+    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap, times: Array) -> None:
         super().__init__(measure, optimizables)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
         self._callback = None
+        self._times = times
 
     @property
     def method(self) -> str:
@@ -147,8 +150,7 @@ class ScipyOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        # TODO: measure.calculate_normalized_scalar() requires times argument. Fix that.
-        infid = 1 - self._measure.calculate_normalized_scalar()
+        infid = 1 - self._measure.calculate_normalized_scalar(self._times)
 
         if self._logger:
             self._logger.log(log, infid)

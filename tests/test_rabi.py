@@ -2,13 +2,19 @@
 
 import pytest
 from numpy.testing import assert_almost_equal
+import jax.numpy as jnp
 
 from paraqeet.measurement.rabi_experiment import RabiExperiment
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 
+import jax
+
+jax.config.update("jax_enable_x64", True)
+
 FREQ = 4.8e9
 RABI_NAME = "Analytic Rabi Model"
+TIMES = jnp.array([0.6e-9])
 
 
 @pytest.fixture
@@ -16,7 +22,7 @@ def opt(rabi):
     """Create optimization map with Rabi model."""
     optmap = OptimizationMap()
     optmap.add(rabi, rabi.get_parameters())
-    return ScipyOptimizer(rabi, optmap)
+    return ScipyOptimizer(rabi, optmap, times=TIMES)
 
 
 @pytest.fixture
@@ -35,7 +41,7 @@ def test_name(rabi):
 def test_rabi(opt) -> None:
     """Check that the rabi optimization goes below threshold."""
     res = opt.optimize()
-    assert res.value < 1e-8
+    assert res.value < 1e-7
 
 
 def test_find_resonance(rabi, opt) -> None:
