@@ -155,8 +155,12 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             Returns the sum of gradients.
 
         """
-        # TODO: this statement has a condition now: it checks whether the measurement is a Differentiable:
-        # is it still correct?
+        for mes in self.__measurements:
+            if not isinstance(mes, Differentiable):
+                raise ConfigurationException(
+                    "All measurements must be Differentiable to compute the gradient of the WeightedSumGoal"
+                )
+
         values_and_gradients = [
             m.value_and_gradient(times=times) for m in self.__measurements if isinstance(m, Differentiable)
         ]
