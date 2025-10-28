@@ -88,11 +88,7 @@ def fid(tls):
 
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
-    zeroone = StateTransferFidelity(
-        propagation=prop,
-        initial_state=init,
-        target_state=target
-    )
+    zeroone = StateTransferFidelity(propagation=prop, initial_state=init, target_state=target)
     return zeroone
 
 
@@ -100,7 +96,7 @@ def fid(tls):
 def opt(tls, fid):
     optmap = OptimizationMap()
     optmap.add(tls)
-    opt = ScipyOptimizerGradient(fid, optimizables=optmap)
+    opt = ScipyOptimizerGradient(fid, optimizables=optmap, times=jnp.array([t_final]))
     return opt
 
 

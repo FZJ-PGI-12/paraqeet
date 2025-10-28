@@ -7,6 +7,7 @@ from typing import Any
 from paraqeet.file_logger import Logger
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
+from paraqeet.quantity import Array
 
 
 @dataclass(repr=False)
@@ -102,17 +103,20 @@ class Optimizer(ABC):
     _measure: Measurement
     _optimizables: OptimizationMap
     _opt_idxs: list[int]
-    __logger: Logger | None
+    _logger: Logger | None
+    _times: Array
 
     def __init__(
         self,
         measure: Measurement,
         optimizables: OptimizationMap,
+        times: Array,
         logger: Logger | None = None,
     ):
         self._measure = measure
         self._logger = logger
         self.optimizables = optimizables
+        self._times = times
 
     @property
     def logger(self) -> Logger | None:

@@ -23,6 +23,7 @@ PARAMS = GEN.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
 t_final = 10e-9
+TIMES = (np.array([t_final]),)
 
 PARAMS[0].set_value(0.8 * np.pi / t_final)
 PARAMS[2].set_value(1.01 * FREQ)
@@ -39,7 +40,6 @@ ZEROONE = StateTransferFidelity(
     propagation=PROP,
     initial_state=INIT,
     target_state=TARGET,
-    times=np.array([0.0, t_final]),
 )
 
 
@@ -48,7 +48,7 @@ def opt():
     """Create ScipyOptimizer optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return ScipyOptimizer(ZEROONE, optimizables=optmap)
+    return ScipyOptimizer(ZEROONE, optimizables=optmap, times=TIMES)
 
 
 @pytest.fixture
@@ -56,7 +56,7 @@ def cma_opt():
     """Create CMAEs optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return CMAEsOptimizer(ZEROONE, optimizables=optmap)
+    return CMAEsOptimizer(ZEROONE, optimizables=optmap, times=TIMES)
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ def bay_opt():
     """Create Bayesian optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return BayesianOptimizer(ZEROONE, optimizables=optmap)
+    return BayesianOptimizer(ZEROONE, optimizables=optmap, times=TIMES)
 
 
 def test_optim(opt) -> None:

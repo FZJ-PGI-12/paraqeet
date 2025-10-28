@@ -27,8 +27,8 @@ class ScipyOptimizerGradient(ScipyOptimizer):
     __grad_cache: Array  # of shape (n_parameters,)
     __scales: Array
 
-    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap) -> None:
-        super().__init__(measure, optimizables)
+    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap, times: Array) -> None:
+        super().__init__(measure, optimizables, times)
         params = self._optimizables.get_all_parameters()
         self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
 
@@ -107,10 +107,9 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
-        # TODO: what if the self._measure is not Differentiable?
+        # TODO: what if the self._measure is not Differentiable? -- then you cant use this method.
         if isinstance(self._measure, Differentiable):
-            # TODO: times argument missing! Fix that.
-            fun, grad = self._measure.value_and_gradient()
+            fun, grad = self._measure.value_and_gradient(self._times)
             self.__grad_cache = grad
 
             infid = 1.0 - fun

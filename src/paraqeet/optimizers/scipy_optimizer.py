@@ -29,14 +29,12 @@ class ScipyOptimizer(Optimizer):
     _options: dict
     _method: str
     _callback: Callable | None
-    _times: Array
 
     def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap, times: Array) -> None:
-        super().__init__(measure, optimizables)
+        super().__init__(measure, optimizables, times)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
         self._callback = None
-        self._times = times
 
     @property
     def method(self) -> str:

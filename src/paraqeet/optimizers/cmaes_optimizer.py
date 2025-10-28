@@ -9,6 +9,7 @@ from paraqeet.file_logger import Logger
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
+from paraqeet.quantity import Array
 
 
 class CMAEsOptimizer(Optimizer):
@@ -50,10 +51,11 @@ class CMAEsOptimizer(Optimizer):
         self,
         measure: Measurement,
         optimizables: OptimizationMap,
+        times: Array,
         logger: Logger | None = None,
         callback=None,
     ):
-        super().__init__(measure, optimizables, logger)
+        super().__init__(measure, optimizables, times, logger)
         self._options = {
             "noise": 0,
             "batch_noise": 0,
@@ -219,8 +221,11 @@ class CMAEsOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1.0 - self._measure.calculate_normalized_scalar()
 
+        # TODO: Mypy raises error: "Measurement" has no attribute "calculate_normalized_scalar"
+        infid = 1.0 - self._measure.calculate_normalized_scalar(self._times)
+
+        # TODO: Mypy raises error: Returning Any from function declared to return "float"
         if self._logger:
             self._logger.log(log, infid)
         return infid

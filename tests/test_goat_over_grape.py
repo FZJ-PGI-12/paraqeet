@@ -25,6 +25,7 @@ from paraqeet.signal.envelopes import Envelope
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 T_FINAL = 20e-9
+TIMES = np.array([T_FINAL])
 TLIST = jnp.linspace(0, T_FINAL, 26)
 
 

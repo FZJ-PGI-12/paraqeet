@@ -26,6 +26,7 @@ ANHARM2 = -200e6 * 2 * np.pi
 COUPLINGSTR = 25e6 * 2 * np.pi
 
 T_FINAL = 150e-9
+TIMES = np.array([T_FINAL])
 RES = 100e9
 
 
@@ -132,7 +133,6 @@ def coupled_transmons(tone):
     gate_fid = UnitaryFidelity(
         propagation=prop,
         gate=cr_gate,
-        times=np.array([0.0, T_FINAL]),
     )
 
     tone1_amp = tone1.get_parameters()[0]
@@ -146,7 +146,7 @@ def coupled_transmons(tone):
 def opt(coupled_transmons):
     """Return Scipy optimizer from coupled transmons."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimizer(measure, optimizables=optmap)
+    opt = ScipyOptimizer(measure, optimizables=optmap, times=TIMES)
     opt.set_options({"maxiter": 5})
     return opt
 
@@ -155,7 +155,7 @@ def opt(coupled_transmons):
 def grad_opt(coupled_transmons):
     """Return Scipy optimizer gradient."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimizerGradient(measure, optimizables=optmap)
+    opt = ScipyOptimizerGradient(measure, optimizables=optmap, times=TIMES)
     opt.set_options({"maxiter": 2})
     return opt
 
