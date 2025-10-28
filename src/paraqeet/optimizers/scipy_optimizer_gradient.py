@@ -107,7 +107,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
-        # TODO: what if the self._measure is not Differentiable? -- then you cant use this method.
+        # TODO: what if the self._measure is not Differentiable? -- then this optimizer should not be used.
         if isinstance(self._measure, Differentiable):
             fun, grad = self._measure.value_and_gradient(self._times)
             self.__grad_cache = grad
