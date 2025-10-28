@@ -69,7 +69,6 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         """
         return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    # TODO: Check the implementation method measure
     def measure(self, times: Array) -> Array | float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)

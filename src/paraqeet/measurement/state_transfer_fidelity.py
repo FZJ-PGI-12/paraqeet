@@ -72,14 +72,13 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     def _overlap_dm(target_state, final_state):
         return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
-    # TODO: Check the implementation method measure
     def measure(self, times: Array) -> Array | float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
     def calculate_normalized_scalar(self, times: Array) -> float:
         """Measure overlap between initial and target state.
-        
+
         Parameters
         ----------
         times : Array
@@ -96,7 +95,6 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         f = self._overlap(self._target_state, final_state)
         return self._fid(f)
 
-    # TODO: adjust methods calling value_and_gradient
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
