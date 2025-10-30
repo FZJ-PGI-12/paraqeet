@@ -22,10 +22,9 @@ GEN = IQMixer(envelopes=[TONE])
 PARAMS = GEN.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
-t_final = 10e-9
-TIMES = (np.array([t_final]),)
+T_FINAL = 10e-9
 
-PARAMS[0].set_value(0.8 * np.pi / t_final)
+PARAMS[0].set_value(0.8 * np.pi / T_FINAL)
 PARAMS[2].set_value(1.01 * FREQ)
 
 DRIVE = DriveOperator(GEN, is_longitudinal=False)
@@ -48,7 +47,7 @@ def opt():
     """Create ScipyOptimizer optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return ScipyOptimizer(ZEROONE, optimizables=optmap, times=TIMES)
+    return ScipyOptimizer(ZEROONE, optimizables=optmap, times=T_FINAL)
 
 
 @pytest.fixture
@@ -56,7 +55,7 @@ def cma_opt():
     """Create CMAEs optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return CMAEsOptimizer(ZEROONE, optimizables=optmap, times=TIMES)
+    return CMAEsOptimizer(ZEROONE, optimizables=optmap, times=T_FINAL)
 
 
 @pytest.fixture
@@ -64,7 +63,7 @@ def bay_opt():
     """Create Bayesian optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return BayesianOptimizer(ZEROONE, optimizables=optmap, times=TIMES)
+    return BayesianOptimizer(ZEROONE, optimizables=optmap, times=T_FINAL)
 
 
 def test_optim(opt) -> None:

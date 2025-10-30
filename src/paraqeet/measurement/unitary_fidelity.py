@@ -73,7 +73,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns

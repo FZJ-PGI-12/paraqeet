@@ -39,7 +39,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Returns the normalized sum of consecutive square differences of the pulse.
         As the maximums difference is twice the maximum amplitude, the normalization
         factor is the number of piecewise constants minus 1 time sthe maximum

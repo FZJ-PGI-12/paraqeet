@@ -19,7 +19,6 @@ from paraqeet.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9
-TIMES = np.array([T_FINAL])
 
 RES = 100e9
 T1 = Quantity(10e-6, 1e-9, 100e-6)
@@ -103,25 +102,25 @@ def opt_map(gen):
 @pytest.fixture
 def grad_opt(states, opt_map):
     """Create a scipy optimizer gradient object over states."""
-    return ScipyOptimizerGradient(measure=states, optimizables=opt_map, times=TIMES)
+    return ScipyOptimizerGradient(measure=states, optimizables=opt_map, times=T_FINAL)
 
 
 @pytest.fixture
 def grad_gates_opt(gates, opt_map):
     """Create a scipy optimizer gradient object over gates."""
-    return ScipyOptimizerGradient(measure=gates, optimizables=opt_map, times=TIMES)
+    return ScipyOptimizerGradient(measure=gates, optimizables=opt_map, times=T_FINAL)
 
 
 @pytest.fixture
 def opt(states, opt_map):
     """Create a scipy optimizer object over states."""
-    return ScipyOptimizer(measure=states, optimizables=opt_map, times=TIMES)
+    return ScipyOptimizer(measure=states, optimizables=opt_map, times=T_FINAL)
 
 
 @pytest.fixture
 def gates_opt(gates, opt_map):
     """Create a scipy optimizer gradient object over gates."""
-    return ScipyOptimizer(measure=gates, optimizables=opt_map, times=TIMES)
+    return ScipyOptimizer(measure=gates, optimizables=opt_map, times=T_FINAL)
 
 
 def test_optim_finite_diff(opt) -> None:

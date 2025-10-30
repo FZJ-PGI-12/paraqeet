@@ -41,11 +41,7 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
-    # TODO: calculate_normalized_scalar() will return an Array for an Array of times.
-    # TODO: Make it time (float) instead? -- This is not general
-    # TODO: Or should we make it Array | float?
-    # TODO: For now I added a float conversion which would raise error for multiple time points.
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,

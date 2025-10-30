@@ -28,7 +28,7 @@ class RandomMeasurement(NormalizableMeasurement):
     def measure(self, times: Array) -> Array | float:
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Return the result of measurement.
 
         Returns

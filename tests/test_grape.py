@@ -19,7 +19,6 @@ from paraqeet.signal.envelopes import GaussEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 T_FINAL = 20e-9
-TIMES = np.array([T_FINAL])
 FREQ = 1e6
 TLIST = np.linspace(0, T_FINAL, 21)
 T1 = Quantity(10e-6, 1e-9, 100e-6)

@@ -121,7 +121,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
         return sum_meas
 
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -155,12 +155,14 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             Returns the sum of gradients.
 
         """
+        # TODO: Move this to __init__, and store a differentiable_measurements: bool and check here.
         for mes in self.__measurements:
             if not isinstance(mes, Differentiable):
                 raise ConfigurationException(
                     "All measurements must be Differentiable to compute the gradient of the WeightedSumGoal"
                 )
 
+        # TODO: Remove the check by moving the check to init
         values_and_gradients = [
             m.value_and_gradient(times=times) for m in self.__measurements if isinstance(m, Differentiable)
         ]

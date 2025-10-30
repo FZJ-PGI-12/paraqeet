@@ -49,7 +49,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         self.__gen._update_inphase_and_outofphase()
         return grape.measure(times=times)
 
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Passthrough the measurement.
 
         Returns
