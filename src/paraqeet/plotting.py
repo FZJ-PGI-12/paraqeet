@@ -62,6 +62,7 @@ def plot_signal_and_dynamics(
     label: str = "",
     alpha: float = 1.0,
     linewidth: float = 1.5,
+    marker: str = "",
 ):
     """Plot the signal and the correspoding dynamics.
 
@@ -91,20 +92,10 @@ def plot_signal_and_dynamics(
         _, axes = plt.subplots(2, figsize=(4, 5), sharex=True)
 
     axes[0].plot(
-        times / 1e-9,
-        np.real(sig),
-        label="Re " + label,
-        ls=linestyle,
-        alpha=alpha,
-        linewidth=linewidth,
+        times / 1e-9, np.real(sig), label="Re " + label, ls=linestyle, alpha=alpha, linewidth=linewidth, marker=marker
     )
     axes[0].plot(
-        times / 1e-9,
-        np.imag(sig),
-        label="Imag " + label,
-        ls=linestyle,
-        alpha=alpha,
-        linewidth=linewidth,
+        times / 1e-9, np.imag(sig), label="Imag " + label, ls=linestyle, alpha=alpha, linewidth=linewidth, marker=marker
     )
     axes[0].legend(loc=1)
     axes[0].set_ylabel("Amplitude \n" + r"[MHz / $2\pi$]")
@@ -116,6 +107,7 @@ def plot_signal_and_dynamics(
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
+        marker=marker,
     )
     axes[1].set_ylabel("Population")
     axes[-1].set_xlabel("Time [ns]")
@@ -134,6 +126,7 @@ def plot_signal(
     label: str = "",
     alpha: float = 1.0,
     linewidth: float = 1.5,
+    marker: str = "",
 ):
     """Plot signal from Generator or Envelope."""
     if isinstance(device, Generator):
@@ -151,6 +144,7 @@ def plot_signal(
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
+        marker=marker,
     )
     axes.plot(
         times / 1e-9,
@@ -159,6 +153,7 @@ def plot_signal(
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
+        marker=marker,
     )
     axes.grid(True, linestyle=(1, (1, 5)), linewidth=1)
     axes.set_ylabel(r"Amplitude [MHz / $2\pi$]")
@@ -174,6 +169,7 @@ def plot_infidelity_vs_evaluation_from_logs(
     label: str = "",
     alpha: float = 1.0,
     linewidth: float = 1.5,
+    marker: str = "",
 ):
     """Plot Infidelity vs Evaluation from json log file.
 
@@ -199,6 +195,7 @@ def plot_infidelity_vs_evaluation_from_logs(
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
+        marker=marker,
     )
     axes.axhline(np.min(infidelities), color="red", ls="--", alpha=0.7)
     axes.set_yscale("log")
