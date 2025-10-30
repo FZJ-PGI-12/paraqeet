@@ -553,6 +553,20 @@ class FlatTopGaussianFilter(Waveform):
         """Return envelopes from the DRAGMixer."""
         return self._envs
 
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
+        """Set specified parameters to be optimised.
+
+        Also add the indices to `__grad_arg_nums` to compute the gradients.
+
+        Parameters
+        ----------
+        params: list[Quantity]
+        """
+        super().set_optimisable_parameters(params)
+
+        for tone in self._envs:
+            tone.set_optimisable_parameters(params)
+
     @partial(jit, static_argnums=(0,))
     def __compute_flat_top_envelope(self, t):
         t_final = self._t_final.get_value()
