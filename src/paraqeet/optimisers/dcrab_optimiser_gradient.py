@@ -171,20 +171,20 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         self._previous_fid = intermediate_result.fun
 
         if self._super_iteration_since >= self._super_iteration_every:
-            if self._num_iteration % self._super_iteration_every == 0:
-                self._super_iteration_num += 1
+            self._super_iteration_num += 1
 
-                print("\n")
-                print("==== Max iteration before a super-iteration reached ====")
-                print(f"==== Starting super-iteration {self._super_iteration_num} ====")
-                print(f"*** Current lowest infidelity = {self._best_fid: .3f} ***")
+            print("\n")
+            print("==== Max iteration before a super-iteration reached ====")
+            print(f"==== Starting super-iteration {self._super_iteration_num} ====")
+            print(f"*** Current lowest infidelity = {self._best_fid: .3f} ***")
 
-                current_params = self._optimisation_map.get_all_parameters()
-                self._old_parameters_dict[len(current_params)] = current_params
-                self._old_opt_idxs_dict[len(current_params)] = self._opt_idxs
+            current_params = self._optimisation_map.get_all_parameters()
+            self._old_parameters_dict[len(current_params)] = current_params
+            self._old_opt_idxs_dict[len(current_params)] = self._opt_idxs
 
-                # Start the dCRAB super-iteration
-                self._dcrab_super_iteration()
+            # Start the dCRAB super-iteration
+            self._super_iteration_since = 0
+            self._dcrab_super_iteration()
 
     def _set_parameters(self, values):
         """Update the parameter values.
