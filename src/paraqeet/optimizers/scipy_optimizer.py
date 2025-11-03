@@ -82,7 +82,7 @@ class ScipyOptimizer(Optimizer):
         """
         self._callback = cbfun
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Scipy optimizer.
 
         Performs the actual optimization.
@@ -99,6 +99,7 @@ class ScipyOptimizer(Optimizer):
         if self._logger:
             self._logger.start()
 
+        self._times = times
         self._build_optimizable_index_list()
         self._optimizables.register_params_with_optimizables()
 

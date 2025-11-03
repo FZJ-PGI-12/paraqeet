@@ -77,7 +77,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         return self.calculate_normalized_scalar(times=times)
 
     def calculate_normalized_scalar(self, times: Array | float) -> float:
-        """Measure overlap between initial and target state.
+        """Measure overlap between initial and target state. To be used with an optimizer.
 
         Parameters
         ----------
@@ -86,10 +86,12 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
         Returns
         -------
-        Array
-            Overlap between initial and target state in a JAX ArrayLike format.
+        float
+            Overlap between initial and target state in a bare float.
 
         """
+        # TODO: `propagate` needs at least two time points initial and final.
+        # TODO: Does Measurement implement default conversion from times: float -> Array?
         states = self._propagation.propagate(time=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)

@@ -59,6 +59,8 @@ class Propagation(ABC):
 
 
         """
+        # TODO: Distinguish between internal time (class property), i.e. the time grid of the
+        # method vs. time points (input parameter) desired by other classes, e.g. Measurements
         pass
 
     @abstractmethod

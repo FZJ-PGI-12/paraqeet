@@ -164,7 +164,7 @@ class Optimizer(ABC):
         self._optimizables = opt
 
     @abstractmethod
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Perform the actual optimization.
 
         Depending on the implementation, this function might take a long

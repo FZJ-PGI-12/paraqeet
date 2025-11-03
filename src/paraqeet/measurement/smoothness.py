@@ -39,6 +39,8 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
+    # TODO: This should depend on the internal time grid and not on the input time value.
+    # This means that the `times` should just be a float.
     def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Returns the normalized sum of consecutive square differences of the pulse.
         As the maximums difference is twice the maximum amplitude, the normalization
