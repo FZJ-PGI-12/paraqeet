@@ -60,8 +60,10 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
     _num_print_every: int
     _old_parameters_dict: dict[int, list[Quantity]]
     _old_opt_idxs_dict: dict[int, list[int]]
-    _best_params: list[float]
-    _best_fid: float = 99999
+
+    best_params: list[float]
+    best_fid: float = 99999
+
     _previous_fid: float = 99999
     _super_iteration_since: int = 0
     _super_iteration_num: int = 0
@@ -145,9 +147,9 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
         self._num_iteration += 1
         self._super_iteration_since += 1
 
-        if intermediate_result.fun < self._best_fid:
-            self._best_fid = intermediate_result.fun
-            self._best_params = intermediate_result.x
+        if intermediate_result.fun < self.best_fid:
+            self.best_fid = intermediate_result.fun
+            self.best_params = intermediate_result.x
 
         if self._super_iteration_num >= self._max_super_iteration_num:
             raise StopIteration("Maximum number of super iterations performed. Stopping optimisation.")
@@ -158,7 +160,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             print("\n")
             print(f"==== Decrease in infidelity less than {self._super_iteration_tol} ====")
             print(f"==== Starting super-iteration {self._super_iteration_num} ====")
-            print(f"* Current lowest infidelity = {self._best_fid: .3e}")
+            print(f"* Current lowest infidelity = {self.best_fid: .3e}")
 
             current_params = self._optimisation_map.get_all_parameters()
             self._old_parameters_dict[len(current_params)] = current_params
@@ -176,7 +178,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             print("\n")
             print("==== Max iteration before a super-iteration reached ====")
             print(f"==== Starting super-iteration {self._super_iteration_num} ====")
-            print(f"*** Current lowest infidelity = {self._best_fid: .3f} ***")
+            print(f"*** Current lowest infidelity = {self.best_fid: .3f} ***")
 
             current_params = self._optimisation_map.get_all_parameters()
             self._old_parameters_dict[len(current_params)] = current_params
@@ -186,7 +188,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             self._super_iteration_since = 0
             self._dcrab_super_iteration()
 
-    def _set_parameters(self, values):
+    def set_parameters(self, values):
         """Update the parameter values.
 
         This method is derived from the `ScipyOptimiserGradient` class and designed
@@ -256,7 +258,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
             Returns the inverse of the fidelity.
 
         """
-        log = self._set_parameters(values)
+        log = self.set_parameters(values)
 
         fun, grad = self._measure.measure_with_gradient()
         self._grad_cache = grad
@@ -311,7 +313,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
 
         # Set the parameters to the best params at the end of optimisation
         print("Setting parameters to the best values.")
-        self._set_parameters(self._best_params)
+        self.set_parameters(self.best_params)
 
         if self._fallback_optimisation is not None:
             print("Performing fallback optimisation")
@@ -322,7 +324,7 @@ class DCRABOptimiserGradient(ScipyOptimiserGradient):
 
         return OptimisationResult(
             status=(OptimisationResult.STATUS_SUCCESS if result.success else OptimisationResult.STATUS_FAILED),
-            value=self._best_fid,
+            value=self.best_fid,
             iterations=result.nfev,
             message=result.message,
             raw_result=result,
