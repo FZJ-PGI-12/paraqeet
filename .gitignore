@@ -156,3 +156,5 @@ aux_notebooks/testing_fft.py
 examples/test_scipy_optimizer.ipynb
 list_of_issues_and_todos
 examples/testing_notebook.ipynb
+opt.result
+examples/bosonic_grape_with_smooth_pulses.py

@@ -251,7 +251,7 @@ optimization.
 
 .. code:: ipython3
 
-    opt_grad._set_parameters(opt_grad._best_params)
+    opt_grad.set_parameters(opt_grad.best_params)
     plot_signal_and_dynamics(gen, prop, ts);
 
 

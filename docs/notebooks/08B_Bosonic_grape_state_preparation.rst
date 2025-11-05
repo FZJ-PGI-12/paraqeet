@@ -403,6 +403,10 @@ We can compute the fidelities for the different truncation numbers
 .. parsed-literal::
 
     Fidelity at N_T=3 = 0.2067436053211263
+
+
+.. parsed-literal::
+
     Fidelity at N_T=4 = 0.14197098648890233
 
 
@@ -444,8 +448,8 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    CPU times: user 2min 22s, sys: 998 ms, total: 2min 23s
-    Wall time: 40 s
+    CPU times: user 2min 25s, sys: 1.41 s, total: 2min 27s
+    Wall time: 41.7 s
 
 
 
@@ -586,6 +590,10 @@ Initial fidelity before optimisation
 .. parsed-literal::
 
     Fidelity at N_T=30 = 0.0191897809908802
+
+
+.. parsed-literal::
+
     Fidelity at N_T=31 = 0.019189780990880208
 
 
@@ -610,8 +618,8 @@ truncation numbers
 
 .. parsed-literal::
 
-    CPU times: user 8h 40min 3s, sys: 25min 27s, total: 9h 5min 31s
-    Wall time: 12min 48s
+    CPU times: user 8h 23min 39s, sys: 23min 41s, total: 8h 47min 21s
+    Wall time: 11min 46s
 
 
 
