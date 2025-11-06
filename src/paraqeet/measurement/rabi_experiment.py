@@ -47,15 +47,18 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         Gives the result of a general Rabi oscillation,
         depending of drive frequency, amplitude and time.
 
+        *Note: Returns the measumement value at the last time point.*
+
         Returns
         -------
         Array
             Result of a general Rabi oscillation.
 
         """
+        t = times if isinstance(times, float) else times[-1]
         q_freq = self.__qubit_freq.get_value()
         amp = self.__amp.get_value() * 2 * jnp.pi
         freq = self.__freq.get_value()
         diff_sq = (q_freq - freq) ** 2
         norm = jnp.sqrt(1 + diff_sq / (amp**2))
-        return float(jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * times) / norm**2).item())
+        return float(jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * t) / norm**2).item())

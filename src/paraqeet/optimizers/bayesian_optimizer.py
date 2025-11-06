@@ -8,6 +8,8 @@ from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 from paraqeet.quantity import Array
 
+import jax.numpy as jnp
+
 
 class BayesianOptimizer(Optimizer):
     """Minimizes the outcome of a measuremnt using Bayesian optimization.
@@ -42,11 +44,10 @@ class BayesianOptimizer(Optimizer):
         self,
         measure: Measurement,
         optimizables: OptimizationMap,
-        times: Array,
         initial_samples=10,
         iterations=100,
     ):
-        super().__init__(measure, optimizables, times)
+        super().__init__(measure, optimizables)
         self.__initial_samples = initial_samples
         self.__iterations = iterations
 
@@ -70,10 +71,13 @@ class BayesianOptimizer(Optimizer):
         """Set the iterations of the system."""
         self.__iterations = iterations
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Bayesian optimizer.
 
         Performs the actual optimization.
+
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
 
         Returns
         -------
@@ -82,6 +86,8 @@ class BayesianOptimizer(Optimizer):
             (status, value, iterations and the raw result)
 
         """
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
+
         if self._logger:
             self._logger.start()
 

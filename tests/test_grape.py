@@ -77,7 +77,6 @@ def states(model, request):
         propagation=prop_method,
         initial_state=init,
         target_state=target,
-        times=TLIST,
     )
 
 
@@ -97,5 +96,5 @@ def opt(states, opt_map):
 
 def test_optim_grape(opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = opt.optimize()
+    res = opt.optimize(times=TLIST)
     assert res.value < 1e-2

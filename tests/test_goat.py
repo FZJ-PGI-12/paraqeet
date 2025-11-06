@@ -102,46 +102,46 @@ def opt_map(gen):
 @pytest.fixture
 def grad_opt(states, opt_map):
     """Create a scipy optimizer gradient object over states."""
-    return ScipyOptimizerGradient(measure=states, optimizables=opt_map, times=T_FINAL)
+    return ScipyOptimizerGradient(measure=states, optimizables=opt_map)
 
 
 @pytest.fixture
 def grad_gates_opt(gates, opt_map):
     """Create a scipy optimizer gradient object over gates."""
-    return ScipyOptimizerGradient(measure=gates, optimizables=opt_map, times=T_FINAL)
+    return ScipyOptimizerGradient(measure=gates, optimizables=opt_map)
 
 
 @pytest.fixture
 def opt(states, opt_map):
     """Create a scipy optimizer object over states."""
-    return ScipyOptimizer(measure=states, optimizables=opt_map, times=T_FINAL)
+    return ScipyOptimizer(measure=states, optimizables=opt_map)
 
 
 @pytest.fixture
 def gates_opt(gates, opt_map):
     """Create a scipy optimizer gradient object over gates."""
-    return ScipyOptimizer(measure=gates, optimizables=opt_map, times=T_FINAL)
+    return ScipyOptimizer(measure=gates, optimizables=opt_map)
 
 
 def test_optim_finite_diff(opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = opt.optimize()
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_goat(grad_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = grad_opt.optimize()
+    res = grad_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_gates_finite_diff(gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = gates_opt.optimize()
+    res = gates_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_goat_gates(grad_gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = grad_gates_opt.optimize()
+    res = grad_gates_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2

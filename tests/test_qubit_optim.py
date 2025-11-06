@@ -47,7 +47,7 @@ def opt():
     """Create ScipyOptimizer optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return ScipyOptimizer(ZEROONE, optimizables=optmap, times=T_FINAL)
+    return ScipyOptimizer(ZEROONE, optimizables=optmap)
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def cma_opt():
     """Create CMAEs optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return CMAEsOptimizer(ZEROONE, optimizables=optmap, times=T_FINAL)
+    return CMAEsOptimizer(ZEROONE, optimizables=optmap)
 
 
 @pytest.fixture
@@ -63,20 +63,20 @@ def bay_opt():
     """Create Bayesian optimizer."""
     optmap = OptimizationMap()
     optmap.add(GEN, [PARAMS[0], PARAMS[2]])
-    return BayesianOptimizer(ZEROONE, optimizables=optmap, times=T_FINAL)
+    return BayesianOptimizer(ZEROONE, optimizables=optmap)
 
 
 def test_optim(opt) -> None:
     """Check that the optimization goes below threshold."""
     opt.logger = Logger()
-    res = opt.optimize()
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-4
 
 
 def test_cma(cma_opt: CMAEsOptimizer) -> None:
     """Check that the optimization goes below threshold."""
     cma_opt.logger = Logger()
-    res = cma_opt.optimize()
+    res = cma_opt.optimize(times=T_FINAL)
     assert res.value < 1e-4
 
 
@@ -84,5 +84,5 @@ def test_baysian(bay_opt: BayesianOptimizer) -> None:
     """Check that the optimization goes below threshold."""
     bay_opt.logger = Logger()
     bay_opt.iterations = 200
-    res = bay_opt.optimize()
+    res = bay_opt.optimize(times=T_FINAL)
     assert res.value < 1e-3

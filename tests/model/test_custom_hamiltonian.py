@@ -13,7 +13,7 @@ from paraqeet.quantity import Array, Quantity
 sigma_x = jnp.array([[0j, 1], [1, 0]])
 sigma_z = jnp.diag(jnp.array([1.0, -1.0]))
 FREQ = 4.8e9 * 2 * jnp.pi
-t_final = 10e-9
+T_FINAL = 10e-9
 
 
 amplitude = Quantity(
@@ -96,13 +96,13 @@ def fid(tls):
 def opt(tls, fid):
     optmap = OptimizationMap()
     optmap.add(tls)
-    opt = ScipyOptimizerGradient(fid, optimizables=optmap, times=jnp.array([t_final]))
+    opt = ScipyOptimizerGradient(fid, optimizables=optmap)
     return opt
 
 
 def test_optimization(opt):
     """Test gradient based optimization."""
-    res = opt.optimize()
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-4
 
 

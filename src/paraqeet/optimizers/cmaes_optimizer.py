@@ -3,6 +3,7 @@
 from collections.abc import Callable
 
 import cma.evolution_strategy as cma
+import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.file_logger import Logger
@@ -51,11 +52,10 @@ class CMAEsOptimizer(Optimizer):
         self,
         measure: Measurement,
         optimizables: OptimizationMap,
-        times: Array,
         logger: Logger | None = None,
         callback=None,
     ):
-        super().__init__(measure, optimizables, times, logger)
+        super().__init__(measure, optimizables, logger)
         self._options = {
             "noise": 0,
             "batch_noise": 0,
@@ -92,7 +92,7 @@ class CMAEsOptimizer(Optimizer):
         """
         self._callback = cbfun
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the CMA-Es optimizer.
 
         Performs the actual optimization via the following custom options:
@@ -109,6 +109,9 @@ class CMAEsOptimizer(Optimizer):
             Custom stopping condition. Stop if the cloud shrunk to this
             standard deviation.
 
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
+
         Returns
         -------
         OptimizationResult
@@ -116,6 +119,8 @@ class CMAEsOptimizer(Optimizer):
             (status, value, iterations and the raw result)
 
         """
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
+
         options = {}
         options.update(self._options)
         options = self._options

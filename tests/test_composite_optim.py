@@ -145,7 +145,7 @@ def coupled_transmons(tone):
 def opt(coupled_transmons):
     """Return Scipy optimizer from coupled transmons."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimizer(measure, optimizables=optmap, times=T_FINAL)
+    opt = ScipyOptimizer(measure, optimizables=optmap)
     opt.set_options({"maxiter": 5})
     return opt
 
@@ -154,18 +154,20 @@ def opt(coupled_transmons):
 def grad_opt(coupled_transmons):
     """Return Scipy optimizer gradient."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimizerGradient(measure, optimizables=optmap, times=T_FINAL)
+    opt = ScipyOptimizerGradient(measure, optimizables=optmap)
     opt.set_options({"maxiter": 2})
     return opt
 
 
 def test_optim_finite_diff(opt):
     """Test optimization via finite differences."""
-    res = opt.optimize()
+    # TODO: Add projection before testing.
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 0.1
 
 
 def test_optim_goat(grad_opt):
     """Test GOAT optimization."""
-    res = grad_opt.optimize()
+    # TODO: Add projection before testing.
+    res = grad_opt.optimize(times=T_FINAL)
     assert res.value < 0.1

@@ -19,23 +19,24 @@ from paraqeet.quantity import Array
 class ScipyOptimizerGradient(ScipyOptimizer):
     """The Scipy Optimizer gradient model.
 
-    Minimize the outcome of a measurement with the
-    Scipy optimization package.
-
+    Minimize the outcome of a measurement with the Scipy optimization package.
     """
 
     __grad_cache: Array  # of shape (n_parameters,)
     __scales: Array
 
-    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap, times: Array) -> None:
-        super().__init__(measure, optimizables, times)
+    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap) -> None:
+        super().__init__(measure, optimizables)
         params = self._optimizables.get_all_parameters()
         self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize via the Scipy optimizer gradient model.
 
         Performs the actual optimization.
+
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
 
         Returns
         -------
@@ -43,6 +44,8 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             The result of the optimization.
 
         """
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
+
         if self._logger:
             self._logger.start()
 

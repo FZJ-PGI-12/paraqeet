@@ -110,13 +110,11 @@ class Optimizer(ABC):
         self,
         measure: Measurement,
         optimizables: OptimizationMap,
-        times: Array,
         logger: Logger | None = None,
     ):
         self._measure = measure
         self._logger = logger
         self.optimizables = optimizables
-        self._times = times
 
     @property
     def logger(self) -> Logger | None:

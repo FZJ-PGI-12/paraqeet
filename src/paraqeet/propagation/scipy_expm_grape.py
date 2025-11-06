@@ -42,6 +42,8 @@ class ScipyExpmGRAPE(ScipyExpm):
         matrix exponential. If false, use frechet derivative.
     """
 
+    # TODO: Add internal time-list as an attribute that stores the times to evaluate the pulse at
+
     _target_state: Array | None = None
     _schirmer_derivative: bool = False
 
