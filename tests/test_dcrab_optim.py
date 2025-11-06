@@ -4,13 +4,13 @@ import pytest
 
 import numpy as np
 from paraqeet.quantity import Quantity
+from tests.model.tls import TLS
 
 from paraqeet.signal.pwc_generator import PWCGenerator
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.waveform import FlatTopGaussianFilter
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.optimisation_map import OptimisationMap
@@ -21,26 +21,6 @@ T_FINAL = 20e-9
 TLIST = np.linspace(0, T_FINAL, 40)
 EPS = 5 * np.pi * 1.0  # initial amplitude of the resonator (in MHz)
 EPS_MAX = 10 * EPS  # maximum amplitude of the resonator (in MHz)
-
-
-class SpinRWA(Hamiltonian):
-    """A Single Spin."""
-
-    def __init__(self, drives=None):
-        super().__init__(drives)
-        self.sigma_p = np.array([[0j, 1], [0, 0]])
-        self.dim = 2
-
-    def get_parameters(self):
-        return []
-
-    def get_matrix_one_time(self, t):
-        """Just sigma-X."""
-        return self._drives[0].get_matrix_one_time(self.sigma_p, t)
-
-    def gradient(self, t):
-        """Gradient is just the drive matrix."""
-        return self._drives[0].gradient(self.sigma_p, t)
 
 
 @pytest.fixture
@@ -67,7 +47,7 @@ def gen(tone):
 @pytest.fixture
 def model(gen):
     drive = RotatingFrameDrive(gen)
-    spin = SpinRWA(drives=[drive])
+    spin = TLS(drives=[drive])
     model = ClosedSystem(spin)
     return model
 
