@@ -192,7 +192,7 @@ form), can take considerably long time.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal
+    from plotting import plot_signal
     
     times = np.linspace(0, t_final, 201)
     fig, ax = plt.subplots(1, figsize=(5, 3))

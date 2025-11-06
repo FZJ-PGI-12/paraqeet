@@ -79,7 +79,7 @@ Similarly one can plot the qubit tone.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal
+    from plotting import plot_signal
     
     ts = np.linspace(0, t_final, 1001)
     fig, ax = plt.subplots(1, figsize=(5, 3))
@@ -605,7 +605,7 @@ Finally, lets plot the variation of infidelity with evaluation number.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_infidelity_vs_evaluation_from_logs
+    from plotting import plot_infidelity_vs_evaluation_from_logs
     
     plot_infidelity_vs_evaluation_from_logs(log_path=temp_dir.name + "/opt.log", label="dCRAB optimization");
 
@@ -1186,7 +1186,7 @@ Finally, lets plot the variation of infidelity with evaluation number.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_infidelity_vs_evaluation_from_logs
+    from plotting import plot_infidelity_vs_evaluation_from_logs
     
     plot_infidelity_vs_evaluation_from_logs(log_path=temp_dir.name + "/opt.log", label="dCRAB optimization");
 

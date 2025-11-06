@@ -91,7 +91,7 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 
 .. code:: ipython3
 
-    import paraqeet.plotting  # import the configuration from plotting
+    import plotting  # import the configuration from plotting
     
     
     def make_plot():

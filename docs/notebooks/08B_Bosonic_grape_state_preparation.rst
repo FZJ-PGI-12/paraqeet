@@ -147,7 +147,7 @@ Similarly one can plot the qubit tone.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal
+    from plotting import plot_signal
     
     ts = np.linspace(0, t_final, 1001)
     fig, ax = plt.subplots(1, figsize=(5, 3))

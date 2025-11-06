@@ -94,7 +94,7 @@ Exponentiating the full Lindbladian super-operator
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal_and_dynamics
+    from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);

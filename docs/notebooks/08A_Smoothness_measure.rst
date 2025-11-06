@@ -29,7 +29,7 @@ Constrain piece-wise constant pulses to vary smoothly
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal
+    from plotting import plot_signal
     
     ts = np.linspace(0, t_final, 501)
     fig, ax = plt.subplots(1, figsize=(5, 3))

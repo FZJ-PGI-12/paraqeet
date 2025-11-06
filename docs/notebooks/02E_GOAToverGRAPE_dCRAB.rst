@@ -52,7 +52,7 @@ where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal
+    from plotting import plot_signal
     
     ts = np.linspace(0, t_final, 501)
     fig, ax = plt.subplots(1, figsize=(5, 3))
@@ -124,7 +124,7 @@ Using GRAPE as the method to propagate and compute the gradients
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal_and_dynamics
+    from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
@@ -276,7 +276,7 @@ optimization.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_infidelity_vs_evaluation_from_logs
+    from plotting import plot_infidelity_vs_evaluation_from_logs
     
     plot_infidelity_vs_evaluation_from_logs(log_path=temp_dir.name + "/opt.log", label="GOAT over GRAPE");
 

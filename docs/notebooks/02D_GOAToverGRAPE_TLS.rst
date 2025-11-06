@@ -110,7 +110,7 @@ parameters: ``amplitude``, ``t_up``, ``t_down``, ``ramp_time``.
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal
+    from plotting import plot_signal
     
     ts = np.linspace(0, t_final, 501)
     fig, ax = plt.subplots(1, figsize=(5, 3))
@@ -181,7 +181,7 @@ Using GRAPE as the method to propagate and compute the gradients
 
 .. code:: ipython3
 
-    from paraqeet.plotting import plot_signal_and_dynamics
+    from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
