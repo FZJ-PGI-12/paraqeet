@@ -21,7 +21,7 @@ def opt(rabi):
     """Create optimization map with Rabi model."""
     optmap = OptimizationMap()
     optmap.add(rabi, rabi.get_parameters())
-    return ScipyOptimizer(rabi, optmap, times=T_FINAL)
+    return ScipyOptimizer(rabi, optmap)
 
 
 @pytest.fixture
@@ -39,12 +39,12 @@ def test_name(rabi):
 
 def test_rabi(opt) -> None:
     """Check that the rabi optimization goes below threshold."""
-    res = opt.optimize()
+    res = opt.optimize(T_FINAL)
     assert res.value < 1e-7
 
 
 def test_find_resonance(rabi, opt) -> None:
     """Check for resonance."""
-    opt.optimize()
+    opt.optimize(T_FINAL)
     params = rabi.get_parameters()
     assert_almost_equal(FREQ / 1e9, params[1].get_value() / 1e9, decimal=4)

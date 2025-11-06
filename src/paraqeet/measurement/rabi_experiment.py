@@ -57,4 +57,5 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         amp = self.__amp.get_value() * 2 * jnp.pi
         freq = self.__freq.get_value()
         diff_sq = (q_freq - freq) ** 2
-        return float(jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * times) / jnp.sqrt(1 + diff_sq / (amp**2))) ** 2)
+        norm = jnp.sqrt(1 + diff_sq / (amp**2))
+        return float(jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * times) / norm**2).item())
