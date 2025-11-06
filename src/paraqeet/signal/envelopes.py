@@ -720,7 +720,7 @@ class DCRABEnvelope(Envelope):
         params.extend(self._imag_phases)
         return params
 
-    def get_coefficients_frequencies_and_phases(self):
+    def get_coefficients_frequencies_and_phases(self) -> list[Quantity]:
         """Return all the coefficients and frequencies used in the CRAB signal."""
         return (
             self._real_coefficients
