@@ -720,7 +720,7 @@ class DCRABEnvelope(Envelope):
         params.extend(self._imag_phases)
         return params
 
-    def get_coefficients_frequencies_and_phases(self):
+    def get_coefficients_frequencies_and_phases(self) -> list[Quantity]:
         """Return all the coefficients and frequencies used in the CRAB signal."""
         return (
             self._real_coefficients
@@ -731,7 +731,7 @@ class DCRABEnvelope(Envelope):
             + self._imag_phases
         )
 
-    def add_new_components(self, seed: int | None = None):
+    def add_new_components(self, seed: int | None = None) -> None:
         """Add `self._num_components` number of new randomized components to the optimization."""
         if seed is None:
             seed = int(1e7 * time.time())
