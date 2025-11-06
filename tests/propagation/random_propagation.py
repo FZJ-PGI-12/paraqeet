@@ -45,7 +45,7 @@ class RandomPropagation(Propagation):
         self.__create_matrices = generate_matrices
         self.__auto_update = auto_update
         self.update()
-        self._is_open = False
+        self.is_open = False
 
     def get_parameters(self) -> list[Quantity]:
         """Returns an empty list."""
@@ -82,7 +82,7 @@ class RandomPropagation(Propagation):
             self.update()
         return jnp.array([self.__state] * len(time))
 
-    def gradient(self, time: Array) -> Array:
+    def gradient(self, time: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
         empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
         return self.propagate(time), empty_gradient
