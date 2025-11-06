@@ -390,7 +390,7 @@ can later use to plot the infidelity vs function evaluation.
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmpegrxx8m4
+    Logging directory = /tmp/tmp1qve13ga
 
 
 .. code:: ipython3
@@ -434,18 +434,18 @@ can later use to plot the infidelity vs function evaluation.
     ==== Starting super-iteration 1 ====
     *** Current lowest infidelity =  0.019 ***
     * Current no. of parameters = 50
-    Iteration number = 100 	  Infidelity  = 7.398e-01
-    Iteration number = 120 	  Infidelity  = 1.667e-01
-    Iteration number = 140 	  Infidelity  = 5.887e-02
-    Iteration number = 160 	  Infidelity  = 4.302e-02
-    Iteration number = 180 	  Infidelity  = 3.177e-02
+    Iteration number = 100 	  Infidelity  = 7.586e-01
+    Iteration number = 120 	  Infidelity  = 1.109e-01
+    Iteration number = 140 	  Infidelity  = 7.685e-02
+    Iteration number = 160 	  Infidelity  = 6.197e-02
+    Iteration number = 180 	  Infidelity  = 5.651e-02
     
     
     ==== Max iteration before a super-iteration reached ====
     ==== Starting super-iteration 2 ====
     *** Current lowest infidelity =  0.019 ***
     * Current no. of parameters = 74
-    Iteration number = 200 	  Infidelity  = 7.937e-01
+    Iteration number = 200 	  Infidelity  = 7.714e-01
 
 
 .. parsed-literal::
@@ -835,17 +835,18 @@ Redefine the optmap and the optmizer and rerun the optimization
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmp154t4gmo
+    Logging directory = /tmp/tmppoaajj37
 
 
 .. parsed-literal::
 
-    Implicitly cleaning up <TemporaryDirectory '/tmp/tmpegrxx8m4'>
+    Implicitly cleaning up <TemporaryDirectory '/tmp/tmp1qve13ga'>
 
 
 .. code:: ipython3
 
     opt.optimise()
+    opt.set_parameters(opt.best_params)
 
 
 .. parsed-literal::
@@ -987,21 +988,6 @@ Redefine the optmap and the optmizer and rerun the optimization
 .. parsed-literal::
 
     Setting parameters to the best values.
-
-
-
-
-.. parsed-literal::
-
-    {'status': 2, 'value': 0.03317484131350723, 'iterations': 70, 'message': '`callback` raised `StopIteration`.'}
-
-
-
-Set parameters to current best values
-
-.. code:: ipython3
-
-    opt.set_parameters(opt.best_params)
 
 
 
@@ -1157,28 +1143,6 @@ Set parameters to current best values
 
 
 
-And plot the optimised pulses and dyanmics
-
-.. code:: ipython3
-
-    plot_states_and_fock_number()
-
-
-
-.. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_49_0.png
-
-
-Also, verifying the dynamics with the higher truncation
-
-.. code:: ipython3
-
-    plot_states_and_fock_number(1)
-
-
-
-.. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_51_0.png
-
-
 And the new fidelities are
 
 .. code:: ipython3
@@ -1196,6 +1160,28 @@ And the new fidelities are
 Here the dynamics and the fidelities are very similar to one another,
 indicating no truncation artifacts.
 
+Lets plot the optimised pulses and dyanmics
+
+.. code:: ipython3
+
+    plot_states_and_fock_number()
+
+
+
+.. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_50_0.png
+
+
+And verify the dynamics with the higher truncation looks the same
+
+.. code:: ipython3
+
+    plot_states_and_fock_number(1)
+
+
+
+.. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_52_0.png
+
+
 Finally, lets plot the variation of infidelity with evaluation number.
 
 .. code:: ipython3
@@ -1206,7 +1192,7 @@ Finally, lets plot the variation of infidelity with evaluation number.
 
 
 
-.. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_56_0.png
+.. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_54_0.png
 
 
 The sharp rise infidelity represents the beginning of a super-iteration
