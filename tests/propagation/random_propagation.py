@@ -45,7 +45,7 @@ class RandomPropagation(Propagation):
         self.__create_matrices = generate_matrices
         self.__auto_update = auto_update
         self.update()
-        self.is_open = False
+        self._is_open = False
 
     def get_parameters(self) -> list[Quantity]:
         """Returns an empty list."""

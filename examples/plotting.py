@@ -103,7 +103,7 @@ def plot_signal_and_dynamics(
 
     axes[1].plot(
         times / 1e-9,
-        calculate_populations(states, dm=propagation.is_open),
+        calculate_populations(states, dm=propagation._is_open),
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,

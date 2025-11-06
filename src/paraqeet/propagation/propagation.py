@@ -21,7 +21,7 @@ class Propagation(Optimisable):
     """
 
     _model: EquationOfMotion | None
-    is_open: bool = False
+    _is_open: bool = False
 
     def __init__(self, model: EquationOfMotion | None):
         self._model = model
