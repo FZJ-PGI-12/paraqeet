@@ -731,7 +731,7 @@ class DCRABEnvelope(Envelope):
             + self._imag_phases
         )
 
-    def add_new_components(self, seed: int | None = None):
+    def add_new_components(self, seed: int | None = None) -> None:
         """Add `self._num_components` number of new randomized components to the optimization."""
         if seed is None:
             seed = int(1e7 * time.time())
