@@ -31,22 +31,19 @@ class MixedStateTransferFidelity(Measurement):
     __target_state: Array
     __target_state_sqrt: Array
     __propagation: Propagation
-    __times: Array
 
     def __init__(
         self,
         propagation: Propagation,
         targetState: Array,
-        times: Array,
     ):
         self.__propagation = propagation
         self.__target_state = targetState
-        self.__times = times
 
         # store the sqrt of the density matrix to simplify the measurement
         self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
 
-    def measure(self) -> Array | float:
+    def measure(self, times: Array) -> Array | float:
         """Measure overlap between initial and final state of density matrices.
 
         Returns
@@ -60,8 +57,7 @@ class MixedStateTransferFidelity(Measurement):
             Raises an exception if required vector shape is not received.
 
         """
-        state = self.__propagation.propagate(self.__times)[-1]
-        state = self._preprocess_matrix(state)
+        state = self.__propagation.propagate(times)[-1]
         if state.shape != self.__target_state.shape:
             raise IncompatibleLayersException(
                 f"Need a state vector of size {self.__target_state.shape}"

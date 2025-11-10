@@ -28,10 +28,9 @@ def test_limit_projected_vectors(random_state):
     for size in range(3, 30):
         for projectedSize in range(2, size):
             propagation = RandomPropagation(size, False)
-            measurement = RandomMeasurement(propagation=propagation, times=times)
-            measurement.restrict_subsystems([size], [projectedSize])
+            measurement = RandomMeasurement(propagation=propagation)
             for _ in range(20):
-                m = measurement.measure()
+                m = measurement.measure(times=times)
                 assert 0.0 <= m <= 1.0
 
 
@@ -46,8 +45,7 @@ def test_gate_shape(random_unitary_matrix):
     for size in range(5, 30):
         for projectedSize in range(2, size):
             propagation = RandomPropagation(size, True)
-            measurement = RandomMeasurement(propagation=propagation, times=times)
-            measurement.restrict_subsystems([size], [projectedSize])
+            measurement = RandomMeasurement(propagation=propagation)
             for _ in range(20):
-                m = measurement.measure()
+                m = measurement.measure(times=times)
                 assert 0.0 <= m <= 1.0

@@ -19,6 +19,7 @@ from paraqeet.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9
+
 RES = 100e9
 T1 = Quantity(10e-6, 1e-9, 100e-6)
 TEMP = Quantity(10e-3, 1e-3, 50e-3)
@@ -70,7 +71,6 @@ def states(prop):
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=np.array([0.0, T_FINAL]),
     )
 
 
@@ -84,7 +84,6 @@ def gates(prop):
     return UnitaryFidelity(
         propagation=prop,
         gate=pauli_x,
-        times=np.array([0.0, T_FINAL]),
     )
 
 
@@ -126,23 +125,23 @@ def gates_opt(gates, opt_map):
 
 def test_optim_finite_diff(opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = opt.optimize()
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_goat(grad_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = grad_opt.optimize()
+    res = grad_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_gates_finite_diff(gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = gates_opt.optimize()
+    res = gates_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_goat_gates(grad_gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = grad_gates_opt.optimize()
+    res = grad_gates_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2

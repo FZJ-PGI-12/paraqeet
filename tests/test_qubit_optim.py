@@ -22,9 +22,9 @@ GEN = IQMixer(envelopes=[TONE])
 PARAMS = GEN.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
-t_final = 10e-9
+T_FINAL = 10e-9
 
-PARAMS[0].set_value(0.8 * np.pi / t_final)
+PARAMS[0].set_value(0.8 * np.pi / T_FINAL)
 PARAMS[2].set_value(1.01 * FREQ)
 
 DRIVE = DriveOperator(GEN, is_longitudinal=False)
@@ -39,7 +39,6 @@ ZEROONE = StateTransferFidelity(
     propagation=PROP,
     initial_state=INIT,
     target_state=TARGET,
-    times=np.array([0.0, t_final]),
 )
 
 
@@ -70,14 +69,14 @@ def bay_opt():
 def test_optim(opt) -> None:
     """Check that the optimization goes below threshold."""
     opt.logger = Logger()
-    res = opt.optimize()
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-4
 
 
 def test_cma(cma_opt: CMAEsOptimizer) -> None:
     """Check that the optimization goes below threshold."""
     cma_opt.logger = Logger()
-    res = cma_opt.optimize()
+    res = cma_opt.optimize(times=T_FINAL)
     assert res.value < 1e-4
 
 
@@ -85,5 +84,5 @@ def test_baysian(bay_opt: BayesianOptimizer) -> None:
     """Check that the optimization goes below threshold."""
     bay_opt.logger = Logger()
     bay_opt.iterations = 200
-    res = bay_opt.optimize()
+    res = bay_opt.optimize(times=T_FINAL)
     assert res.value < 1e-3

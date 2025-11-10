@@ -42,10 +42,8 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         self,
         propagation: Propagation,
         gate: Array,
-        times: Array,
         basis_states: Array | None = None,
     ):
-        super().__init__(times)
         self.__propagation = propagation
         if basis_states is not None:
             self.__propagation.set_initial_state(basis_states)
@@ -71,12 +69,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         """
         return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    # TODO: Check the implementation method measure
-    def measure(self) -> Array | float:
+    def measure(self, times: Array) -> Array | float:
         """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar()
+        return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -85,14 +82,13 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             L2 norm of the last time step compared to the ideal gate.
 
         """
-        states = self.__propagation.propagate(time=self._times)
-        states = self._preprocess_matrix(states)
+        states = self.__propagation.propagate(time=times)
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self.__fid(jnp.asarray(overlaps))
 
-    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns
@@ -101,9 +97,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self.__propagation.gradient(time=self._times)  # gradient of states wrt parameters
-        states = self._preprocess_matrix(states)
-        dg_dp_list = self._preprocess_matrix(dg_dp_list)
+        states, dg_dp_list = self.__propagation.gradient(time=times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))

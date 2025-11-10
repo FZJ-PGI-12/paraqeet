@@ -3,11 +3,13 @@
 from collections.abc import Callable
 
 import numpy as np
+import jax.numpy as jnp
 from scipy.optimize import minimize
 
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
+from paraqeet.quantity import Array
 
 
 class ScipyOptimizer(Optimizer):
@@ -29,7 +31,7 @@ class ScipyOptimizer(Optimizer):
     _method: str
     _callback: Callable | None
 
-    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap):
+    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap) -> None:
         super().__init__(measure, optimizables)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
@@ -81,13 +83,16 @@ class ScipyOptimizer(Optimizer):
         """
         self._callback = cbfun
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Scipy optimizer.
 
         Performs the actual optimization.
 
         Since the search parameters are dimensionless and bound by [-1, 1], we set the bounds of the scipy minimize
-        module to -1, and 1 explicitely in each search dimension.
+        module to -1, and 1 explicitly in each search dimension.
+
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
 
         Returns
         -------
@@ -97,6 +102,8 @@ class ScipyOptimizer(Optimizer):
         """
         if self._logger:
             self._logger.start()
+
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
 
         self._build_optimizable_index_list()
         self._optimizables.register_params_with_optimizables()
@@ -147,7 +154,7 @@ class ScipyOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.calculate_normalized_scalar()
+        infid = 1 - self._measure.calculate_normalized_scalar(self._times)
 
         if self._logger:
             self._logger.log(log, infid)

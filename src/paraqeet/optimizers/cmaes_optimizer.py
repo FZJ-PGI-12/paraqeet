@@ -3,12 +3,14 @@
 from collections.abc import Callable
 
 import cma.evolution_strategy as cma
+import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.file_logger import Logger
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
+from paraqeet.quantity import Array
 
 
 class CMAEsOptimizer(Optimizer):
@@ -90,7 +92,7 @@ class CMAEsOptimizer(Optimizer):
         """
         self._callback = cbfun
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the CMA-Es optimizer.
 
         Performs the actual optimization via the following custom options:
@@ -107,6 +109,9 @@ class CMAEsOptimizer(Optimizer):
             Custom stopping condition. Stop if the cloud shrunk to this
             standard deviation.
 
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
+
         Returns
         -------
         OptimizationResult
@@ -114,6 +119,8 @@ class CMAEsOptimizer(Optimizer):
             (status, value, iterations and the raw result)
 
         """
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
+
         options = {}
         options.update(self._options)
         options = self._options
@@ -219,8 +226,11 @@ class CMAEsOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1.0 - self._measure.calculate_normalized_scalar()
 
+        # TODO: Mypy raises error: "Measurement" has no attribute "calculate_normalized_scalar"
+        infid = 1.0 - self._measure.calculate_normalized_scalar(self._times)
+
+        # TODO: Mypy raises error: Returning Any from function declared to return "float"
         if self._logger:
             self._logger.log(log, infid)
         return infid

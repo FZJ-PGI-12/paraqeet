@@ -5,7 +5,10 @@ import numpy as np
 from scipy.optimize import minimize
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.exceptions import IncompatibleOptimizationMap, IncompatibleQuantityException
+from paraqeet.exceptions import (
+    IncompatibleOptimizationMap,
+    IncompatibleQuantityException,
+)
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult
@@ -16,9 +19,7 @@ from paraqeet.quantity import Array
 class ScipyOptimizerGradient(ScipyOptimizer):
     """The Scipy Optimizer gradient model.
 
-    Minimize the outcome of a measurement with the
-    Scipy optimization package.
-
+    Minimize the outcome of a measurement with the Scipy optimization package.
     """
 
     __grad_cache: Array  # of shape (n_parameters,)
@@ -29,10 +30,13 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         params = self._optimizables.get_all_parameters()
         self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize via the Scipy optimizer gradient model.
 
         Performs the actual optimization.
+
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
 
         Returns
         -------
@@ -40,6 +44,8 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             The result of the optimization.
 
         """
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
+
         if self._logger:
             self._logger.start()
 
@@ -104,9 +110,9 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
-        # TODO: what if the self._measure is not Differentiable?
+        # TODO: what if the self._measure is not Differentiable? -- then this optimizer should not be used.
         if isinstance(self._measure, Differentiable):
-            fun, grad = self._measure.calculate_value_and_gradient()
+            fun, grad = self._measure.value_and_gradient(self._times)
             self.__grad_cache = grad
 
             infid = 1.0 - fun

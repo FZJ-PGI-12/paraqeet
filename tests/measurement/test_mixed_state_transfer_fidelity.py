@@ -27,10 +27,10 @@ def test_limits_vectors():
         targetState = random_mixed_state(size)
         propagation = RandomPropagation(size, True)
         times = np.array([1.0])
-        measurement = MixedStateTransferFidelity(propagation, targetState, times)
+        measurement = MixedStateTransferFidelity(propagation, targetState)
 
         for i in range(100):
-            m = measurement.measure()
+            m = measurement.measure(times)
             assert 0.0 <= m <= 1.0
 
 
@@ -41,8 +41,8 @@ def test_vector_equality():
             state = random_mixed_state(size)
             propagation = IdentityPropagation()
             propagation.set_initial_state(state)
-            measurement = MixedStateTransferFidelity(propagation, state, np.array([1.0]))
-            m = measurement.measure()
+            measurement = MixedStateTransferFidelity(propagation, state)
+            m = measurement.measure(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0, decimal=2)
 
 
@@ -67,6 +67,6 @@ def test_incompatible_shape():
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             propagation = RandomPropagation(np.random.choice(dimensions), True)
 
-            measurement = MixedStateTransferFidelity(propagation, targetState, np.array([1.0]))
+            measurement = MixedStateTransferFidelity(propagation, targetState)
             with pytest.raises(Exception):
-                measurement.measure()
+                measurement.measure(times=np.array([1.0]))

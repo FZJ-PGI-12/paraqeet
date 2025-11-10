@@ -136,7 +136,7 @@ def test_get_matrices(coupling, time_samples):
 
 def test_gradient_shape(coupling, time_samples):
     """Test the shape of the gradient."""
-    # Test if the coupling is not optimized
+    # TODO: Test if the coupling is not optimized
     dim1 = np.random.randint(2, 7)
     dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]

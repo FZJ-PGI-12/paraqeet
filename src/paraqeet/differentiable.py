@@ -13,12 +13,12 @@ from paraqeet.quantity import Array
 class Differentiable(ABC):
     """An abstract class for differentiable models.
 
-    Subclasses must implement the calculate_gradient() method which would
+    Subclasses must implement the value_and_gradient() method which would
     return the gradient of the model.
     """
 
     @abstractmethod
-    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Calculate the gradient of the model.
 
         Returns

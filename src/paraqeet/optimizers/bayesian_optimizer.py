@@ -6,6 +6,9 @@ from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
+from paraqeet.quantity import Array
+
+import jax.numpy as jnp
 
 
 class BayesianOptimizer(Optimizer):
@@ -68,10 +71,13 @@ class BayesianOptimizer(Optimizer):
         """Set the iterations of the system."""
         self.__iterations = iterations
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Bayesian optimizer.
 
         Performs the actual optimization.
+
+        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        For an array of times, the first time point is the start time.*
 
         Returns
         -------
@@ -80,6 +86,8 @@ class BayesianOptimizer(Optimizer):
             (status, value, iterations and the raw result)
 
         """
+        self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
+
         if self._logger:
             self._logger.start()
 
@@ -143,8 +151,10 @@ class BayesianOptimizer(Optimizer):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        fidelity = self._measure.calculate_normalized_scalar()
+        # TODO : Mypy raises error: "Measurement" has no attribute "calculate_normalized_scalar"
+        fidelity = self._measure.calculate_normalized_scalar(self._times)
 
+        # TODO: Mypy raises error: Returning Any from function declared to return "float"
         if self._logger:
             self._logger.log(log, fidelity)
         return fidelity

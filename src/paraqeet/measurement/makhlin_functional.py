@@ -39,15 +39,18 @@ class MakhlinFunctional(Measurement):
     def __init__(
         self,
         propagation: Propagation,
-        times: Array,
         ideal_invariants: Array | None = None,
     ):
-        super().__init__(times=times)
         self.__propagation = propagation
         self.__ideal_invariants = ideal_invariants
 
-    def measure(self) -> Array | float:
+    def measure(self, times: Array) -> Array | float:
         """Measure distance of the propagator to a perfect entangler.
+        
+        Parameters
+        ----------
+        times : Array
+            One-dimensional vector of timestamps.
 
         Returns
         -------
@@ -61,11 +64,10 @@ class MakhlinFunctional(Measurement):
             4x4 operator is not received.
 
         """
-        if self._times is None:
+        if not times:
             raise ConfigurationException("Time array was not specified")
 
-        u = self.__propagation.propagate(self._times)[-1]
-        u = self._preprocess_matrix(u)
+        u = self.__propagation.propagate(times)[-1]
         if u.shape != (4, 4):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self.__makhlin_invariants(u)

@@ -132,9 +132,7 @@ def coupled_transmons(tone):
     gate_fid = UnitaryFidelity(
         propagation=prop,
         gate=cr_gate,
-        times=np.array([0.0, T_FINAL]),
     )
-    gate_fid.restrict_subsystems([3, 3], [2, 2])
 
     tone1_amp = tone1.get_parameters()[0]
 
@@ -163,11 +161,13 @@ def grad_opt(coupled_transmons):
 
 def test_optim_finite_diff(opt):
     """Test optimization via finite differences."""
-    res = opt.optimize()
+    # TODO: Add projection before testing.
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 0.1
 
 
 def test_optim_goat(grad_opt):
     """Test GOAT optimization."""
-    res = grad_opt.optimize()
+    # TODO: Add projection before testing.
+    res = grad_opt.optimize(times=T_FINAL)
     assert res.value < 0.1

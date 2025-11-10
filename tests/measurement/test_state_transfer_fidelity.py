@@ -28,46 +28,15 @@ def test_limits_vectors(random_state):
             propagation,
             initial_state,
             target_state,
-            times,
         )
 
         for _ in range(20):
-            m = measurement.measure()
+            m = measurement.measure(times=times)
             assert 0.0 <= m
-            #  TODO: since the method measure_scalar is removed, update the tests accordingly
-            # m = measurement.measure_scalar()
-            # assert 0.0 <= m
-            m = measurement.calculate_normalized_scalar()
+            m = measurement.calculate_normalized_scalar(times=times)
             assert 0.0 <= m <= 1.0
-            m, grad = measurement.calculate_value_and_gradient()
+            m, grad = measurement.value_and_gradient(times=times)
             assert 0.0 <= m
-
-
-@pytest.mark.filterwarnings("ignore:Different shapes for")
-def test_limit_projected_vectors(random_state):
-    """Test the projection to a subspace.
-
-    The projection to a subspace should not increase the
-    range of possible measurement outcomes for state vectors.
-
-    """
-    times = np.array([1.0])
-    for size in range(3, 30):
-        for projectedSize in range(2, size):
-            inital_state = random_state(size)
-            target_state = random_state(projectedSize)
-            propagation = RandomPropagation(size, False)
-            measurement = StateTransferFidelity(
-                propagation=propagation,
-                initial_state=inital_state,
-                target_state=target_state,
-                times=times,
-            )
-
-            measurement.restrict_subsystems([size], [projectedSize])
-            for _ in range(20):
-                m = measurement.measure()
-                assert 0.0 <= m <= 1.0
 
 
 def test_vector_equality(identity_propagation, random_state):
@@ -76,8 +45,8 @@ def test_vector_equality(identity_propagation, random_state):
         for _ in range(100):
             state = random_state(size)
             identity_propagation.set_initial_state(state)
-            measurement = StateTransferFidelity(identity_propagation, state, state, np.array([1.0]))
-            m = measurement.measure()
+            measurement = StateTransferFidelity(identity_propagation, state, state)
+            m = measurement.measure(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0)
 
 
@@ -102,11 +71,11 @@ def test_incompatible_shape(identity_propagation, random_state):
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             targetState = random_state(np.random.choice(dimensions))
 
-            fid = StateTransferFidelity(identity_propagation, initialState, targetState, np.array([1.0]))
+            fid = StateTransferFidelity(identity_propagation, initialState, targetState)
 
-            fid_AD = StateTransferFidelityAD(identity_propagation, initialState, targetState, np.array([1.0]))
+            fid_AD = StateTransferFidelityAD(identity_propagation, initialState, targetState)
 
             with pytest.raises(Exception):
-                fid.measure()
+                fid.measure(times=np.array([1.0]))
             with pytest.raises(Exception):
-                fid_AD.measure()
+                fid_AD.measure(times=np.array([1.0]))

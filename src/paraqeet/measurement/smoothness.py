@@ -32,15 +32,16 @@ class Smoothness(NormalizableMeasurement, Differentiable):
     _pwc_generator: PWCGenerator
 
     def __init__(self, pwc_generator: PWCGenerator):
-        super().__init__(pwc_generator.tlist)
+        # super().__init__(pwc_generator.tlist)
         self._pwc_generator = pwc_generator
 
-    # TODO: check the implementation of the method measure
-    def measure(self) -> Array | float:
+    def measure(self, times: Array) -> Array | float:
         """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar()
+        return self.calculate_normalized_scalar(times)
 
-    def calculate_normalized_scalar(self) -> float:
+    # TODO: This should depend on the internal time grid and not on the input time value.
+    # This means that the `times` should just be a float.
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Returns the normalized sum of consecutive square differences of the pulse.
         As the maximums difference is twice the maximum amplitude, the normalization
         factor is the number of piecewise constants minus 1 time sthe maximum
@@ -51,7 +52,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         float
             The normalized sum of consecutive square differences in the pulse.
         """
-        pulse = self._pwc_generator.generate_signal(self._times)
+        pulse = self._pwc_generator.generate_signal(times)
         num_pwc = jnp.shape(pulse)[0]
 
         norm_coeff = (num_pwc - 1) * (2 * self._pwc_generator.max_amplitude) ** 2
@@ -70,7 +71,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
         return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
 
-    def calculate_value_and_gradient(self) -> tuple[Array, Array] | tuple[float, Array]:
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measure_normalized_scalar()
@@ -122,4 +123,4 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         else:
             gradient = jnp.empty((1, 0))  # this is purely conventional
 
-        return self.calculate_normalized_scalar(), gradient
+        return self.calculate_normalized_scalar(times), gradient
