@@ -41,7 +41,7 @@ class Hamiltonian(Optimizable):
         """
         pass
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_matrix(self, times: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         The default implementation calls getMatrixOneTime for each time step.
@@ -60,13 +60,13 @@ class Hamiltonian(Optimizable):
             Hilbert space dimension.
 
         """
-        return jnp.array(vmap(self.get_matrix_one_time)(t))
+        return jnp.array(vmap(self.get_matrix_one_time)(times))
 
     # TODO: if t is a single time point, why expect an array?
     # TODO: should we accept a single float as an argument and wrap it to the e.g. jax-array internally?
     #  TODO: Can this method be removed from the public API (is get_matrix enough?) Yes, we should try it.
     @abstractmethod
-    def get_matrix_one_time(self, t: Array) -> Array:
+    def get_matrix_one_time(self, times: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
@@ -79,63 +79,6 @@ class Hamiltonian(Optimizable):
         Array
             Hamiltonian of shape [n, n]  with `n` as the Hilbert space
             dimension.
-
-        """
-        pass
-
-    # TODO: is Hamiltonian a Differentiable? Is this the same method as in Differentiable (value_and_gradient)?
-    #  TODO: move to Differentiable and adjust signature. All subclasses must implement it then.
-    def gradient(self, t: Array) -> Array:
-        """Return the gradient of the system.
-
-        Returns the gradient of the matrix representation of the Hamiltonian
-        with respect to each parameter for each time step in t. Implementations
-        must make sure that only derivatives with respect to those parameters
-        are included in the gradient that were registered in the Optimizable
-        parent class. The order of the gradients should match the order of the
-        parameters returned by getParameters. The default implementation calls
-        gradient_one_time for each time step. Subclasses can override this
-        function for a more efficient implementation.
-
-        Parameters
-        ----------
-        t: Array
-            Vector of time samples.
-
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [t, p, n, n]  with 't' as time, 'p' as number
-            of parameters and 'n' as Hilbert space dimension.
-
-        """
-        return vmap(self.gradient_one_time)(t)
-
-    @abstractmethod
-    # TODO: move this method to Differentiable
-    #  Hamiltonian is not Differentiable
-    #  Subclasses which do not implement this method yet are not Differentiables either
-    # TODO: should we remove this method and replace it with the value_and_gradient from Differentiable?
-    def gradient_one_time(self, t: Array) -> Array:
-        """Return the one-time gradient of the system.
-
-        Return the gradient of the matrix representation of the Hamiltonian
-        with respect to each parameter for one time step t.
-        Implementations must make sure that only derivatives with respect
-        to those parameters are included in the gradient that were registered
-        in the Optimizable parent class. The order of the gradients should match
-        the order of the parameters returned by getParameters.
-
-        Parameters
-        ----------
-        t: Array
-            One time step.
-
-        Returns
-        -------
-        list[Array]
-            Hamiltonian of shape [p, n, n]  with 'p' as the number
-            of parameters and 'n' as the Hilbert space dimension.
 
         """
         pass
@@ -165,7 +108,7 @@ class Hamiltonian(Optimizable):
             params += d.get_parameters()
         return params
 
-    def _get_drive_matrix(self, annihilation_operator: Array, t: Array) -> Array:
+    def _get_drive_matrix(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations for
@@ -186,9 +129,9 @@ class Hamiltonian(Optimizable):
             Returns the sum of all drives in matrix form.
 
         """
-        return vmap(self._get_drive_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
+        return vmap(self._get_drive_matrix_one_time, in_axes=(None, 0))(annihilation_operator, times)
 
-    def _get_drive_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    def _get_drive_matrix_one_time(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -210,10 +153,10 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
         for drive in self._drives:
-            mat += drive.get_matrix_one_time(annihilation_operator, t)
+            mat += drive.get_matrix_one_time(annihilation_operator, times)
         return mat
 
-    def _get_drive_gradients(self, annihilation_operator: Array, t: Array) -> Array:
+    def _get_drive_gradients(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -233,13 +176,13 @@ class Hamiltonian(Optimizable):
 
         """
         dim = self.dimension()
-        all_grads = jnp.zeros((t.shape[0], 0, dim, dim))
+        all_grads = jnp.zeros((times.shape[0], 0, dim, dim))
         for drive in self._drives:
-            grads = drive.gradient(annihilation_operator, t)
+            grads = drive.gradient(annihilation_operator, times)
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
 
-    def _get_drive_gradients_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    def _get_drive_gradients_one_time(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -261,7 +204,7 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((0, dim, dim))
         for drive in self._drives:
-            grads = drive.gradient_one_time(annihilation_operator, t)
+            grads = drive.gradient_one_time(annihilation_operator, times)
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 
