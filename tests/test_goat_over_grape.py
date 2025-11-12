@@ -157,7 +157,7 @@ def opt_grad(tone, fid, gen):
 def test_can_measure(tone, fid, gen):
     fid = GOATOverGRAPE(fid, gen)
     assert 0 <= fid.measure()
-    assert 0 <= fid.calculate_value_and_gradient() <= 1
+    assert 0 <= fid.value_and_gradient() <= 1
 
     value, grad = fid.calculate_normalized_scalar_and_gradient()
     assert 0 <= value

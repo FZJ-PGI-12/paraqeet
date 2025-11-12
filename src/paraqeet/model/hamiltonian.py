@@ -62,6 +62,9 @@ class Hamiltonian(Optimizable):
         """
         return jnp.array(vmap(self.get_matrix_one_time)(t))
 
+    # TODO: if t is a single time point, why expect an array?
+    # TODO: should we accept a single float as an argument and wrap it to the e.g. jax-array internally?
+    #  TODO: Can this method be removed from the public API (is get_matrix enough?) Yes, we should try it.
     @abstractmethod
     def get_matrix_one_time(self, t: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
@@ -80,6 +83,8 @@ class Hamiltonian(Optimizable):
         """
         pass
 
+    # TODO: is Hamiltonian a Differentiable? Is this the same method as in Differentiable (value_and_gradient)?
+    #  TODO: move to Differentiable and adjust signature. All subclasses must implement it then.
     def gradient(self, t: Array) -> Array:
         """Return the gradient of the system.
 
@@ -110,6 +115,7 @@ class Hamiltonian(Optimizable):
     # TODO: move this method to Differentiable
     #  Hamiltonian is not Differentiable
     #  Subclasses which do not implement this method yet are not Differentiables either
+    # TODO: should we remove this method and replace it with the value_and_gradient from Differentiable?
     def gradient_one_time(self, t: Array) -> Array:
         """Return the one-time gradient of the system.
 

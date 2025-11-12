@@ -68,6 +68,7 @@ class DriveOperator(Drive):
         """
         return (jnp.conjugate(a.T) @ a) if self.__is_longitudinal else (jnp.conjugate(a.T) + a)
 
+    # TODO: if t is a single time point, why expect an array?
     def get_matrix_one_time(self, a: Array, t: Array) -> Array:
         """Get the one-time matrix of the system.
 
@@ -87,10 +88,13 @@ class DriveOperator(Drive):
             Returns the shape-shifted coefficient from the drive.
 
         """
+        # TODO: generator.generate_signal expects an array, even for one time point.
+        # Is the naming of the method correct then?
         signal = self.__generator.generate_signal(t)
         matrix = self._compute_matrix(a)
         return signal * matrix
 
+    # TODO: if t is a single time point, why expect an array?
     def gradient_one_time(self, a: Array, t: Array) -> Array:
         """Get the one-time gradient of the system.
 

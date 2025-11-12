@@ -6,12 +6,13 @@ from typing import Any
 import jax.numpy as jnp
 from jax import vmap
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-class CustomHamiltonian(Hamiltonian):
+class CustomHamiltonian(Hamiltonian, Differentiable):
     """Custom Hamiltonian class to simulate systems using a user defined Hamitonian function..
 
     Here we expect a Hamiltonian function of the form `H(t, *params)`.

@@ -5,13 +5,14 @@ import jax.numpy as jnp
 import numpy as np
 from jax import vmap
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import Coupling
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-class CompositeHamiltonian(Hamiltonian):
+class CompositeHamiltonian(Hamiltonian, Differentiable):
     """A hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.
@@ -129,6 +130,7 @@ class CompositeHamiltonian(Hamiltonian):
 
         return matrix
 
+    # TODO: could it become calculate_value_and_gradient? Rename the method to calculate_function_value_and_gradient?
     def gradient(self, t: Array) -> Array:
         """Return the gradient of each parameter.
 
@@ -148,7 +150,7 @@ class CompositeHamiltonian(Hamiltonian):
         """
         return vmap(self._gradient_one_time)(t)
 
-    # TODO: is this method supposed to override the one in the base class Hamiltonian? If so, why is it protected?
+    # TODO: Can this method be an implementation of the abstract method in Differentiable?
     def _gradient_one_time(self, t: Array) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 

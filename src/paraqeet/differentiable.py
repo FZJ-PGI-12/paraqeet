@@ -23,8 +23,8 @@ class Differentiable(ABC):
 
         Returns
         -------
-        list[float]
-            List of gradients with respect to each optimizable parameter.
+        tuple[Array, Array] | tuple[float, Array]
+            The value and the gradient of the model.
 
         """
         pass
