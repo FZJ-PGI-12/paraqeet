@@ -10,6 +10,7 @@ import pytest
 from jax import jit
 from jax.scipy.special import erf
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
@@ -65,7 +66,7 @@ class FlatTopGaussianEnvelope(Envelope):
         return self._evaluate(amp, t_up, t_down, ramp_time, t)
 
 
-class SpinRWA(Hamiltonian):
+class SpinRWA(Hamiltonian, Differentiable):
     """A Single Spin."""
 
     def __init__(self, drives=None):
@@ -73,13 +74,15 @@ class SpinRWA(Hamiltonian):
         self.sigma_p = jnp.array([[0j, 1], [0, 0]])
         self.dim = 2
 
-    def get_matrix_one_time(self, t):
+    def get_matrix_one_time(self, times):
         """Just sigma-X."""
-        return self._drives[0].get_matrix_one_time(self.sigma_p, t)
+        return self._drives[0].get_matrix_one_time(self.sigma_p, times)
 
-    def gradient(self, t):
+    # TODO: update return value to match the signature in Differentiable
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Gradient is just the drive matrix."""
-        return self._drives[0].gradient(self.sigma_p, t)
+        # TODO: expected a tuple
+        return self._drives[0].gradient(self.sigma_p, times), None
 
     # TODO: implement dimension-method from Hamiltonian
     def dimension(self) -> int:

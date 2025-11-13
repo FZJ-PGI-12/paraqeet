@@ -50,7 +50,7 @@ class Hamiltonian(Optimizable):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -62,7 +62,7 @@ class Hamiltonian(Optimizable):
         """
         return jnp.array(vmap(self.get_matrix_one_time)(times))
 
-    # TODO: if t is a single time point, why expect an array?
+    # TODO: if times is a single time point, why expect an array?
     # TODO: should we accept a single float as an argument and wrap it to the e.g. jax-array internally?
     #  TODO: Can this method be removed from the public API (is get_matrix enough?) Yes, we should try it.
     @abstractmethod
@@ -71,7 +71,7 @@ class Hamiltonian(Optimizable):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One time point.
 
         Returns
@@ -120,7 +120,7 @@ class Hamiltonian(Optimizable):
         ----------
         annihilation_operator : Array
             The annihilation operator.
-        t : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -141,7 +141,7 @@ class Hamiltonian(Optimizable):
         ----------
         annihilation_operator : Array
             The annihilation operator.
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -166,7 +166,7 @@ class Hamiltonian(Optimizable):
         ----------
         annihilation_operator : Array
             The annihilation operator.
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -192,7 +192,7 @@ class Hamiltonian(Optimizable):
         ----------
         annihilation_operator : Array
             The annihilation operator.
-        t: Array
+        times: Array
             One time stamp.
 
         Returns

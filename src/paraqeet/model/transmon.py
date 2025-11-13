@@ -3,6 +3,7 @@
 import jax
 import jax.numpy as jnp
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
 from paraqeet.model.hamiltonian import Hamiltonian
@@ -11,7 +12,7 @@ from paraqeet.quantity import Array, Quantity
 jax.config.update("jax_enable_x64", True)
 
 
-class Transmon(Hamiltonian):
+class Transmon(Hamiltonian, Differentiable):
     """Hamiltonian of an anharmonic oscillator.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
@@ -145,7 +146,8 @@ class Transmon(Hamiltonian):
         hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
         return hamil + self._get_drive_matrix_one_time(self.__annihilation_op, t)
 
-    def gradient_one_time(self, t: Array) -> Array:
+    # TODO: update return value to match the signature in Differentiable
+    def value_and_gradient(self, t: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
 
         Parameters
@@ -170,8 +172,8 @@ class Transmon(Hamiltonian):
             grads_list.append(self.__anharmonic_term)
         grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__num_op.shape)
         gradients = jnp.append(gradients, grads, axis=0)
-
-        return gradients
+        # TODO: fix return type: expected to be a tuple
+        return gradients, None
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

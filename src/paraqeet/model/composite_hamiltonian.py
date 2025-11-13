@@ -99,7 +99,8 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         """
         return self._dimensions
 
-    def get_matrix_one_time(self, t: Array) -> Array:
+    # TODO: Update code documentation
+    def get_matrix_one_time(self, times: Array) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
@@ -117,21 +118,21 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.get_matrix_one_time(t)
+            sub_matrix = subsystem.get_matrix_one_time(times)
             matrix += self.__tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            sub_matrices = coupling.get_matrices_one_time(t)
+            sub_matrices = coupling.get_matrices_one_time(times)
             for term in sub_matrices:
                 matrix += self.__tensor_product_with_identity(term, indices)
 
         return matrix
 
-    # TODO: could it become calculate_value_and_gradient? Rename the method to calculate_function_value_and_gradient?
-    def gradient(self, t: Array) -> Array:
+    # TODO: Update to match the signature in Differentiable
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Return the gradient of each parameter.
 
         Returns as an array for an array of input times.
@@ -139,7 +140,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             Array of time samples.
 
         Returns
@@ -148,10 +149,11 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
             Gradient for each time point in the input array of times.
 
         """
-        return vmap(self._gradient_one_time)(t)
+        # TODO: fix return type: expected to be a tuple
+        return vmap(self._gradient_one_time)(times), None
 
-    # TODO: Can this method be an implementation of the abstract method in Differentiable?
-    def _gradient_one_time(self, t: Array) -> Array:
+    # TODO: Update return type to match Differentiable
+    def _gradient_one_time(self, times: Array) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
@@ -159,7 +161,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One time point.
 
         Returns
@@ -173,7 +175,14 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for one_index, subsystem in enumerate(self._subsystems):
-            sub_gradients = subsystem.gradient_one_time(t)
+            # TODO: check whether the isinstance check should raise an exception
+            if not isinstance(subsystem, Differentiable):
+                raise IncompatibleLayersException(
+                    f"Subsystem {one_index} is not differentiable. "
+                    + "All subsystems of a CompositeHamiltonian must be Differentiable."
+                )
+            # TODO: check whether the call to the method value_and_gradient is correct (gradient_one_time previously)
+            sub_gradients = subsystem.value_and_gradient(times)
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
@@ -183,7 +192,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # has more than one non-identity component.
         for coupling in self._couplings:
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            coupling_gradient = coupling.gradient_one_time(t)
+            coupling_gradient = coupling.gradient_one_time(times)
             for term in coupling_gradient:
                 for g_list in term:
                     grad = self.__tensor_product_with_identity(g_list, indices)
@@ -238,8 +247,3 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
             for rate, col_op in rates_and_cols:
                 all_collapse_ops.append((rate, self.__tensor_product_with_identity([col_op], [n])))
         return all_collapse_ops
-
-    # TODO: implement gradient_one_time method from the base class Hamiltonian
-    def gradient_one_time(self, t):
-        """Calculate the gradient at one time point."""
-        raise NotImplementedError("This method is not implemented yet!")

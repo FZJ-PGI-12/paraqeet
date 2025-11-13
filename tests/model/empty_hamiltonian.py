@@ -22,7 +22,7 @@ class EmptyHamiltonian(Hamiltonian):
 
         self.__dimension = dimension
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_matrix(self, times: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters
@@ -36,7 +36,7 @@ class EmptyHamiltonian(Hamiltonian):
             The matrix representation of the Hamiltonian.
 
         """
-        return np.zeros((len(t), self.__dimension, self.__dimension))
+        return np.zeros((len(times), self.__dimension, self.__dimension))
 
     def get_parameters(self) -> list[Quantity]:
         """ """

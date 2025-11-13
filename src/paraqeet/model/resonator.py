@@ -3,6 +3,7 @@
 import jax
 import jax.numpy as jnp
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
 from paraqeet.model.hamiltonian import Hamiltonian
@@ -11,7 +12,7 @@ from paraqeet.quantity import Array, Quantity
 jax.config.update("jax_enable_x64", True)
 
 
-class Resonator(Hamiltonian):
+class Resonator(Hamiltonian, Differentiable):
     """Hamiltonian of a harmonic oscillator.
 
     The only optimizable parameter is the frequency.
@@ -108,12 +109,12 @@ class Resonator(Hamiltonian):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def get_matrix_one_time(self, t: Array) -> Array:
+    def get_matrix_one_time(self, times: Array) -> Array:
         """Get the drive matrix.
 
         Parameters
         ----------
-        t : float
+        times : float
             One time stamp.
 
         Returns
@@ -123,14 +124,15 @@ class Resonator(Hamiltonian):
 
         """
         H = self.__frequency.get_value() * self.__num_op
-        return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
+        return H + self._get_drive_matrix_one_time(self.__annihilation_op, times)
 
-    def gradient_one_time(self, t: Array) -> Array:
+    # TODO: update return value to match the signature in Differentiable
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
 
         Parameters
         ----------
-        t : float
+        times : float
             One time stamp.
 
         Returns
@@ -140,14 +142,14 @@ class Resonator(Hamiltonian):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, t)
+        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, times)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.__frequency):
             grad = self.__num_op.reshape((1,) + self.__num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
-
-        return derivatives
+        # TODO: fix return type: expected to be a tuple
+        return derivatives, None
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

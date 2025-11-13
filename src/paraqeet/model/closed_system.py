@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import jax.numpy as jnp
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
@@ -121,4 +122,9 @@ class ClosedSystem(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        return -1.0j * self._hamiltonian.gradient(t)
+        # TODO: check whether the exception is necessary
+        if not isinstance(self._hamiltonian, Differentiable):
+            raise TypeError("Hamiltonian is not differentiable.")
+        # TODO: please correct: when the implementation of value_and_gradient is fixed,
+        # the last element of the tuple should be used!!
+        return -1.0j * self._hamiltonian.value_and_gradient(t)[0]

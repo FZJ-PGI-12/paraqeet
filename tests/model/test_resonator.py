@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.model.resonator import Resonator
@@ -117,9 +118,12 @@ def test_gradient(gen, hamiltonian, time_samples):
     """
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
+        if not isinstance(hamil, Differentiable):
+            continue
         hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
-        ham_grads = hamil.gradient(time_samples)
+        #  TODO: fix error related to the length of time_samples-array
+        ham_grads = hamil.value_and_gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
 
 
@@ -140,6 +144,7 @@ def test_decay_expm(expm):
     assert np.isclose(final_state[0, 0], 1)
 
 
+# TODO: test fails since the Vern7-class does not implement all required methods of its base class.
 def test_decay_ode(ode):
     t_final = 20e-9
     ts = np.linspace(0, t_final, 101)
