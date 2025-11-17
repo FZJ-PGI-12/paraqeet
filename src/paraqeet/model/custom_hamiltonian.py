@@ -69,24 +69,24 @@ class CustomHamiltonian(Hamiltonian, Differentiable):
 
     def dimension(self):
         """Return dimension of the Hilbert space."""
-        return self.get_matrix_one_time(jnp.array([0.0])).shape[1]
+        return self.get_matrix_at_timestep(jnp.array([0.0])).shape[1]
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of optimizable parameters."""
         return self.__parameters
 
-    def get_matrix_one_time(self, t: Array):
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
-        return self.__hamiltonian_function(t, *params)
+        return self.__hamiltonian_function(timestep, *params)
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_matrix(self, times: Array) -> Array:
         """Return Hamiltonian as a function of time for an array of time."""
         params = [p.get_value()[0] for p in self.__parameters]
         matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
-        return matrix_fun(t, *params)
+        return matrix_fun(times, *params)
 
-    def gradient_one_time(self, t):
+    def gradient_at_timestep(self, timestep: float) -> Array:
         """Return the gradient as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
         if self.gradient_functions is None:
@@ -96,14 +96,14 @@ class CustomHamiltonian(Hamiltonian, Differentiable):
                 f"Got {len(params)} parameters but got {len(self.gradient_functions)}. "
                 + "Provide gradient methods for all the input paramters"
             )
-        grads = jnp.array([grad_func(t, *params) for grad_func in self.gradient_functions])
+        grads = jnp.array([grad_func(timestep, *params) for grad_func in self.gradient_functions])
         return grads
 
     # TODO: update return value to match the signature in Differentiable
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Return Hamiltonian as a function of time for a single time point."""
         # TODO: fix return type: expected to be a tuple
-        return jnp.array(vmap(self.gradient_one_time, in_axes=(0,))(times)), None
+        return jnp.array(vmap(self.gradient_at_timestep, in_axes=(0,))(times)), None
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return collapse operators."""

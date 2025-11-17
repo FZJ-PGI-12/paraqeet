@@ -109,12 +109,12 @@ class Resonator(Hamiltonian, Differentiable):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def get_matrix_one_time(self, times: Array) -> Array:
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
         ----------
-        times : float
+        timestep : float
             One time stamp.
 
         Returns
@@ -124,7 +124,7 @@ class Resonator(Hamiltonian, Differentiable):
 
         """
         H = self.__frequency.get_value() * self.__num_op
-        return H + self._get_drive_matrix_one_time(self.__annihilation_op, times)
+        return H + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
     # TODO: update return value to match the signature in Differentiable
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
@@ -142,7 +142,7 @@ class Resonator(Hamiltonian, Differentiable):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, times)
+        derivatives = self._get_drive_gradients_at_timestep(self.__annihilation_op, times)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.__frequency):

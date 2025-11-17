@@ -117,12 +117,12 @@ class Qubit(Hamiltonian, Differentiable):
         """
         return 2
 
-    def get_matrix_one_time(self, times: Array) -> Array:
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
         ----------
-        times: Array
+        timestep: Array
             One time stamp.
 
         Returns
@@ -132,7 +132,7 @@ class Qubit(Hamiltonian, Differentiable):
 
         """
         hamil = self.__frequency.get_value() * self.__drift
-        return hamil + self._get_drive_matrix_one_time(self.__annihilation_op, times)
+        return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
     # TODO: update return value to match the signature in Differentiable
     # TODO: update code documentation
@@ -151,7 +151,7 @@ class Qubit(Hamiltonian, Differentiable):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, times)
+        derivatives = self._get_drive_gradients_at_timestep(self.__annihilation_op, times)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.__frequency):

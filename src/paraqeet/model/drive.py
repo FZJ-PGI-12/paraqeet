@@ -15,7 +15,7 @@ class Drive(Optimizable):
 
     """
 
-    def get_matrix(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_matrix(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -27,7 +27,7 @@ class Drive(Optimizable):
         ----------
         annihilation_operator : Array
             Operator of the subsystem to which this drive is attached
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -37,10 +37,10 @@ class Drive(Optimizable):
             space dimension.
 
         """
-        return vmap(self.get_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
+        return vmap(self.get_matrix_at_timestep, in_axes=(None, 0))(annihilation_operator, times)
 
     @abstractmethod
-    def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_matrix_at_timestep(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -82,10 +82,10 @@ class Drive(Optimizable):
 
 
         """
-        return vmap(self.gradient_one_time, in_axes=(None, 0))(annihilation_operator, t)
+        return vmap(self.gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, t)
 
     @abstractmethod
-    def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    def gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Returns the gradient of the matrix representation of the
@@ -95,7 +95,7 @@ class Drive(Optimizable):
         ----------
         annihilation_operator : Array
             Operator of the subsystem to which this drive is attached.
-        t: float
+        timestep: float
             One time step.
 
         Returns

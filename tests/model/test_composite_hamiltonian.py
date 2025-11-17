@@ -155,7 +155,7 @@ def test_get_matrix_one_time(uncoupled_transmons):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = uncoupled_transmons(dim1, dim2)
-        hams = hamil.get_matrix_one_time(0)
+        hams = hamil.get_matrix_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -165,7 +165,7 @@ def test_get_matrix_one_time_rwa(coupled_transmons):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2, use_rwa=True)
-        hams = hamil.get_matrix_one_time(0)
+        hams = hamil.get_matrix_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 

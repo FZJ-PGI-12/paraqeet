@@ -69,7 +69,7 @@ class DriveOperator(Drive):
         return (jnp.conjugate(a.T) @ a) if self.__is_longitudinal else (jnp.conjugate(a.T) + a)
 
     # TODO: if t is a single time point, why expect an array?
-    def get_matrix_one_time(self, a: Array, t: Array) -> Array:
+    def get_matrix_at_timestep(self, a: Array, t: Array) -> Array:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -95,7 +95,7 @@ class DriveOperator(Drive):
         return signal * matrix
 
     # TODO: if t is a single time point, why expect an array?
-    def gradient_one_time(self, a: Array, t: Array) -> Array:
+    def gradient_at_timestep(self, a: Array, timestep: Array) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -105,7 +105,7 @@ class DriveOperator(Drive):
         ----------
         a: Array
             Operator for longitudinal or transverse drive.
-        t: Array
+        timestep: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -114,6 +114,8 @@ class DriveOperator(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signal_grad = self.__generator.generate_signal_gradient_one_time(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
+        signal_grad = self.__generator.generate_signal_gradient_one_time(jnp.array(timestep, ndmin=1)).reshape(
+            (-1, 1, 1)
+        )
         matrix = self._repeat(self._compute_matrix(a), signal_grad.shape[0])
         return signal_grad * matrix

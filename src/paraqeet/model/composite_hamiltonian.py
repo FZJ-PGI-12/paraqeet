@@ -99,13 +99,12 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         """
         return self._dimensions
 
-    # TODO: Update code documentation
-    def get_matrix_one_time(self, times: Array) -> Array:
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
         ----------
-        t: float
+        timestep: float
             One time step.
 
         Returns
@@ -118,14 +117,14 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.get_matrix_one_time(times)
+            sub_matrix = subsystem.get_matrix_at_timestep(timestep)
             matrix += self.__tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            sub_matrices = coupling.get_matrices_one_time(times)
+            sub_matrices = coupling.get_matrices_one_time(timestep)
             for term in sub_matrices:
                 matrix += self.__tensor_product_with_identity(term, indices)
 

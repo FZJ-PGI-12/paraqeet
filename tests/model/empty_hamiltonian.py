@@ -47,7 +47,7 @@ class EmptyHamiltonian(Hamiltonian):
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def get_matrix_one_time(self, t: Array) -> Array:
+    def get_matrix_at_timestep(self, timestep: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian

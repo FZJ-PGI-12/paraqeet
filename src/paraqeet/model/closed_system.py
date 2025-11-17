@@ -59,7 +59,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_parameters()
 
-    def __get_eom(self, time: Array) -> Array:
+    def __get_eom(self, times: Array) -> Array:
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -68,7 +68,7 @@ class ClosedSystem(EquationOfMotion):
 
         Parameters
         ----------
-        time : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -78,16 +78,16 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._hamiltonian.get_matrix(time)
+        return -1.0j * self._hamiltonian.get_matrix(times)
 
-    def __get_ode_propagation_eom(self, time: Array) -> tuple[Array, Array]:
+    def __get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
         """Get the matrix equations of motion for ODE solver.
 
         Here we return an empty array for the collapse operator.
         """
-        return -1.0j * self._hamiltonian.get_matrix(time), jnp.empty((1,), dtype=jnp.complex128)
+        return -1.0j * self._hamiltonian.get_matrix(times), jnp.empty((1,), dtype=jnp.complex128)
 
-    def get_matrix(self, time: Array):
+    def get_matrix(self, times: Array):
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -96,7 +96,7 @@ class ClosedSystem(EquationOfMotion):
 
         Parameters
         ----------
-        time : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -106,14 +106,14 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return self._get_matrix_method(time)
+        return self._get_matrix_method(times)
 
-    def gradient(self, t) -> Array:
+    def gradient(self, times) -> Array:
         """Compute the gradient of getMatrix.
 
         Parameters
         ----------
-        t : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -127,4 +127,4 @@ class ClosedSystem(EquationOfMotion):
             raise TypeError("Hamiltonian is not differentiable.")
         # TODO: please correct: when the implementation of value_and_gradient is fixed,
         # the last element of the tuple should be used!!
-        return -1.0j * self._hamiltonian.value_and_gradient(t)[0]
+        return -1.0j * self._hamiltonian.value_and_gradient(times)[0]

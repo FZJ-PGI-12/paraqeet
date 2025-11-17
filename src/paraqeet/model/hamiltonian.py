@@ -60,18 +60,15 @@ class Hamiltonian(Optimizable):
             Hilbert space dimension.
 
         """
-        return jnp.array(vmap(self.get_matrix_one_time)(times))
+        return jnp.array(vmap(self.get_matrix_at_timestep)(times))
 
-    # TODO: if times is a single time point, why expect an array?
-    # TODO: should we accept a single float as an argument and wrap it to the e.g. jax-array internally?
-    #  TODO: Can this method be removed from the public API (is get_matrix enough?) Yes, we should try it.
     @abstractmethod
-    def get_matrix_one_time(self, times: Array) -> Array:
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        times: Array
+        timestep: float
             One time point.
 
         Returns
@@ -129,9 +126,10 @@ class Hamiltonian(Optimizable):
             Returns the sum of all drives in matrix form.
 
         """
-        return vmap(self._get_drive_matrix_one_time, in_axes=(None, 0))(annihilation_operator, times)
+        return vmap(self._get_drive_matrix_at_timestep, in_axes=(None, 0))(annihilation_operator, times)
 
-    def _get_drive_matrix_one_time(self, annihilation_operator: Array, times: Array) -> Array:
+    # TODO: should the times-argument here become a float instead of an Array?
+    def _get_drive_matrix_at_timestep(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -153,7 +151,7 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
         for drive in self._drives:
-            mat += drive.get_matrix_one_time(annihilation_operator, times)
+            mat += drive.get_matrix_at_timestep(annihilation_operator, times)
         return mat
 
     def _get_drive_gradients(self, annihilation_operator: Array, times: Array) -> Array:
@@ -182,7 +180,8 @@ class Hamiltonian(Optimizable):
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
 
-    def _get_drive_gradients_one_time(self, annihilation_operator: Array, times: Array) -> Array:
+    # TODO: should the times-argument become of type float?
+    def _get_drive_gradients_at_timestep(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -204,7 +203,8 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((0, dim, dim))
         for drive in self._drives:
-            grads = drive.gradient_one_time(annihilation_operator, times)
+            # TODO: drive.gradient_at_timestep expexts a float, but receives here an Array
+            grads = drive.gradient_at_timestep(annihilation_operator, times)
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 

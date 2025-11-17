@@ -129,12 +129,12 @@ class Transmon(Hamiltonian, Differentiable):
             self.__anharmonicity,
         ]
 
-    def get_matrix_one_time(self, t: Array) -> Array:
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
         ----------
-        t : Array
+        timestep : Array
             Vector of time samples.
 
         Returns
@@ -144,7 +144,7 @@ class Transmon(Hamiltonian, Differentiable):
 
         """
         hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
-        return hamil + self._get_drive_matrix_one_time(self.__annihilation_op, t)
+        return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
     # TODO: update return value to match the signature in Differentiable
     def value_and_gradient(self, t: Array) -> tuple[Array, Array] | tuple[float, Array]:
@@ -162,7 +162,7 @@ class Transmon(Hamiltonian, Differentiable):
 
         """
         # Fetch the gradient of the drive
-        gradients = self._get_drive_gradients_one_time(self.__annihilation_op, t)
+        gradients = self._get_drive_gradients_at_timestep(self.__annihilation_op, t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads_list = []

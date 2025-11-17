@@ -74,9 +74,9 @@ class SpinRWA(Hamiltonian, Differentiable):
         self.sigma_p = jnp.array([[0j, 1], [0, 0]])
         self.dim = 2
 
-    def get_matrix_one_time(self, times):
+    def get_matrix_at_timestep(self, timestep: float) -> Array:
         """Just sigma-X."""
-        return self._drives[0].get_matrix_one_time(self.sigma_p, times)
+        return self._drives[0].get_matrix_at_timestep(self.sigma_p, timestep)
 
     # TODO: update return value to match the signature in Differentiable
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:

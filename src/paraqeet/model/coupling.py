@@ -76,7 +76,7 @@ class Coupling(Optimizable):
         """
         return self._subsystems
 
-    # AC: it seems that t is not used in the method below
+    # TODO: AC: it seems that t is not used in the method below
     def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
@@ -104,15 +104,15 @@ class Coupling(Optimizable):
             matrices[i][0] *= self._coefficient.get_value()
         return matrices
 
-    def get_matrices(self, t: Array) -> list[list[Array]]:
+    def get_matrices(self, times: Array) -> list[list[Array]]:
         """Return the matrices for an array of time.
 
         vmaps over the method for one time step.
 
         Parameters
         ----------
-        t: Array
-            Array of times
+        times: Array
+            Array of timesteps
 
         Returns
         -------
@@ -124,7 +124,7 @@ class Coupling(Optimizable):
 
         """
         # Technically, vmap returns "any" but we know the type of get_matrices_one_time is correct.
-        return vmap(self.get_matrices_one_time)(t)  # type:ignore
+        return vmap(self.get_matrices_one_time)(times)  # type:ignore
 
     # AC: it seems that t is not used in the method below
     def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
