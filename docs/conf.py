@@ -34,3 +34,6 @@ autodoc_typehints = "description"
 
 # Don't show class signature with the class' name.
 autodoc_class_signature = "separated"
+
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]

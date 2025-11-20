@@ -226,7 +226,7 @@ class Quantity:
         if unit is None:
             if not all(qty.get_unit() == quantities[0].get_unit() for qty in quantities):
                 raise ValueError(
-                    f"All quantities in creation on {name} " f"must have the same unit if no unit is specified."
+                    f"All quantities in creation on {name} must have the same unit if no unit is specified."
                 )
             unit = quantities[0].get_unit()
 
@@ -397,7 +397,10 @@ class Quantity:
         """Set reduced value limit for parameter."""
         value_fixed = self.__fix_parameter_types(value)
         if value_fixed.shape != self.__shape:
-            raise IncompatibleQuantityException("The new value must have the same shape as the old value")
+            raise IncompatibleQuantityException(
+                f"The new value must have the same shape as the old value. \
+                Got shape {value_fixed.shape}, expected shape {self.__shape}."
+            )
         self.__value = value_fixed
 
     def get_min_value(self) -> Array:
@@ -701,19 +704,32 @@ class Quantity:
     def __to_string(self, val: Array):
         """Represent parameter as custom defined string value."""
         ret = ""
-        for entry in val:
+        if len(val) > 1:
+            ret = "["
+            delimiter = ", "
+        else:
+            delimiter = " "
+        for ii, entry in enumerate(val):
+            if ii == len(val) - 1:
+                delimiter = ""
             if self.__unit != "":
                 if self.__two_pi:
-                    ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi "
+                    ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi" + delimiter
                 else:
-                    ret += self.__make_human_readable(entry) + self.__unit + " "
+                    ret += self.__make_human_readable(entry) + self.__unit + delimiter
             else:
                 if self.__two_pi:
-                    ret += self.__make_human_readable(entry / np.pi / 2, use_prefix=False) + " x 2pi "
+                    ret += self.__make_human_readable(entry / np.pi / 2, use_prefix=False) + " x 2pi" + delimiter
                 else:
-                    ret += self.__make_human_readable(entry, use_prefix=False) + " "
+                    ret += self.__make_human_readable(entry, use_prefix=False) + delimiter
         if self.__name:
-            ret = self.__name + ": " + ret
+            if len(val) > 1:
+                ret = self.__name + ": " + ret + "]"
+            else:
+                ret = self.__name + ": " + ret
+        else:
+            if len(val) > 1:
+                ret = ret + "]"
         return ret
 
     @staticmethod
@@ -736,7 +752,7 @@ class Quantity:
             num, prefix = Quantity.__engineering_number(val)
             formatted_string = f"{num:.3g} " + prefix
         else:
-            formatted_string = f"{val:.3g} "
+            formatted_string = f"{val:.3g}"
         return formatted_string
 
     # Internal utility functions

@@ -8,7 +8,7 @@ from typing import Any
 import jax.numpy as jnp
 from paraqeet.quantity import Array
 from paraqeet.exceptions import ConfigurationException
-from jax import grad, jit, vmap
+from jax import grad, jacfwd, jit, vmap
 from jax.scipy.special import erf
 
 from paraqeet.optimisable import Optimisable
@@ -40,7 +40,7 @@ class Waveform(Optimisable):
             A tuple of ints.
 
         """
-        grads = grad(signal_function, argnums=argnums)
+        grads = jacfwd(signal_function, argnums=argnums)
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
@@ -365,6 +365,10 @@ class DRAGMixer(Waveform):
             params += [self.__get_tone_delta(tone)]
         return params
 
+    def get_envelopes(self) -> list[Waveform]:
+        """Return envelopes from the DRAGMixer."""
+        return self.__envs
+
     @staticmethod
     def __add_deltas(envelope_tones: list[Waveform], deltas: list[Quantity] | None) -> None:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
@@ -385,8 +389,10 @@ class DRAGMixer(Waveform):
         for ii, env_tone in enumerate(envelope_tones):
             env_tone.__setattr__(
                 "_" + env_tone.__class__.__name__ + "__delta",
-                Quantity(
-                    deltas[ii].get_value() if deltas else jnp.array(-200e6 * 2 * jnp.pi),
+                deltas[ii]
+                if deltas
+                else Quantity(
+                    jnp.array(-200e6 * 2 * jnp.pi),
                     min_value=jnp.array(-3 * 200e6 * 2 * jnp.pi),
                     max_value=jnp.array(-0.1 * 200e6 * 2 * jnp.pi),
                     unit="Hz",
@@ -510,4 +516,113 @@ class DRAGMixer(Waveform):
                 grad = jnp.expand_dims(grad * smoothing, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)
 
+        return jnp.array(gradients)
+
+
+class FlatTopGaussianFilter(Waveform):
+    """A shape filter that forces the pulse to smoothly start and end at zero.
+    This filter multiplies the input pulse with a flat-top Gaussian pulse.
+
+    This is similar to `PWCGenerator.multiply_flat_top = True`.
+    """
+
+    _envs: list[Waveform]
+    _t_final: Quantity
+
+    def __init__(self, envelopes: Waveform | list[Waveform], t_final: Quantity):
+        self._envs = envelopes if isinstance(envelopes, list) else [envelopes]
+        self._t_final = t_final
+
+    def get_parameters(self) -> list[Quantity]:
+        """Return a list of parameters.
+
+        Collects and returns a list of parameters from the tone, generator
+        and the carrier signal.
+
+        Returns
+        -------
+        list[Quantity]
+            All Parameters describing the signal.
+        """
+        params = list()
+        for tone in self._envs:
+            params += tone.get_parameters()
+        return params
+
+    def get_envelopes(self) -> list[Waveform]:
+        """Return envelopes from the DRAGMixer."""
+        return self._envs
+
+    def set_optimisable_parameters(self, params: list[Quantity]) -> None:
+        """Set specified parameters to be optimised.
+
+        Also add the indices to `__grad_arg_nums` to compute the gradients.
+
+        Parameters
+        ----------
+        params: list[Quantity]
+        """
+        super().set_optimisable_parameters(params)
+
+        for tone in self._envs:
+            tone.set_optimisable_parameters(params)
+
+    @partial(jit, static_argnums=(0,))
+    def __compute_flat_top_envelope(self, t):
+        t_final = self._t_final.get_value()
+        ramp_time = t_final / 25
+        ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
+        ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
+        return ramp_up * ramp_down / 4
+
+    def _evaluate(self, t):
+        return self.__compute_flat_top_envelope(t)
+
+    def compute_output(self, t: Array | float) -> Array:
+        """Evaluate a carrier signal from an input time vector.
+
+        Parameters
+        ----------
+        t: Array
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        Array
+            Returns a vector carrier signal.
+        """
+        total_env: Array = jnp.zeros_like(t, dtype=jnp.complex128)
+        for tone in self._envs:
+            total_env += tone.compute_output(t)
+
+        flattop_env = self.__compute_flat_top_envelope(t)
+        total_env *= flattop_env
+        return jnp.squeeze(total_env)
+
+    def compute_gradient(self, t: Array) -> Array:
+        """Generate gradient of the signal for an array of time.
+
+        Collect and return the parameter gradients from the Tone and the carrier
+        Tone. Compute the gradient of the generator parameters by AD.
+        The order of the gradients should match the order of paramters in
+        `self.get_parameter()` method
+
+        Parameters
+        ----------
+        t: Array
+            An array of time points.
+
+        Returns
+        -------
+        Array
+            Array of gradients wrt each parameter for each time point.
+        """
+        gradients = jnp.zeros(shape=(t.shape[0], 0))
+
+        smoothing = self.__compute_flat_top_envelope(t)
+
+        # Collect gradients wrt envelope parameters
+        for tone in self._envs:
+            grads = tone.compute_gradient(t)
+            gradients = jnp.append(gradients, grads * jnp.expand_dims(smoothing, axis=1), axis=1)
         return jnp.array(gradients)

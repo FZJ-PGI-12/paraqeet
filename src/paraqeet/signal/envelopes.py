@@ -13,6 +13,8 @@ from jax.scipy.special import erf
 from paraqeet.quantity import Quantity
 from paraqeet.signal.waveform import Waveform
 
+import time
+
 jax.config.update("jax_enable_x64", True)
 
 
@@ -522,3 +524,398 @@ class GaussEnvelope(Envelope):
         amp = self.amplitude.get_value()
         env_time_deriv = self._evaluate_time_gradient(amp, t_final, t)
         return env_time_deriv  # type: ignore
+
+
+class DCRABEnvelope(Envelope):
+    r"""Create a dCRAB pulse envelope.
+
+    The dCRAB pulse is given as a sum of sinusoidal components as [Müller2022]
+    $$f(t) = g(t)\Big( 1 + \sum_{i=1}^{N_c / 2} c_{2i} \frac{\cos(\omega_{2i} t)}{\Lambda(t)}
+        + \sum_{i = 1} ^ {N_c/2} c_{2i + 1} \frac{sin(\omega_{2i + 1} t)}{\Lambda(t)} \Big)$$
+
+    Here we consider $g(t) = \Lambda(t) = 1$ for simplicity.
+    Further, even components are for cosine and odd components are for sine.
+    *Note - The function is designed to work well for even total number of components.
+    For odd total number it may not work as expected.*
+
+    [Müller2022] Müller et al. "One decade of quantum optimal control in the chopped random basis"
+
+    _amplitude: Quantity
+        The amplitude of the envelope.
+    _t_final: Quantity
+        The length in time of the envelope.
+    _num_components: int
+        Number of components added each iteration to the dCRAB basis. Defaults to 2. Adviced to be an even number.
+    _total_num_components: int
+        Total number of components in the current dCRAB basis. This is the number of coefficients
+        or the number of frequencies present. NOT the sum of them.
+    _real_coefficients: list[Quantity]
+        Vector quantity as a list of amplitudes of individual sinusoidal components.
+    _real_frequencies: list[Quantity]
+        Vector quantity as a list of frequencies of individual sinusoidal components.
+    _real_phases: list[Quantity]
+        Vector quantity as a list of phases of individual sinusoidal components.
+    _gradient_function: Callable | None
+        The function to calculate the gradient with respect to a set of
+        previously defined parameters.
+    _grad_arg_nums: tuple[int, ...]
+        The identifying indices of which parameters to calculate the gradient
+        with respect to.
+    """
+
+    _amplitude: Quantity
+    _t_final: Quantity
+    _num_components: int
+    _total_num_components: int
+    _real_coefficients: list[Quantity]
+    _real_frequencies: list[Quantity]
+    _real_phases: list[Quantity]
+    _imag_coefficients: list[Quantity]
+    _imag_frequencies: list[Quantity]
+    _imag_phases: list[Quantity]
+    __min_frequency: float
+    __max_frequency: float
+
+    def __init__(
+        self,
+        amplitude: Quantity | None = None,
+        t_final: Quantity | None = None,
+        num_components: int = 2,
+        min_frequency: float = 0.0,
+        max_frequency: float = 2 * jnp.pi * 5.0,
+        seed: int | None = None,
+    ):
+        self._amplitude = amplitude or Quantity(
+            1.55e8,
+            min_value=jnp.array(0.0),
+            max_value=jnp.array(1e9),
+            unit="Hz",
+            name="Amplitude",
+            two_pi=True,
+        )
+
+        self._t_final = t_final or Quantity(
+            32e-9,
+            min_value=jnp.array(0),
+            max_value=jnp.array(100e-9),
+            unit="s",
+            name="t_final",
+        )
+        self.__min_frequency = min_frequency
+        self.__max_frequency = max_frequency
+
+        self._num_components = num_components
+
+        if seed is None:
+            seed = int(1e7 * time.time())
+
+        key = jax.random.key(seed)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-1, maxval=1)
+
+        self._real_coefficients = [
+            Quantity(
+                coeffs[i],
+                min_value=jnp.array(-1.0),
+                max_value=jnp.array(1.0),
+                unit="",
+                name=f"CRAB Re coefficient {i}",
+            )
+            for i in range(self._num_components)
+        ]
+
+        key = jax.random.key(2 * seed + 91)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-1, maxval=1)
+
+        self._imag_coefficients = [
+            Quantity(
+                coeffs[i],
+                min_value=jnp.array(-1.0),
+                max_value=jnp.array(1.0),
+                unit="",
+                name=f"CRAB Im coefficient {i}",
+            )
+            for i in range(self._num_components)
+        ]
+
+        key = jax.random.key(3 * seed + 81)
+        freqs = jax.random.uniform(
+            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+        )
+
+        self._real_frequencies = [
+            Quantity(
+                freqs[i],
+                min_value=jnp.array(self.__min_frequency),
+                max_value=jnp.array(self.__max_frequency),
+                unit="Hz",
+                name=f"CRAB Re frequency {i}",
+                two_pi=True,
+            )
+            for i in range(self._num_components)
+        ]
+
+        key = jax.random.key(4 * seed + 19)
+        freqs = jax.random.uniform(
+            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+        )
+
+        self._imag_frequencies = [
+            Quantity(
+                freqs[i],
+                min_value=jnp.array(self.__min_frequency),
+                max_value=jnp.array(self.__max_frequency),
+                unit="Hz",
+                name=f"CRAB Im frequency {i}",
+                two_pi=True,
+            )
+            for i in range(self._num_components)
+        ]
+
+        key = jax.random.key(5 * seed + 73)
+        phases = jax.random.uniform(key, shape=(self._num_components,), minval=-jnp.pi, maxval=jnp.pi)
+
+        self._real_phases = [
+            Quantity(
+                phases[i],
+                min_value=jnp.array(-jnp.pi),
+                max_value=jnp.array(jnp.pi),
+                unit="Hz",
+                name=f"CRAB Re Phase {i}",
+                two_pi=True,
+            )
+            for i in range(self._num_components)
+        ]
+
+        key = jax.random.key(6 * seed + 74)
+        phases = jax.random.uniform(key, shape=(self._num_components,), minval=-jnp.pi, maxval=jnp.pi)
+
+        self._imag_phases = [
+            Quantity(
+                phases[i],
+                min_value=jnp.array(-jnp.pi),
+                max_value=jnp.array(jnp.pi),
+                unit="Hz",
+                name=f"CRAB Im Phase {i}",
+                two_pi=True,
+            )
+            for i in range(self._num_components)
+        ]
+
+        self._total_num_components = self._num_components
+
+        self._gradient_function: Callable | None = None
+        self._grad_arg_nums: tuple[int, ...] = ()
+
+    def get_parameters(self):
+        """Return the parameters of the CRAB signal.
+        The parameters are arranged as follows,
+            [amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]
+        """
+        params = [self.amplitude, self._t_final]
+        params.extend(self._real_coefficients)
+        params.extend(self._real_frequencies)
+        params.extend(self._real_phases)
+        params.extend(self._imag_coefficients)
+        params.extend(self._imag_frequencies)
+        params.extend(self._imag_phases)
+        return params
+
+    def get_coefficients_frequencies_and_phases(self) -> list[Quantity]:
+        """Return all the coefficients and frequencies used in the CRAB signal."""
+        return (
+            self._real_coefficients
+            + self._real_frequencies
+            + self._real_phases
+            + self._imag_coefficients
+            + self._imag_frequencies
+            + self._imag_phases
+        )
+
+    def add_new_components(self, seed: int | None = None) -> None:
+        """Add `self._num_components` number of new randomized components to the optimization."""
+        if seed is None:
+            seed = int(1e7 * time.time())
+
+        # Limit max coeff value so that the new components do not derail the optimisation.
+        key = jax.random.key(seed)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-0.5, maxval=0.5)
+
+        self._real_coefficients.extend(
+            [
+                Quantity(
+                    coeffs[i],
+                    min_value=jnp.array(-1.0),
+                    max_value=jnp.array(1.0),
+                    unit="",
+                    name=f"CRAB Re coefficient {i + self._total_num_components}",
+                )
+                for i in range(self._num_components)
+            ]
+        )
+
+        key = jax.random.key(4 * seed + 59)
+        freqs = jax.random.uniform(
+            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+        )
+
+        self._real_frequencies.extend(
+            [
+                Quantity(
+                    freqs[i],
+                    min_value=jnp.array(self.__min_frequency),
+                    max_value=jnp.array(self.__max_frequency),
+                    unit="Hz",
+                    name=f"CRAB Re frequency {i + self._total_num_components}",
+                    two_pi=True,
+                )
+                for i in range(self._num_components)
+            ]
+        )
+
+        key = jax.random.key(8 * seed + 61)
+        phases = jax.random.uniform(key, shape=(self._num_components,), minval=-jnp.pi, maxval=jnp.pi)
+
+        self._real_phases.extend(
+            [
+                Quantity(
+                    phases[i],
+                    min_value=jnp.array(-jnp.pi),
+                    max_value=jnp.array(jnp.pi),
+                    unit="Hz",
+                    name=f"CRAB Re Phase {i + self._total_num_components}",
+                    two_pi=True,
+                )
+                for i in range(self._num_components)
+            ]
+        )
+
+        key = jax.random.key(10 * seed)
+        coeffs = jax.random.uniform(key, shape=(self._num_components,), minval=-0.5, maxval=0.5)
+
+        self._imag_coefficients.extend(
+            [
+                Quantity(
+                    coeffs[i],
+                    min_value=jnp.array(-1.0),
+                    max_value=jnp.array(1.0),
+                    unit="",
+                    name=f"CRAB Im coefficient {i + self._total_num_components}",
+                )
+                for i in range(self._num_components)
+            ]
+        )
+
+        key = jax.random.key(7 * seed + 89)
+        freqs = jax.random.uniform(
+            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+        )
+
+        self._imag_frequencies.extend(
+            [
+                Quantity(
+                    freqs[i],
+                    min_value=jnp.array(self.__min_frequency),
+                    max_value=jnp.array(self.__max_frequency),
+                    unit="Hz",
+                    name=f"CRAB Im frequency {i + self._total_num_components}",
+                    two_pi=True,
+                )
+                for i in range(self._num_components)
+            ]
+        )
+
+        key = jax.random.key(21 * seed + 34)
+        phases = jax.random.uniform(key, shape=(self._num_components,), minval=-jnp.pi, maxval=jnp.pi)
+
+        self._imag_phases.extend(
+            [
+                Quantity(
+                    phases[i],
+                    min_value=jnp.array(-jnp.pi),
+                    max_value=jnp.array(jnp.pi),
+                    unit="Hz",
+                    name=f"CRAB Im phase {i + self._total_num_components}",
+                    two_pi=True,
+                )
+                for i in range(self._num_components)
+            ]
+        )
+
+        self._total_num_components += self._num_components
+
+    def remove_small_coefficients(self, tol: float = 1e-7) -> None:
+        """Remove coefficients (and corresponding frequencies) that are smaller than a tolerance."""
+        removed_coeffs = []
+        for i, real_coeff, imag_coeff in zip(
+            range(self._total_num_components), self._real_coefficients, self._imag_coefficients
+        ):
+            if jnp.abs(real_coeff.get_value() + 1j * imag_coeff.get_value()) < tol:
+                removed_coeffs.append(i)
+
+        self._real_coefficients = [coeff for i, coeff in enumerate(self._real_coefficients) if i not in removed_coeffs]
+        self._real_frequencies = [freq for i, freq in enumerate(self._real_frequencies) if i not in removed_coeffs]
+        self._real_phases = [phase for i, phase in enumerate(self._real_phases) if i not in removed_coeffs]
+
+        self._imag_coefficients = [coeff for i, coeff in enumerate(self._imag_coefficients) if i not in removed_coeffs]
+        self._imag_frequencies = [freq for i, freq in enumerate(self._imag_frequencies) if i not in removed_coeffs]
+        self._imag_phases = [phase for i, phase in enumerate(self._imag_phases) if i not in removed_coeffs]
+
+        self._total_num_components = len(self._real_coefficients)
+
+    @partial(jax.jit, static_argnums=(0,))
+    def _evaluate(self, *params: Array) -> Array:  # type: ignore
+        """Compute the CRAB pulse.
+
+        Here the params is arranged as follows,
+            [amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ..., t]
+
+        This evaluate function is written in this way to make it compatible with adding new
+        components and freezing existing components required for dCRAB optimisation.
+        """
+        amp = params[0]
+        t_final = params[1]
+        real_coeffs: list[Array] = params[2 : 2 + self._total_num_components]  # type: ignore
+        real_freqs: list[Array] = params[2 + self._total_num_components : 2 + 2 * self._total_num_components]  # type: ignore
+        real_phases: list[Array] = params[2 + 2 * self._total_num_components : 2 + 3 * self._total_num_components]  # type: ignore
+
+        imag_coeffs: list[Array] = params[2 + 3 * self._total_num_components : 2 + 4 * self._total_num_components]  # type: ignore
+        imag_freqs: list[Array] = params[2 + 4 * self._total_num_components : 2 + 5 * self._total_num_components]  # type: ignore
+        imag_phases: list[Array] = params[2 + 5 * self._total_num_components : 2 + 6 * self._total_num_components]  # type: ignore
+
+        t = params[-1]
+        env_real = jnp.zeros_like(t)
+        env_imag = jnp.zeros_like(t)
+        for i in range(self._total_num_components):
+            env_real += real_coeffs[i] * jnp.cos(real_freqs[i] * t / t_final + real_phases[i])
+            env_imag += imag_coeffs[i] * jnp.cos(imag_freqs[i] * t / t_final + imag_phases[i])
+        env_real /= 2 * jnp.sum(jnp.abs(jnp.array(real_coeffs)))
+        env_imag /= 2 * jnp.sum(jnp.abs(jnp.array(imag_coeffs)))
+
+        env = env_real + 1j * env_imag
+        return jnp.squeeze(amp * env)
+
+    def compute_output(self, t: Array) -> Array:
+        """Compute the CRAB signal.
+
+        Parameters
+        ----------
+        t: Array
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        Array
+            Returns a vector CRAB signal.
+        """
+        t_final = self.t_final.get_value()
+        amp = self.amplitude.get_value()
+        real_coeffs = [coeff.get_value() for coeff in self._real_coefficients]
+        real_freqs = [freq.get_value() for freq in self._real_frequencies]
+        real_phases = [phase.get_value() for phase in self._real_phases]
+
+        imag_coeffs = [coeff.get_value() for coeff in self._imag_coefficients]
+        imag_freqs = [freq.get_value() for freq in self._imag_frequencies]
+        imag_phases = [phase.get_value() for phase in self._imag_phases]
+
+        params = [amp, t_final] + real_coeffs + real_freqs + real_phases + imag_coeffs + imag_freqs + imag_phases
+        return self._evaluate(*params, t)  # type: ignore

@@ -20,13 +20,13 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
     """
 
-    __grad_cache: Array  # of shape (n_parameters,)
-    __scales: Array
+    _grad_cache: Array  # of shape (n_parameters,)
+    _scales: Array
 
-    def __init__(self, measure: Measurement, optimisables: OptimisationMap) -> None:
-        super().__init__(measure, optimisables)
-        params = self._optimisables.get_all_parameters()
-        self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
+    def __init__(self, measure: Measurement, optimisation_map: OptimisationMap) -> None:
+        super().__init__(measure, optimisation_map)
+        params = self._optimisation_map.get_all_parameters()
+        self._scales = jnp.array([p.get_scale() for p in params]).flatten()
 
     def optimise(self) -> OptimisationResult:
         """Optimise via the Scipy optimizer gradient model.
@@ -43,10 +43,10 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             self._logger.start()
 
         self._build_optimisable_index_list()
-        self._optimisables.register_params_with_optimisables()
+        self._optimisation_map.register_params_with_optimisables()
 
         init = []
-        for qty in self._optimisables.get_all_parameters():
+        for qty in self._optimisation_map.get_all_parameters():
             init.append(qty.get_reduced_value())
 
         try:
@@ -99,12 +99,12 @@ class ScipyOptimiserGradient(ScipyOptimiser):
 
         """
         log = []
-        params = self._optimisables.get_all_parameters()
+        params = self._optimisation_map.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
         fun, grad = self._measure.measure_with_gradient()
-        self.__grad_cache = grad
+        self._grad_cache = grad
 
         infid = 1.0 - fun
         if self._logger:
@@ -128,4 +128,4 @@ class ScipyOptimiserGradient(ScipyOptimiser):
             Returns the gradient of a measurement result.
 
         """
-        return -1 * self.__grad_cache * self.__scales
+        return -1 * self._grad_cache * self._scales

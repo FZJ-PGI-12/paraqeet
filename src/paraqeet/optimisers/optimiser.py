@@ -100,19 +100,19 @@ class Optimiser:
     """
 
     _measure: Measurement
-    _optimisables: OptimisationMap
+    _optimisation_map: OptimisationMap
     _opt_idxs: list[int]
     __logger: Logger | None
 
     def __init__(
         self,
         measure: Measurement,
-        optimisables: OptimisationMap,
+        optimisation_map: OptimisationMap,
         logger: Logger | None = None,
     ):
         self._measure = measure
         self._logger = logger
-        self.optimisables = optimisables
+        self.optimisation_map = optimisation_map
 
     @property
     def logger(self) -> Logger | None:
@@ -131,7 +131,7 @@ class Optimiser:
         self._logger = logger
 
     @property
-    def optimisables(self) -> OptimisationMap:
+    def optimisation_map(self) -> OptimisationMap:
         """Return the optimisation map that this optimiser uses.
 
         Parameters that can be optimised need to be added to this map.
@@ -142,11 +142,11 @@ class Optimiser:
             Returns the optimisation map that this optimiser uses.
 
         """
-        return self._optimisables
+        return self._optimisation_map
 
-    @optimisables.setter
-    def optimisables(self, opt: OptimisationMap) -> None:
-        """Set optimisable options (via Map).
+    @optimisation_map.setter
+    def optimisation_map(self, opt: OptimisationMap) -> None:
+        """Set an optimisation_map.
 
         Registers optimisables and their length to keep track of vector
         and matrix valued parameters.
@@ -157,7 +157,7 @@ class Optimiser:
             Takes in the optimisables to set parameters.
 
         """
-        self._optimisables = opt
+        self._optimisation_map = opt
 
     @abstractmethod
     def optimise(self) -> OptimisationResult:
@@ -190,7 +190,7 @@ class Optimiser:
         and matrix valued parameters.
 
         """
-        params = self._optimisables.get_all_parameters()
+        params = self._optimisation_map.get_all_parameters()
         self._opt_idxs = []
         index = 0
         for qty in params:

@@ -299,11 +299,13 @@ def test_arithmetic(five, three):
 def test_str(five):
     """Test string conversion special methods for scalar quantities."""
     volts = Quantity(0.005, 0, 1, unit="V")
-    assert str(volts) == "5 mV "
+    assert str(volts) == "5 mV"
     resist = Quantity(2100, 0, 2500, unit="Ohm")
-    assert str(resist) == "2.1 KOhm "
+    assert str(resist) == "2.1 KOhm"
     amps = Quantity(125e6 * 2 * np.pi, 100e6, 1e9, unit="Hz", two_pi=True)
-    assert str(amps) == "125 MHz x 2pi "
+    assert str(amps) == "125 MHz x 2pi"
+    bits = Quantity(np.array([256, 512]), 8, 1024, unit="Bits")
+    assert str(bits) == "[256 Bits, 512 Bits]"
 
 
 def test_is_scalar_or_vector(random_quantity):

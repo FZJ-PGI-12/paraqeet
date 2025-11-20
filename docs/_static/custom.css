@@ -1,0 +1,6 @@
+/* Center all images that come from nbconvert notebooks */
+div.nboutput img, div.nbinput img, .output_area img, .nboutput img, img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

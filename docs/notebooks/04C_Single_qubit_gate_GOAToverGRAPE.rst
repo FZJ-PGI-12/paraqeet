@@ -99,7 +99,7 @@ Flattop Gaussian envelope (defined here with multiple parameters),
     
     drag_tone = DRAGMixer(
         tone,
-        deltas=[Quantity(2 * anharm, min_value=3 * anharm, max_value=anharm / 3, unit="Hz", two_pi=True, name="Delta")],
+        deltas=[Quantity(0.5 * anharm, min_value=3 * anharm, max_value=anharm / 3, unit="Hz", two_pi=True, name="Delta")],
         t_final=Quantity(t_final, 0.9 * t_final, 1, 1 * t_final, name="t_final"),
     )
     drag_tone.multiply_flat_top = True
@@ -116,11 +116,11 @@ Flattop Gaussian envelope (defined here with multiple parameters),
 
 .. parsed-literal::
 
-    [Amplitude: 4.19e+07  ,
-     t_up: 1e-09  ,
-     t_down: 2.4e-08  ,
-     ramp_time: 2e-09  ,
-     Delta: -2.51 GHz ]
+    [Amplitude: 4.19e+07,
+     t_up: 1e-09,
+     t_down: 2.4e-08,
+     ramp_time: 2e-09,
+     Delta: -100 MHz x 2pi]
 
 
 
@@ -132,33 +132,18 @@ Flattop Gaussian envelope (defined here with multiple parameters),
 
 .. code:: ipython3
 
-    ts = np.linspace(0, t_final, 1001)
+    from plotting import plot_signal
     
-    plt.plot(ts / 1e-9, np.real(drag_tone.compute_output(ts)) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.imag(drag_tone.compute_output(ts)) / 1e6, label="Smooth curve")
-    plt.plot(ts / 1e-9, np.real(gen.generate_signal(ts)) / 1e6, ls="--", label="in-phase")
-    plt.plot(
-        ts / 1e-9,
-        np.imag(gen.generate_signal(ts)) / 1e6,
-        ls="--",
-        label="out-of-phase",
-    )
-    
-    plt.xlabel("Time [in ns]")
-    plt.ylabel("Amplitude [in MHz]")
-    plt.legend()
+    ts = np.linspace(0, t_final, 501)
+    fig, ax = plt.subplots(1, figsize=(5, 3))
+    plot_signal(drag_tone, ts, ax, linestyle="-", label="Smooth")
+    plot_signal(gen, ts, ax, linestyle="--", label="PWC")
+    ax.legend(loc=1, frameon=True)
+    plt.show()
 
 
 
-
-.. parsed-literal::
-
-    <matplotlib.legend.Legend at 0x7faeac2da120>
-
-
-
-
-.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_9_1.png
+.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_9_0.png
 
 
 .. code:: ipython3
@@ -204,24 +189,10 @@ Flattop Gaussian envelope (defined here with multiple parameters),
 
 .. code:: ipython3
 
-    def plot_states():
-        """Plot the states."""
-        ts = np.linspace(0, t_final, 1001)
-        states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
+    from plotting import plot_signal_and_dynamics
     
-        _, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, np.real(sig), label="I")
-        ax[0].plot(ts / 1e-9, np.imag(sig), label="Q")
-        ax[0].legend(loc=1)
-        ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        plt.show()
-    
-    
-    plot_states()
+    ts = np.linspace(0.0, t_final, 101)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
@@ -239,7 +210,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    0.5375853668016818
+    0.539179852263802
 
 
 
@@ -256,11 +227,11 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    [Amplitude: 4.19e+07  ,
-     t_up: 1e-09  ,
-     t_down: 2.4e-08  ,
-     ramp_time: 2e-09  ,
-     Delta: -2.51 GHz ]
+    [Amplitude: 4.19e+07,
+     t_up: 1e-09,
+     t_down: 2.4e-08,
+     ramp_time: 2e-09,
+     Delta: -100 MHz x 2pi]
 
 
 
@@ -279,10 +250,10 @@ Optimisation
     optmap.add(drag_tone)
     optmap.register_params_with_optimisables()
     
-    goat = GOATOverGRAPE(zeroone, gen)
+    goat = GOATOverGRAPE(zeroone, generators=[gen], generators_order=[0])
     
-    opt = ScipyOptimiser(goat, optimisables=optmap)
-    optgrad = ScipyOptimiserGradient(goat, optimisables=optmap)
+    opt = ScipyOptimiser(goat, optimisation_map=optmap)
+    optgrad = ScipyOptimiserGradient(goat, optimisation_map=optmap)
 
 .. code:: ipython3
 
@@ -294,7 +265,7 @@ Optimisation
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.waveform.DRAGMixer'> ====
-    [Amplitude: 4.19e+07  , t_up: 1e-09  , t_down: 2.4e-08  , ramp_time: 2e-09  , Delta: -2.51 GHz ]
+    [Amplitude: 4.19e+07, t_up: 1e-09, t_down: 2.4e-08, ramp_time: 2e-09, Delta: -100 MHz x 2pi]
 
 
 
@@ -308,13 +279,13 @@ Optimisation
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.003422425174342769, 'iterations': 28, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.0033746943604152646, 'iterations': 26, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
 .. code:: ipython3
 
-    plot_states()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 

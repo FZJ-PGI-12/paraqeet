@@ -29,27 +29,14 @@ Constrain piece-wise constant pulses to vary smoothly
 
 .. code:: ipython3
 
-    ts = np.linspace(0, t_final, 1001)
+    from plotting import plot_signal
     
-    
-    def plot_pulse(ts: np.ndarray, tone: GaussEnvelope):
-        """Function to plot the pulse."""
-        plt.plot(ts / 1e-9, tone_qubit.compute_output(ts) / 1e6 / 2 * np.pi, label="Initial smooth curve")
-        plt.plot(ts / 1e-9, np.real(gen_qubit.generate_signal(ts)) / 1e6 / 2 * np.pi, ls="--", label="in-phase")
-        plt.plot(
-            ts / 1e-9,
-            np.imag(gen_qubit.generate_signal(ts)) / 1e6,
-            ls="--",
-            label="out-of-phase",
-        )
-    
-        plt.xlabel("Time [in ns]")
-        plt.ylabel("Amplitude [in MHz]")
-        plt.legend()
-        plt.show()
-    
-    
-    plot_pulse(ts, tone_qubit)
+    ts = np.linspace(0, t_final, 501)
+    fig, ax = plt.subplots(1, figsize=(5, 3))
+    plot_signal(tone_qubit, ts, ax, linestyle="-", label="Smooth")
+    plot_signal(gen_qubit, ts, ax, linestyle="--", label="PWC")
+    ax.legend(loc=1, frameon=True)
+    plt.show()
 
 
 
@@ -60,9 +47,11 @@ Constrain piece-wise constant pulses to vary smoothly
 
     optmap = OptimisationMap()
     optmap.add(gen_qubit, gen_qubit.get_parameters())
+    
     # We add dummy parameters to check if the gradient is computed
     # correctly by padding zeros
     # optmap.add(tone_qubit, tone_qubit.get_parameters())
+    
     optmap.register_params_with_optimisables()
 
 .. code:: ipython3
@@ -83,7 +72,7 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    opt = ScipyOptimiserGradient(smoothness, optimisables=optmap)
+    opt = ScipyOptimiserGradient(smoothness, optimisation_map=optmap)
     max_iter = 200
     opt.set_options({"maxiter": max_iter})
 
@@ -148,7 +137,7 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    plot_pulse(ts, tone_qubit)
+    plot_signal(gen_qubit, ts, linestyle="--", label="PWC");
 
 
 

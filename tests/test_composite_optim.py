@@ -149,7 +149,7 @@ def coupled_transmons(tone):
 def opt(coupled_transmons):
     """Return Scipy optimiser from coupled transmons."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimiser(measure, optimisables=optmap)
+    opt = ScipyOptimiser(measure, optimisation_map=optmap)
     opt.set_options({"maxiter": 5})
     return opt
 
@@ -158,7 +158,7 @@ def opt(coupled_transmons):
 def grad_opt(coupled_transmons):
     """Return Scipy optimiser gradient."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimiserGradient(measure, optimisables=optmap)
+    opt = ScipyOptimiserGradient(measure, optimisation_map=optmap)
     opt.set_options({"maxiter": 2})
     return opt
 
