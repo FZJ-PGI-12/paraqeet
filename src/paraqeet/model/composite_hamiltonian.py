@@ -130,7 +130,6 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
 
         return matrix
 
-    # TODO: Update to match the signature in Differentiable
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Return the gradient of each parameter.
 
@@ -148,11 +147,9 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
             Gradient for each time point in the input array of times.
 
         """
-        # TODO: fix return type: expected to be a tuple
-        return vmap(self._gradient_one_time)(times), None
+        return self.get_matrix(times), vmap(self._gradient_one_time)(times)
 
-    # TODO: Update return type to match Differentiable
-    def _gradient_one_time(self, times: Array) -> Array:
+    def _gradient_one_time(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
@@ -160,7 +157,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
 
         Parameters
         ----------
-        times: Array
+        time: float
             One time point.
 
         Returns
@@ -180,8 +177,8 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
                     f"Subsystem {one_index} is not differentiable. "
                     + "All subsystems of a CompositeHamiltonian must be Differentiable."
                 )
-            # TODO: check whether the call to the method value_and_gradient is correct (gradient_one_time previously)
-            sub_gradients = subsystem.value_and_gradient(times)
+            # TODO: Later refactor this method to efficiently use value and grad
+            _, sub_gradients = subsystem.value_and_gradient(jnp.array(time, ndmin=1))
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
@@ -191,7 +188,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # has more than one non-identity component.
         for coupling in self._couplings:
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            coupling_gradient = coupling.gradient_one_time(times)
+            coupling_gradient = coupling.gradient_one_time(time)
             for term in coupling_gradient:
                 for g_list in term:
                     grad = self.__tensor_product_with_identity(g_list, indices)
