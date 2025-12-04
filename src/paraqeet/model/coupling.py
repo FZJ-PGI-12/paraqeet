@@ -2,7 +2,6 @@
 
 import jax
 import jax.numpy as jnp
-from jax import vmap
 
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.optimizable import Optimizable
@@ -11,7 +10,8 @@ from paraqeet.quantity import Array, Quantity
 jax.config.update("jax_enable_x64", True)
 
 
-class Coupling(Optimizable):
+# TODO: Make this a 2-system coupling class, finish in notebooks
+class TwoBodyCoupling(Optimizable):
     """Create a coupling optimizable model.
 
     Represents the coupling of two or more subsystems in a composite
@@ -34,7 +34,8 @@ class Coupling(Optimizable):
         or should include double excitation terms.
     """
 
-    _subsystems: list[Hamiltonian]
+    _subsystem_A: Hamiltonian
+    _subsystem_B: Hamiltonian
     _coefficient: Quantity
     _total_dims: int
     __is_longitudinal: bool
@@ -42,16 +43,20 @@ class Coupling(Optimizable):
 
     def __init__(
         self,
-        subsystems: list[Hamiltonian],
+        subsystem_A: Hamiltonian,
+        subsystem_B: Hamiltonian,
         coefficient: Quantity,
         is_longitudinal: bool,
         use_rwa: bool = False,
     ):
-        self._subsystems = subsystems
+        self._subsystem_A = subsystem_A
+        self._subsystem_B = subsystem_B
         self._coefficient = coefficient
         self.__is_longitudinal = is_longitudinal
         self.__use_rwa = use_rwa
-        self._total_dims = int(jnp.prod(jnp.array([s.dimension() for s in self.subsystems])))
+        self._total_dims = subsystem_A.dimension() * subsystem_B.dimension()
+        self._dims = [subsystem_A.dimension(), subsystem_B.dimension()]
+        self._annihilation_op = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in self._dims]
 
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
@@ -65,8 +70,8 @@ class Coupling(Optimizable):
         return [self._coefficient]
 
     @property
-    def subsystems(self) -> list[Hamiltonian]:
-        """Return all subsystems that are coupled by this term.
+    def subsystem_A(self) -> Hamiltonian:
+        """Return subsystem A that is coupled by this term.
 
         Returns
         -------
@@ -74,29 +79,35 @@ class Coupling(Optimizable):
             List of subystems.
 
         """
-        return self._subsystems
+        return self._subsystem_A
 
-    # TODO: AC: it seems that t is not used in the method below
-    def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
-        """Return the matrix representation of the coupling for all subsystems.
-
-        A list of terms in the coupling is returned, where each of the term
-        contains operators for each subsystem. A composite Hamiltonian puts
-        these operators in the correct position in the tensor space to create
-        the operators and then sum over the terms.
-
-        Parameters
-        ----------
-        t: float
-            One time step.
+    @property
+    def subsystem_B(self) -> Hamiltonian:
+        """Return subsystem A that is coupled by this term.
 
         Returns
         -------
-        list[List[Array]]
-            The outer list are the coupling terms. The inner list contains
-            matrices for each subsystem. The matrices (Array) have the same
-            shape as the subsystem's Hamiltonian.get_matrix_one_time: (n,n)
-            with n the subsystem dimension.
+        list[Hamiltonian]
+            List of subystems.
+
+        """
+        return self._subsystem_B
+
+    @property
+    def subsystems(self) -> list[Hamiltonian]:
+        """Return the subsystems as a list to be compatible with other couplings with potentially more subsystems."""
+        return [self.subsystem_A, self.subsystem_B]
+
+    def get_couplings(self) -> list[list[Array]]:
+        """Return the matrix representation of a time-indepedent coupling.
+
+        Returns
+        -------
+        list[Array]
+            The outer list are the coupling terms. The inner list represents
+            the subsystems. The matrices (Array) have the same shape as the
+            subsystem's Hamiltonian.get_matrix: (t,n,n) with t the time and n
+            the subsystem dimension.
 
         """
         matrices = self.__coupling_operators()
@@ -104,48 +115,15 @@ class Coupling(Optimizable):
             matrices[i][0] *= self._coefficient.get_value()
         return matrices
 
-    def get_matrices(self, times: Array) -> list[list[Array]]:
-        """Return the matrices for an array of time.
-
-        vmaps over the method for one time step.
-
-        Parameters
-        ----------
-        times: Array
-            Array of timesteps
+    def get_coupling_gradients(self) -> list[list[list[Array]]]:
+        """Return the gradients of the coupling terms.
 
         Returns
         -------
-        list[list[Array]]
-            The outer list are the coupling terms. The inner list represents
-            the subsystems. The matrices (Array) have the same shape as the
-            subsystem's Hamiltonian.get_matrix: (t,n,n) with t the time and n
-            the subsystem dimension.
-
-        """
-        # Technically, vmap returns "any" but we know the type of get_matrices_one_time is correct.
-        return vmap(self.get_matrices_one_time)(times)  # type:ignore
-
-    # AC: it seems that t is not used in the method below
-    def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
-        """Get the one-time gradient of the matrix.
-
-        Returns the gradient of the matrix representation of the coupling
-        for all subsystems. Each entry in the list is the gradient with
-        respect to one parameter, factorised into subsystems
-        (representing a list of term in the coupling).
-
-        Parameters
-        ----------
-        t: float
-            One time point.
-
-        Returns
-        -------
-        list[list[list[Array]]]
-            The outer list represents the gradients with respect to
-            all optimized parameters. The rest is in the same shape as the
-            result of getMatricesOneTime.
+        list[Array]
+            The outer list represents the gradients with respect to all
+            optimized parameters.
+            The rest is in the same shape as the result of get_matrices.
 
         """
         coup_ops = self.__coupling_operators()
@@ -154,25 +132,6 @@ class Coupling(Optimizable):
         else:
             grads = [[[jnp.empty((0, 0)) for _ in sub] for sub in coup_ops]]
         return grads
-
-    def gradient(self, t: Array) -> list[list[list[Array]]]:
-        """Return the gradients for an array of times.
-
-        Parameters
-        ----------
-        t: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        list[list[Array]]
-            The outer list represents the gradients with respect to all
-            optimized parameters.
-            The rest is in the same shape as the result of get_matrices.
-
-        """
-        # Technically, vmap returns "any" but we know the type of gradient_one_time is correct.
-        return vmap(self.gradient_one_time)(t)  # type: ignore
 
     def __coupling_operators(self) -> list[list[Array]]:
         """Return coupling operators.
@@ -191,23 +150,14 @@ class Coupling(Optimizable):
         """
         if self.__is_longitudinal:
             # Number operator (a^\dagger a) for each subsystem
-            return [[jnp.diag(jnp.arange(0, s.dimension(), dtype=jnp.float64)) for s in self._subsystems]]
+            return [[jnp.diag(jnp.arange(0, s, dtype=jnp.float64)) for s in self._dims]]
 
         elif self.__use_rwa:
-            # TODO - How to use RWA for more than 2 subsystems?
-
-            if len(self.subsystems) > 2:
-                raise NotImplementedError("RWA is defined for 2 subsystems only")
-
-            dimensions = [s.dimension() for s in self.subsystems]
-            annihilation_op = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
+            annihilation_op = self._annihilation_op
             return [
                 [annihilation_op[0], annihilation_op[1].T],
                 [annihilation_op[0].T, annihilation_op[1]],
             ]
-
         else:
             # (a + a^\dagger) for each subsystem
-            dimensions = [s.dimension() for s in self.subsystems]
-            annihilation_op = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in dimensions]
-            return [[(a + a.T) for a in annihilation_op]]
+            return [[(a + a.T) for a in self._annihilation_op]]

@@ -3,22 +3,11 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.coupling import Coupling
+from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.transmon import Transmon
 from paraqeet.quantity import Quantity
 
 COUPLINGSTR = 25e6 * 2 * np.pi
-LEN_SIG = 101
-
-
-@pytest.fixture
-def time_samples():
-    """Generate time samples from the given signal length.
-
-    The given signal length `LEN_SIG` is a module level global variable.
-
-    """
-    return np.linspace(0, 10e-9, LEN_SIG)
 
 
 @pytest.fixture
@@ -56,10 +45,11 @@ def coupling(transmon):
     """Return a coupling generator method."""
 
     def _method(dim1: int, dim2: int, is_longitudinal: bool, use_rwa: bool = False):
-        transmon1 = transmon.get(dim1)
-        transmon2 = transmon.get(dim2)
-        coupling = Coupling(
-            [transmon1, transmon2],
+        transmonA = transmon.get(dim1)
+        transmonB = transmon.get(dim2)
+        coupling = TwoBodyCoupling(
+            subsystem_A=transmonA,
+            subsystem_B=transmonB,
             is_longitudinal=is_longitudinal,
             use_rwa=use_rwa,
             coefficient=Quantity(COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"),
@@ -70,42 +60,7 @@ def coupling(transmon):
     return _method
 
 
-def test_get_matrices_one_time(coupling):
-    """Test shape of Matrix produced by the coupling Hamiltonian."""
-    for _ in range(10):
-        dim1 = np.random.randint(2, 7)
-        dim2 = np.random.randint(2, 7)
-        dims = [dim1, dim2]
-
-        # Test shape for Longitudinal coupling
-        coup = coupling(dim1, dim2, is_longitudinal=True)
-        coup_hams = coup.get_matrices_one_time(0)
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
-
-        # Test Longitudinal couplings are diagonal
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                numNonZero = np.count_nonzero(ops - np.diag(np.diagonal(ops)))
-                assert numNonZero == 0
-
-        # Test for RWA
-        coup = coupling(dim1, dim2, is_longitudinal=False, use_rwa=True)
-        coup_hams = coup.get_matrices_one_time(0)
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
-
-        # Test shape for Transverse coupling
-        coup = coupling(dim1, dim2, is_longitudinal=False)
-        coup_hams = coup.get_matrices_one_time(0)
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
-
-
-def test_get_matrices(coupling, time_samples):
+def test_get_matrices(coupling):
     """Test the get matrice method workings."""
     for _ in range(10):
         dim1 = np.random.randint(2, 7)
@@ -114,44 +69,44 @@ def test_get_matrices(coupling, time_samples):
 
         # Test shape for Longitudinal coupling
         coup = coupling(dim1, dim2, is_longitudinal=True)
-        coup_hams = coup.get_matrices(time_samples)
+        coup_hams = coup.get_couplings()
         for term in coup_hams:
             for i, ops in enumerate(term):
-                assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
+                assert np.shape(ops) == (dims[i], dims[i])
 
         # Test for RWA
         coup = coupling(dim1, dim2, is_longitudinal=False, use_rwa=True)
-        coup_hams = coup.get_matrices(time_samples)
+        coup_hams = coup.get_couplings()
         for term in coup_hams:
             for i, ops in enumerate(term):
-                assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
+                assert np.shape(ops) == (dims[i], dims[i])
 
         # Test shape for Transverse coupling
         coup = coupling(dim1, dim2, is_longitudinal=False)
-        coup_hams = coup.get_matrices(time_samples)
+        coup_hams = coup.get_couplings()
         for term in coup_hams:
             for i, ops in enumerate(term):
-                assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
+                assert np.shape(ops) == (dims[i], dims[i])
 
 
-def test_gradient_shape(coupling, time_samples):
+def test_gradient_shape(coupling):
     """Test the shape of the gradient."""
     # TODO: Test if the coupling is not optimized
     dim1 = np.random.randint(2, 7)
     dim2 = np.random.randint(2, 7)
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, is_longitudinal=False)
-    grads = coup.gradient(time_samples)
+    grads = coup.get_coupling_gradients()
     for grad in grads:
         for term in grad:
             for i, ops in enumerate(term):
                 assert np.size(ops) == 0
     coup.set_optimizable_parameters(coup.get_parameters())
-    grads = coup.gradient(time_samples)
+    grads = coup.get_coupling_gradients()
     for grad in grads:
         for term in grad:
             for i, ops in enumerate(term):
-                assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
+                assert np.shape(ops) == (dims[i], dims[i])
 
     # Test with RWA
     dim1 = np.random.randint(2, 7)
@@ -159,8 +114,8 @@ def test_gradient_shape(coupling, time_samples):
     dims = [dim1, dim2]
     coup = coupling(dim1, dim2, is_longitudinal=False, use_rwa=True)
     coup.set_optimizable_parameters(coup.get_parameters())
-    grads = coup.gradient(time_samples)
+    grads = coup.get_coupling_gradients()
     for grad in grads:
         for term in grad:
             for i, ops in enumerate(term):
-                assert np.shape(ops) == time_samples.shape + (dims[i], dims[i])
+                assert np.shape(ops) == (dims[i], dims[i])

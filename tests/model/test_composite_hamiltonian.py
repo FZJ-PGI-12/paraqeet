@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-from paraqeet.model.coupling import Coupling
+from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.transmon import Transmon
 from paraqeet.quantity import Quantity
@@ -98,8 +98,9 @@ def coupled_transmons(transmon):
         transmon2 = transmon(dim2)
 
         couplingStr = np.abs(transmon1.frequency.get_value() - transmon2.frequency.get_value()) * 0.05
-        coupling = Coupling(
-            [transmon1, transmon2],
+        coupling = TwoBodyCoupling(
+            transmon1,
+            transmon2,
             is_longitudinal=False,
             coefficient=Quantity(couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"),
             use_rwa=use_rwa,
@@ -125,8 +126,9 @@ def coupled_transmons_chain(transmon, random_quantity):
             for i in range(len(transmons) - 1)
         ]
         couplings = [
-            Coupling(
-                [transmons[i], transmons[i + 1]],
+            TwoBodyCoupling(
+                subsystem_A=transmons[i],
+                subsystem_B=transmons[i + 1],
                 is_longitudinal=False,
                 coefficient=Quantity(
                     coupling_strengths[i], 0.8 * coupling_strengths[i], 1.2 * coupling_strengths[i], "Hz"

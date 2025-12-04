@@ -7,7 +7,7 @@ from jax import vmap
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import IncompatibleLayersException
-from paraqeet.model.coupling import Coupling
+from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
@@ -28,14 +28,14 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
     """
 
     _subsystems: list[Hamiltonian]
-    _couplings: list[Coupling]
+    _couplings: list[TwoBodyCoupling]
     _dimensions: list[int]
     _total_dimension: int
 
     def __init__(
         self,
         subsystems: list[Hamiltonian],
-        couplings: list[Coupling] | None = None,
+        couplings: list[TwoBodyCoupling] | None = None,
     ):
         super().__init__()
         if couplings is None:
@@ -124,7 +124,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
             # Create a tensor product where all subsystems
             # except the coupled ones are identity
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            sub_matrices = coupling.get_matrices_one_time(timestep)
+            sub_matrices = coupling.get_couplings()
             for term in sub_matrices:
                 matrix += self.__tensor_product_with_identity(term, indices)
 
@@ -188,7 +188,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # has more than one non-identity component.
         for coupling in self._couplings:
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
-            coupling_gradient = coupling.gradient_one_time(time)
+            coupling_gradient = coupling.get_coupling_gradients()
             for term in coupling_gradient:
                 for g_list in term:
                     grad = self.__tensor_product_with_identity(g_list, indices)
