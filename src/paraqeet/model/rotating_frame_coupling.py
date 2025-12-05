@@ -1,13 +1,14 @@
 """Coupling Hamiltonian in the rotating frame of drive."""
 
 import jax.numpy as jnp
+from jax import vmap
 
-from paraqeet.model.coupling import Coupling
+from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-class RotatingFrameCoupling(Coupling):
+class RotatingFrameCoupling(TwoBodyCoupling):
     """Implements the coupling in the rotating frame of the drive.
 
     If multiple subsystems are coupled specify the difference frequency of the
@@ -26,17 +27,19 @@ class RotatingFrameCoupling(Coupling):
         Diffrence of drive frequencies for multiple subsystems.
     """
 
-    _subsystems: list[Hamiltonian]
+    _subsystem_A: Hamiltonian
+    _subsystem_B: Hamiltonian
     _coefficient: Quantity
     __diff_freq: Quantity
 
     def __init__(
         self,
-        subsystems: list[Hamiltonian],
+        subsystem_A: Hamiltonian,
+        subsystem_B: Hamiltonian,
         coefficient: Quantity,
         diffFreq: Quantity,
     ):
-        super().__init__(subsystems, coefficient, is_longitudinal=False)
+        super().__init__(subsystem_A, subsystem_B, coefficient, is_longitudinal=False)
         self.__diff_freq = diffFreq
 
     def get_parameters(self) -> list[Quantity]:
@@ -57,14 +60,13 @@ class RotatingFrameCoupling(Coupling):
         """Return the annhilation operator. Special implementation for two subsystems."""
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")
-        dim = self.subsystems[0].dimension()
+        dim = self.subsystem_A.dimension()
         annihilation_ops: list[Array] = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
-        if len(self.subsystems) == 2:
-            dim = self.subsystems[1].dimension()
-            annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
+        dim = self.subsystem_B.dimension()
+        annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
         return annihilation_ops
 
-    def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
+    def get__RWA_couplings(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -86,14 +88,18 @@ class RotatingFrameCoupling(Coupling):
             with n the subsystem dimension.
         """
         annihilation_ops = self.__coupling_operators()
-        if len(annihilation_ops) > 2:
-            raise NotImplementedError()
 
         annihilation_ops[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
         annihilation_ops_conj = [a.conj().T for a in annihilation_ops]
         return [annihilation_ops, annihilation_ops_conj]
 
-    def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
+    def get_RWA_gradients(self, times: Array):
+        """Compute the gradients of the coupling expression in the rotating frame, i.e.
+        include a phase factor for several timesteps.
+        """
+        return vmap(self.get_RWA_gradients_one_time)(times)
+
+    def get_RWA_gradients_one_time(self, t: float) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
