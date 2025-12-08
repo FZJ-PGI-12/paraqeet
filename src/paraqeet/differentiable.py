@@ -7,8 +7,6 @@
 
 from abc import ABC, abstractmethod
 
-from jax import vmap
-
 from paraqeet.quantity import Array
 
 
@@ -19,20 +17,9 @@ class Differentiable(ABC):
     return the gradient of the model.
     """
 
+    @abstractmethod
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Calculate the gradient of the model.
-
-        Returns
-        -------
-        tuple[Array, Array] | tuple[float, Array]
-            The value and the gradient of the model.
-
-        """
-        return vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
-
-    @abstractmethod
-    def value_and_gradient_at_timestep(self, time: float) -> tuple[Array, Array] | tuple[float, Array]:
-        """Calculate the gradient of the model for one timestep.
 
         Returns
         -------
