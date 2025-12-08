@@ -2,7 +2,7 @@
 
 import jax
 import jax.numpy as jnp
-
+from jax import vmap
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
@@ -146,8 +146,12 @@ class Transmon(Hamiltonian, Differentiable):
         hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
         return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
+    def value_and_gradient(self, times):
+        """Return the value and gradient for multiple timesteps. Uses vmap to loop over single timestep method."""
+        return vmap(self.value_and_gradient_at_timestep)(times)
+
     # TODO: update return value to match the signature in Differentiable
-    def value_and_gradient(self, t: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def value_and_gradient_at_timestep(self, time: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
 
         Parameters
@@ -162,7 +166,7 @@ class Transmon(Hamiltonian, Differentiable):
 
         """
         # Fetch the gradient of the drive
-        gradients = self._get_drive_gradients_at_timestep(self.__annihilation_op, t)
+        gradients = self._get_drive_gradients_at_timestep(self.__annihilation_op, time)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads_list = []
@@ -172,8 +176,7 @@ class Transmon(Hamiltonian, Differentiable):
             grads_list.append(self.__anharmonic_term)
         grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__num_op.shape)
         gradients = jnp.append(gradients, grads, axis=0)
-        # TODO: fix return type: expected to be a tuple
-        return gradients, None
+        return self.get_matrix_at_timestep(time), gradients
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

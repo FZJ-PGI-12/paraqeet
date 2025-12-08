@@ -123,7 +123,7 @@ def test_gradient(gen, hamiltonian, time_samples):
         hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
         #  TODO: fix error related to the length of time_samples-array
-        ham_grads = hamil.value_and_gradient(time_samples)
+        _, ham_grads = hamil.value_and_gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
 
 

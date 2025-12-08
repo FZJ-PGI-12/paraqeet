@@ -64,11 +64,11 @@ def test_gradient(gen, ham, time_samples):
     grads = gen.generate_signal_gradient(time_samples)
     ham.set_optimizable_parameters(ham.get_parameters())
     # TODO: fix error related to the length of time_samples-array
-    ham_grads = ham.value_and_gradient(time_samples)
+    _, ham_grads = ham.value_and_gradient(time_samples)
     assert ham_grads.shape == (len(time_samples), grads.shape[1] + 1, 2, 2)
 
     ham.set_optimizable_parameters([ham.frequency])
-    ham_grads = ham.value_and_gradient(time_samples)
+    _, ham_grads = ham.value_and_gradient(time_samples)
     assert ham_grads.shape == (len(time_samples), 1, 2, 2)
 
 

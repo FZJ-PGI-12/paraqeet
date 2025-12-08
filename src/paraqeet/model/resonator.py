@@ -126,8 +126,11 @@ class Resonator(Hamiltonian, Differentiable):
         H = self.__frequency.get_value() * self.__num_op
         return H + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    # TODO: update return value to match the signature in Differentiable
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+        """Return the value and gradient for multiple timesteps. Uses vmap to loop over single timestep method."""
+        return jax.vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
+
+    def value_and_gradient_at_timestep(self, time: float) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
 
         Parameters
@@ -142,14 +145,13 @@ class Resonator(Hamiltonian, Differentiable):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_at_timestep(self.__annihilation_op, times)
+        derivatives = self._get_drive_gradients_at_timestep(self.__annihilation_op, time)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.__frequency):
             grad = self.__num_op.reshape((1,) + self.__num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
-        # TODO: fix return type: expected to be a tuple
-        return derivatives, None
+        return self.get_matrix_at_timestep(time), derivatives
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

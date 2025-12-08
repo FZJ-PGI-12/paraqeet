@@ -1,5 +1,6 @@
 """Class definition of a qubit model."""
 
+from jax import vmap
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
@@ -134,31 +135,32 @@ class Qubit(Hamiltonian, Differentiable):
         hamil = self.__frequency.get_value() * self.__drift
         return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    # TODO: update return value to match the signature in Differentiable
-    # TODO: update code documentation
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Get the gradient of the drive.
+    def value_and_gradient(self, times: Array):
+        """Return the value and gradient for multiple timesteps. Uses vmap to loop over single timestep method."""
+        return vmap(self.value_and_gradient_at_timestep)(times)
+
+    def value_and_gradient_at_timestep(self, time: float) -> tuple[Array, Array] | tuple[float, Array]:
+        """Get the matrix representations of value and gradient of the drive as a tuple.
 
         Parameters
         ----------
         times: Array
-            One time stamp.
+            Array of timestamps of interest.
 
         Returns
         -------
-        Array
-            Returns the gradients of the drive.
+        tuple[Array, Array]
+            Returns the value und gradients of the drive.
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_at_timestep(self.__annihilation_op, times)
+        derivatives = self._get_drive_gradients_at_timestep(self.__annihilation_op, time)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.__frequency):
             hamil = self.__drift.reshape((1, 2, 2))
             derivatives = jnp.append(derivatives, hamil, axis=0)
-        # TODO: fix return type: expected to be a tuple
-        return derivatives, None
+        return self.get_matrix_at_timestep(time), derivatives
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

@@ -44,7 +44,7 @@ class Hamiltonian(Optimizable):
     def get_matrix(self, times: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
-        The default implementation calls getMatrixOneTime for each time step.
+        The default implementation calls get_matrix_at_timestep for each time step.
         Subclasses can override this function for a more efficient
         implementation.
 
