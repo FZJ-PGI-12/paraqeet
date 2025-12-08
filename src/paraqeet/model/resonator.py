@@ -126,10 +126,6 @@ class Resonator(Hamiltonian, Differentiable):
         H = self.__frequency.get_value() * self.__num_op
         return H + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Return the value and gradient for multiple timesteps. Uses vmap to loop over single timestep method."""
-        return jax.vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
-
     def value_and_gradient_at_timestep(self, time: float) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
 

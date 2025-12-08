@@ -99,11 +99,13 @@ class CustomHamiltonian(Hamiltonian, Differentiable):
         grads = jnp.array([grad_func(timestep, *params) for grad_func in self.gradient_functions])
         return grads
 
-    # TODO: update return value to match the signature in Differentiable
+    def value_and_gradient_at_timestep(self, time) -> tuple[Array, Array] | tuple[float, Array]:
+        """Return Hamiltonian and its gradient for one timestep."""
+        return self.get_matrix_at_timestep(time), self.gradient_at_timestep(time)
+
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Return Hamiltonian as a function of time for a single time point."""
-        # TODO: fix return type: expected to be a tuple
-        return jnp.array(vmap(self.gradient_at_timestep, in_axes=(0,))(times)), None
+        """Return Hamiltonian and its gradient as a function of time."""
+        return self.get_matrix(times), jnp.array(vmap(self.gradient_at_timestep, in_axes=(0,))(times))
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return collapse operators."""

@@ -6,7 +6,7 @@ import pytest
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-from paraqeet.model.coupling import Coupling
+from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.transmon import Transmon
 from paraqeet.optimization_map import OptimizationMap
@@ -108,8 +108,9 @@ def coupled_transmons(tone):
         anharmonicity=Quantity(ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"),
         drives=[drive2],
     )
-    coupling = Coupling(
-        [transmon1, transmon2],
+    coupling = TwoBodyCoupling(
+        transmon1,
+        transmon2,
         is_longitudinal=False,
         coefficient=Quantity(
             COUPLINGSTR,
