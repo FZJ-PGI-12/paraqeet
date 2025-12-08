@@ -66,7 +66,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
         return annihilation_ops
 
-    def get__RWA_couplings(self, t: Array) -> list[list[Array]]:
+    def get_RWA_couplings(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
