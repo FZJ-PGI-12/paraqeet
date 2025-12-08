@@ -146,11 +146,17 @@ class Transmon(Hamiltonian, Differentiable):
         hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
         return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def value_and_gradient(self, times):
-        """Return the value and gradient for multiple timesteps. Uses vmap to loop over single timestep method."""
-        return vmap(self.value_and_gradient_at_timestep)(times)
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+        """Calculate the gradient of the model.
 
-    # TODO: update return value to match the signature in Differentiable
+        Returns
+        -------
+        tuple[Array, Array] | tuple[float, Array]
+            The value and the gradient of the model.
+
+        """
+        return vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
+
     def value_and_gradient_at_timestep(self, time: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
 

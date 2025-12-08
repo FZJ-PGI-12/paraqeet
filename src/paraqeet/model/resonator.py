@@ -2,6 +2,7 @@
 
 import jax
 import jax.numpy as jnp
+from jax import vmap
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
@@ -125,6 +126,17 @@ class Resonator(Hamiltonian, Differentiable):
         """
         H = self.__frequency.get_value() * self.__num_op
         return H + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
+
+    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+        """Calculate the gradient of the model.
+
+        Returns
+        -------
+        tuple[Array, Array] | tuple[float, Array]
+            The value and the gradient of the model.
+
+        """
+        return vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
 
     def value_and_gradient_at_timestep(self, time: float) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the gradient of the drive.
