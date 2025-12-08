@@ -94,8 +94,7 @@ class DriveOperator(Drive):
         matrix = self._compute_matrix(a)
         return signal * matrix
 
-    # TODO: if t is a single time point, why expect an array?
-    def gradient_at_timestep(self, a: Array, timestep: Array) -> Array:
+    def gradient_at_timestep(self, a: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
