@@ -42,7 +42,7 @@ def test_matrix_dimensions(coupling):
     coup = coupling(dim1, dim2)
 
     times = np.linspace(0.0, np.random.randint(1, 10) * np.random.rand(), np.random.randint(1, 10))
-    mat = coup.get_couplings(times[-1])
+    mat = coup.get_RWA_couplings(times[-1])
     for i in range(len(mat)):  # iterate the coupling terms
         assert len(mat[i]) == len(dims)  # two subsystems
         for j in range(len(dims)):
