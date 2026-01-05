@@ -41,10 +41,10 @@ class Hamiltonian(Optimizable):
         """
         pass
 
-    def get_matrix(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
-        The default implementation calls get_matrix_at_timestep for each time step.
+        The default implementation calls get_value_at_timestep for each time step.
         Subclasses can override this function for a more efficient
         implementation.
 
@@ -60,10 +60,10 @@ class Hamiltonian(Optimizable):
             Hilbert space dimension.
 
         """
-        return jnp.array(vmap(self.get_matrix_at_timestep)(times))
+        return jnp.array(vmap(self.value_at_timestep)(times))
 
     @abstractmethod
-    def get_matrix_at_timestep(self, timestep: float) -> Array:
+    def value_at_timestep(self, timestep: float) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
@@ -150,7 +150,7 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
         for drive in self._drives:
-            mat += drive.get_matrix_at_timestep(annihilation_operator, times)
+            mat += drive.get_value_at_timestep(annihilation_operator, times)
         return mat
 
     def _get_drive_gradients(self, annihilation_operator: Array, times: Array) -> Array:
