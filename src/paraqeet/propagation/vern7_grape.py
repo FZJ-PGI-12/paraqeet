@@ -147,7 +147,7 @@ class Vern7GRAPE(Vern7):
 
         if self._model is None:
             raise ConfigurationException("No equation of motion is configured.")
-        eom_func = self._model.get_matrix
+        eom_func = self._model.get_value
         grad_func = self._model.gradient
 
         # Verify if `model.ode_propagation` is set to `True`.

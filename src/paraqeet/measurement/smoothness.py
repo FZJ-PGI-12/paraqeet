@@ -71,7 +71,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
         return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measure_normalized_scalar()

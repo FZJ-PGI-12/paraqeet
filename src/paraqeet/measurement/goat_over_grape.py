@@ -63,7 +63,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         return grape.calculate_normalized_scalar(times=times)
 
     # TODO: adjust methods calling value_and_gradient
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 
@@ -79,6 +79,6 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         self.__gen._update_inphase_and_outofphase()
         control_gradients = self.__gen._get_partial_derivatives()
         #  TODO: what time steps should be passed here?
-        function_value, grape_gradients = grape.value_and_gradient(times)
+        function_value, grape_gradients = grape.get_value_and_gradient(times)
         goat_gradients = control_gradients.T @ grape_gradients
         return function_value, goat_gradients

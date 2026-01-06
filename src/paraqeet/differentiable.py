@@ -18,7 +18,7 @@ class Differentiable(ABC):
     """
 
     @abstractmethod
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Calculate the gradient of the model.
 
         Returns

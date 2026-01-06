@@ -97,7 +97,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         f = self._overlap(self._target_state, final_state)
         return self._fid(f)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -144,7 +144,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         super().__init__(propagation, initial_state, target_state)
         self.__gradient_function = None
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
         Overwrite inherited `measureWithGradient` to calculate
@@ -191,7 +191,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     _propagation: StatePropagation
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns

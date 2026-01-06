@@ -144,7 +144,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
         return float(sum_meas)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns
@@ -164,7 +164,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
         # TODO: Remove the check by moving the check to init
         values_and_gradients = [
-            m.value_and_gradient(times=times) for m in self.__measurements if isinstance(m, Differentiable)
+            m.get_value_and_gradient(times=times) for m in self.__measurements if isinstance(m, Differentiable)
         ]
         sum_meas = jnp.array(0)
         sum_grads = jnp.zeros_like(values_and_gradients[0][1])

@@ -88,7 +88,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self.__fid(jnp.asarray(overlaps))
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns
