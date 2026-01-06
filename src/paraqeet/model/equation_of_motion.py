@@ -44,10 +44,10 @@ class EquationOfMotion(Optimizable):
             The right-hand side of the equation of motion at each time stamp.
 
         """
-        return self.get_matrix(time) @ state
+        return self.get_value(time) @ state
 
     @abstractmethod
-    def get_matrix(self, time: Array) -> Array:
+    def get_value(self, time: Array) -> Array:
         """Abstract method to get the prefactor matrix.
 
         Parameters

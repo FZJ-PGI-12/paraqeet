@@ -84,7 +84,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         list[list[Array]]
             The outer list are the coupling terms. The inner list contains
             matrices for each subsystem. The matrices (Array) have the same
-            shape as the subsystem's Hamiltonian.get_matrix_one_time: (n,n)
+            shape as the subsystem's Hamiltonian.get_value_one_time: (n,n)
             with n the subsystem dimension.
         """
         annihilation_ops = self.__coupling_operators()

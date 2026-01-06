@@ -2,18 +2,16 @@
 
 import jax
 import jax.numpy as jnp
-from jax import vmap
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Resonator(Hamiltonian, Differentiable):
+class Resonator(DifferentiableHamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
     The only optimizable parameter is the frequency.
@@ -110,7 +108,7 @@ class Resonator(Hamiltonian, Differentiable):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def get_matrix_at_timestep(self, timestep: float) -> Array:
+    def value_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -127,18 +125,7 @@ class Resonator(Hamiltonian, Differentiable):
         H = self.__frequency.get_value() * self.__num_op
         return H + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Calculate the gradient of the model.
-
-        Returns
-        -------
-        tuple[Array, Array] | tuple[float, Array]
-            The value and the gradient of the model.
-
-        """
-        return vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
-
-    def value_and_gradient_at_timestep(self, time: float) -> tuple[Array, Array] | tuple[float, Array]:
+    def gradient_at_timestep(self, time: float) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -159,7 +146,7 @@ class Resonator(Hamiltonian, Differentiable):
         if self._is_optimized(self.__frequency):
             grad = self.__num_op.reshape((1,) + self.__num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
-        return self.get_matrix_at_timestep(time), derivatives
+        return derivatives
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

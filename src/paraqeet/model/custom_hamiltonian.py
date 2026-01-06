@@ -6,13 +6,12 @@ from typing import Any
 import jax.numpy as jnp
 from jax import vmap
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-class CustomHamiltonian(Hamiltonian, Differentiable):
+class CustomHamiltonian(DifferentiableHamiltonian):
     """Custom Hamiltonian class to simulate systems using a user defined Hamitonian function..
 
     Here we expect a Hamiltonian function of the form `H(t, *params)`.
@@ -69,18 +68,18 @@ class CustomHamiltonian(Hamiltonian, Differentiable):
 
     def dimension(self):
         """Return dimension of the Hilbert space."""
-        return self.get_matrix_at_timestep(jnp.array([0.0])).shape[1]
+        return self.value_at_timestep(jnp.array([0.0])).shape[1]
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of optimizable parameters."""
         return self.__parameters
 
-    def get_matrix_at_timestep(self, timestep: float) -> Array:
+    def value_at_timestep(self, timestep: float) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
         return self.__hamiltonian_function(timestep, *params)
 
-    def get_matrix(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return Hamiltonian as a function of time for an array of time."""
         params = [p.get_value()[0] for p in self.__parameters]
         matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
@@ -101,11 +100,11 @@ class CustomHamiltonian(Hamiltonian, Differentiable):
 
     def value_and_gradient_at_timestep(self, time) -> tuple[Array, Array] | tuple[float, Array]:
         """Return Hamiltonian and its gradient for one timestep."""
-        return self.get_matrix_at_timestep(time), self.gradient_at_timestep(time)
+        return self.value_at_timestep(time), self.gradient_at_timestep(time)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Return Hamiltonian and its gradient as a function of time."""
-        return self.get_matrix(times), jnp.array(vmap(self.gradient_at_timestep, in_axes=(0,))(times))
+        return self.get_value(times), jnp.array(vmap(self.gradient_at_timestep, in_axes=(0,))(times))
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return collapse operators."""

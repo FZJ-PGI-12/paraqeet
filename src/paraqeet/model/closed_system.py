@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import jax.numpy as jnp
 
-from paraqeet.differentiable import Differentiable
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
@@ -22,7 +22,7 @@ class ClosedSystem(EquationOfMotion):
 
     """
 
-    _get_matrix_method: Callable
+    _get_value_method: Callable
 
     def __init__(self, hamiltonian: Hamiltonian, ode_propagation: bool = False):
         super().__init__(hamiltonian)
@@ -44,9 +44,9 @@ class ClosedSystem(EquationOfMotion):
         self._ode_propagation = ode_propagation
 
         if ode_propagation:
-            self._get_matrix_method = self.__get_ode_propagation_eom
+            self._get_value_method = self.__get_ode_propagation_eom
         else:
-            self._get_matrix_method = self.__get_eom
+            self._get_value_method = self.__get_eom
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of optimizable parameters.
@@ -78,16 +78,16 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._hamiltonian.get_matrix(times)
+        return -1.0j * self._hamiltonian.get_value(times)
 
     def __get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
         """Get the matrix equations of motion for ODE solver.
 
         Here we return an empty array for the collapse operator.
         """
-        return -1.0j * self._hamiltonian.get_matrix(times), jnp.empty((1,), dtype=jnp.complex128)
+        return -1.0j * self._hamiltonian.get_value(times), jnp.empty((1,), dtype=jnp.complex128)
 
-    def get_matrix(self, times: Array):
+    def get_value(self, times: Array):
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -106,7 +106,7 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return self._get_matrix_method(times)
+        return self._get_value_method(times)
 
     def gradient(self, times) -> Array:
         """Compute the gradient of getMatrix.
@@ -123,8 +123,6 @@ class ClosedSystem(EquationOfMotion):
 
         """
         # TODO: check whether the exception is necessary
-        if not isinstance(self._hamiltonian, Differentiable):
+        if not isinstance(self._hamiltonian, DifferentiableHamiltonian):
             raise TypeError("Hamiltonian is not differentiable.")
-        # TODO: please correct: when the implementation of value_and_gradient is fixed,
-        # the last element of the tuple should be used!!
-        return -1.0j * self._hamiltonian.value_and_gradient(times)[0]
+        return -1.0j * self._hamiltonian.get_value_and_gradient(times)[1]

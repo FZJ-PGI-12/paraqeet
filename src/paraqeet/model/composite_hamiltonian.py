@@ -8,11 +8,12 @@ from jax import vmap
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import TwoBodyCoupling
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-class CompositeHamiltonian(Hamiltonian, Differentiable):
+class CompositeHamiltonian(Differentiable, Hamiltonian):
     """A hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.
@@ -21,8 +22,8 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
 
     Parameters
     ----------
-    subsystems : list[Hamiltonian]
-        List of Hamiltonains forming the subsystems of a composite system.
+    subsystems : list[DifferentiableHamiltonian]
+        List of DifferentiableHamiltonians forming the subsystems of a composite system.
     couplings: list[Coupling], optional
         List of couplings between the various subsystems
     """
@@ -99,7 +100,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         """
         return self._dimensions
 
-    def get_matrix_at_timestep(self, timestep: float) -> Array:
+    def value_at_timestep(self, timestep: float) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
@@ -117,7 +118,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.get_matrix_at_timestep(timestep)
+            sub_matrix = subsystem.value_at_timestep(timestep)
             matrix += self.__tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
@@ -132,9 +133,9 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
 
     def value_and_gradient_at_timestep(self, time) -> tuple[Array, Array] | tuple[float, Array]:
         """Return matrix representation and gradients wrt parameters for a single timestep."""
-        return self.get_matrix_at_timestep(time), self._gradient_one_time(time)
+        return self.value_at_timestep(time), self._gradient_one_time(time)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Return the gradient of each parameter.
 
         Returns as an array for an array of input times.
@@ -151,7 +152,7 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
             Gradient for each time point in the input array of times.
 
         """
-        return self.get_matrix(times), vmap(self._gradient_one_time)(times)
+        return self.get_value(times), vmap(self._gradient_one_time)(times)
 
     def _gradient_one_time(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
@@ -175,14 +176,9 @@ class CompositeHamiltonian(Hamiltonian, Differentiable):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for one_index, subsystem in enumerate(self._subsystems):
-            # TODO: check whether the isinstance check should raise an exception
-            if not isinstance(subsystem, Differentiable):
-                raise IncompatibleLayersException(
-                    f"Subsystem {one_index} is not differentiable. "
-                    + "All subsystems of a CompositeHamiltonian must be Differentiable."
-                )
-            # TODO: Later refactor this method to efficiently use value and grad
-            _, sub_gradients = subsystem.value_and_gradient_at_timestep(jnp.array(time, ndmin=1))
+            if not isinstance(subsystem, DifferentiableHamiltonian):
+                raise IncompatibleLayersException(f"Expected {subsystem} to provide gradients.")
+            sub_gradients = subsystem.gradient_at_timestep(jnp.array(time, ndmin=1))
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")

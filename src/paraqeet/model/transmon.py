@@ -2,17 +2,15 @@
 
 import jax
 import jax.numpy as jnp
-from jax import vmap
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Transmon(Hamiltonian, Differentiable):
+class Transmon(DifferentiableHamiltonian):
     """Hamiltonian of an anharmonic oscillator.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
@@ -129,7 +127,7 @@ class Transmon(Hamiltonian, Differentiable):
             self.__anharmonicity,
         ]
 
-    def get_matrix_at_timestep(self, timestep: float) -> Array:
+    def value_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -146,18 +144,7 @@ class Transmon(Hamiltonian, Differentiable):
         hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
         return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Calculate the gradient of the model.
-
-        Returns
-        -------
-        tuple[Array, Array] | tuple[float, Array]
-            The value and the gradient of the model.
-
-        """
-        return vmap(self.value_and_gradient_at_timestep)(times)  # type: ignore
-
-    def value_and_gradient_at_timestep(self, time: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def gradient_at_timestep(self, time: Array) -> Array:
         """Get the gradient of the drive.
 
         Parameters
@@ -182,7 +169,7 @@ class Transmon(Hamiltonian, Differentiable):
             grads_list.append(self.__anharmonic_term)
         grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self.__num_op.shape)
         gradients = jnp.append(gradients, grads, axis=0)
-        return self.get_matrix_at_timestep(time), gradients
+        return gradients
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

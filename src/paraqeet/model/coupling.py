@@ -106,7 +106,7 @@ class TwoBodyCoupling(Optimizable):
         list[Array]
             The outer list are the coupling terms. The inner list represents
             the subsystems. The matrices (Array) have the same shape as the
-            subsystem's Hamiltonian.get_matrix: (t,n,n) with t the time and n
+            subsystem's Hamiltonian.get_value: (t,n,n) with t the time and n
             the subsystem dimension.
 
         """
