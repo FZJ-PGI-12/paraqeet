@@ -23,6 +23,11 @@ class Propagation(ABC):
     def __init__(self, model: EquationOfMotion | None):
         self._model = model
 
+    @staticmethod
+    def get_parameters():
+        """Per default, propagation methods have no parameters to optimize."""
+        return []
+
     @abstractmethod
     def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
@@ -61,28 +66,4 @@ class Propagation(ABC):
         """
         # TODO: Distinguish between internal time (class property), i.e. the time grid of the
         # method vs. time points (input parameter) desired by other classes, e.g. Measurements
-        pass
-
-    @abstractmethod
-    def gradient(self, time: Array) -> tuple[Array, Array]:
-        """Compute this part of the chain rule for a gradient trace.
-
-        Computes the result of the propagation wrt model.
-        The returned tuple contains the time-evolved state as well as the
-        gradient. The time-dependent state is returned in the same shape
-        as from the propagate method. In the gradient. the second dimension
-        is the parameter index, i.e. result[i] will be the gradient at time t_i.
-
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
-
-        Returns
-        -------
-        tuple[Array Array]
-            Computes part of the chain rune for a gradient trace.
-
-
-        """
         pass
