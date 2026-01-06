@@ -28,7 +28,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
         """
         return []
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_value(self, t: Array) -> Array:
         """Get the matrix representation of the equations of motion.
 
         Parameters
@@ -42,10 +42,10 @@ class DummyEquationsOfMotion(EquationOfMotion):
             Returns the matrix equations of motion.
 
         """
-        return -1.0j * self._hamiltonian.get_matrix(t)
+        return -1.0j * self._hamiltonian.get_value(t)
 
     def gradient(self, t) -> Array:
-        """Compute the gradient of get_matrix.
+        """Compute the gradient of get_value.
 
         Parameters
         ----------

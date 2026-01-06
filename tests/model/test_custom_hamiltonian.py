@@ -117,5 +117,5 @@ def test_shapes(random_matrix):
         assert hamil.dimension() == dim
 
         times = jnp.linspace(0, random.randint(1, 100) * random.random(), random.randint(2, 20))
-        assert hamil.get_matrix_at_timestep(times[-1]).shape == (dim, dim)
-        assert hamil.get_matrix(times).shape == (len(times), dim, dim)
+        assert hamil.value_at_timestep(times[-1]).shape == (dim, dim)
+        assert hamil.get_value(times).shape == (len(times), dim, dim)

@@ -34,7 +34,7 @@ def test_weighted_sum_goal(random_meas):
     weights = np.random.random(len(random_meas))
     weights /= sum(weights)
     goal = WeightedSumGoal(measurements=random_meas, weights=weights)
-    times=np.array([1.0])
+    times = np.array([1.0])
     assert goal.measure(times=times) >= 0
     # Rounding errors might cause the value to be slightly larger than 1
     assert 0 <= np.round(goal.calculate_normalized_scalar(times=times), 8) <= 1
@@ -93,8 +93,8 @@ def test_weighted_sum_goal_sum_of_squares_gradient():
     sum_of_squares_options = {"weight": weight_sum_of_squares, "meas_bool": meas_list_bool}
     goal = WeightedSumGoal(measurements=meas_list, weights=weights, sum_of_squares_options=sum_of_squares_options)
     times = np.array([1.0])
-    _, grad = goal.value_and_gradient(times=times)
-    values_and_gradients = [m.value_and_gradient(times=times) for m in meas_list if isinstance(m, Differentiable)]
+    _, grad = goal.get_value_and_gradient(times=times)
+    values_and_gradients = [m.get_value_and_gradient(times=times) for m in meas_list if isinstance(m, Differentiable)]
     sum_grads = np.zeros_like(values_and_gradients[0][1])
     for ii, w in enumerate(weights):
         sum_grads += w * values_and_gradients[ii][1]

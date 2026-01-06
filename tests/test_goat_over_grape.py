@@ -10,13 +10,12 @@ import pytest
 from jax import jit
 from jax.scipy.special import erf
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
 from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -66,7 +65,7 @@ class FlatTopGaussianEnvelope(Envelope):
         return self._evaluate(amp, t_up, t_down, ramp_time, t)
 
 
-class SpinRWA(Hamiltonian, Differentiable):
+class SpinRWA(DifferentiableHamiltonian):
     """A Single Spin."""
 
     def __init__(self, drives=None):
@@ -74,9 +73,9 @@ class SpinRWA(Hamiltonian, Differentiable):
         self.sigma_p = jnp.array([[0j, 1], [0, 0]])
         self.dim = 2
 
-    def get_matrix_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Just sigma-X."""
-        return self._drives[0].get_matrix_at_timestep(self.sigma_p, timestep)
+        return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
 
     # TODO: update return value to match the signature in Differentiable
     def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
@@ -160,7 +159,7 @@ def opt_grad(tone, fid, gen):
 def test_can_measure(tone, fid, gen):
     fid = GOATOverGRAPE(fid, gen)
     assert 0 <= fid.measure()
-    assert 0 <= fid.value_and_gradient() <= 1
+    assert 0 <= fid.get_value_and_gradient() <= 1
 
     value, grad = fid.calculate_normalized_scalar_and_gradient()
     assert 0 <= value

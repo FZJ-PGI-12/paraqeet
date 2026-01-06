@@ -106,11 +106,11 @@ def ode(open_transmon):
     return prop
 
 
-def test_get_matrix(hamiltonian, time_samples):
+def test_get_value(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_matrix(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 
@@ -127,7 +127,7 @@ def test_gradient(gen, hamiltonian, time_samples):
             continue
         hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
-        _, ham_grads = hamil.value_and_gradient(time_samples)
+        _, ham_grads = hamil.get_value_and_gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
 
 

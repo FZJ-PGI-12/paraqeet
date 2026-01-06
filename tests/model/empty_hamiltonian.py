@@ -22,7 +22,7 @@ class EmptyHamiltonian(Hamiltonian):
 
         self.__dimension = dimension
 
-    def get_matrix(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters
@@ -47,7 +47,7 @@ class EmptyHamiltonian(Hamiltonian):
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def get_matrix_at_timestep(self, timestep: Array) -> Array:
+    def value_at_timestep(self, timestep: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian

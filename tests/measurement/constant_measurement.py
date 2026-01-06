@@ -44,7 +44,7 @@ class ConstantMeasurement(Measurement, Differentiable):
         """
         return self.__value
 
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get measurement value and gradient"""
         grad = jnp.array([self.__value, 0.0])
         return self.__value, grad

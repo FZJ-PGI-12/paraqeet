@@ -42,11 +42,11 @@ def drive(gen):
     return drive
 
 
-def test_drive_get_matrix(drive, time_samples):
+def test_drive_get_value(drive, time_samples):
     """Test the drive getMatrix method."""
     dim = np.random.randint(2, 10)
     annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    driveMatrices = drive.get_matrix(annihilation_op, time_samples)
+    driveMatrices = drive.get_value(annihilation_op, time_samples)
     assert driveMatrices.shape == time_samples.shape + (dim, dim)
 
 

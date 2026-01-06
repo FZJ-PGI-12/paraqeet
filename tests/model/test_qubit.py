@@ -45,9 +45,9 @@ def ham(gen):
     return Qubit(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 
 
-def test_get_matrix(ham, time_samples):
+def test_get_value(ham, time_samples):
     """Test the getMatrix method."""
-    hams = ham.get_matrix(time_samples)
+    hams = ham.get_value(time_samples)
     assert hams.shape == time_samples.shape + (2, 2)
 
 
@@ -64,11 +64,11 @@ def test_gradient(gen, ham, time_samples):
     grads = gen.generate_signal_gradient(time_samples)
     ham.set_optimizable_parameters(ham.get_parameters())
     # TODO: fix error related to the length of time_samples-array
-    _, ham_grads = ham.value_and_gradient(time_samples)
+    _, ham_grads = ham.get_value_and_gradient(time_samples)
     assert ham_grads.shape == (len(time_samples), grads.shape[1] + 1, 2, 2)
 
     ham.set_optimizable_parameters([ham.frequency])
-    _, ham_grads = ham.value_and_gradient(time_samples)
+    _, ham_grads = ham.get_value_and_gradient(time_samples)
     assert ham_grads.shape == (len(time_samples), 1, 2, 2)
 
 

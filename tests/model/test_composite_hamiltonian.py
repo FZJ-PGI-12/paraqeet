@@ -151,33 +151,33 @@ def test_dimension(coupled_transmons):
         assert hamil.dimension() == dim1 * dim2
 
 
-def test_get_matrix_one_time(uncoupled_transmons):
+def test_get_value_one_time(uncoupled_transmons):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = uncoupled_transmons(dim1, dim2)
-        hams = hamil.get_matrix_at_timestep(0)
+        hams = hamil.get_value_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_get_matrix_one_time_rwa(coupled_transmons):
+def test_get_value_one_time_rwa(coupled_transmons):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2, use_rwa=True)
-        hams = hamil.get_matrix_at_timestep(0)
+        hams = hamil.get_value_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_get_matrix(coupled_transmons, time_samples):
+def test_get_value(coupled_transmons, time_samples):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2)
-        hams = hamil.get_matrix(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 

@@ -101,11 +101,11 @@ def ode(open_resonator):
     return prop
 
 
-def test_get_matrix(hamiltonian, time_samples):
+def test_get_value(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_matrix(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 
@@ -123,7 +123,7 @@ def test_gradient(gen, hamiltonian, time_samples):
         hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
         #  TODO: fix error related to the length of time_samples-array
-        _, ham_grads = hamil.value_and_gradient(time_samples)
+        _, ham_grads = hamil.get_value_and_gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
 
 
@@ -144,7 +144,6 @@ def test_decay_expm(expm):
     assert np.isclose(final_state[0, 0], 1)
 
 
-# TODO: test fails since the Vern7-class does not implement all required methods of its base class.
 def test_decay_ode(ode):
     t_final = 20e-9
     ts = np.linspace(0, t_final, 101)
