@@ -190,10 +190,7 @@ class OpenSystem(EquationOfMotion):
     def gradient(self, times: Array) -> Array:
         """Compute the gradient of get_value."""
         if self.ode_propagation and isinstance(self._hamiltonian, Differentiable):
-            # TODO: the return type of the method value_and_gradient doesn't fit
-            #  for the further processing here. Please check! Currently the first
-            #  element is taken as gradient but it shoud be the second one.
-            _, grads = -1j * self._hamiltonian.get_value_and_gradient(times)[1]
+            grads = -1j * self._hamiltonian.get_value_and_gradient(times)[1]
         else:
             # TODO: times is an Array but float is expected
             grads = vmap(self.__create_hamiltonian_grad_superop)(times)

@@ -37,10 +37,10 @@ class Drive(Optimizable):
             space dimension.
 
         """
-        return vmap(self.get_value_at_timestep, in_axes=(None, 0))(annihilation_operator, times)
+        return vmap(self.value_at_timestep, in_axes=(None, 0))(annihilation_operator, times)
 
     @abstractmethod
-    def get_value_at_timestep(self, annihilation_operator: Array, t: Array) -> Array:
+    def value_at_timestep(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is

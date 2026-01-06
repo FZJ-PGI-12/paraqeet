@@ -42,7 +42,7 @@ class RotatingFrameDrive(Drive):
         """
         return self.generator.get_parameters()
 
-    def get_value_at_timestep(self, annihilation_operator: Array, t: Array) -> Array:
+    def value_at_timestep(self, annihilation_operator: Array, t: Array) -> Array:
         r"""Implement drive in the rotating frame of drive.
 
         Drive Hamiltonian is implemented as
