@@ -73,15 +73,16 @@ class SpinRWA(DifferentiableHamiltonian):
         self.sigma_p = jnp.array([[0j, 1], [0, 0]])
         self.dim = 2
 
-    def get_value_at_timestep(self, timestep: float) -> Array:
+    def value_at_timestep(self, timestep: float) -> Array:
         """Just sigma-X."""
-        return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
+        return self._drives[0].value_at_timestep(self.sigma_p, timestep)
 
-    # TODO: update return value to match the signature in Differentiable
-    def value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Gradient is just the drive matrix."""
-        # TODO: expected a tuple
-        return self._drives[0].gradient(self.sigma_p, times), None
+        return self.get_value(times), self._drives[0].gradient(self.sigma_p, times)
+
+    def gradient_at_timestep(self, time):
+        return self._drives[0].gradient_at_timestep(self.sigma_p, time)
 
     # TODO: implement dimension-method from Hamiltonian
     def dimension(self) -> int:
@@ -140,7 +141,6 @@ def fid(model):
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=TLIST,
     )
     return zeroone
 
@@ -158,14 +158,15 @@ def opt_grad(tone, fid, gen):
 
 def test_can_measure(tone, fid, gen):
     fid = GOATOverGRAPE(fid, gen)
-    assert 0 <= fid.measure()
-    assert 0 <= fid.get_value_and_gradient() <= 1
+    val, grad = fid.get_value_and_gradient(times=TLIST)
+    assert 0 <= fid.measure(times=TLIST)
+    assert 0 <= val <= 1
 
-    value, grad = fid.calculate_normalized_scalar_and_gradient()
+    value = fid.calculate_normalized_scalar(times=TLIST)
     assert 0 <= value
     testing.assert_array_less(np.zeros_like(grad), grad)
 
 
 def test_goat_over_grape(opt_grad):
-    res = opt_grad.optimize()
+    res = opt_grad.optimize(times=TLIST)
     assert res.value < 1e-4

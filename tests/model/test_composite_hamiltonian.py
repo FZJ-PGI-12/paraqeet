@@ -157,7 +157,7 @@ def test_get_value_one_time(uncoupled_transmons):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = uncoupled_transmons(dim1, dim2)
-        hams = hamil.get_value_at_timestep(0)
+        hams = hamil.value_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -167,7 +167,7 @@ def test_get_value_one_time_rwa(coupled_transmons):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2, use_rwa=True)
-        hams = hamil.get_value_at_timestep(0)
+        hams = hamil.value_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
@@ -193,7 +193,7 @@ def test_gradient(gen, coupled_transmons, time_samples):
         hamil = coupled_transmons(dim1, dim2)
         hamil.set_optimizable_parameters(hamil.get_parameters())
         grads = gen.generate_signal_gradient(time_samples)
-        _, ham_grads = hamil.value_and_gradient(time_samples)
+        _, ham_grads = hamil.get_value_and_gradient(time_samples)
         assert ham_grads.shape == (
             grads.shape[0],
             grads.shape[1] * 2 + 5,
