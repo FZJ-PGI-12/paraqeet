@@ -13,6 +13,7 @@ from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
+# TODO: Make DifferentiableHamiltonian
 class CompositeHamiltonian(Differentiable, Hamiltonian):
     """A hamiltonian that consists of subsystems and couplings.
 
@@ -28,6 +29,7 @@ class CompositeHamiltonian(Differentiable, Hamiltonian):
         List of couplings between the various subsystems
     """
 
+    # TODO: Should be DifferentiableHamiltonian
     _subsystems: list[Hamiltonian]
     _couplings: list[TwoBodyCoupling]
     _dimensions: list[int]
@@ -154,6 +156,7 @@ class CompositeHamiltonian(Differentiable, Hamiltonian):
         """
         return self.get_value(times), vmap(self._gradient_one_time)(times)
 
+    # TODO: Should be not private
     def _gradient_one_time(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
