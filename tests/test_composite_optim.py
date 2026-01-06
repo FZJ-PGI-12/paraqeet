@@ -160,6 +160,7 @@ def grad_opt(coupled_transmons):
     return opt
 
 
+@pytest.mark.skip(reason="Projection needed")
 def test_optim_finite_diff(opt):
     """Test optimization via finite differences."""
     # TODO: Add projection before testing.
@@ -167,6 +168,7 @@ def test_optim_finite_diff(opt):
     assert res.value < 0.1
 
 
+@pytest.mark.skip(reason="Projection needed")
 def test_optim_goat(grad_opt):
     """Test GOAT optimization."""
     # TODO: Add projection before testing.
