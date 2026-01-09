@@ -3,9 +3,7 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jax import vmap
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
@@ -13,8 +11,7 @@ from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-# TODO: Make DifferentiableHamiltonian
-class CompositeHamiltonian(Differentiable, Hamiltonian):
+class CompositeHamiltonian(DifferentiableHamiltonian):
     """A hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.
@@ -133,31 +130,7 @@ class CompositeHamiltonian(Differentiable, Hamiltonian):
 
         return matrix
 
-    def value_and_gradient_at_timestep(self, time) -> tuple[Array, Array] | tuple[float, Array]:
-        """Return matrix representation and gradients wrt parameters for a single timestep."""
-        return self.value_at_timestep(time), self._gradient_one_time(time)
-
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Return the gradient of each parameter.
-
-        Returns as an array for an array of input times.
-        Uses `vmap` to iterate over time array to generate the gradients.
-
-        Parameters
-        ----------
-        times: Array
-            Array of time samples.
-
-        Returns
-        -------
-        Array
-            Gradient for each time point in the input array of times.
-
-        """
-        return self.get_value(times), vmap(self._gradient_one_time)(times)
-
-    # TODO: Should be not private
-    def _gradient_one_time(self, time: float) -> Array:
+    def gradient_at_timestep(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
