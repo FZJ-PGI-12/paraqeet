@@ -73,16 +73,16 @@ class SpinRWA(DifferentiableHamiltonian):
         self.sigma_p = jnp.array([[0j, 1], [0, 0]])
         self.dim = 2
 
-    def value_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Just sigma-X."""
         return self._drives[0].value_at_timestep(self.sigma_p, timestep)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Gradient is just the drive matrix."""
-        return self.get_value(times), self._drives[0].gradient(self.sigma_p, times)
+        return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
 
-    def gradient_at_timestep(self, time):
-        return self._drives[0].gradient_at_timestep(self.sigma_p, time)
+    def get_gradient_at_timestep(self, time):
+        return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
 
     # TODO: implement dimension-method from Hamiltonian
     def dimension(self) -> int:

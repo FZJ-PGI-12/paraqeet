@@ -54,7 +54,7 @@ def test_drive_gradient(tone, drive, time_samples):
     """Test the drive gradient."""
     dim = np.random.randint(2, 10)
     annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    grads = drive.gradient(annihilation_op, time_samples)
+    grads = drive.get_gradient(annihilation_op, time_samples)
     tone_params = tone.get_parameters()
     assert grads.shape == time_samples.shape + (len(tone_params), dim, dim)
 

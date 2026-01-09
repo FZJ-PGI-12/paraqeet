@@ -6,7 +6,6 @@ import jax.numpy as jnp
 
 from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
@@ -24,7 +23,7 @@ class ClosedSystem(EquationOfMotion):
 
     _get_value_method: Callable
 
-    def __init__(self, hamiltonian: Hamiltonian, ode_propagation: bool = False):
+    def __init__(self, hamiltonian: DifferentiableHamiltonian, ode_propagation: bool = False):
         super().__init__(hamiltonian)
         self.ode_propagation = ode_propagation
 
@@ -108,7 +107,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return self._get_value_method(times)
 
-    def gradient(self, times) -> Array:
+    def get_gradient(self, times) -> Array:
         """Compute the gradient of getMatrix.
 
         Parameters
@@ -122,7 +121,4 @@ class ClosedSystem(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        # TODO: check whether the exception is necessary
-        if not isinstance(self._hamiltonian, DifferentiableHamiltonian):
-            raise TypeError("Hamiltonian is not differentiable.")
         return -1.0j * self._hamiltonian.get_value_and_gradient(times)[1]

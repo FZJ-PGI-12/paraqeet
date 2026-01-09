@@ -108,7 +108,7 @@ class Resonator(DifferentiableHamiltonian):
         """
         return self._get_drive_parameters() + [self.__frequency]
 
-    def value_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -125,7 +125,7 @@ class Resonator(DifferentiableHamiltonian):
         H = self.__frequency.get_value() * self.__num_op
         return H + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def gradient_at_timestep(self, time: float) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Get the gradient of the drive.
 
         Parameters

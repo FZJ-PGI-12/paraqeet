@@ -127,7 +127,7 @@ class OpenSystem(EquationOfMotion):
     def __create_hamiltonian_superop(self, t) -> Array | BCOO:
         """Create the Hamiltonian superoperator for one time point `t`."""
         identityop = jnp.eye(self._hamiltonian.dimension())
-        ham = self._hamiltonian.value_at_timestep(t)
+        ham = self._hamiltonian.get_value_at_timestep(t)
         superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
         if self.sparse_superop:
             return BCOO.fromdense(superop)
@@ -181,13 +181,13 @@ class OpenSystem(EquationOfMotion):
     def __create_hamiltonian_grad_superop(self, timestep: float):
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
         identityop = jnp.eye(self._hamiltonian.dimension())
-        ham_grad = self._hamiltonian.gradient_at_timestep(timestep)
+        ham_grad = self._hamiltonian.get_gradient_at_timestep(timestep)
         term1 = -1j * vmap(self.__kron, in_axes=(None, 0))(identityop, ham_grad)
         term2 = 1j * vmap(self.__kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
         superop = term1 + term2
         return superop
 
-    def gradient(self, times: Array) -> Array:
+    def get_gradient(self, times: Array) -> Array:
         """Compute the gradient of get_value."""
         if self.ode_propagation and isinstance(self._hamiltonian, Differentiable):
             grads = -1j * self._hamiltonian.get_value_and_gradient(times)[1]

@@ -308,7 +308,7 @@ class ScipyExpmGRAPE(ScipyExpm):
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
         eom_func = self._model.get_value
-        grad_func = self._model.gradient
+        grad_func = self._model.get_gradient
 
         dt = time[1] - time[0]
 

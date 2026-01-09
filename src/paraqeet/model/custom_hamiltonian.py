@@ -68,13 +68,13 @@ class CustomHamiltonian(DifferentiableHamiltonian):
 
     def dimension(self):
         """Return dimension of the Hilbert space."""
-        return self.value_at_timestep(jnp.array([0.0])).shape[1]
+        return self.get_value_at_timestep(jnp.array([0.0])).shape[1]
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of optimizable parameters."""
         return self.__parameters
 
-    def value_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
         return self.__hamiltonian_function(timestep, *params)
@@ -85,7 +85,7 @@ class CustomHamiltonian(DifferentiableHamiltonian):
         matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
         return matrix_fun(times, *params)
 
-    def gradient_at_timestep(self, timestep: float) -> Array:
+    def get_gradient_at_timestep(self, timestep: float) -> Array:
         """Return the gradient as a function of time for a single time point."""
         params = [p.get_value()[0] for p in self.__parameters]
         if self.gradient_functions is None:
@@ -98,13 +98,13 @@ class CustomHamiltonian(DifferentiableHamiltonian):
         grads = jnp.array([grad_func(timestep, *params) for grad_func in self.gradient_functions])
         return grads
 
-    def value_and_gradient_at_timestep(self, time) -> tuple[Array, Array] | tuple[float, Array]:
+    def value_and_get_gradient_at_timestep(self, time) -> tuple[Array, Array] | tuple[float, Array]:
         """Return Hamiltonian and its gradient for one timestep."""
-        return self.value_at_timestep(time), self.gradient_at_timestep(time)
+        return self.get_value_at_timestep(time), self.get_gradient_at_timestep(time)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Return Hamiltonian and its gradient as a function of time."""
-        return self.get_value(times), jnp.array(vmap(self.gradient_at_timestep, in_axes=(0,))(times))
+        return self.get_value(times), jnp.array(vmap(self.get_gradient_at_timestep, in_axes=(0,))(times))
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return collapse operators."""

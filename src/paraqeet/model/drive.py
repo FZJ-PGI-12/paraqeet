@@ -61,7 +61,7 @@ class Drive(Optimizable):
         """
         pass
 
-    def gradient(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_gradient(self, annihilation_operator: Array, t: Array) -> Array:
         """Return the gradient of the system.
 
         Returns the gradient of the matrix representation of the Hamiltonian
@@ -82,10 +82,10 @@ class Drive(Optimizable):
 
 
         """
-        return vmap(self.gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, t)
+        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, t)
 
     @abstractmethod
-    def gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
+    def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Returns the gradient of the matrix representation of the

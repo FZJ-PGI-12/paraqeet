@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
@@ -27,15 +27,15 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         Diffrence of drive frequencies for multiple subsystems.
     """
 
-    _subsystem_A: Hamiltonian
-    _subsystem_B: Hamiltonian
+    _subsystem_A: DifferentiableHamiltonian
+    _subsystem_B: DifferentiableHamiltonian
     _coefficient: Quantity
     __diff_freq: Quantity
 
     def __init__(
         self,
-        subsystem_A: Hamiltonian,
-        subsystem_B: Hamiltonian,
+        subsystem_A: DifferentiableHamiltonian,
+        subsystem_B: DifferentiableHamiltonian,
         coefficient: Quantity,
         diffFreq: Quantity,
     ):

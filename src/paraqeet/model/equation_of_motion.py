@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
@@ -21,9 +21,9 @@ class EquationOfMotion(Optimizable):
 
     """
 
-    _hamiltonian: Hamiltonian
+    _hamiltonian: DifferentiableHamiltonian
 
-    def __init__(self, hamiltonian: Hamiltonian):
+    def __init__(self, hamiltonian: DifferentiableHamiltonian):
         self._hamiltonian = hamiltonian
 
     def get_right_hand_side(self, time: Array, state: Array) -> Array:
@@ -69,7 +69,7 @@ class EquationOfMotion(Optimizable):
         pass
 
     @abstractmethod
-    def gradient(self, t: Array) -> Array:
+    def get_gradient(self, t: Array) -> Array:
         """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
 
         Parameters

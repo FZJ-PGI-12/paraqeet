@@ -116,7 +116,7 @@ class Qubit(DifferentiableHamiltonian):
         """
         return 2
 
-    def value_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
@@ -133,7 +133,7 @@ class Qubit(DifferentiableHamiltonian):
         hamil = self.__frequency.get_value() * self.__drift
         return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def gradient_at_timestep(self, time: float) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Get the matrix representations of value and gradient of the drive as a tuple.
 
         Parameters

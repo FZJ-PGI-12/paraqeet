@@ -59,7 +59,7 @@ class RotatingFrameDrive(Drive):
         env = self.generator.generate_signal(jnp.array([t]))
         return env * annihilation_operator + jnp.conjugate(env) * annihilation_operator.conj().T
 
-    def gradient_at_timestep(self, annihilation_operator: Array, timestep: Array) -> Array:
+    def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: Array) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the

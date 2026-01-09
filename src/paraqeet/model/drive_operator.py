@@ -68,8 +68,7 @@ class DriveOperator(Drive):
         """
         return (jnp.conjugate(a.T) @ a) if self.__is_longitudinal else (jnp.conjugate(a.T) + a)
 
-    # TODO: if t is a single time point, why expect an array?
-    def value_at_timestep(self, a: Array, t: Array) -> Array:
+    def value_at_timestep(self, a: Array, t: float) -> Array:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -94,7 +93,7 @@ class DriveOperator(Drive):
         matrix = self._compute_matrix(a)
         return signal * matrix
 
-    def gradient_at_timestep(self, a: Array, timestep: float) -> Array:
+    def get_gradient_at_timestep(self, a: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the

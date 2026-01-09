@@ -3,7 +3,7 @@
 import jax
 import jax.numpy as jnp
 
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
@@ -34,8 +34,8 @@ class TwoBodyCoupling(Optimizable):
         or should include double excitation terms.
     """
 
-    _subsystem_A: Hamiltonian
-    _subsystem_B: Hamiltonian
+    _subsystem_A: DifferentiableHamiltonian
+    _subsystem_B: DifferentiableHamiltonian
     _coefficient: Quantity
     _total_dims: int
     __is_longitudinal: bool
@@ -43,8 +43,8 @@ class TwoBodyCoupling(Optimizable):
 
     def __init__(
         self,
-        subsystem_A: Hamiltonian,
-        subsystem_B: Hamiltonian,
+        subsystem_A: DifferentiableHamiltonian,
+        subsystem_B: DifferentiableHamiltonian,
         coefficient: Quantity,
         is_longitudinal: bool,
         use_rwa: bool = False,
@@ -70,7 +70,7 @@ class TwoBodyCoupling(Optimizable):
         return [self._coefficient]
 
     @property
-    def subsystem_A(self) -> Hamiltonian:
+    def subsystem_A(self) -> DifferentiableHamiltonian:
         """Return subsystem A that is coupled by this term.
 
         Returns
@@ -82,7 +82,7 @@ class TwoBodyCoupling(Optimizable):
         return self._subsystem_A
 
     @property
-    def subsystem_B(self) -> Hamiltonian:
+    def subsystem_B(self) -> DifferentiableHamiltonian:
         """Return subsystem A that is coupled by this term.
 
         Returns
@@ -94,7 +94,7 @@ class TwoBodyCoupling(Optimizable):
         return self._subsystem_B
 
     @property
-    def subsystems(self) -> list[Hamiltonian]:
+    def subsystems(self) -> list[DifferentiableHamiltonian]:
         """Return the subsystems as a list to be compatible with other couplings with potentially more subsystems."""
         return [self.subsystem_A, self.subsystem_B]
 

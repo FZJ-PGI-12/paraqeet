@@ -47,11 +47,11 @@ class EmptyHamiltonian(Hamiltonian):
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def value_at_timestep(self, timestep: Array) -> Array:
+    def get_value_at_timestep(self, timestep: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def gradient_one_time(self, t: Array) -> Array:
+    def get_gradient_at_timestep(self, t: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian

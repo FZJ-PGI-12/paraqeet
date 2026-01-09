@@ -7,7 +7,6 @@ import numpy as np
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
-from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
@@ -27,14 +26,14 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
     """
 
     # TODO: Should be DifferentiableHamiltonian
-    _subsystems: list[Hamiltonian]
+    _subsystems: list[DifferentiableHamiltonian]
     _couplings: list[TwoBodyCoupling]
     _dimensions: list[int]
     _total_dimension: int
 
     def __init__(
         self,
-        subsystems: list[Hamiltonian],
+        subsystems: list[DifferentiableHamiltonian],
         couplings: list[TwoBodyCoupling] | None = None,
     ):
         super().__init__()
@@ -99,7 +98,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         """
         return self._dimensions
 
-    def value_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
@@ -117,7 +116,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.value_at_timestep(timestep)
+            sub_matrix = subsystem.get_value_at_timestep(timestep)
             matrix += self.__tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
@@ -130,7 +129,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
 
         return matrix
 
-    def gradient_at_timestep(self, time: float) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
@@ -154,7 +153,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         for one_index, subsystem in enumerate(self._subsystems):
             if not isinstance(subsystem, DifferentiableHamiltonian):
                 raise IncompatibleLayersException(f"Expected {subsystem} to provide gradients.")
-            sub_gradients = subsystem.gradient_at_timestep(jnp.array(time, ndmin=1))
+            sub_gradients = subsystem.get_gradient_at_timestep(jnp.array(time, ndmin=1))
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")

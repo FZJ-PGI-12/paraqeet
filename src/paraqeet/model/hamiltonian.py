@@ -60,10 +60,10 @@ class Hamiltonian(Optimizable):
             Hilbert space dimension.
 
         """
-        return jnp.array(vmap(self.value_at_timestep)(times))
+        return jnp.array(vmap(self.get_value_at_timestep)(times))
 
     @abstractmethod
-    def value_at_timestep(self, timestep: float) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
@@ -175,7 +175,7 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((times.shape[0], 0, dim, dim))
         for drive in self._drives:
-            grads = drive.gradient(annihilation_operator, times)
+            grads = drive.get_gradient(annihilation_operator, times)
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
 
@@ -201,7 +201,7 @@ class Hamiltonian(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((0, dim, dim))
         for drive in self._drives:
-            grads = drive.gradient_at_timestep(annihilation_operator, time)
+            grads = drive.get_gradient_at_timestep(annihilation_operator, time)
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 

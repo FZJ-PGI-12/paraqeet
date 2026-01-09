@@ -13,10 +13,10 @@ class DifferentiableHamiltonian(Differentiable, Hamiltonian):
     """
 
     @abstractmethod
-    def gradient_at_timestep(self, time: float) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Compute the gradient of this Hamiltonian wrt to parameters for a single timestep."""
         pass
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute value and gradient for given timesteps. The gradient call uses vmap over at_timestep methods."""
-        return self.get_value(times), vmap(self.gradient_at_timestep)(times)
+        return self.get_value(times), vmap(self.get_gradient_at_timestep)(times)
