@@ -1,6 +1,5 @@
 """Class definition of the Dummy model for testing."""
 
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.quantity import Array, Quantity
 
@@ -14,7 +13,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
         Class object for a matrix representation of a Hamiltonian.
     """
 
-    def __init__(self, hamiltonian: DifferentiableHamiltonian):
+    def __init__(self, hamiltonian):
         super().__init__(hamiltonian)
 
     def get_parameters(self) -> list[Quantity]:
@@ -53,4 +52,4 @@ class DummyEquationsOfMotion(EquationOfMotion):
             One-dimensional vector of timestamps.
 
         """
-        return -1.0j * self._hamiltonian.gradient(t)
+        return -1.0j * self._hamiltonian.get_gradient_at_timestep(t)

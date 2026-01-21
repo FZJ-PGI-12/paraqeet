@@ -785,7 +785,7 @@ class Quantity:
     def to_dict(self) -> dict:
         """
         Creates a dictionary representation of this quantity that can be stored. The returned dict is compatible with
-        the fromDict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
+        the from_dict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
         dimensional quantities (tensors) will be flattened into a list but their proper shape is stored as well.
         """
         if self.dependent:

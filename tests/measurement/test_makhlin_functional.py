@@ -22,9 +22,7 @@ def test_positivity():
     """
     propagation = RandomPropagation(4, True)
     times = np.array([1.0])
-    measurement = MakhlinFunctional(
-        propagation
-    )
+    measurement = MakhlinFunctional(propagation)
 
     for i in range(100):
         m = measurement.measure(times)

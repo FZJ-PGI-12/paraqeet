@@ -23,8 +23,8 @@ class Propagation(ABC):
     def __init__(self, model: EquationOfMotion | None):
         self._model = model
 
-    @staticmethod
-    def get_parameters():
+    # @staticmethod
+    def get_parameters(self):
         """Per default, propagation methods have no parameters to optimize."""
         return []
 

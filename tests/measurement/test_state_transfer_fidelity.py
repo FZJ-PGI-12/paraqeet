@@ -23,7 +23,7 @@ def test_limits_vectors(random_state):
         initial_state = random_state(size)
         target_state = random_state(size)
         propagation = RandomPropagation(size, False)
-        times = np.array([1.0])
+        times = np.array([0.0, 1.0])
         measurement = StateTransferFidelity(
             propagation,
             initial_state,
@@ -35,7 +35,7 @@ def test_limits_vectors(random_state):
             assert 0.0 <= m
             m = measurement.calculate_normalized_scalar(times=times)
             assert 0.0 <= m <= 1.0
-            m, grad = measurement.get_value_and_gradient(times=times)
+            m, _ = measurement.get_value_and_gradient(times=times)
             assert 0.0 <= m
 
 
