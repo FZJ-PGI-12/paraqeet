@@ -4,7 +4,7 @@ from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
-from abc import abstractmethod
+import numpy as np
 
 
 class StatePropagation(Propagation):
@@ -50,7 +50,6 @@ class StatePropagation(Propagation):
         """
         self._initial_state = state
 
-    @abstractmethod
     def gradient(self, time: Array) -> tuple[Array, Array]:
         """Gradient method to be implemented
 
@@ -65,4 +64,5 @@ class StatePropagation(Propagation):
             First dimension is time, second dimension is the parameter.
 
         """
-        pass
+        # dummy implementation
+        return (time[-1], np.array([0.0]))
