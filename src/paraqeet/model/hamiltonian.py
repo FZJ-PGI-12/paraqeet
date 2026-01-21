@@ -91,6 +91,17 @@ class Hamiltonian(Optimizable):
         """
         return self._drives
 
+    @drives.setter
+    def drives(self, drives: list[Drive]) -> None:
+        """Set the drives
+
+        Parameters
+        ----------
+        drives: list[Drive]
+            List of drives to set.
+        """
+        self._drives = drives
+
     def _get_drive_parameters(self) -> list[Quantity]:
         """Return the combined list of parameters from all drives.
 
