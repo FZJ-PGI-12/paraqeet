@@ -15,7 +15,8 @@ class Hamiltonian(Optimizable):
 
     Implementations can contain subsystems, couplings, and drive lines
     and have to take care of frame transformations. Derived classes need to
-    implement the functions getMatrix, gradient, and dimension.
+    implement the functions get_matrix, gradient, dimension, get_collapse_ops,
+    get_value_at_timestep
 
     Parameters
     ----------
