@@ -253,26 +253,3 @@ class Vern7(StatePropagation):
             states.append(state_t)
 
         return jnp.array(states)
-
-
-# TODO: implement gradient method
-def gradient(self, t: Array) -> tuple[Array, Array]:
-    """Return the gradient of the system.
-
-    Parameters
-    ----------
-    t: Array
-        Vector of time samples.
-
-    Returns
-    -------
-    Array
-        Returns the gradients of the system.
-
-    Raises
-    ------
-    NotImplementedError
-        Subclasses derived from this class must implement this method.
-
-    """
-    raise NotImplementedError()

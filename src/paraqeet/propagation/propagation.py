@@ -28,6 +28,7 @@ class Propagation(ABC):
         """Per default, propagation methods have no parameters to optimize."""
         return []
 
+    #TODO: Remove set_initial_state? And add it to StatePropagation only?
     @abstractmethod
     def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.

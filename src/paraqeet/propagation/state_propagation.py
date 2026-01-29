@@ -1,5 +1,6 @@
 """Class definition of the State propagation model."""
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.propagation.propagation import Propagation
@@ -7,7 +8,7 @@ from paraqeet.quantity import Array
 import numpy as np
 
 
-class StatePropagation(Propagation):
+class StatePropagation(Propagation, Differentiable):
     """Propagation implementation that need an initial state.
 
     This implements the set_initial_state function.

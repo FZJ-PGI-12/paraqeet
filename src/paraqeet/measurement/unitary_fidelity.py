@@ -97,7 +97,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self.__propagation.gradient(time=times)  # gradient of states wrt parameters
+        states, dg_dp_list = self.__propagation.get_value_and_gradient(time=times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))

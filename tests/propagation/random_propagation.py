@@ -7,13 +7,14 @@ import numpy as np
 from jax import jit
 from scipy.stats import unitary_group
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array, Quantity
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 
-class RandomPropagation(Propagation):
+class RandomPropagation(Propagation, Differentiable):
     """Mock random propagation implementation.
 
     Returns random state vectors, density matrices, or propagators.
@@ -82,7 +83,7 @@ class RandomPropagation(Propagation):
             self.update()
         return jnp.array([self.__state] * len(time))
 
-    def gradient(self, time: Array) -> Array:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
         empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
         return self.propagate(time), empty_gradient

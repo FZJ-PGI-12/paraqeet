@@ -46,7 +46,7 @@ class IdentityPropagation(StatePropagation):
         """
         return jnp.array([self.__state] * len(time))
 
-    def get_value_and_gradient(self, time: Array) -> Array:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
         empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
         return self.propagate(time), empty_gradient

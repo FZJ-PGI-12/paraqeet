@@ -275,22 +275,4 @@ class ScipyExpm(StatePropagation):
             psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
         return psis_arr
 
-    # TODO: implement gradient method
-    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
-        """Return the gradient of the system.
-
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            Returns the gradient of the system.
-
-
-        """
-        raise NotImplementedError("Gradient method is not yet implemented for ScipyExpm propagation.")
-
     # TODO: implement get_collapseops method
