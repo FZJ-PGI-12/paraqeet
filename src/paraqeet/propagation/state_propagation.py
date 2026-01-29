@@ -50,7 +50,7 @@ class StatePropagation(Propagation):
         """
         self._initial_state = state
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         """Gradient method to be implemented
 
         Parameters

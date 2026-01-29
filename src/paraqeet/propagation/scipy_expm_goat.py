@@ -10,12 +10,13 @@ import jax.numpy as jnp
 from jax import jit, vmap
 from jax.lax import scan
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.quantity import Array
 
 
-class ScipyExpmGOAT(ScipyExpm):
+class ScipyExpmGOAT(ScipyExpm, Differentiable):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
@@ -80,7 +81,7 @@ class ScipyExpmGOAT(ScipyExpm):
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters

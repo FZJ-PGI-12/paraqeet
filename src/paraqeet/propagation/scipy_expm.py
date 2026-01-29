@@ -276,7 +276,7 @@ class ScipyExpm(StatePropagation):
         return psis_arr
 
     # TODO: implement gradient method
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         """Return the gradient of the system.
 
         Parameters

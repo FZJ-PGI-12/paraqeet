@@ -122,7 +122,7 @@ class Vern7GRAPE(Vern7):
 
         return psis_list, lamdas_list
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and

@@ -299,7 +299,7 @@ class ScipyExpmGRAPE(ScipyExpm):
             psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return jnp.array(psis)
 
-    def __gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
+    def _gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
@@ -356,13 +356,13 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         return psis, jnp.array(grads)
 
-    def __gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
+    def _gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
         raise NotImplementedError(
             "Currently ScipyExpmGRAPE is not supported for open system optimization."
             + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
         )
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -380,8 +380,8 @@ class ScipyExpmGRAPE(ScipyExpm):
             raise ConfigurationException("Target state is not set")
 
         if self.is_open:
-            psis, grads = self.__gradient_open_systems(time)
+            psis, grads = self._gradient_open_systems(time)
         else:
-            psis, grads = self.__gradient_closed_system(time)
+            psis, grads = self._gradient_closed_system(time)
 
         return psis, grads
