@@ -155,15 +155,15 @@ class Waveform(Optimizable, Differentiable):
 class LocalOscillator(Waveform):
     """A local oscillators carrier signal.
 
-    __lo_freq : Quantity
+    _lo_freq : Quantity
         The frequency of the carrier signal.
 
     """
 
-    __lo_freq: Quantity
+    _lo_freq: Quantity
 
     def __init__(self, frequency: Quantity | None = None) -> None:
-        self.__lo_freq = frequency or Quantity(
+        self._lo_freq = frequency or Quantity(
             value=jnp.array(4.8e9 * 2 * jnp.pi),
             min_value=jnp.array(0.8 * 4.8e9 * 2 * jnp.pi),
             max_value=jnp.array(1.2 * 4.8e9 * 2 * jnp.pi),
@@ -180,7 +180,7 @@ class LocalOscillator(Waveform):
         list[Quantity]
             Returns the carrier signal frequency.
         """
-        return [self.__lo_freq]
+        return [self._lo_freq]
 
     @property
     def frequency(self) -> Quantity:
@@ -192,7 +192,7 @@ class LocalOscillator(Waveform):
             The frequency of the tone.
 
         """
-        return self.__lo_freq
+        return self._lo_freq
 
     @frequency.setter
     def frequency(self, frequency: Quantity) -> None:
@@ -204,7 +204,7 @@ class LocalOscillator(Waveform):
             The frequency of the constant oscillating tone.
 
         """
-        self.__lo_freq = frequency
+        self._lo_freq = frequency
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, freq: Array, times: Array) -> Array:  # type: ignore
@@ -238,7 +238,7 @@ class LocalOscillator(Waveform):
             Returns a vector carrier signal.
         """
         # returns JitWrapped
-        return self._evaluate(self.__lo_freq.get_value(), times)  # type: ignore
+        return self._evaluate(self._lo_freq.get_value(), times)  # type: ignore
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Return the gradient wrt to frequency of carrier signal.
@@ -253,14 +253,14 @@ class LocalOscillator(Waveform):
         Array
             Gradient of tone wrt to frequency.
         """
-        freq = self.__lo_freq.get_value()
+        freq = self._lo_freq.get_value()
         t_arr = jnp.array(times, ndmin=1)
 
         grads = jnp.empty((times.shape[0], 0))
-        if self._is_optimized(self.__lo_freq):
+        if self._is_optimized(self._lo_freq):
             grads = jnp.reshape(1j * t_arr * self._evaluate(freq, t_arr), (-1, 1))
 
-        value = self._evaluate(self.__lo_freq.get_value(), times)
+        value = self._evaluate(self._lo_freq.get_value(), times)
         return value, grads
 
     def get_time_gradient(self, times: Array) -> Array:
@@ -277,7 +277,7 @@ class LocalOscillator(Waveform):
             Returns a vector signals time derivative.
 
         """
-        freq = self.__lo_freq.get_value()
+        freq = self._lo_freq.get_value()
         # returns JitWrapped
         return 1j * times * self._evaluate(freq, times)  # type: ignore
 
@@ -288,14 +288,14 @@ class DRAGMixer(Waveform):
     The DRAG component is calculated for a set of envelopes and added in
     orthogonal direction in the x-y plane.
 
-    __envs: list[Envelope]
+    _envs: list[Envelope]
         The list of shape defining signal envelops.
-    __deltas: list[Quantity]
+    _deltas: list[Quantity]
         The delta parameter by which to shift the frequency of the DRAG
         component.
     """
 
-    __multiply_flat_top: bool = False
+    _multiply_flat_top: bool = False
 
     def __init__(
         self,
@@ -303,9 +303,9 @@ class DRAGMixer(Waveform):
         deltas: list[Quantity] | None = None,
         t_final: Quantity | None = None,
     ) -> None:
-        self.__envs = envelopes if isinstance(envelopes, list) else [envelopes]
-        self.__add_deltas(self.__envs, deltas)
-        self.__t_final = t_final
+        self._envs = envelopes if isinstance(envelopes, list) else [envelopes]
+        self._add_deltas(self._envs, deltas)
+        self._t_final = t_final
 
     @property
     def multiply_flat_top(self) -> bool:
@@ -319,7 +319,7 @@ class DRAGMixer(Waveform):
         multiply_flat_top : bool
             Flag value for multiply_flat_top.
         """
-        return self.__multiply_flat_top
+        return self._multiply_flat_top
 
     @multiply_flat_top.setter
     def multiply_flat_top(self, multiply_flat_top: bool) -> None:
@@ -333,8 +333,8 @@ class DRAGMixer(Waveform):
         multiply_flat_top : bool
             Flag value for multiply_flat_top.
         """
-        self.__multiply_flat_top = multiply_flat_top
-        if self.__t_final is None:
+        self._multiply_flat_top = multiply_flat_top
+        if self._t_final is None:
             raise ConfigurationException("`t_final` is set to None. Specify pulse length to use `multiply_flat_top`")
 
     def get_parameters(self) -> list[Quantity]:
@@ -349,13 +349,13 @@ class DRAGMixer(Waveform):
             All Parameters describing the signal.
         """
         params = list()
-        for tone in self.__envs:
+        for tone in self._envs:
             params += tone.get_parameters()
-            params += [self.__get_tone_delta(tone)]
+            params += [self._get_tone_delta(tone)]
         return params
 
     @staticmethod
-    def __add_deltas(envelope_tones: list[Waveform], deltas: list[Quantity] | None) -> None:
+    def _add_deltas(envelope_tones: list[Waveform], deltas: list[Quantity] | None) -> None:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
 
         Parameters
@@ -372,8 +372,7 @@ class DRAGMixer(Waveform):
             The list of envelope Tones with the added delta parameters.
         """
         for ii, env_tone in enumerate(envelope_tones):
-            env_tone.__setattr__(
-                "_" + env_tone.__class__.__name__ + "__delta",
+            env_tone.__setattr__("_delta",
                 Quantity(
                     deltas[ii].get_value() if deltas else jnp.array(-200e6 * 2 * jnp.pi),
                     min_value=jnp.array(-3 * 200e6 * 2 * jnp.pi),
@@ -384,7 +383,7 @@ class DRAGMixer(Waveform):
             )
 
     @staticmethod
-    def __get_tone_delta(tone: Waveform) -> Any:
+    def _get_tone_delta(tone: Waveform) -> Any:
         """Return a list of deltas for each tone.
 
         Returns
@@ -392,11 +391,11 @@ class DRAGMixer(Waveform):
         Quantity
             List of delta values for each tone.
         """
-        return tone.__getattribute__("_" + tone.__class__.__name__ + "__delta")
+        return tone.__getattribute__("_delta")
 
     @partial(jit, static_argnums=(0,))
-    def __compute_flat_top_envelope(self, times):
-        t_final = self.__t_final.get_value()
+    def _compute_flat_top_envelope(self, times):
+        t_final = self._t_final.get_value()
         ramp_time = t_final / 25
         ramp_up = 1 + erf((times - 2 * t_final / 20) / ramp_time)
         ramp_down = 1 + erf((-times + 18 * t_final / 20) / ramp_time)
@@ -420,12 +419,12 @@ class DRAGMixer(Waveform):
             Returns a vector signal of the DRAG envelope.
         """
         total_env = jnp.zeros_like(times, dtype=jnp.complex128)
-        for delta, tone in zip(deltas, self.__envs):
+        for delta, tone in zip(deltas, self._envs):
             env = tone.get_value(times)
             env_grad = tone.get_time_gradient(times)
             total_env += env - 1.0j / delta * env_grad
         if self.multiply_flat_top:
-            flattop_env = self.__compute_flat_top_envelope(times)
+            flattop_env = self._compute_flat_top_envelope(times)
             total_env *= flattop_env
         return jnp.squeeze(total_env)
 
@@ -442,7 +441,7 @@ class DRAGMixer(Waveform):
         Array
             Returns a vector carrier signal.
         """
-        deltas = [self.__get_tone_delta(tone).get_value() for tone in self.__envs]
+        deltas = [self._get_tone_delta(tone).get_value() for tone in self._envs]
         return self._evaluate(times, *deltas)
 
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
@@ -456,7 +455,7 @@ class DRAGMixer(Waveform):
         """
         super().set_optimizable_parameters(params)
 
-        for tone in self.__envs:
+        for tone in self._envs:
             tone.set_optimizable_parameters(params)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
@@ -477,23 +476,23 @@ class DRAGMixer(Waveform):
         Array
             Array of gradients wrt each parameter for each time point.
         """
-        deltas = [self.__get_tone_delta(tone) for tone in self.__envs]
+        deltas = [self._get_tone_delta(tone) for tone in self._envs]
         delta_values = [delta.get_value() for delta in deltas]
 
         gradients = jnp.zeros(shape=(times.shape[0], 0))
 
         if self.multiply_flat_top:
-            smoothing = self.__compute_flat_top_envelope(times)
+            smoothing = self._compute_flat_top_envelope(times)
         else:
             smoothing = jnp.ones_like(times)
 
         # Collect gradients wrt envelope parameters
-        for tone in self.__envs:
+        for tone in self._envs:
             _, grads = tone.get_value_and_gradient(times)
             gradients = jnp.append(gradients, grads * jnp.expand_dims(smoothing, axis=1), axis=1)
 
         # Collect gradients wrt deltas
-        for i, tone in enumerate(self.__envs):
+        for i, tone in enumerate(self._envs):
             if self._is_optimized(deltas[i]):
                 grad = 1j / (delta_values[i] ** 2) * tone.get_time_gradient(times)
                 grad = jnp.expand_dims(grad * smoothing, axis=1)
