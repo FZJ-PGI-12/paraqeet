@@ -2,11 +2,12 @@
 
 from abc import abstractmethod
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
 
-class Generator(Optimizable):
+class Generator(Optimizable, Differentiable):
     """Signal generation stack.
 
     Contrary to most quantum simulators, paraqeet includes a detailed simulation
@@ -19,7 +20,7 @@ class Generator(Optimizable):
     """
 
     @abstractmethod
-    def generate_signal(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return array with scalar signal value for each time step.
 
         Parameters
@@ -36,29 +37,7 @@ class Generator(Optimizable):
         pass
 
     @abstractmethod
-    def generate_signal_gradient(self, times: Array) -> Array:
-        """Return array with gradient of signal value for each time step.
-
-        Abstract method.
-        The result has the shape (t,p) where 't' is the time and 'p' is
-        the parameter index.
-
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            Returns the signal gradient vector.
-
-
-        """
-        pass
-
-    @abstractmethod
-    def generate_signal_gradient_one_time(self, time: Array) -> Array:
+    def get_gradient_at_timestep(self, time: Array) -> Array:
         """Return array with the gradient of the signal value for one time step.
 
         The result has the shape (p,) where 'p' is the parameter index.
