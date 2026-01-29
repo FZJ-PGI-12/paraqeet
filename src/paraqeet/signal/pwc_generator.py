@@ -271,7 +271,7 @@ class PWCGenerator(Generator):
         index = jnp.argmin(jnp.abs(tlist - t))
         return inphase[index] + 1j * outofphase[index]
 
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Generate the PWC signal for time(s) 't'.
 
         Parameters
@@ -342,7 +342,7 @@ class PWCGenerator(Generator):
         shape = jnp.squeeze(vmap(self._pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, tlist, t_arr))
         return shape, grads_stack
 
-    def get_gradient_at_timestep(self, time: Array) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Return signal gradient wrt inphase and out-of-phase.
 
         This returns a list of ones as the gradient of the envelope wrt a step

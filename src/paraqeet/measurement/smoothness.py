@@ -52,7 +52,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         float
             The normalized sum of consecutive square differences in the pulse.
         """
-        pulse = self._pwc_generator.generate_signal(times)
+        pulse = self._pwc_generator.get_value(times)
         num_pwc = jnp.shape(pulse)[0]
 
         norm_coeff = (num_pwc - 1) * (2 * self._pwc_generator.max_amplitude) ** 2

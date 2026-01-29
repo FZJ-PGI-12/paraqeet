@@ -56,13 +56,14 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
         return jnp.squeeze(amp * ramp_up * ramp_down / 4)
 
-    def compute_output(self, t: Array) -> Array:
+    def get_value(self, t: Array | float) -> Array:
         """Compute pulse shape."""
         amp = self._amplitude.get_value()
         t_up = self.__t_up.get_value()
         t_down = self.__t_down.get_value()
         ramp_time = self.__ramp_time.get_value()
-        return self._evaluate(amp, t_up, t_down, ramp_time, t)
+        # returns JitWrapped
+        return self._evaluate(amp, t_up, t_down, ramp_time, t) # type: ignore
 
 
 class SpinRWA(DifferentiableHamiltonian):
@@ -77,7 +78,7 @@ class SpinRWA(DifferentiableHamiltonian):
         """Just sigma-X."""
         return self._drives[0].value_at_timestep(self.sigma_p, timestep)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Gradient is just the drive matrix."""
         return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
 

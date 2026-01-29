@@ -20,7 +20,7 @@ class Generator(Optimizable, Differentiable):
     """
 
     @abstractmethod
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Return array with scalar signal value for each time step.
 
         Parameters
@@ -37,7 +37,7 @@ class Generator(Optimizable, Differentiable):
         pass
 
     @abstractmethod
-    def get_gradient_at_timestep(self, time: Array) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Return array with the gradient of the signal value for one time step.
 
         The result has the shape (p,) where 'p' is the parameter index.

@@ -77,7 +77,7 @@ class IQMixer(Generator):
 
         self._lo.set_optimizable_parameters(params)
 
-    def _complex_signal(self, times: Array) -> Array:
+    def _complex_signal(self, times: Array | float) -> Array:
         """Generate a signal for time(s).
 
         Doesnt take real value now for ease of gradient computation.
@@ -100,7 +100,7 @@ class IQMixer(Generator):
         sig = sig * jnp.exp(-1j * self._phase.get_value())
         return sig
 
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Generate a signal for time(s).
 
         Parameters
@@ -185,7 +185,7 @@ class IQMixer(Generator):
             )
         return jnp.real(sig), gradients
 
-    def get_gradient_at_timestep(self, time: Array) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         r"""Return the gradients from all devices at the given time.
 
         Since the
