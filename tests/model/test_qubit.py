@@ -61,7 +61,7 @@ def test_gradient(gen, ham, time_samples):
     if not isinstance(ham, Differentiable):
         return
 
-    grads = gen.generate_signal_gradient(time_samples)
+    _, grads = gen.get_value_and_gradient(time_samples)
     ham.set_optimizable_parameters(ham.get_parameters())
     # TODO: fix error related to the length of time_samples-array
     _, ham_grads = ham.get_value_and_gradient(time_samples)

@@ -25,12 +25,12 @@ def test_getters_and_setters(local_oscillator, random_quantity):
 
 
 def test_output_shapes(local_oscillator, random_time_vector):
-    output = local_oscillator.compute_output(random_time_vector)
+    output = local_oscillator.get_value(random_time_vector)
     assert output.shape == (len(random_time_vector),)
 
     local_oscillator.set_optimizable_parameters(local_oscillator.get_parameters())
-    gradient = local_oscillator.compute_gradient(random_time_vector)
+    _, gradient = local_oscillator.get_value_and_gradient(random_time_vector)
     assert gradient.shape == (len(random_time_vector), len(local_oscillator.get_parameters()))
 
-    time_gradient = local_oscillator.compute_time_gradient(random_time_vector)
+    time_gradient = local_oscillator.get_time_gradient(random_time_vector)
     assert time_gradient.shape == (len(random_time_vector),)

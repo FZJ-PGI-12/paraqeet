@@ -47,13 +47,13 @@ def gen_multiple_tones():
 
 def test_gen(gen, time_samples) -> None:
     """Computes a sample signal and checks vectorized generation."""
-    sig = gen.generate_signal(time_samples)
+    sig = gen.get_value(time_samples)
     assert len(sig) == LEN_SIG
 
 
 def test_zero_tone(zero_gen, time_samples) -> None:
     """Test generation of zeroTone signal."""
-    sig = zero_gen.generate_signal(time_samples)
+    sig = zero_gen.get_value(time_samples)
     assert len(sig) == LEN_SIG
     assert np.all(sig == 0)
 
@@ -74,12 +74,12 @@ def test_gradient_one_time(gen):
     """Test the generate signal gradient one time function."""
     print(gen.get_parameters())
     gen.set_optimizable_parameters(gen.get_parameters())
-    grads = gen.generate_signal_gradient_one_time(np.array([0]))
+    grads = gen.get_gradient_at_timestep(np.array([0]))
     assert grads.shape == (len(gen.get_parameters()),)
 
 
 def test_gradient_shape(gen, time_samples):
     """Test the generate signal gradient function."""
     gen.set_optimizable_parameters(gen.get_parameters())
-    grads = gen.generate_signal_gradient(time_samples)
+    _, grads = gen.get_value_and_gradient(time_samples)
     assert grads.shape == (time_samples.shape[0], len(gen.get_parameters()))

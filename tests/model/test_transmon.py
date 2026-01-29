@@ -126,7 +126,7 @@ def test_gradient(gen, hamiltonian, time_samples):
         if not isinstance(hamil, Differentiable):
             continue
         hamil.set_optimizable_parameters(hamil.get_parameters())
-        grads = gen.generate_signal_gradient(time_samples)
+        _, grads = gen.get_value_and_gradient(time_samples)
         _, ham_grads = hamil.get_value_and_gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 2, dim, dim)
 
@@ -145,7 +145,7 @@ def test_get_drive_gradients(gen, hamiltonian, time_samples):
     dim = np.random.randint(2, 10)
     annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
     hamil = hamiltonian(dim)
-    grads = gen.generate_signal_gradient(time_samples)
+    _, grads = gen.get_value_and_gradient(time_samples)
     drive_gradients = hamil._get_drive_gradients(annihilation_op, time_samples)
     assert drive_gradients.shape == (grads.shape[0], grads.shape[1], dim, dim)
 

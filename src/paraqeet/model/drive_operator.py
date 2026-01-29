@@ -87,7 +87,7 @@ class DriveOperator(Drive):
             Returns the shape-shifted coefficient from the drive.
 
         """
-        # TODO: generator.generate_signal expects an array, even for one time point.
+        # TODO: generator.get_value expects an array, even for one time point.
         # Is the naming of the method correct then?
         signal = self._generator.get_value(t)
         matrix = self._compute_matrix(a)
