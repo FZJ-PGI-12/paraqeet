@@ -133,12 +133,12 @@ class Envelope(Waveform):
         raise NotImplementedError()
 
     @abstractmethod
-    def compute_output(self, t: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Compute the output.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -190,12 +190,12 @@ class ConstantEnvelope(Envelope):
         """
         return jnp.squeeze(jnp.where(t <= t_final, amp, 0.0))
 
-    def compute_output(self, t: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Compute the constant signal envelope at different times.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -211,14 +211,14 @@ class ConstantEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluate(amp, t_final, t)  # type: ignore
+        return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def compute_time_gradient(self, t: Array) -> Array:
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -226,7 +226,7 @@ class ConstantEnvelope(Envelope):
         Array
             Returns a vector signals time derivative.
         """
-        return jnp.zeros_like(t)
+        return jnp.zeros_like(times)
 
 
 class ZeroEnvelope(ConstantEnvelope):
@@ -370,12 +370,12 @@ class FlatTopGaussianEnvelope(Envelope):
 
         return amp * prod_dir / 4
 
-    def compute_output(self, t: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -386,14 +386,15 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return self._evaluate(amp, t_final, t)  # type: ignore
+        # returns JitWrapped
+        return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def compute_gradient(self, t: Array) -> Array:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Return the gradient wrt dimensionless parameters.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -404,21 +405,22 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        t_arr = jnp.array(t, ndmin=1)
+        t_arr = jnp.array(times, ndmin=1)
 
         grads = []
         if self._is_optimized(self.amplitude):
             grads.append(self._evaluate(jnp.array([1.0]), t_final, t_arr))
         if self._is_optimized(self.t_final):
             grads.append(self._evaluate_t_final_grad(amp, t_final, t_arr))
-        return jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t_arr.shape[0], 0))
+        gradient = jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t_arr.shape[0], 0))
+        return self._evaluate(amp, t_final, times), gradient
 
-    def compute_time_gradient(self, t: Array) -> Array:
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -428,7 +430,7 @@ class FlatTopGaussianEnvelope(Envelope):
         """
         amp = self.amplitude.get_value()
         t_final = self.t_final.get_value()
-        return jnp.array(self._evaluate_time_grad(amp, t_final, t))
+        return jnp.array(self._evaluate_time_grad(amp, t_final, times))
 
 
 class GaussEnvelope(Envelope):
@@ -485,14 +487,15 @@ class GaussEnvelope(Envelope):
         """
         sigma = t_final / 8
         time_grad = self._evaluate(amp, t_final, t) * -1.0 * (t - t_final / 2) / sigma**2
+        # returns JitWrapped
         return time_grad  # type: ignore
 
-    def compute_output(self, t: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Compute a Gaussian signal.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -502,14 +505,15 @@ class GaussEnvelope(Envelope):
         """
         t_final = self.t_final.get_value()
         amp = self.amplitude.get_value()
-        return self._evaluate(amp, t_final, t)  # type: ignore
+        # returns JitWrapped
+        return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def compute_time_gradient(self, t: Array) -> Array:
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a Gaussian signals time derivative.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -519,5 +523,6 @@ class GaussEnvelope(Envelope):
         """
         t_final = self.t_final.get_value()
         amp = self.amplitude.get_value()
-        env_time_deriv = self._evaluate_time_gradient(amp, t_final, t)
+        env_time_deriv = self._evaluate_time_gradient(amp, t_final, times)
+        # returns JitWrapped
         return env_time_deriv  # type: ignore
