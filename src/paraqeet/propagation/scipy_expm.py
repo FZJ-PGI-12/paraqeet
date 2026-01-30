@@ -250,6 +250,9 @@ class ScipyExpm(Propagation):
             If the initial state is not set.
 
         """
+        if len(time) < 2:
+            raise ValueError("ScipyExpm.propagate needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 

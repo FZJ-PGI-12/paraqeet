@@ -53,6 +53,9 @@ class Euler(Propagation):
             Results of the Euler propagation.
 
         """
+        if len(time) < 2:
+            raise ValueError("Euler.propagate needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
         if self._model is not None:

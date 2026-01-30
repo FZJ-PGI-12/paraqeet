@@ -95,6 +95,9 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
             First dimension is time, second dimension is the parameter.
 
         """
+        if len(time) < 2:
+            raise ValueError("ScipyExpmGOAT.get_value_and_gradient needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
         if self._model is None:

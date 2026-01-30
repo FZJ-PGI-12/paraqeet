@@ -268,6 +268,9 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
     def propagate(self, time: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
+        if len(time) < 2:
+            raise ValueError("ScipyExpmGRAPE.propagate needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
@@ -368,6 +371,9 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         This propagation method assumes a PWC pulse as input.
         """
+        if len(time) < 2:
+            raise ValueError("ScipyExpmGRAPE.get_value_and_gradient needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 

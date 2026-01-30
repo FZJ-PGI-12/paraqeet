@@ -130,6 +130,9 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
         Note: This method only computes the first order gradients right now.
         """
+        if len(time) < 2:
+            raise ValueError("Vern7GRAPE.get_value_and_gradient needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 

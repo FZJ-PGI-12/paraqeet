@@ -71,7 +71,7 @@ def states(model, request):
         target = np.matmul(target, target.T)
 
     prop_method.set_initial_state(init)
-    prop_method.set_target_state = target
+    prop_method.set_target_state(target)
 
     return StateTransferFidelityGRAPE(
         propagation=prop_method,
