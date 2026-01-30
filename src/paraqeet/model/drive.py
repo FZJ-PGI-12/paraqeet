@@ -38,10 +38,10 @@ class Drive(Optimizable):
 
         """
         # vmap iterates over the times array and returns float. Not caught by mypy.
-        return vmap(self.value_at_timestep, in_axes=(None, 0))(annihilation_operator, times) # type: ignore
+        return vmap(self.get_value_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  # type: ignore
 
     @abstractmethod
-    def value_at_timestep(self, annihilation_operator: Array, t: float) -> Array:
+    def get_value_at_timestep(self, annihilation_operator: Array, t: float) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is

@@ -63,7 +63,7 @@ class FlatTopGaussianEnvelope(Envelope):
         t_down = self.__t_down.get_value()
         ramp_time = self.__ramp_time.get_value()
         # returns JitWrapped
-        return self._evaluate(amp, t_up, t_down, ramp_time, t) # type: ignore
+        return self._evaluate(amp, t_up, t_down, ramp_time, t)  # type: ignore
 
 
 class SpinRWA(DifferentiableHamiltonian):
@@ -76,7 +76,7 @@ class SpinRWA(DifferentiableHamiltonian):
 
     def get_value_at_timestep(self, timestep: float) -> Array:
         """Just sigma-X."""
-        return self._drives[0].value_at_timestep(self.sigma_p, timestep)
+        return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Gradient is just the drive matrix."""

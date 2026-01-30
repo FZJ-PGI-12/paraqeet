@@ -68,7 +68,7 @@ class DriveOperator(Drive):
         """
         return (jnp.conjugate(a.T) @ a) if self._is_longitudinal else (jnp.conjugate(a.T) + a)
 
-    def value_at_timestep(self, a: Array, t: float) -> Array:
+    def get_value_at_timestep(self, a: Array, t: float) -> Array:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -112,8 +112,6 @@ class DriveOperator(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape(
-            (-1, 1, 1)
-        )
+        signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape((-1, 1, 1))
         matrix = self._repeat(self._compute_matrix(a), signal_grad.shape[0])
         return signal_grad * matrix
