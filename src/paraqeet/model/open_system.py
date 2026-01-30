@@ -187,11 +187,17 @@ class OpenSystem(EquationOfMotion):
         superop = term1 + term2
         return superop
 
-    def get_gradient(self, times: Array) -> Array:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute the gradient of get_value."""
-        if self.ode_propagation and isinstance(self._hamiltonian, Differentiable):
-            grads = -1j * self._hamiltonian.get_value_and_gradient(times)[1]
-        else:
-            # TODO: times is an Array but float is expected
-            grads = vmap(self.__create_hamiltonian_grad_superop)(times)
-        return grads
+        # TODO: What to do if Hamiltonian is not differentiable?
+        if isinstance(self._hamiltonian, Differentiable):
+            if self.ode_propagation:
+                # TODO: Can the eom be obtained without calling the get_value method?
+                _, grads = self._hamiltonian.get_value_and_gradient(times)
+                eom = self._get_value_method(times)
+                grads = -1j * grads
+            else:
+                eom = vmap(self.__create_lindbladian_superop)(times)
+                # TODO: times is an Array but float is expected
+                grads = vmap(self.__create_hamiltonian_grad_superop)(times)
+        return eom, grads

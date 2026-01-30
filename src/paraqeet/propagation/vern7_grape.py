@@ -149,20 +149,23 @@ class Vern7GRAPE(Vern7, Differentiable):
         if self._model is None:
             raise ConfigurationException("No equation of motion is configured.")
         eom_func = self._model.get_value
-        grad_func = self._model.get_gradient
+        grad_func = self._model.get_value_and_gradient
 
         # Verify if `model.ode_propagation` is set to `True`.
         # ode_propgation returns hamiltonian and collapse operators separately.
-        eom_parts = eom_func(jnp.array([0]))
-        if len(eom_parts) != 2:
+        if not self._model.ode_propagation:
             raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
         dt = time[1] - time[0]
         interp_time = self._interpolate_time(time, dt)
         time_grid = interp_time[:-1] + dt / 2
 
+        # TODO: currently seperate time grids are required for the EOM and the gradients.
+        # TODO: Can we use one so that the value and gradients are computed simultaneously?
+
         eom, cols = eom_func(time_grid)
-        dh_dps = jnp.array(grad_func(time[:-1] + dt / 2)) * dt
+        _, dh_dps = grad_func(time[:-1] + dt / 2)
+        dh_dps = jnp.array(dh_dps) * dt
 
         psis, lamdas = self._forward_and_backward_propagation(
             init_state, target_state, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time[:-1]), 1)

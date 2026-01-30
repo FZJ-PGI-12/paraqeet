@@ -308,15 +308,15 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         if self._model is None:
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
-        eom_func = self._model.get_value
-        grad_func = self._model.get_gradient
+        grad_func = self._model.get_value_and_gradient
 
         dt = time[1] - time[0]
 
         time_grid = time[:-1] + dt / 2
 
-        hams = eom_func(time_grid) * dt
-        dh_dps = jnp.array(grad_func(time_grid)) * dt
+        hams, dh_dps = grad_func(time_grid)
+        hams = hams * dt
+        dh_dps = jnp.array(dh_dps) * dt
 
         u_grads_list = []
         n_params = dh_dps.shape[1]

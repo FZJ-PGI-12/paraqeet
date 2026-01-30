@@ -107,7 +107,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return self._get_value_method(times)
 
-    def get_gradient(self, times) -> Array:
+    def get_value_and_gradient(self, times) -> tuple[Array, Array]:
         """Compute the gradient of getMatrix.
 
         Parameters
@@ -121,4 +121,5 @@ class ClosedSystem(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        return -1.0j * self._hamiltonian.get_value_and_gradient(times)[1]
+        eom, eom_gradient = self._hamiltonian.get_value_and_gradient(times)
+        return -1.0j * eom, -1.0j * eom_gradient

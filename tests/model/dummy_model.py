@@ -43,7 +43,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian.get_value(t)
 
-    def get_gradient(self, t) -> Array:
+    def get_value_and_gradient(self, t) -> Array:
         """Compute the gradient of get_value.
 
         Parameters

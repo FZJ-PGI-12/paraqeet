@@ -61,7 +61,8 @@ class Hamiltonian(Optimizable):
             Hilbert space dimension.
 
         """
-        return jnp.array(vmap(self.get_value_at_timestep)(times))
+        # Ignoring mypy due to vmap
+        return jnp.array(vmap(self.get_value_at_timestep)(times))  # type: ignore
 
     @abstractmethod
     def get_value_at_timestep(self, timestep: float) -> Array:

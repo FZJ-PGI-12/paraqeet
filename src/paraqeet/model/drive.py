@@ -83,7 +83,8 @@ class Drive(Optimizable):
 
 
         """
-        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, t)
+        # Ignoring mypy here as vmap makes the array to float
+        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, t)  #  type: ignore
 
     @abstractmethod
     def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:

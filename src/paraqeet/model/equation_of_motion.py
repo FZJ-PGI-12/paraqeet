@@ -22,6 +22,7 @@ class EquationOfMotion(Optimizable):
     """
 
     _hamiltonian: DifferentiableHamiltonian
+    ode_propagation: bool = False
 
     def __init__(self, hamiltonian: DifferentiableHamiltonian):
         self._hamiltonian = hamiltonian
@@ -69,7 +70,7 @@ class EquationOfMotion(Optimizable):
         pass
 
     @abstractmethod
-    def get_gradient(self, t: Array) -> Array:
+    def get_value_and_gradient(self, t: Array) -> tuple[Array, Array]:
         """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
 
         Parameters

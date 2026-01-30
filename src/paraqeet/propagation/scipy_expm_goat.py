@@ -99,20 +99,20 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
             raise ConfigurationException("Initial state is not set")
         if self._model is None:
             raise ConfigurationException("No equation of motion is configured.")
-        n_params = self._model.get_gradient(jnp.array([0.0])).shape[1]
+        n_params = self._model.get_value_and_gradient(jnp.array([0.0]))[1].shape[1]
         dim = self._initial_state.shape[0]
         psis = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
-        eom_func = self._model.get_value
-        grad_func = self._model.get_gradient
+        grad_func = self._model.get_value_and_gradient
 
         for ti in range(1, len(time)):
             times, dt = self._construct_times(time, ti)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
-            eom = eom_func(times + dt / 2) * dt
-            grads = jnp.array(grad_func(times + dt / 2)) * dt
+            eom, grads = grad_func(times + dt / 2)
+            eom = eom * dt
+            grads = jnp.array(grads) * dt
 
             psi_t = self._propagate_gradient(n_params, psi_t, eom, grads, jnp.arange(0, len(times), 1))
             psis.append(jnp.array(psi_t[0:dim]))
