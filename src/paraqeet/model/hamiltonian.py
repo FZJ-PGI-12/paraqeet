@@ -139,7 +139,8 @@ class Hamiltonian(Optimizable):
             Returns the sum of all drives in matrix form.
 
         """
-        return vmap(self._get_drive_matrix_at_timestep, in_axes=(None, 0))(annihilation_operator, times)
+        # ignoring mypy due to vmap
+        return vmap(self._get_drive_matrix_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  # type: ignore
 
     def _get_drive_matrix_at_timestep(self, annihilation_operator: Array, times: float) -> Array:
         """Return the sum of all drives in matrix form.

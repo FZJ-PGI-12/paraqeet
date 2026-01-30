@@ -29,14 +29,14 @@ class CustomHamiltonian(DifferentiableHamiltonian):
     To use open system simulation, provide a list of tuples of decay rates and corresponding collapse opearators.
     """
 
-    __hamiltonian_function: Callable[[Array, Any], Array]
+    __hamiltonian_function: Callable[[Array, Any], Array] | Callable[[float, Any], Array]
     __parameters: list[Quantity]
     __gradient_functions: list[Callable] | None
     __collapse_operators: list[tuple[Array, Array]] | None
 
     def __init__(
         self,
-        hamiltonian_function: Callable[[Array, Any], Array],
+        hamiltonian_function: Callable[[Array, Any], Array] | Callable[[float, Any], Array],
         parameters: list[Quantity],
         gradient_functions: list[Callable] | None = None,
         collapse_operators: list[tuple[Array, Array]] | None = None,
@@ -83,7 +83,8 @@ class CustomHamiltonian(DifferentiableHamiltonian):
         """Return Hamiltonian as a function of time for an array of time."""
         params = [p.get_value()[0] for p in self.__parameters]
         matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
-        return matrix_fun(times, *params)
+        # ignoring mypy due to vmap
+        return matrix_fun(times, *params)  # type: ignore
 
     def get_gradient_at_timestep(self, timestep: float) -> Array:
         """Return the gradient as a function of time for a single time point."""
@@ -102,9 +103,10 @@ class CustomHamiltonian(DifferentiableHamiltonian):
         """Return Hamiltonian and its gradient for one timestep."""
         return self.get_value_at_timestep(time), self.get_gradient_at_timestep(time)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Return Hamiltonian and its gradient as a function of time."""
-        return self.get_value(times), jnp.array(vmap(self.get_gradient_at_timestep, in_axes=(0,))(times))
+        # ignoring mypy due to vmap
+        return self.get_value(times), jnp.array(vmap(self.get_gradient_at_timestep, in_axes=(0,))(times))  # type: ignore
 
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Return collapse operators."""

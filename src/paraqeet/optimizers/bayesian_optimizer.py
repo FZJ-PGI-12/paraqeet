@@ -3,7 +3,7 @@
 from bayes_opt import BayesianOptimization
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 from paraqeet.quantity import Array
@@ -36,13 +36,13 @@ class BayesianOptimizer(Optimizer):
 
     """
 
-    _measure: Measurement
+    _measure: NormalizableMeasurement
     __initial_samples: int
     __iterations: int
 
     def __init__(
         self,
-        measure: Measurement,
+        measure: NormalizableMeasurement,
         optimizables: OptimizationMap,
         initial_samples=10,
         iterations=100,
@@ -151,10 +151,8 @@ class BayesianOptimizer(Optimizer):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        # TODO : Mypy raises error: "Measurement" has no attribute "calculate_normalized_scalar"
         fidelity = self._measure.calculate_normalized_scalar(self._times)
 
-        # TODO: Mypy raises error: Returning Any from function declared to return "float"
         if self._logger:
             self._logger.log(log, fidelity)
         return fidelity

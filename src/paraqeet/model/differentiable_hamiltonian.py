@@ -19,4 +19,5 @@ class DifferentiableHamiltonian(Differentiable, Hamiltonian):
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute value and gradient for given timesteps. The gradient call uses vmap over at_timestep methods."""
-        return self.get_value(times), vmap(self.get_gradient_at_timestep)(times)
+        # ignoring mypy due to vmap
+        return self.get_value(times), vmap(self.get_gradient_at_timestep)(times)  # type: ignore

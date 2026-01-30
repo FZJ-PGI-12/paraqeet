@@ -97,7 +97,8 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         """Compute the gradients of the coupling expression in the rotating frame, i.e.
         include a phase factor for several timesteps.
         """
-        return vmap(self.get_RWA_gradients_one_time)(times)
+        # ignoring mypy due to vmap
+        return vmap(self.get_RWA_gradients_one_time)(times)  # type: ignore
 
     def get_RWA_gradients_one_time(self, t: float) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.

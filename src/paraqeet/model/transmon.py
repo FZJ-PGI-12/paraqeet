@@ -144,7 +144,7 @@ class Transmon(DifferentiableHamiltonian):
         hamil = self.__frequency.get_value() * self.__num_op + self.__anharmonicity.get_value() * self.__anharmonic_term
         return hamil + self._get_drive_matrix_at_timestep(self.__annihilation_op, timestep)
 
-    def get_gradient_at_timestep(self, time: Array) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Get the gradient of the drive.
 
         Parameters

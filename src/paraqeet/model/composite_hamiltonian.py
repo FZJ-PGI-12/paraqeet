@@ -153,7 +153,10 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         for one_index, subsystem in enumerate(self._subsystems):
             if not isinstance(subsystem, DifferentiableHamiltonian):
                 raise IncompatibleLayersException(f"Expected {subsystem} to provide gradients.")
-            sub_gradients = subsystem.get_gradient_at_timestep(jnp.array(time, ndmin=1))
+
+            # TODO: Fix typing
+            # ignoring mypy due to vmap
+            sub_gradients = subsystem.get_gradient_at_timestep(jnp.array(time, ndmin=1))  # type: ignore
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")

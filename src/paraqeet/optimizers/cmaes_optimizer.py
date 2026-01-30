@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.file_logger import Logger
-from paraqeet.measurement.measurement import Measurement
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 from paraqeet.quantity import Array
@@ -45,12 +45,13 @@ class CMAEsOptimizer(Optimizer):
 
     """
 
+    _measure: NormalizableMeasurement
     _options: dict
     _callback: Callable | None
 
     def __init__(
         self,
-        measure: Measurement,
+        measure: NormalizableMeasurement,
         optimizables: OptimizationMap,
         logger: Logger | None = None,
         callback=None,
@@ -227,10 +228,8 @@ class CMAEsOptimizer(Optimizer):
             params[index].set_reduced_value(val)
             log.append(params[index])
 
-        # TODO: Mypy raises error: "Measurement" has no attribute "calculate_normalized_scalar"
         infid = 1.0 - self._measure.calculate_normalized_scalar(self._times)
 
-        # TODO: Mypy raises error: Returning Any from function declared to return "float"
         if self._logger:
             self._logger.log(log, infid)
         return infid

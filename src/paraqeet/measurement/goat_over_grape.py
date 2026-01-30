@@ -75,6 +75,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
             Gradients.
 
         """
+        # TODO: Fix typing
         grape = self.__measurement
         self.__gen._update_inphase_and_outofphase()
         control_gradients = self.__gen._get_partial_derivatives()

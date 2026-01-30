@@ -133,7 +133,7 @@ class Envelope(Waveform):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Compute the output.
 
         Parameters
@@ -190,7 +190,7 @@ class ConstantEnvelope(Envelope):
         """
         return jnp.squeeze(jnp.where(t <= t_final, amp, 0.0))
 
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Compute the constant signal envelope at different times.
 
         Parameters
@@ -213,7 +213,7 @@ class ConstantEnvelope(Envelope):
         t_final = self.t_final.get_value()
         return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def get_time_gradient(self, times: Array) -> Array:
+    def get_time_gradient(self, times: Array | float) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
@@ -370,7 +370,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         return amp * prod_dir / 4
 
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
@@ -389,7 +389,7 @@ class FlatTopGaussianEnvelope(Envelope):
         # returns JitWrapped
         return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array | float) -> tuple[Array, Array]:
         """Return the gradient wrt dimensionless parameters.
 
         Parameters
@@ -415,7 +415,7 @@ class FlatTopGaussianEnvelope(Envelope):
         gradient = jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t_arr.shape[0], 0))
         return self._evaluate(amp, t_final, times), gradient
 
-    def get_time_gradient(self, times: Array) -> Array:
+    def get_time_gradient(self, times: Array | float) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
@@ -490,7 +490,7 @@ class GaussEnvelope(Envelope):
         # returns JitWrapped
         return time_grad  # type: ignore
 
-    def get_value(self, times: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Compute a Gaussian signal.
 
         Parameters
@@ -508,7 +508,7 @@ class GaussEnvelope(Envelope):
         # returns JitWrapped
         return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def get_time_gradient(self, times: Array) -> Array:
+    def get_time_gradient(self, times: Array | float) -> Array:
         """Compute a Gaussian signals time derivative.
 
         Parameters

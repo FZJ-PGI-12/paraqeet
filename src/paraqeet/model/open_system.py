@@ -199,5 +199,6 @@ class OpenSystem(EquationOfMotion):
             else:
                 eom = vmap(self.__create_lindbladian_superop)(times)
                 # TODO: times is an Array but float is expected
-                grads = vmap(self.__create_hamiltonian_grad_superop)(times)
+                # ignoring mypy due to vmap
+                grads = vmap(self.__create_hamiltonian_grad_superop)(times)  # type: ignore
         return eom, grads

@@ -117,8 +117,8 @@ class ScipyOptimizerGradient(ScipyOptimizer):
 
             infid = 1.0 - fun
             if self._logger:
-                self._logger.log(log, infid)
-            return 1 - fun
+                self._logger.log(log, float(infid))
+            return float(1 - fun)
         # TODO: which fallback value can be returned here?
         raise IncompatibleQuantityException(
             "Gradient-based optimizer requires a Differentiable measurement; "

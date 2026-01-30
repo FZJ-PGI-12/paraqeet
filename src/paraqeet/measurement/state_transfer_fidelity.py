@@ -92,6 +92,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         """
         # TODO: `propagate` needs at least two time points initial and final.
         # TODO: Does Measurement implement default conversion from times: float -> Array?
+        # TODO: Fix typing
         states = self._propagation.propagate(time=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
