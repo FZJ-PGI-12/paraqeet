@@ -68,6 +68,6 @@ def test_time_steps(rk, random_state):
     runge_kutta.set_initial_state(state)
     with pytest.raises(
         ValueError,
-        match="Runge-Kutta propagation needs at least two time steps",
+        match="RungeKutta.propagate needs at least two time steps",
     ):
         runge_kutta.propagate(time)

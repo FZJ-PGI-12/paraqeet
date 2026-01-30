@@ -136,7 +136,7 @@ def fid(model):
     target = jnp.array([[0.0], [1]])  # |1>
 
     prop.set_initial_state(init)
-    prop.set_target_state = target
+    prop.set_target_state(target)
 
     zeroone = StateTransferFidelityGRAPE(
         propagation=prop,

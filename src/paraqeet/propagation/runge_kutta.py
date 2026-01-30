@@ -80,7 +80,7 @@ class RungeKutta(Propagation):
             raise ConfigurationException("Initial state is not set")
 
         if len(time) < 2:
-            raise ValueError("RungeKutta.propagate propagation needs at least two time steps")
+            raise ValueError("RungeKutta.propagate needs at least two time steps")
 
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
