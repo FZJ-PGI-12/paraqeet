@@ -10,13 +10,13 @@ from jax.scipy.linalg import expm
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.state_propagation import StatePropagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpm(StatePropagation):
+class ScipyExpm(Propagation):
     """Piecewise matrix exponential propagation system.
 
     Solve the equation of motion by piecewise exponentation with the

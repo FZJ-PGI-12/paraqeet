@@ -5,11 +5,11 @@ from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.state_propagation import StatePropagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array, Quantity
 
 
-class RungeKutta(StatePropagation):
+class RungeKutta(Propagation):
     """Propagation via the Runge-Kutta Scipy implementation.
 
     Uses scipy's Runge-Kutta implementation for propagating

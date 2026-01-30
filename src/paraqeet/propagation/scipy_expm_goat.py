@@ -10,13 +10,13 @@ import jax.numpy as jnp
 from jax import jit, vmap
 from jax.lax import scan
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.quantity import Array
 
 
-class ScipyExpmGOAT(ScipyExpm, Differentiable):
+class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:

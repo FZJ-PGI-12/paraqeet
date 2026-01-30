@@ -9,7 +9,7 @@ from jax import grad, jit
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.state_propagation import StatePropagation
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
@@ -20,7 +20,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     Parameters
     ----------
-    propagation : StatePropagation
+    propagation : DifferentiablePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     initial_state : Array
@@ -34,11 +34,11 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     _initial_state: Array
     _target_state: Array
-    _propagation: StatePropagation
+    _propagation: DifferentiablePropagation
 
     def __init__(
         self,
-        propagation: StatePropagation,
+        propagation: DifferentiablePropagation,
         initial_state: Array,
         target_state: Array,
     ):
@@ -138,7 +138,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
     def __init__(
         self,
-        propagation: StatePropagation,
+        propagation: DifferentiablePropagation,
         initial_state: Array,
         target_state: Array,
     ):
@@ -178,7 +178,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     Parameters
     ----------
-    propagation : StatePropagation
+    propagation : DifferentiablePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     initial_state : Array
@@ -190,7 +190,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     """
 
-    _propagation: StatePropagation
+    _propagation: DifferentiablePropagation
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.

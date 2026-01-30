@@ -2,11 +2,11 @@
 
 import jax.numpy as jnp
 
-from paraqeet.propagation.state_propagation import StatePropagation
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.quantity import Array, Quantity
 
 
-class IdentityPropagation(StatePropagation):
+class IdentityPropagation(DifferentiablePropagation):
     """Mock identity propagation implementation.
 
     Returns the initial state as the target state.

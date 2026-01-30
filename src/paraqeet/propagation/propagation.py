@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.model.open_system import OpenSystem
 from paraqeet.quantity import Array
 
 
@@ -19,22 +20,37 @@ class Propagation(ABC):
     """
 
     _model: EquationOfMotion | None
+    _initial_state: Array | None = None
+    _is_open: bool = False
 
     def __init__(self, model: EquationOfMotion | None):
         self._model = model
+        if isinstance(model, OpenSystem):
+            self.is_open = True
 
+    @property
+    def is_open(self) -> bool:
+        """Return if the propagation is for open or closed system."""
+        return self._is_open
+
+    @is_open.setter
+    def is_open(self, flag) -> None:
+        """Set if the propagation is for open or closed system."""
+        self._is_open = flag
+
+    # TODO: Keep or remove get_parameters?
     # @staticmethod
     def get_parameters(self):
         """Per default, propagation methods have no parameters to optimize."""
         return []
 
-    #TODO: Remove set_initial_state? And add it to StatePropagation only?
-    @abstractmethod
     def set_initial_state(self, state: Array):
-        """Set the initial state for the propagation.
+        """Set the initial state for the propagation. (Default implementation)
 
         Propagation implementations that do not need the state should not
         implement this function.
+
+        Subclasses can access the state in the _initial_sate field.
 
         Parameters
         ----------
@@ -42,7 +58,7 @@ class Propagation(ABC):
             Parameter value to be set as the initial state for the propagation.
 
         """
-        pass
+        self._initial_state = state
 
     @abstractmethod
     def propagate(self, time: Array) -> Array:

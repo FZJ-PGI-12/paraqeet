@@ -7,16 +7,16 @@ import jax.numpy as jnp
 from jax import jit, vmap
 from jax.lax import dynamic_slice_in_dim, scan
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7GRAPE(Vern7, Differentiable):
+class Vern7GRAPE(Vern7, DifferentiablePropagation):
     """
     Solve EOMs by 7th order ODE method to compute gradients using GRAPE.
 

@@ -14,16 +14,16 @@ from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm, expm_frechet
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpmGRAPE(ScipyExpm, Differentiable):
+class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
     """Solve EOMs by piecewise exponentation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using

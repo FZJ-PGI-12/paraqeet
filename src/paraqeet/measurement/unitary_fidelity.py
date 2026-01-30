@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.propagation import Propagation
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
@@ -36,11 +36,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
     __basis_states: Array | None
     __target_costates: Array
-    __propagation: Propagation
+    __propagation: DifferentiablePropagation
 
     def __init__(
         self,
-        propagation: Propagation,
+        propagation: DifferentiablePropagation,
         gate: Array,
         basis_states: Array | None = None,
     ):
@@ -82,6 +82,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             L2 norm of the last time step compared to the ideal gate.
 
         """
+        # TODO: Fix typing
         states = self.__propagation.propagate(time=times)
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
@@ -97,6 +98,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
+        # TODO: Fix typing
         states, dg_dp_list = self.__propagation.get_value_and_gradient(time=times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self.__target_costates.T):
