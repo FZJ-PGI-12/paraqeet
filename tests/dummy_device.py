@@ -1,13 +1,13 @@
 """Testing the device functions."""
 
 from functools import partial
+from collections.abc import Callable
 
 import jax.numpy as jnp
-import numpy as np
 from jax import jit
 from jax.scipy.special import erf
 
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
 
 
@@ -29,8 +29,70 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
     """
 
+    _amplitude: Quantity
+    _t_final: Quantity
+    _t_up: Quantity
+    _t_down: Quantity
+    _ramp_time: Quantity
+
+    def __init__(
+        self,
+        amplitude: Quantity | None = None,
+        t_up: Quantity | None = None,
+        t_down: Quantity | None = None,
+        ramp_time: Quantity | None = None,
+        t_final: Quantity | None = None,
+    ):
+        self._amplitude = amplitude or Quantity(
+            1.55e8,
+            min_value=jnp.array(0.0),
+            max_value=jnp.array(1e9),
+            unit="Hz",
+            name="Amplitude",
+            two_pi=True,
+        )
+
+        self._t_final = t_final or Quantity(
+            32e-9,
+            min_value=jnp.array(0),
+            max_value=jnp.array(100e-9),
+            unit="s",
+            name="t_final",
+        )
+
+        self._t_up = t_up or Quantity(
+            self._t_final.get_value() / 5,
+            min_value=self._t_final.get_min_value(),
+            max_value=self._t_final.get_max_value(),
+            unit="s",
+            name="t_up",
+        )
+
+        self._t_down = t_down or Quantity(
+            4 * self._t_final.get_value() / 5,
+            min_value=self._t_final.get_min_value(),
+            max_value=self._t_final.get_max_value(),
+            unit="s",
+            name="t_down",
+        )
+
+        self._ramp_time = ramp_time or Quantity(
+            self._t_final.get_value() / 10,
+            min_value=self._t_final.get_min_value(),
+            max_value=self._t_final.get_max_value(),
+            unit="s",
+            name="ramp_time",
+        )
+
+        self._gradient_function: Callable | None = None
+        self._grad_arg_nums: tuple[int, ...] = ()
+
+    def get_parameters(self):
+        """Get all parameters of the system."""
+        return [self._amplitude, self._t_up, self._t_down, self._ramp_time]
+
     @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: Array, t_final: Array, t: Array):
+    def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, t: Array):
         """Compute the output of the device.
 
         Explicitly depends on the optimizable parameters.
@@ -39,8 +101,12 @@ class FlatTopGaussianEnvelopeAD(Envelope):
         ----------
         amp: Quantity
             Cosine pulse amplitude.
-        t_final: Array
-            The length in time of the entire envelope.
+        t_up: Quantity
+            The start time of constant section of the envelope.
+        t_down: Quantity
+            The end time of constant section of the envelope.
+        ramp_time: Quantity
+            The rate of ramp up and ramp down of the envelope.
         t: Array
             One-dimensional vector of timestamps.
 
@@ -51,94 +117,16 @@ class FlatTopGaussianEnvelopeAD(Envelope):
             on the optimizable parameters.
 
         """
-        ramp_time = t_final / 10
-        ramp_up = 1 + erf((t - t_final / 5) / ramp_time)
-        ramp_down = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
+        ramp_up = 1 + erf((t - t_up) / ramp_time)
+        ramp_down = 1 + erf((-t + t_down) / ramp_time)
         return amp * ramp_up * ramp_down / 4
 
-    @staticmethod
-    @jit
-    def __dir_erf(x: Array):
-        return 2 / jnp.sqrt(np.pi) * jnp.exp(-(x**2))
-
-    @partial(jit, static_argnums=(0,))
-    def _evaluate_time_grad(self, amp: Array, t_final: Array, t: Array):
-        """Compute the output of the device.
-
-        Explicitly depends on the optimizable parameters.
-
-        Parameters
-        ----------
-        amp  Quantity
-            Cosine pulse amplitude.
-        t_final: Array
-            The length in time of the entire envelope.
-        t: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            Returns the output of the device that explicitly depends
-            on the optimizable parameters.
-
-        """
-        ramp_time = t_final / 10
-
-        ramp_up = 1 + erf((t - t_final / 5) / ramp_time)
-        ramp_up_t_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
-        ramp_up_t_dir /= ramp_time
-
-        ramp_down = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
-        ramp_down_t_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
-        ramp_down_t_dir *= -1 / ramp_time
-
-        prod_dir = ramp_up * ramp_down_t_dir + ramp_up_t_dir * ramp_down
-
-        return amp * prod_dir / 4
-
-    @partial(jit, static_argnums=(0,))
-    def _evaluate_tfinal_grad(self, amp: Array, t_final: Array, t: Array):
-        """Compute the output of the device.
-
-        Explicitly depends on the optimizable parameters.
-
-        Parameters
-        ----------
-        amp: Quantity
-            Cosine pulse amplitude.
-        t_final: Array
-            The length in time of the entire envelope.
-        t: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            Returns the output of the device that explicitly depends
-            on the optimizable parameters.
-
-        """
-        ramp_time = t_final / 10
-
-        ramp_up = 1 + erf((t - t_final / 5) / ramp_time)
-        ramp_up_t_fin_dir = self.__dir_erf((t - t_final / 5) / ramp_time)
-        ramp_up_t_fin_dir *= -1 / (5 * ramp_time)
-
-        ramp_down = 1 + erf((-t + 4 * t_final / 5) / ramp_time)
-        ramp_down_t_fin_dir = self.__dir_erf((-t + 4 * t_final / 5) / ramp_time)
-        ramp_down_t_fin_dir *= 4 / (5 * ramp_time)
-
-        prod_dir = ramp_up * ramp_down_t_fin_dir + ramp_up_t_fin_dir * ramp_down
-
-        return amp * prod_dir / 4
-
-    def get_value(self, t: Array) -> Array:
+    def get_value(self, times: Array | float) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -147,23 +135,9 @@ class FlatTopGaussianEnvelopeAD(Envelope):
             Returns the output of the device.
 
         """
-        amp = self.amplitude.get_value()
-        t_final = self.t_final.get_value()
-        return jnp.array(self._evaluate(amp, t_final, t))
-
-    def get_time_gradient(self, t: Array) -> Array:
-        """Compute a signal envelopes time derivative.
-
-        Parameters
-        ----------
-        t: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            Returns a vector signals time derivative.
-        """
-        amp = self.amplitude.get_value()
-        t_final = self.t_final.get_value()
-        return jnp.array(self._evaluate_time_grad(amp, t_final, t))
+        amp = self._amplitude.get_value()
+        t_up = self._t_up.get_value()
+        t_down = self._t_down.get_value()
+        ramp_time = self._ramp_time.get_value()
+        # returns JitWrapped
+        return self._evaluate(amp, t_up, t_down, ramp_time, times)  # type: ignore

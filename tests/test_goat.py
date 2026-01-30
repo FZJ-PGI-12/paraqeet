@@ -21,16 +21,18 @@ FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9
 
 RES = 100e9
-T1 = Quantity(10e-6, 1e-9, 100e-6)
+T1 = Quantity(10e-6, 1e-6, 100e-6)
 TEMP = Quantity(10e-3, 1e-3, 50e-3)
-T2STAR = Quantity(10e-6, 1e-9, 100e-6)
+T2STAR = Quantity(20e-6, 1e-6, 100e-6)
 
 
 @pytest.fixture
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
     env = FlatTopGaussianEnvelope()
-    env.t_final.set_value(T_FINAL)
+    env._t_up.set_value(T_FINAL / 5)
+    env._t_down.set_value(4 * T_FINAL / 5)
+    env._ramp_time.set_value(T_FINAL / 10)
     return env
 
 
@@ -92,10 +94,10 @@ def opt_map(gen):
     """Create an optimization map."""
     params = gen.get_parameters()
     params[0].set_value(0.5 * np.pi / T_FINAL)
-    params[2].set_value(1.01 * FREQ)
+    params[-2].set_value(1.01 * FREQ)
     optmap = OptimizationMap()
-    # Not optimizing t_final
-    optmap.add(gen, [params[0], params[2], params[3]])
+    # Not optimizing t_up, t_down, ramp_time
+    optmap.add(gen, [params[0], params[-2], params[-1]])
     return optmap
 
 
