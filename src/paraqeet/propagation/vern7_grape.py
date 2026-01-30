@@ -44,13 +44,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         else:
             self.__reverse_step_function = self._reverse_schrodinger_step
 
-    @property
-    def target_state(self) -> Array | None:
-        """Returns the current target state for backward propagation."""
-        return self._target_state
-
-    @target_state.setter
-    def target_state(self, target_state: Array) -> None:
+    def set_target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters

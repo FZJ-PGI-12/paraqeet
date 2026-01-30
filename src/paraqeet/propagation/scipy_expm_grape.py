@@ -51,13 +51,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
     def __init__(self, model: EquationOfMotion, res: float):
         super().__init__(model, res)
 
-    @property
-    def target_state(self) -> Array | None:
-        """Returns the current target state for backward propagation."""
-        return self._target_state
-
-    @target_state.setter
-    def target_state(self, target_state: Array) -> None:
+    def set_target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
