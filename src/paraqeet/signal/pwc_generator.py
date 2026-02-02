@@ -114,6 +114,11 @@ class PWCGenerator(Generator):
             Array of time points at which envelope is discritized.
         """
         self._tlist = tlist
+
+        # update time grid
+        dt = tlist[1] - tlist[0]
+        self._time_grid = tlist[:-1] + dt / 2
+
         self._setup_inphase_and_outofphase()
 
     @property
@@ -246,7 +251,7 @@ class PWCGenerator(Generator):
         self,
         inphase: Array,
         outofphase: Array,
-        tlist: Array,
+        time_grid: Array,
         t: Array,
     ) -> Array:
         """Generate a signal for a single time point 't'.
@@ -271,7 +276,7 @@ class PWCGenerator(Generator):
             Returns the PWC signal value at t.
 
         """
-        index = jnp.argmin(jnp.abs(tlist - t))
+        index = jnp.argmin(jnp.abs(time_grid - t))
         return inphase[index] + 1j * outofphase[index]
 
     def get_value(self, times: Array | float) -> Array:

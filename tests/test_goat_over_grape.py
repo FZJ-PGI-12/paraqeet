@@ -129,7 +129,7 @@ def model(gen):
 
 
 @pytest.fixture
-def fid(model):
+def prop(model):
     prop = ScipyExpmGRAPE(model, res=1e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
@@ -137,6 +137,13 @@ def fid(model):
 
     prop.set_initial_state(init)
     prop.set_target_state(target)
+    return prop
+
+
+@pytest.fixture
+def fid(prop):
+    init = jnp.array([[1.0], [0]])  # |0>
+    target = jnp.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
         propagation=prop,
@@ -147,18 +154,18 @@ def fid(model):
 
 
 @pytest.fixture
-def opt_grad(tone, fid, gen):
+def opt_grad(tone, fid, gen, prop):
     optmap = OptimizationMap()
     optmap.add(tone)
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, gen)
+    goat = GOATOverGRAPE(fid, gen, prop)
     opt_grad = ScipyOptimizerGradient(goat, optimizables=optmap)
     return opt_grad
 
 
-def test_can_measure(fid, gen):
-    fid = GOATOverGRAPE(fid, gen)
+def test_can_measure(fid, gen, prop):
+    fid = GOATOverGRAPE(fid, gen, prop)
     val, grad = fid.get_value_and_gradient(times=TLIST)
     assert 0 <= fid.measure(times=TLIST)
     assert 0 <= val <= 1

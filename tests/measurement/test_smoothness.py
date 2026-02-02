@@ -43,7 +43,7 @@ def test_smoothness_init(pwc_gen):
 def test_smoothness_measure(pwc_gen):
     smoothness = Smoothness(pwc_generator=pwc_gen)
     expected_measured_value = 0.9999547789963114
-    assert np.abs(smoothness.calculate_normalized_scalar(pwc_gen.tlist) - expected_measured_value) < 1e-8
+    assert np.abs(smoothness.calculate_normalized_scalar(pwc_gen._time_grid) - expected_measured_value) < 1e-8
 
 
 def test_smoothness_gradient(pwc_gen, another_tone):
