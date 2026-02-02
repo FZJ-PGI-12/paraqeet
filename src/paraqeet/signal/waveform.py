@@ -11,7 +11,6 @@ from jax import grad, jacfwd, jit, vmap
 from jax.scipy.special import erf
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.exceptions import ConfigurationException
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
@@ -296,47 +295,13 @@ class DRAGMixer(Waveform):
         component.
     """
 
-    _multiply_flat_top: bool = False
-
     def __init__(
         self,
         envelopes: Waveform | list[Waveform],
         deltas: list[Quantity] | None = None,
-        t_final: Quantity | None = None,
     ) -> None:
         self._envs = envelopes if isinstance(envelopes, list) else [envelopes]
         self._add_deltas(self._envs, deltas)
-        self._t_final = t_final
-
-    @property
-    def multiply_flat_top(self) -> bool:
-        """Flag to multiply the pulse with a FlatTop.
-
-        This can be used to make the start and end values zeros and force the
-        pulse to change smoothly.
-
-        Returns
-        -------
-        multiply_flat_top : bool
-            Flag value for multiply_flat_top.
-        """
-        return self._multiply_flat_top
-
-    @multiply_flat_top.setter
-    def multiply_flat_top(self, multiply_flat_top: bool) -> None:
-        """Set flag to multiply the pulse with a FlatTop.
-
-        This can be used to make the start and end values zeros and force the
-        pulse to change smoothly.
-
-        Parameters
-        ----------
-        multiply_flat_top : bool
-            Flag value for multiply_flat_top.
-        """
-        self._multiply_flat_top = multiply_flat_top
-        if self._t_final is None:
-            raise ConfigurationException("`t_final` is set to None. Specify pulse length to use `multiply_flat_top`")
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
@@ -401,14 +366,6 @@ class DRAGMixer(Waveform):
         """
         return tone.__getattribute__("_delta")
 
-    @partial(jit, static_argnums=(0,))
-    def _compute_flat_top_envelope(self, times):
-        t_final = self._t_final.get_value()
-        ramp_time = t_final / 25
-        ramp_up = 1 + erf((times - 2 * t_final / 20) / ramp_time)
-        ramp_down = 1 + erf((-times + 18 * t_final / 20) / ramp_time)
-        return ramp_up * ramp_down / 4
-
     def _evaluate(self, times: Array | float, *deltas) -> Array:
         """Compute the DRAG Envelope using deltas.
 
@@ -431,9 +388,6 @@ class DRAGMixer(Waveform):
             env = tone.get_value(times)
             env_grad = tone.get_time_gradient(times)
             total_env += env - 1.0j / delta * env_grad
-        if self.multiply_flat_top:
-            flattop_env = self._compute_flat_top_envelope(times)
-            total_env *= flattop_env
         return jnp.squeeze(total_env)
 
     def get_value(self, times: Array | float) -> Array:
@@ -490,21 +444,16 @@ class DRAGMixer(Waveform):
 
         gradients = jnp.zeros(shape=(times_arr.shape[0], 0))
 
-        if self.multiply_flat_top:
-            smoothing = self._compute_flat_top_envelope(times_arr)
-        else:
-            smoothing = jnp.ones_like(times_arr)
-
         # Collect gradients wrt envelope parameters
         for tone in self._envs:
             _, grads = tone.get_value_and_gradient(times_arr)
-            gradients = jnp.append(gradients, grads * jnp.expand_dims(smoothing, axis=1), axis=1)
+            gradients = jnp.append(gradients, grads, axis=1)
 
         # Collect gradients wrt deltas
         for i, tone in enumerate(self._envs):
             if self._is_optimized(deltas[i]):
                 grad = 1j / (delta_values[i] ** 2) * tone.get_time_gradient(times_arr)
-                grad = jnp.expand_dims(grad * smoothing, axis=1)
+                grad = jnp.expand_dims(grad, axis=1)
                 gradients = jnp.append(gradients, grad, axis=1)
 
         return self.get_value(times_arr), jnp.array(gradients)
