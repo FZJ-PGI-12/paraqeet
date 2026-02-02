@@ -30,7 +30,9 @@ class PWCGenerator(Generator):
     _envs: list[Waveform]
         List of Envelopes
     _tlist: Array
-        Time grid discritization points
+        Left time points for discretization. These can be used for propagation and optimization.
+    _time_grid: Array
+        Time grid used to discretize the pulse. These are shifted from tlist by dt, and doesn't include zero time.
     _max_amplitude: float
         Maximum amplitude of the drive
     _inphase: Quantity
@@ -52,6 +54,7 @@ class PWCGenerator(Generator):
 
     _envs: list[Waveform]
     _tlist: Array
+    _time_grid: Array
     _max_amplitude: float
     _inphase: Quantity
     _outofphase: Quantity
@@ -67,6 +70,10 @@ class PWCGenerator(Generator):
         self._envs = envelopes or []
         self._tlist = tlist
 
+        # Choose the center point for time grid
+        dt = tlist[1] - tlist[0]
+        self._time_grid = tlist[:-1] + dt / 2
+
         if max_amplitude is not None and max_amplitude < 0.0:
             raise ValueError("The maximum drive amplitude must be positive.")
         elif max_amplitude is None:
@@ -75,12 +82,8 @@ class PWCGenerator(Generator):
         else:
             self._max_amplitude = max_amplitude
 
-        # Choose the center point as time grid
-        dt = tlist[1] - tlist[0]
-        self._tlist = tlist[:-1] + dt / 2
-
         self._setup_inphase_and_outofphase()
-        self._t_final = self._tlist[-1]
+        self._t_final = self._time_grid[-1]
 
     @partial(jit, static_argnums=(0,))
     def _compute_envelope(self, t):
@@ -176,9 +179,9 @@ class PWCGenerator(Generator):
         self._setup_inphase_and_outofphase()
 
     def _compute_shape(self) -> Array:
-        env = jnp.zeros_like(self._tlist)
+        env = jnp.zeros_like(self._time_grid)
         for dev in self._envs:
-            env += dev.get_value(self._tlist)
+            env += dev.get_value(self._time_grid)
         return env
 
     def _setup_inphase_and_outofphase(self) -> None:
@@ -187,7 +190,7 @@ class PWCGenerator(Generator):
 
         # max_abs = jnp.max(jnp.abs(env))
         max_component = self._max_amplitude / jnp.sqrt(2)
-        bound = max_component * jnp.ones_like(self._tlist)
+        bound = max_component * jnp.ones_like(self._time_grid)
 
         self._inphase = Quantity(
             jnp.real(env),
@@ -202,10 +205,10 @@ class PWCGenerator(Generator):
             name="out-of-phase",
         )
 
-    def _get_partial_derivatives(self) -> Array:
+    def _get_partial_derivatives(self, times) -> Array:
         env_grads = []
         for dev in self._envs:
-            _, grad = dev.get_value_and_gradient(self._tlist)
+            _, grad = dev.get_value_and_gradient(times)
             dev_grad = jnp.concat([jnp.real(grad), jnp.imag(grad)])
             env_grads.append(dev_grad)
         return jnp.hstack(env_grads)
@@ -285,15 +288,17 @@ class PWCGenerator(Generator):
             Returns the signal vector.
 
         """
-        tlist = self._tlist
+        time_grid = self._time_grid
         t_arr = jnp.array(times, ndmin=1)
         inphase = self._inphase.get_value()
         outofphase = self._outofphase.get_value()
         if self._multiply_flat_top:
-            env = self._compute_envelope(tlist)
+            env = self._compute_envelope(time_grid)
             inphase *= env
             outofphase *= env
-        shape = jnp.squeeze(vmap(self._pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, tlist, t_arr))
+        shape = jnp.squeeze(
+            vmap(self._pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, time_grid, t_arr)
+        )
         return shape
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
@@ -315,14 +320,14 @@ class PWCGenerator(Generator):
         t_arr = jnp.array(times, ndmin=1)
 
         grads = []
-        tlist = self._tlist
-        
+        time_grid = self._time_grid
+
         inphase = self._inphase.get_value()
         outofphase = self._outofphase.get_value()
 
         if self._multiply_flat_top:
-            smoothing = self._compute_envelope(tlist)
-            index = jnp.argmin(jnp.abs(jnp.expand_dims(tlist, axis=1) - t_arr), axis=0)
+            smoothing = self._compute_envelope(time_grid)
+            index = jnp.argmin(jnp.abs(jnp.expand_dims(time_grid, axis=1) - t_arr), axis=0)
             env = smoothing[index]
             inphase *= env
             outofphase *= env
@@ -338,8 +343,10 @@ class PWCGenerator(Generator):
             grads_stack = jnp.stack(grads)
         else:
             grads_stack = jnp.empty((t_arr.shape[0], 0))
-        
-        shape = jnp.squeeze(vmap(self._pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, tlist, t_arr))
+
+        shape = jnp.squeeze(
+            vmap(self._pwc_signal, in_axes=(None, None, None, 0))(inphase, outofphase, time_grid, t_arr)
+        )
         return shape, grads_stack
 
     def get_gradient_at_timestep(self, time: float) -> Array:
@@ -359,11 +366,11 @@ class PWCGenerator(Generator):
             PWC signal gradients.
         """
         grads = []
-        tlist = self._tlist
+        time_grid = self._time_grid
 
         if self._multiply_flat_top:
-            smoothing = self._compute_envelope(tlist)
-            index = jnp.argmin(jnp.abs(tlist - time))
+            smoothing = self._compute_envelope(time_grid)
+            index = jnp.argmin(jnp.abs(time_grid - time))
             env = smoothing[index]
         else:
             env = 1
