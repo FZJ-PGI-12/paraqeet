@@ -109,13 +109,13 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             )
             return lamdas_t, lamdas_t
 
-        psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
+        psis_t, _ = scan(forward_propagation, psis_t, steps_arr)
 
         self.step_function = self.__reverse_step_function
         eom = (-1) * jnp.flip(eom, axis=0)
-        lamdas_t, lamdas_list = scan(backward_propagation, lamdas_t, steps_arr)
+        lamdas_t, _ = scan(backward_propagation, lamdas_t, steps_arr)
 
-        return psis_list, lamdas_list
+        return psis_t, lamdas_t
 
     def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
@@ -153,28 +153,38 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         if not self._model.ode_propagation:
             raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
-        dt = time[1] - time[0]
-        interp_time = self._interpolate_time(time, dt)
-        time_grid = interp_time[:-1] + dt / 2
+        psis_list = [init_state]
+        lamdas_list = [target_state]
 
-        # TODO: currently seperate time grids are required for the EOM and the gradients.
-        # TODO: Can we use one so that the value and gradients are computed simultaneously?
+        for ti in range(1, len(time)):
+            psi_t = psis_list[ti - 1]
+            lamda_t = lamdas_list[ti - 1]
 
-        eom, cols = eom_func(time_grid)
+            # Interpolate times
+            time_grid, dt = self._construct_times(time, ti)
+            times_interp = self._interpolate_time(time_grid, dt)
+            times_interp = times_interp[:-1] + dt / 2
+
+            # TODO: currently seperate time grids are required for the EOM and the gradients.
+            # TODO: Can we use one so that the value and gradients are computed simultaneously?
+
+            eom, cols = eom_func(times_interp)
+
+            psi_t, lamda_t = self._forward_and_backward_propagation(
+                psi_t, lamda_t, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time_grid), 1)
+            )
+
+            psis_list.append(psi_t)
+            lamdas_list.append(lamda_t)
+
+        psis = jnp.array(psis_list)
+        lamdas = jnp.array(lamdas_list)
+
+        lamdas = jnp.flip(lamdas, axis=0)
         _, dh_dps = grad_func(time[:-1] + dt / 2)
         dh_dps = jnp.array(dh_dps) * dt
 
-        psis, lamdas = self._forward_and_backward_propagation(
-            init_state, target_state, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time[:-1]), 1)
-        )
-
-        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-        lamdas = jnp.concat([jnp.expand_dims(target_state, axis=0), lamdas], axis=0)
-
-        lamdas = jnp.flip(lamdas, axis=0)
-
         grads = []
-
         n_params = dh_dps.shape[1]
         for i in range(n_params):
             if self.is_open:
