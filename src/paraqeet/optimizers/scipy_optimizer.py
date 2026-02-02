@@ -19,8 +19,8 @@ class ScipyOptimizer(Optimizer):
     ----------
     measure: Measurement
         Implementation of the Measurement class that measures the observable
-        to be minimised.
-    optimizable: OptimizationMap
+        to be maximised.
+    optimization_map: OptimizationMap
         An optimization map containing all parameters that can be optimized.
 
     """
@@ -31,8 +31,8 @@ class ScipyOptimizer(Optimizer):
     _method: str
     _callback: Callable | None
 
-    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap) -> None:
-        super().__init__(measure, optimizables)
+    def __init__(self, measure: NormalizableMeasurement, optimization_map: OptimizationMap) -> None:
+        super().__init__(measure, optimization_map)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
         self._callback = None
@@ -106,11 +106,11 @@ class ScipyOptimizer(Optimizer):
         self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
 
         self._build_optimizable_index_list()
-        self._optimizables.register_params_with_optimizables()
+        self._optimization_map.register_params_with_optimizables()
 
         # Collect the initial values of all parameters
         init = []
-        for qty in self._optimizables.get_all_parameters():
+        for qty in self._optimization_map.get_all_parameters():
             init.append(qty.get_reduced_value())  # reduced values are between [-1, 1]
 
         opt_res = minimize(
@@ -150,7 +150,7 @@ class ScipyOptimizer(Optimizer):
 
         """
         log = []
-        params = self._optimizables.get_all_parameters()
+        params = self._optimization_map.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])

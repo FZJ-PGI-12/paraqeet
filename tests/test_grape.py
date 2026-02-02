@@ -91,7 +91,7 @@ def opt_map(pwc_gen):
 @pytest.fixture
 def opt(states, opt_map):
     """Create a scipy optimizer gradient object over states."""
-    return ScipyOptimizerGradient(measure=states, optimizables=opt_map)
+    return ScipyOptimizerGradient(measure=states, optimization_map=opt_map)
 
 
 def test_optim_grape(opt) -> None:

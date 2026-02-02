@@ -99,36 +99,14 @@ basis at time 0 with :math:`\mathcal{I}_2`
 
 .. code:: ipython3
 
-    def plot_states():
-        """Plot the states."""
-        ts = np.linspace(0, t_final, 1001)
-        states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
+    from plotting import plot_signal_and_dynamics
     
-        fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
-        ax[0].plot(ts / 1e-9, sig)
-        ax[0].set_ylabel("Field [MHz]")
-        ax[1].plot(ts / 1e-9, np.abs(states)[:, :, 0] ** 2)
-        ax[1].set_ylabel("Population")
-        ax[-1].set_xlabel("Time [ns]")
-        return fig, ax
-    
-    
-    plot_states()
+    ts = np.linspace(0.0, t_final, 501)
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_12_1.png
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_12_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -154,7 +132,7 @@ frequency, as in the state transfer example.
 
     optmap = OptimizationMap()
     optmap.add(gen, [params[0], params[2]])
-    opt = ScipyOptimizerGradient(gate_fid, optimizables=optmap)
+    opt = ScipyOptimizerGradient(gate_fid, optimization_map=optmap)
 
 .. code:: ipython3
 
@@ -171,27 +149,17 @@ frequency, as in the state transfer example.
 
 .. code:: ipython3
 
-    plot_states()
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
-
-
-
-
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_18_1.png
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_18_0.png
 
 
 Dynamics of Pauli operators
 ---------------------------
 
-Here, we end up with an unsatisfactory result. For optimising gate
+Here, we end up with an unsatisfactory result. For optimizing gate
 fidelities, looking at state populations does not give enough
 information to identify the problem.
 
@@ -210,15 +178,19 @@ information to identify the problem.
         """Plot the Pauli operators."""
         ts = np.linspace(0, t_final, 1001)
         states = prop.propagate(ts)
-        sig = gen.generate_signal(ts)
+        sig = gen.generate_signal(ts) / 1e6 / (2 * np.pi)
     
         fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, sig)
-        ax[0].set_ylabel("Field [MHz]")
+        ax[0].set_ylabel(r"Field [MHz / $2\pi$]")
+        ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[1].plot(ts / 1e-9, expecation_value(pauli_x, states[:, :, 0]))
         ax[1].plot(ts / 1e-9, expecation_value(pauli_y, states[:, :, 0]))
         ax[1].plot(ts / 1e-9, expecation_value(pauli_z, states[:, :, 0]))
         ax[1].set_ylabel(r"Expectation value $\langle\hat\sigma_i\rangle$")
+        ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
+    
         ax[-1].set_xlabel("Time [ns]")
         ax[1].legend(["X", "Y", "Z"])
         return fig, ax
@@ -231,8 +203,8 @@ information to identify the problem.
 
 .. parsed-literal::
 
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
+    (<Figure size 500x500 with 2 Axes>,
+     array([<Axes: ylabel='Field [MHz / $2\\pi$]'>,
             <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>],
            dtype=object))
 
@@ -251,7 +223,7 @@ our drive to shift and inclide the phase parameter in the optimization.
 
     optmap = OptimizationMap()
     optmap.add(tone, [params[0], params[2], params[3]])
-    opt = ScipyOptimizer(gate_fid, optimizables=optmap)
+    opt = ScipyOptimizer(gate_fid, optimization_map=optmap)
 
 .. code:: ipython3
 
@@ -277,8 +249,8 @@ our drive to shift and inclide the phase parameter in the optimization.
 
 .. parsed-literal::
 
-    (<Figure size 400x400 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>,
+    (<Figure size 500x500 with 2 Axes>,
+     array([<Axes: ylabel='Field [MHz / $2\\pi$]'>,
             <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>],
            dtype=object))
 

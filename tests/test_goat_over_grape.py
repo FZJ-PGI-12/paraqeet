@@ -15,7 +15,6 @@ from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
 from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -23,6 +22,7 @@ from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
 from paraqeet.signal.pwc_generator import PWCGenerator
+from tests.model.spin_rwa import SpinRWA
 
 T_FINAL = 20e-9
 TLIST = jnp.linspace(0, T_FINAL, 26)
@@ -64,38 +64,6 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_time = self.__ramp_time.get_value()
         # returns JitWrapped
         return self._evaluate(amp, t_up, t_down, ramp_time, t)  # type: ignore
-
-
-class SpinRWA(DifferentiableHamiltonian):
-    """A Single Spin."""
-
-    def __init__(self, drives=None):
-        super().__init__(drives)
-        self.sigma_p = jnp.array([[0j, 1], [0, 0]])
-        self.dim = 2
-
-    def get_value_at_timestep(self, timestep: float) -> Array:
-        """Just sigma-X."""
-        return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
-
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Gradient is just the drive matrix."""
-        return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
-
-    def get_gradient_at_timestep(self, time):
-        return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
-
-    # TODO: implement dimension-method from Hamiltonian
-    def dimension(self) -> int:
-        raise NotImplementedError()
-
-    #  TODO: implement get_collapseops method from Hamiltonian
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
-        raise NotImplementedError()
-
-    #  TODO: implement get_parameters method from Optimizable
-    def get_parameters(self):
-        raise NotImplementedError()
 
 
 @pytest.fixture
@@ -159,13 +127,13 @@ def opt_grad(tone, fid, gen, prop):
     optmap.add(tone)
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, gen, prop)
-    opt_grad = ScipyOptimizerGradient(goat, optimizables=optmap)
+    goat = GOATOverGRAPE(fid, prop, generators=gen, generators_order=[0])
+    opt_grad = ScipyOptimizerGradient(goat, optimization_map=optmap)
     return opt_grad
 
 
 def test_can_measure(fid, gen, prop):
-    fid = GOATOverGRAPE(fid, gen, prop)
+    fid = GOATOverGRAPE(fid, prop, generators=[gen], generators_order=[0])
     val, grad = fid.get_value_and_gradient(times=TLIST)
     assert 0 <= fid.measure(times=TLIST)
     assert 0 <= val <= 1

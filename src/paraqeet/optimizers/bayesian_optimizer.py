@@ -25,8 +25,8 @@ class BayesianOptimizer(Optimizer):
     ----------
     measure: Measurement
         The measure to be optimized.
-    optimizables : OptimizationMap
-        All optimizable parameters.
+    optimization_map : OptimizationMap
+        All optimizable parameters via the optimization map.
     initial_samples : int=10
         Number of iterations before the explorations starts the exploration
         for the maximum.
@@ -43,11 +43,11 @@ class BayesianOptimizer(Optimizer):
     def __init__(
         self,
         measure: NormalizableMeasurement,
-        optimizables: OptimizationMap,
+        optimization_map: OptimizationMap,
         initial_samples=10,
         iterations=100,
     ):
-        super().__init__(measure, optimizables)
+        super().__init__(measure, optimization_map)
         self.__initial_samples = initial_samples
         self.__iterations = iterations
 
@@ -91,8 +91,8 @@ class BayesianOptimizer(Optimizer):
         if self._logger:
             self._logger.start()
 
-        self._optimizables.register_params_with_optimizables()
-        params = self._optimizables.get_all_parameters()
+        self._optimization_map.register_params_with_optimizables()
+        params = self._optimization_map.get_all_parameters()
 
         # The optimizer needs a dict of named bounds. We use the parameters'
         # indices in the list as names because the parameters' names might
@@ -146,7 +146,7 @@ class BayesianOptimizer(Optimizer):
 
         """
         log = []
-        params = self._optimizables.get_all_parameters()
+        params = self._optimization_map.get_all_parameters()
         for i, param in enumerate(params):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])

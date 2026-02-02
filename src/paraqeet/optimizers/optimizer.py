@@ -101,7 +101,7 @@ class Optimizer(ABC):
     """
 
     _measure: Measurement
-    _optimizables: OptimizationMap
+    _optimization_map: OptimizationMap
     _opt_idxs: list[int]
     _logger: Logger | None
     _times: Array
@@ -109,12 +109,12 @@ class Optimizer(ABC):
     def __init__(
         self,
         measure: Measurement,
-        optimizables: OptimizationMap,
+        optimization_map: OptimizationMap,
         logger: Logger | None = None,
     ):
         self._measure = measure
         self._logger = logger
-        self.optimizables = optimizables
+        self.optimization_map = optimization_map
 
     @property
     def logger(self) -> Logger | None:
@@ -133,7 +133,7 @@ class Optimizer(ABC):
         self._logger = logger
 
     @property
-    def optimizables(self) -> OptimizationMap:
+    def optimization_map(self) -> OptimizationMap:
         """Return the optimization map that this optimizer uses.
 
         Parameters that can be optimized need to be added to this map.
@@ -144,11 +144,11 @@ class Optimizer(ABC):
             Returns the optimization map that this optimizer uses.
 
         """
-        return self._optimizables
+        return self._optimization_map
 
-    @optimizables.setter
-    def optimizables(self, opt: OptimizationMap) -> None:
-        """Set optimizable options (via Map).
+    @optimization_map.setter
+    def optimization_map(self, opt: OptimizationMap) -> None:
+        """Set an optimization_map.
 
         Registers optimizables and their length to keep track of vector
         and matrix valued parameters.
@@ -159,7 +159,7 @@ class Optimizer(ABC):
             Takes in the optimizables to set parameters.
 
         """
-        self._optimizables = opt
+        self._optimization_map = opt
 
     @abstractmethod
     def optimize(self, times: Array | float) -> OptimizationResult:
@@ -187,7 +187,7 @@ class Optimizer(ABC):
         and matrix valued parameters.
 
         """
-        params = self._optimizables.get_all_parameters()
+        params = self._optimization_map.get_all_parameters()
         self._opt_idxs = []
         index = 0
         for qty in params:

@@ -36,7 +36,7 @@ class CMAEsOptimizer(Optimizer):
     ----------
     measure: Measurement
         Represents any observable and the process of measurement itself.
-    optimizables: OptimizationMap
+    optimization_map: OptimizationMap
         Optimizable interface for all parameters considered in optimization.
     logger: FileLogger | None, default=None
         The file logger object.
@@ -52,11 +52,11 @@ class CMAEsOptimizer(Optimizer):
     def __init__(
         self,
         measure: NormalizableMeasurement,
-        optimizables: OptimizationMap,
+        optimization_map: OptimizationMap,
         logger: Logger | None = None,
         callback=None,
     ):
-        super().__init__(measure, optimizables, logger)
+        super().__init__(measure, optimization_map, logger)
         self._options = {
             "noise": 0,
             "batch_noise": 0,
@@ -154,10 +154,10 @@ class CMAEsOptimizer(Optimizer):
             self._logger.start()
 
         self._build_optimizable_index_list()
-        self._optimizables.register_params_with_optimizables()
+        self._optimization_map.register_params_with_optimizables()
 
         x_init = []
-        for qty in self._optimizables.get_all_parameters():
+        for qty in self._optimization_map.get_all_parameters():
             x_init.append(qty.get_reduced_value())
 
         es = cma.CMAEvolutionStrategy(np.concatenate(x_init).flatten(), spread, settings)
@@ -223,7 +223,7 @@ class CMAEsOptimizer(Optimizer):
 
         """
         log = []
-        params = self._optimizables.get_all_parameters()
+        params = self._optimization_map.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])

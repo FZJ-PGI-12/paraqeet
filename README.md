@@ -30,6 +30,7 @@ Each module interacts only with the module above it in hierarchy.
 Currently implementated optimization methods
 - GRAPE: Gradient Ascent Pulse Enginnering
 - GOAT: Gradient Optimization of Analytic conTrols
+- dCRAB : (Gradient based) dressed Chopped RAndom Basis
 
 ## Installation from PyPi
 Install with `pip install paraqeet`.

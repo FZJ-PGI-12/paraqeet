@@ -22,13 +22,13 @@ class ScipyOptimizerGradient(ScipyOptimizer):
     Minimize the outcome of a measurement with the Scipy optimization package.
     """
 
-    __grad_cache: Array  # of shape (n_parameters,)
-    __scales: Array
+    _grad_cache: Array  # of shape (n_parameters,)
+    _scales: Array
 
-    def __init__(self, measure: NormalizableMeasurement, optimizables: OptimizationMap) -> None:
-        super().__init__(measure, optimizables)
-        params = self._optimizables.get_all_parameters()
-        self.__scales = jnp.array([p.get_scale() for p in params]).flatten()
+    def __init__(self, measure: NormalizableMeasurement, optimization_map: OptimizationMap) -> None:
+        super().__init__(measure, optimization_map)
+        params = self._optimization_map.get_all_parameters()
+        self._scales = jnp.array([p.get_scale() for p in params]).flatten()
 
     def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize via the Scipy optimizer gradient model.
@@ -50,10 +50,10 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             self._logger.start()
 
         self._build_optimizable_index_list()
-        self._optimizables.register_params_with_optimizables()
+        self._optimization_map.register_params_with_optimizables()
 
         init = []
-        for qty in self._optimizables.get_all_parameters():
+        for qty in self._optimization_map.get_all_parameters():
             init.append(qty.get_reduced_value())
 
         try:
@@ -106,14 +106,14 @@ class ScipyOptimizerGradient(ScipyOptimizer):
 
         """
         log = []
-        params = self._optimizables.get_all_parameters()
+        params = self._optimization_map.get_all_parameters()
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
         # TODO: what if the self._measure is not Differentiable? -- then this optimizer should not be used.
         if isinstance(self._measure, Differentiable):
             fun, grad = self._measure.get_value_and_gradient(self._times)
-            self.__grad_cache = grad
+            self._grad_cache = grad
 
             infid = 1.0 - fun
             if self._logger:
@@ -142,4 +142,4 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             Returns the gradient of a measurement result.
 
         """
-        return -1 * self.__grad_cache * self.__scales
+        return -1 * self._grad_cache * self._scales

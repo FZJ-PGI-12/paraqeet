@@ -39,7 +39,7 @@ class OptimizationMap:
     def add(
         self,
         optimizable: Optimizable,
-        optimizable_quantities: list[Quantity] | None = None,
+        optimizable_quantities: Quantity | list[Quantity] | None = None,
     ):
         """Add an optimizable object and a list of its quantities to the map.
 
@@ -52,30 +52,96 @@ class OptimizationMap:
         ----------
         optimizable: Optimizable
             Input Optimizable object for adding to the map.
-        optimizable_quantities: list[Quantity] | None = None
+        optimizable_quantities: Quantity | list[Quantity] | None = None
             List of all parameters of the optimizable object considered for
             optimization.
 
         """
-        params = optimizable_quantities or optimizable.get_parameters()
+        if optimizable_quantities is not None:
+            params: list[Quantity] = (
+                [optimizable_quantities] if isinstance(optimizable_quantities, Quantity) else optimizable_quantities
+            )
+        else:
+            params = optimizable.get_parameters()
         self.__optimizable_to_parameter_map[optimizable] = params
         if len(self.__optimizable_to_parameter_map[optimizable]) < 1:
             self.__optimizable_to_parameter_map.pop(optimizable)
 
-    def remove(self, optimizable: Optimizable):
-        """Remove the given parameter from the sytem.
+    def append(
+        self,
+        optimizable: Optimizable,
+        optimizable_quantities: Quantity | list[Quantity] | None = None,
+    ):
+        """Append an optimizable object and a list of its quantities to the map.
+
+        This method is similar to the `add` method, but instead of overwritting the
+        existing entries, this appends the specified list of quantities to the
+        already existing quantities.
 
         Parameters
         ----------
-        optimizable: Optimizable
-            Parameter to be removed.
+        optimizable: optimizable
+            Input optimizable object for adding to the map.
+        optimizable_quantities: Quantity | list[Quantity] | None = None
+            List of all parameters of the optimizable object considered for
+            optimization.
+
+        """
+        if optimizable_quantities is not None:
+            params: list[Quantity] = (
+                [optimizable_quantities] if isinstance(optimizable_quantities, Quantity) else optimizable_quantities
+            )
+        else:
+            params = optimizable.get_parameters()
+
+        if optimizable in self.__optimizable_to_parameter_map:
+            self.__optimizable_to_parameter_map[optimizable].extend(params)
+        else:
+            self.__optimizable_to_parameter_map[optimizable] = params
+        if len(self.__optimizable_to_parameter_map[optimizable]) < 1:
+            self.__optimizable_to_parameter_map.pop(optimizable)
+
+    def remove(self, optimizable: Optimizable, params: Quantity | list[Quantity] | None = None):
+        """Remove the given optimizable or parameter(s) from the optimization map.
+
+        If params is None, it removes the optimizable from the optimization map.
+        Else it only removes the specific parameter from the optimization map.
+
+        Parameters
+        ----------
+        optimizable: optimizable
+            optimizable to be removed.
+        params: Quantity | list[Quanitity] | None.
+            Parameter(s) to be removed from the optimization map. If None removes the optimizable.
 
         """
         try:
-            self.__optimizable_to_parameter_map.pop(optimizable)
+            if params is None:
+                self.__optimizable_to_parameter_map.pop(optimizable)
+            else:
+                parameters_list: list[Quantity] = params if isinstance(params, list) else [params]
+                self.filter_parameters(lambda quantity: quantity not in parameters_list)
+
         # removed the bare except catch.
         except Exception as e:
             raise Exception(e)
+
+    def replace(
+        self,
+        optimizable: Optimizable,
+        old_parameters: Quantity | list[Quantity],
+        new_parameters: Quantity | list[Quantity],
+    ) -> None:
+        """Perform an in-place substitution of the old and new parameters.
+        This helps to keeps the ordering of parameters the same while replacing parameters.
+        """
+        old_parameters_list = old_parameters if isinstance(old_parameters, list) else [old_parameters]
+        new_parameters_list = new_parameters if isinstance(new_parameters, list) else [new_parameters]
+
+        for old_param, new_param in zip(old_parameters_list, new_parameters_list):
+            for i, param in enumerate(self.__optimizable_to_parameter_map[optimizable]):
+                if id(param) == id(old_param):
+                    self.__optimizable_to_parameter_map[optimizable][i] = new_param
 
     def get_optimizables(self) -> set[Optimizable]:
         """Return all optimizable objects that were added to this map.
@@ -162,6 +228,17 @@ class OptimizationMap:
 
         """
         return self.filter_parameters(lambda quantity: quantity.get_name() == name)
+
+    def remove_by_name(self, name: str):
+        """Remove parameters by name of parameter.
+
+        Parameters
+        ----------
+        name : str
+            Name of parameter to be filtered with.
+
+        """
+        return self.filter_parameters(lambda quantity: name not in quantity.get_name())
 
     def to_dict(self) -> dict:
         """Creates a dictionary that contains the values of all quantities that are being optimized, sorted by the
