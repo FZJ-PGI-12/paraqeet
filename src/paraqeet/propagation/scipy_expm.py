@@ -88,10 +88,10 @@ class ScipyExpm(Propagation):
         if len(eom) == 2:
             raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
 
-        state = self.__check_and_fix_state_shape(state, dim_generator)
+        state = self._check_and_fix_state_shape(state, dim_generator)
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
-    def __check_and_fix_state_shape(self, state, dim_generator):
+    def _check_and_fix_state_shape(self, state, dim_generator):
         # For closed system check if the initial state has the right dimensions.
         if not self.is_open:
             if len(state.shape) == 1:  # (n,) array

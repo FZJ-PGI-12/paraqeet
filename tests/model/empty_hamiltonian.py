@@ -15,12 +15,12 @@ class EmptyHamiltonian(Hamiltonian):
         The dimension for the representation of the Hamiltonian.
     """
 
-    __dimension: int
+    _dimension: int
 
     def __init__(self, dimension: int):
         super().__init__([])
 
-        self.__dimension = dimension
+        self._dimension = dimension
 
     def get_value(self, times: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
@@ -36,7 +36,7 @@ class EmptyHamiltonian(Hamiltonian):
             The matrix representation of the Hamiltonian.
 
         """
-        return np.zeros((len(times), self.__dimension, self.__dimension))
+        return np.zeros((len(times), self._dimension, self._dimension))
 
     def get_parameters(self) -> list[Quantity]:
         """ """

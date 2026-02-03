@@ -24,12 +24,12 @@ class RungeKutta(Propagation):
 
     """
 
-    __initial_time_step: float | None
+    _initial_time_step: float | None
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
         super().__init__(model)
         self._initial_state: Array
-        self.__initial_time_step = initial_time_step
+        self._initial_time_step = initial_time_step
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -94,7 +94,7 @@ class RungeKutta(Propagation):
         # function has to iterate over the time steps itself.
         states = [self._initial_state]
         for ti in range(1, len(time)):
-            dt = self.__initial_time_step
+            dt = self._initial_time_step
             if dt is None or dt > time[ti] - time[ti - 1]:
                 dt = float(time[ti] - time[ti - 1]) / 5
 

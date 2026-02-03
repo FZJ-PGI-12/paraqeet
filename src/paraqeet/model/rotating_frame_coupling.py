@@ -30,7 +30,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
     _subsystem_A: DifferentiableHamiltonian
     _subsystem_B: DifferentiableHamiltonian
     _coefficient: Quantity
-    __diff_freq: Quantity
+    _diff_freq: Quantity
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         diffFreq: Quantity,
     ):
         super().__init__(subsystem_A, subsystem_B, coefficient, is_longitudinal=False)
-        self.__diff_freq = diffFreq
+        self._diff_freq = diffFreq
 
     def get_parameters(self) -> list[Quantity]:
         """Return the coupling coeffecient and the difference frequency.
@@ -54,9 +54,9 @@ class RotatingFrameCoupling(TwoBodyCoupling):
             Returns the list of parameters of the system.
 
         """
-        return [self._coefficient, self.__diff_freq]
+        return [self._coefficient, self._diff_freq]
 
-    def __coupling_operators(self) -> list[Array]:
+    def _coupling_operators(self) -> list[Array]:
         """Return the annhilation operator. Special implementation for two subsystems."""
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")
@@ -87,9 +87,9 @@ class RotatingFrameCoupling(TwoBodyCoupling):
             shape as the subsystem's Hamiltonian.get_value_one_time: (n,n)
             with n the subsystem dimension.
         """
-        annihilation_ops = self.__coupling_operators()
+        annihilation_ops = self._coupling_operators()
 
-        annihilation_ops[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
+        annihilation_ops[0] *= self._coefficient.get_value() * jnp.exp(1j * self._diff_freq.get_value() * t)
         annihilation_ops_conj = [a.conj().T for a in annihilation_ops]
         return [annihilation_ops, annihilation_ops_conj]
 
@@ -121,12 +121,12 @@ class RotatingFrameCoupling(TwoBodyCoupling):
             result of get_matrices_one_time.
 
         """
-        annihilation_ops = self.__coupling_operators()
+        annihilation_ops = self._coupling_operators()
         if self._is_optimized(self._coefficient):
-            annihilation_ops[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
+            annihilation_ops[0] *= jnp.exp(1j * self._diff_freq.get_value() * t)
             annihilationOps_conj = [a.conj().T for a in annihilation_ops]
             grads = [[annihilation_ops, annihilationOps_conj]]
-        elif self._is_optimized(self.__diff_freq):
+        elif self._is_optimized(self._diff_freq):
             annihilation_ops[0] *= self._coefficient.get_value() * 1j * t
             annihilationOps_conj = [a.conj().T for a in annihilation_ops]
             grads = [[annihilation_ops, annihilationOps_conj]]

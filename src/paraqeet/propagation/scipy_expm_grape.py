@@ -107,7 +107,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
     @staticmethod
     @jit
-    def __sandwich_op_values(
+    def _sandwich_op_values(
         bwd_propagated_state: Array,
         op: Array,
         fwd_propagated_state: Array,
@@ -343,7 +343,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         grads = []
         for i in range(n_params):
             grad = vmap(
-                self.__sandwich_op_values, in_axes=(0, 0, 0)
+                self._sandwich_op_values, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
                 u_grads[:, i, ...],  # type: ignore

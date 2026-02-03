@@ -22,16 +22,16 @@ class ConstantMeasurement(Measurement, Differentiable):
         Time variable value.
     """
 
-    __propagation: Propagation
-    __value: Array
+    _propagation: Propagation
+    _value: Array
 
     def __init__(
         self,
         propagation: Propagation,
         value: Array = jnp.array(1.0),
     ):
-        self.__propagation = propagation
-        self.__value = value
+        self._propagation = propagation
+        self._value = value
 
     def measure(self, times: Array) -> Array:
         """Get the measurement value.
@@ -42,9 +42,9 @@ class ConstantMeasurement(Measurement, Differentiable):
             The value of the measurement.
 
         """
-        return self.__value
+        return self._value
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get measurement value and gradient"""
-        grad = jnp.array([self.__value, 0.0])
-        return self.__value, grad
+        grad = jnp.array([self._value, 0.0])
+        return self._value, grad

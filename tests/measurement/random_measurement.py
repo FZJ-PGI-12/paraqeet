@@ -19,10 +19,10 @@ class RandomMeasurement(NormalizableMeasurement):
         One-dimensional vector of timestamps.
     """
 
-    __propagation: Propagation
+    _propagation: Propagation
 
     def __init__(self, propagation: Propagation):
-        self.__propagation = propagation
+        self._propagation = propagation
 
     # TODO: Check the implementation method measure
     def measure(self, times: Array) -> Array | float:

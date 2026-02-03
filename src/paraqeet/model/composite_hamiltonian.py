@@ -117,7 +117,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
             sub_matrix = subsystem.get_value_at_timestep(timestep)
-            matrix += self.__tensor_product_with_identity([sub_matrix], [n])
+            matrix += self._tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
             # Create a tensor product where all subsystems
@@ -125,7 +125,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
             sub_matrices = coupling.get_couplings()
             for term in sub_matrices:
-                matrix += self.__tensor_product_with_identity(term, indices)
+                matrix += self._tensor_product_with_identity(term, indices)
 
         return matrix
 
@@ -160,7 +160,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
-                gradients.append(self.__tensor_product_with_identity([g], [one_index]))
+                gradients.append(self._tensor_product_with_identity([g], [one_index]))
 
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
@@ -169,13 +169,13 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
             coupling_gradient = coupling.get_coupling_gradients()
             for term in coupling_gradient:
                 for g_list in term:
-                    grad = self.__tensor_product_with_identity(g_list, indices)
+                    grad = self._tensor_product_with_identity(g_list, indices)
                     if grad.size != 0:
                         gradients.append(grad)
 
         return jnp.array(gradients)
 
-    def __tensor_product_with_identity(self, mat_list: list[Array], n: list[int]) -> Array:
+    def _tensor_product_with_identity(self, mat_list: list[Array], n: list[int]) -> Array:
         r"""Put the matrices mat_list into a tensor product at positions `n`.
 
         All other positions are identity matrices:
@@ -219,5 +219,5 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         for n, subsystem in enumerate(self._subsystems):
             rates_and_cols = subsystem.get_collapseops()
             for rate, col_op in rates_and_cols:
-                all_collapse_ops.append((rate, self.__tensor_product_with_identity([col_op], [n])))
+                all_collapse_ops.append((rate, self._tensor_product_with_identity([col_op], [n])))
         return all_collapse_ops

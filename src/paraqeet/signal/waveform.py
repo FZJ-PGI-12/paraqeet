@@ -496,7 +496,7 @@ class FlatTopGaussianFilter(Waveform):
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimized.
 
-        Also add the indices to `__grad_arg_nums` to compute the gradients.
+        Also add the indices to `_grad_arg_nums` to compute the gradients.
 
         Parameters
         ----------

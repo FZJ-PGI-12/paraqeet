@@ -12,7 +12,7 @@ class IdentityPropagation(DifferentiablePropagation):
     Returns the initial state as the target state.
     """
 
-    __state: Array
+    _state: Array
 
     def __init__(self):
         super().__init__(None)
@@ -28,7 +28,7 @@ class IdentityPropagation(DifferentiablePropagation):
             Given state to be set as the initial state.
 
         """
-        self.__state = state
+        self._state = state
 
     def propagate(self, time: Array) -> Array:
         """Get the propagated state across the timestamps.
@@ -44,11 +44,11 @@ class IdentityPropagation(DifferentiablePropagation):
             Returns the propagated values of the state across timestamps.
 
         """
-        return jnp.array([self.__state] * len(time))
+        return jnp.array([self._state] * len(time))
 
     def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
-        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
+        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self._state)))
         return self.propagate(time), empty_gradient
 
     def get_parameters(self) -> list[Quantity]:

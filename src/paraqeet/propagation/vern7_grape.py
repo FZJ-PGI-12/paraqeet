@@ -40,9 +40,9 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         super().__init__(model, res)
 
         if self.is_open:
-            self.__reverse_step_function = self._reverse_lindblad_step
+            self._reverse_step_function = self._reverse_lindblad_step
         else:
-            self.__reverse_step_function = self._reverse_schrodinger_step
+            self._reverse_step_function = self._reverse_schrodinger_step
 
     def set_target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
@@ -111,7 +111,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
         psis_t, _ = scan(forward_propagation, psis_t, steps_arr)
 
-        self.step_function = self.__reverse_step_function
+        self.step_function = self._reverse_step_function
         eom = (-1) * jnp.flip(eom, axis=0)
         lamdas_t, _ = scan(backward_propagation, lamdas_t, steps_arr)
 

@@ -29,10 +29,10 @@ class CustomHamiltonian(DifferentiableHamiltonian):
     To use open system simulation, provide a list of tuples of decay rates and corresponding collapse opearators.
     """
 
-    __hamiltonian_function: Callable[[Array, Any], Array] | Callable[[float, Any], Array]
-    __parameters: list[Quantity]
-    __gradient_functions: list[Callable] | None
-    __collapse_operators: list[tuple[Array, Array]] | None
+    _hamiltonian_function: Callable[[Array, Any], Array] | Callable[[float, Any], Array]
+    _parameters: list[Quantity]
+    _gradient_functions: list[Callable] | None
+    _collapse_operatorss: list[tuple[Array, Array]] | None
 
     def __init__(
         self,
@@ -41,30 +41,30 @@ class CustomHamiltonian(DifferentiableHamiltonian):
         gradient_functions: list[Callable] | None = None,
         collapse_operators: list[tuple[Array, Array]] | None = None,
     ):
-        self.__hamiltonian_function = hamiltonian_function
-        self.__parameters = parameters
+        self._hamiltonian_function = hamiltonian_function
+        self._parameters = parameters
         self.gradient_functions = gradient_functions
         self.collapse_operators = collapse_operators
 
     @property
     def gradient_functions(self) -> list[Callable] | None:
         """Return gradient functions."""
-        return self.__gradient_functions
+        return self._gradient_functions
 
     @gradient_functions.setter
     def gradient_functions(self, grad_funcs: list[Callable] | None):
         """Set gradient functions."""
-        self.__gradient_functions = grad_funcs
+        self._gradient_functions = grad_funcs
 
     @property
     def collapse_operators(self) -> list[tuple[Array, Array]] | None:
         """Return collapse operators."""
-        return self.__collapse_operators
+        return self._collapse_operators
 
     @collapse_operators.setter
     def collapse_operators(self, col_ops: list[tuple[Array, Array]] | None):
         """Set collapse operators."""
-        self.__collapse_operators = col_ops
+        self._collapse_operators = col_ops
 
     def dimension(self):
         """Return dimension of the Hilbert space."""
@@ -72,23 +72,23 @@ class CustomHamiltonian(DifferentiableHamiltonian):
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of optimizable parameters."""
-        return self.__parameters
+        return self._parameters
 
     def get_value_at_timestep(self, timestep: float) -> Array:
         """Return Hamiltonian as a function of time for a single time point."""
-        params = [p.get_value()[0] for p in self.__parameters]
-        return self.__hamiltonian_function(timestep, *params)
+        params = [p.get_value()[0] for p in self._parameters]
+        return self._hamiltonian_function(timestep, *params)
 
     def get_value(self, times: Array) -> Array:
         """Return Hamiltonian as a function of time for an array of time."""
-        params = [p.get_value()[0] for p in self.__parameters]
-        matrix_fun = vmap(self.__hamiltonian_function, in_axes=(0,) + (None,) * len(params))
+        params = [p.get_value()[0] for p in self._parameters]
+        matrix_fun = vmap(self._hamiltonian_function, in_axes=(0,) + (None,) * len(params))
         # ignoring mypy due to vmap
         return matrix_fun(times, *params)  # type: ignore
 
     def get_gradient_at_timestep(self, timestep: float) -> Array:
         """Return the gradient as a function of time for a single time point."""
-        params = [p.get_value()[0] for p in self.__parameters]
+        params = [p.get_value()[0] for p in self._parameters]
         if self.gradient_functions is None:
             raise ConfigurationException("Specify the gradient functions of the Hamiltonian to compute gradients.")
         if len(self.gradient_functions) != len(params):

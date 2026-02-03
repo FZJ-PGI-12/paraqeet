@@ -10,14 +10,14 @@ from paraqeet.signal.generator import Generator
 class RotatingFrameDrive(Drive):
     """Drive Hamiltonian in the Frame rotating at the frequency of the drive.
 
-    __signal_generator: Generator
+    _signal_generator: Generator
         Signal Generator without a LO, like the PWCGenerator
     """
 
-    __signal_generator: Generator
+    _signal_generator: Generator
 
     def __init__(self, signal_generator: Generator):
-        self.__signal_generator = signal_generator
+        self._signal_generator = signal_generator
 
     @property
     def generator(self) -> Generator:
@@ -29,7 +29,7 @@ class RotatingFrameDrive(Drive):
             Returns the signal generator object from the system.
 
         """
-        return self.__signal_generator
+        return self._signal_generator
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.

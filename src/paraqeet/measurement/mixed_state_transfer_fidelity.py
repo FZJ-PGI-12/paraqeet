@@ -28,20 +28,20 @@ class MixedStateTransferFidelity(Measurement):
 
     """
 
-    __target_state: Array
-    __target_state_sqrt: Array
-    __propagation: Propagation
+    _target_state: Array
+    _target_state_sqrt: Array
+    _propagation: Propagation
 
     def __init__(
         self,
         propagation: Propagation,
         targetState: Array,
     ):
-        self.__propagation = propagation
-        self.__target_state = targetState
+        self._propagation = propagation
+        self._target_state = targetState
 
         # store the sqrt of the density matrix to simplify the measurement
-        self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
+        self._target_state_sqrt = sclin.sqrtm(self._target_state)
 
     def measure(self, times: Array) -> Array | float:
         """Measure overlap between initial and final state of density matrices.
@@ -57,14 +57,14 @@ class MixedStateTransferFidelity(Measurement):
             Raises an exception if required vector shape is not received.
 
         """
-        state = self.__propagation.propagate(times)[-1]
-        if state.shape != self.__target_state.shape:
+        state = self._propagation.propagate(times)[-1]
+        if state.shape != self._target_state.shape:
             raise IncompatibleLayersException(
-                f"Need a state vector of size {self.__target_state.shape}"
+                f"Need a state vector of size {self._target_state.shape}"
                 "for the state transfer fidelity, "
                 "but got shape {state.shape}"
             )
 
         # density matrix
-        product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
+        product = self._target_state_sqrt @ state @ self._target_state_sqrt
         return jnp.abs(jnp.trace(sclin.sqrtm(product))) ** 2

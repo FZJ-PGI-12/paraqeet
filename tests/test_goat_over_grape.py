@@ -39,16 +39,16 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_time: Quantity,
     ):
         self._amplitude = amplitude
-        self.__t_up = t_up
-        self.__t_down = t_down
-        self.__ramp_time = ramp_time
+        self._t_up = t_up
+        self._t_down = t_down
+        self._ramp_time = ramp_time
 
         self._gradient_function: Callable | None = None
         self._grad_arg_nums: tuple[int, ...] = ()
 
     def get_parameters(self):
         """Get all parameters of the system."""
-        return [self._amplitude, self.__t_up, self.__t_down, self.__ramp_time]
+        return [self._amplitude, self._t_up, self._t_down, self._ramp_time]
 
     @partial(jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, t: Array):
@@ -59,9 +59,9 @@ class FlatTopGaussianEnvelope(Envelope):
     def get_value(self, t: Array | float) -> Array:
         """Compute pulse shape."""
         amp = self._amplitude.get_value()
-        t_up = self.__t_up.get_value()
-        t_down = self.__t_down.get_value()
-        ramp_time = self.__ramp_time.get_value()
+        t_up = self._t_up.get_value()
+        t_down = self._t_down.get_value()
+        ramp_time = self._ramp_time.get_value()
         # returns JitWrapped
         return self._evaluate(amp, t_up, t_down, ramp_time, t)  # type: ignore
 

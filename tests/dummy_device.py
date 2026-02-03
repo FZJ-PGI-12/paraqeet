@@ -16,9 +16,9 @@ class FlatTopGaussianEnvelopeAD(Envelope):
 
     Dummy device to test AutoDiff Gradients for Envelopes.
 
-    __amplitude: Quantity
+    _amplitude: Quantity
         The amplitude of the envelope.
-    __t_final: Quantity
+    _t_final: Quantity
         The length in time of the envelope.
     _gradient_function: Callable | None
         The function to calculate the gradient with respect to a set of

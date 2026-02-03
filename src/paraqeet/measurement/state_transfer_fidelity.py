@@ -134,7 +134,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
     """
 
-    __gradient_function: Callable | None
+    _gradient_function: Callable | None
 
     def __init__(
         self,
@@ -143,7 +143,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         target_state: Array,
     ):
         super().__init__(propagation, initial_state, target_state)
-        self.__gradient_function = None
+        self._gradient_function = None
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
@@ -157,8 +157,8 @@ class StateTransferFidelityAD(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        if self.__gradient_function is None:
-            self.__gradient_function = jit(grad(self._fid, argnums=0))
+        if self._gradient_function is None:
+            self._gradient_function = jit(grad(self._fid, argnums=0))
 
         states, dg_dp_list = self._propagation.get_value_and_gradient(time=times)
         final_state = states[-1]
@@ -166,7 +166,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         f = self._overlap(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = self._overlap(self._target_state, dg_dp)
-            dfdp = self.__gradient_function(f) * g
+            dfdp = self._gradient_function(f) * g
             df_dp_list.append(jnp.real(dfdp))
         return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 

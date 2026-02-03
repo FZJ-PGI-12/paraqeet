@@ -37,8 +37,8 @@ class BayesianOptimizer(Optimizer):
     """
 
     _measure: NormalizableMeasurement
-    __initial_samples: int
-    __iterations: int
+    _initial_samples: int
+    _iterations: int
 
     def __init__(
         self,
@@ -48,28 +48,28 @@ class BayesianOptimizer(Optimizer):
         iterations=100,
     ):
         super().__init__(measure, optimization_map)
-        self.__initial_samples = initial_samples
-        self.__iterations = iterations
+        self._initial_samples = initial_samples
+        self._iterations = iterations
 
     @property
     def initial_samples(self) -> int:
         """Get the initial samples fed to the system."""
-        return self.__initial_samples
+        return self._initial_samples
 
     @initial_samples.setter
     def initial_samples(self, initial_samples: int) -> None:
         """Set the initial samples for the system."""
-        self.__initial_samples = initial_samples
+        self._initial_samples = initial_samples
 
     @property
     def iterations(self) -> int:
         """Get the iterations of the system."""
-        return self.__iterations
+        return self._iterations
 
     @iterations.setter
     def iterations(self, iterations: int) -> None:
         """Set the iterations of the system."""
-        self.__iterations = iterations
+        self._iterations = iterations
 
     def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Bayesian optimizer.
@@ -104,7 +104,7 @@ class BayesianOptimizer(Optimizer):
             verbose=2,
             random_state=1,
         )
-        optimizer.maximize(init_points=self.__initial_samples, n_iter=self.__iterations)
+        optimizer.maximize(init_points=self._initial_samples, n_iter=self._iterations)
 
         # The last measurement is not necessarily the best.
         # We therefore set the optimized parameters to the best value.
@@ -125,7 +125,7 @@ class BayesianOptimizer(Optimizer):
         return OptimizationResult(
             status=OptimizationResult.STATUS_FINISHED,
             value=float(result["fun"]),
-            iterations=self.__iterations + self.__initial_samples,
+            iterations=self._iterations + self._initial_samples,
             raw_result=optimizer.max,
         )
 

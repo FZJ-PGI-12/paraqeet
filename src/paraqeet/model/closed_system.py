@@ -43,9 +43,9 @@ class ClosedSystem(EquationOfMotion):
         self._ode_propagation = ode_propagation
 
         if ode_propagation:
-            self._get_value_method = self.__get_ode_propagation_eom
+            self._get_value_method = self._get_ode_propagation_eom
         else:
-            self._get_value_method = self.__get_eom
+            self._get_value_method = self._get_eom
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of optimizable parameters.
@@ -58,7 +58,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_parameters()
 
-    def __get_eom(self, times: Array) -> Array:
+    def _get_eom(self, times: Array) -> Array:
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -79,7 +79,7 @@ class ClosedSystem(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian.get_value(times)
 
-    def __get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
+    def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
         """Get the matrix equations of motion for ODE solver.
 
         Here we return an empty array for the collapse operator.

@@ -38,8 +38,8 @@ class TwoBodyCoupling(Optimizable):
     _subsystem_B: DifferentiableHamiltonian
     _coefficient: Quantity
     _total_dims: int
-    __is_longitudinal: bool
-    __use_rwa: bool
+    _is_longitudinal: bool
+    _use_rwa: bool
 
     def __init__(
         self,
@@ -52,8 +52,8 @@ class TwoBodyCoupling(Optimizable):
         self._subsystem_A = subsystem_A
         self._subsystem_B = subsystem_B
         self._coefficient = coefficient
-        self.__is_longitudinal = is_longitudinal
-        self.__use_rwa = use_rwa
+        self._is_longitudinal = is_longitudinal
+        self._use_rwa = use_rwa
         self._total_dims = subsystem_A.dimension() * subsystem_B.dimension()
         self._dims = [subsystem_A.dimension(), subsystem_B.dimension()]
         self._annihilation_op = [jnp.sqrt(jnp.diag(jnp.arange(1, dim, dtype=jnp.float64), k=1)) for dim in self._dims]
@@ -110,7 +110,7 @@ class TwoBodyCoupling(Optimizable):
             the subsystem dimension.
 
         """
-        matrices = self.__coupling_operators()
+        matrices = self._coupling_operators()
         for i in range(len(matrices)):  # iterating over terms
             matrices[i][0] *= self._coefficient.get_value()
         return matrices
@@ -126,14 +126,14 @@ class TwoBodyCoupling(Optimizable):
             The rest is in the same shape as the result of get_matrices.
 
         """
-        coup_ops = self.__coupling_operators()
+        coup_ops = self._coupling_operators()
         if self._is_optimized(self._coefficient):
             grads = [coup_ops]
         else:
             grads = [[[jnp.empty((0, 0)) for _ in sub] for sub in coup_ops]]
         return grads
 
-    def __coupling_operators(self) -> list[list[Array]]:
+    def _coupling_operators(self) -> list[list[Array]]:
         """Return coupling operators.
 
         Returns the operators of the longitudinal or transversal coupling
@@ -148,11 +148,11 @@ class TwoBodyCoupling(Optimizable):
             The subsystems are the outer list.
 
         """
-        if self.__is_longitudinal:
+        if self._is_longitudinal:
             # Number operator (a^\dagger a) for each subsystem
             return [[jnp.diag(jnp.arange(0, s, dtype=jnp.float64)) for s in self._dims]]
 
-        elif self.__use_rwa:
+        elif self._use_rwa:
             annihilation_op = self._annihilation_op
             return [
                 [annihilation_op[0], annihilation_op[1].T],

@@ -368,7 +368,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @staticmethod
     @jit
-    def __dir_erf(x: Array):
+    def _dir_erf(x: Array):
         return 2 / jnp.sqrt(jnp.pi) * jnp.exp(-(x**2))
 
     @partial(jit, static_argnums=(0,))
@@ -398,11 +398,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
         """
         ramp_up = 1 + erf((t - t_up) / ramp_time)
-        ramp_up_t_dir = self.__dir_erf((t - t_up) / ramp_time)
+        ramp_up_t_dir = self._dir_erf((t - t_up) / ramp_time)
         ramp_up_t_dir /= ramp_time
 
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
-        ramp_down_t_dir = self.__dir_erf((-t + t_down) / ramp_time)
+        ramp_down_t_dir = self._dir_erf((-t + t_down) / ramp_time)
         ramp_down_t_dir *= -1 / ramp_time
 
         prod_dir = ramp_up * ramp_down_t_dir + ramp_up_t_dir * ramp_down
@@ -435,7 +435,7 @@ class FlatTopGaussianEnvelope(Envelope):
             on the optimizable parameters.
 
         """
-        ramp_up_dir = self.__dir_erf((t - t_up) / ramp_time)
+        ramp_up_dir = self._dir_erf((t - t_up) / ramp_time)
         ramp_up_dir /= -ramp_time
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
         return amp * ramp_up_dir * ramp_down / 4
@@ -467,7 +467,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         """
         ramp_up = 1 + erf((t - t_up) / ramp_time)
-        ramp_down_dir = self.__dir_erf((-t + t_down) / ramp_time)
+        ramp_down_dir = self._dir_erf((-t + t_down) / ramp_time)
         ramp_down_dir /= ramp_time
         return amp * ramp_up * ramp_down_dir / 4
 
@@ -498,11 +498,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
         """
         ramp_up = 1 + erf((t - t_up) / ramp_time)
-        ramp_up_dir = self.__dir_erf((t - t_up) / ramp_time)
+        ramp_up_dir = self._dir_erf((t - t_up) / ramp_time)
         ramp_up_dir *= -(t - t_up) / (ramp_time**2)
 
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
-        ramp_down_dir = self.__dir_erf((-t + t_down) / ramp_time)
+        ramp_down_dir = self._dir_erf((-t + t_down) / ramp_time)
         ramp_down_dir *= -(-t + t_down) / (ramp_time**2)
 
         prod_dir = ramp_up * ramp_down_dir + ramp_up_dir * ramp_down
@@ -725,8 +725,8 @@ class DCRABEnvelope(Envelope):
     _imag_coefficients: list[Quantity]
     _imag_frequencies: list[Quantity]
     _imag_phases: list[Quantity]
-    __min_frequency: float
-    __max_frequency: float
+    _min_frequency: float
+    _max_frequency: float
 
     def __init__(
         self,
@@ -753,8 +753,8 @@ class DCRABEnvelope(Envelope):
             unit="s",
             name="t_final",
         )
-        self.__min_frequency = min_frequency
-        self.__max_frequency = max_frequency
+        self._min_frequency = min_frequency
+        self._max_frequency = max_frequency
 
         self._num_components = num_components
 
@@ -791,14 +791,14 @@ class DCRABEnvelope(Envelope):
 
         key = jax.random.key(3 * seed + 81)
         freqs = jax.random.uniform(
-            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+            key, shape=(self._num_components,), minval=self._min_frequency, maxval=self._max_frequency
         )
 
         self._real_frequencies = [
             Quantity(
                 freqs[i],
-                min_value=jnp.array(self.__min_frequency),
-                max_value=jnp.array(self.__max_frequency),
+                min_value=jnp.array(self._min_frequency),
+                max_value=jnp.array(self._max_frequency),
                 unit="Hz",
                 name=f"CRAB Re frequency {i}",
                 two_pi=True,
@@ -808,14 +808,14 @@ class DCRABEnvelope(Envelope):
 
         key = jax.random.key(4 * seed + 19)
         freqs = jax.random.uniform(
-            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+            key, shape=(self._num_components,), minval=self._min_frequency, maxval=self._max_frequency
         )
 
         self._imag_frequencies = [
             Quantity(
                 freqs[i],
-                min_value=jnp.array(self.__min_frequency),
-                max_value=jnp.array(self.__max_frequency),
+                min_value=jnp.array(self._min_frequency),
+                max_value=jnp.array(self._max_frequency),
                 unit="Hz",
                 name=f"CRAB Im frequency {i}",
                 two_pi=True,
@@ -907,15 +907,15 @@ class DCRABEnvelope(Envelope):
 
         key = jax.random.key(4 * seed + 59)
         freqs = jax.random.uniform(
-            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+            key, shape=(self._num_components,), minval=self._min_frequency, maxval=self._max_frequency
         )
 
         self._real_frequencies.extend(
             [
                 Quantity(
                     freqs[i],
-                    min_value=jnp.array(self.__min_frequency),
-                    max_value=jnp.array(self.__max_frequency),
+                    min_value=jnp.array(self._min_frequency),
+                    max_value=jnp.array(self._max_frequency),
                     unit="Hz",
                     name=f"CRAB Re frequency {i + self._total_num_components}",
                     two_pi=True,
@@ -959,15 +959,15 @@ class DCRABEnvelope(Envelope):
 
         key = jax.random.key(7 * seed + 89)
         freqs = jax.random.uniform(
-            key, shape=(self._num_components,), minval=self.__min_frequency, maxval=self.__max_frequency
+            key, shape=(self._num_components,), minval=self._min_frequency, maxval=self._max_frequency
         )
 
         self._imag_frequencies.extend(
             [
                 Quantity(
                     freqs[i],
-                    min_value=jnp.array(self.__min_frequency),
-                    max_value=jnp.array(self.__max_frequency),
+                    min_value=jnp.array(self._min_frequency),
+                    max_value=jnp.array(self._max_frequency),
                     unit="Hz",
                     name=f"CRAB Im frequency {i + self._total_num_components}",
                     two_pi=True,

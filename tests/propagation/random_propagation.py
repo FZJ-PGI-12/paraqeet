@@ -30,10 +30,10 @@ class RandomPropagation(Propagation, Differentiable):
         If false, propagate will return the same state until update was called.
     """
 
-    __dimension: int
-    __create_matrices: bool
-    __auto_update: bool
-    __state: Array
+    _dimension: int
+    _create_matrices: bool
+    _auto_update: bool
+    _state: Array
 
     def __init__(
         self,
@@ -42,9 +42,9 @@ class RandomPropagation(Propagation, Differentiable):
         auto_update: bool = True,
     ):
         super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)))
-        self.__dimension = dimension
-        self.__create_matrices = generate_matrices
-        self.__auto_update = auto_update
+        self._dimension = dimension
+        self._create_matrices = generate_matrices
+        self._auto_update = auto_update
         self.update()
         self.is_open = False
 
@@ -79,13 +79,13 @@ class RandomPropagation(Propagation, Differentiable):
             Returns the updated state of the system.
 
         """
-        if self.__auto_update:
+        if self._auto_update:
             self.update()
-        return jnp.array([self.__state] * len(time))
+        return jnp.array([self._state] * len(time))
 
     def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
-        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
+        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self._state)))
         return self.propagate(time), empty_gradient
 
     @staticmethod
@@ -107,12 +107,12 @@ class RandomPropagation(Propagation, Differentiable):
         new random state.
 
         """
-        if self.__create_matrices:
+        if self._create_matrices:
             # generate a random density matrix by rotating a
             # random diagonal matrix
-            rho = jnp.diag(np.random.random(self.__dimension))
-            self.__state = self.__create_random_dm(self.__dimension, rho)
+            rho = jnp.diag(np.random.random(self._dimension))
+            self._state = self.__create_random_dm(self._dimension, rho)
         else:
             # generate a random state vector
-            state = np.random.random((self.__dimension, 1)) + 1j * np.random.random((self.__dimension, 1))
-            self.__state = self.__create_random_vec(state)
+            state = np.random.random((self._dimension, 1)) + 1j * np.random.random((self._dimension, 1))
+            self._state = self.__create_random_vec(state)

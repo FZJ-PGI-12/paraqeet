@@ -18,10 +18,10 @@ class OptimizationMap:
 
     """
 
-    __optimizable_to_parameter_map: dict[Optimizable, list[Quantity]]
+    _optimizable_to_parameter_map: dict[Optimizable, list[Quantity]]
 
     def __init__(self):
-        self.__optimizable_to_parameter_map = {}
+        self._optimizable_to_parameter_map = {}
 
     def __repr__(self):
         """Magic method for human readable representation."""
@@ -30,7 +30,7 @@ class OptimizationMap:
     def __str__(self):
         """Human readable representation of the parameters set to optimize."""
         om_str = ""
-        for key, val in self.__optimizable_to_parameter_map.items():
+        for key, val in self._optimizable_to_parameter_map.items():
             om_str += f"==== {key} ====\n"
             om_str += str(val)
             om_str += "\n\n"
@@ -63,9 +63,9 @@ class OptimizationMap:
             )
         else:
             params = optimizable.get_parameters()
-        self.__optimizable_to_parameter_map[optimizable] = params
-        if len(self.__optimizable_to_parameter_map[optimizable]) < 1:
-            self.__optimizable_to_parameter_map.pop(optimizable)
+        self._optimizable_to_parameter_map[optimizable] = params
+        if len(self._optimizable_to_parameter_map[optimizable]) < 1:
+            self._optimizable_to_parameter_map.pop(optimizable)
 
     def append(
         self,
@@ -94,12 +94,12 @@ class OptimizationMap:
         else:
             params = optimizable.get_parameters()
 
-        if optimizable in self.__optimizable_to_parameter_map:
-            self.__optimizable_to_parameter_map[optimizable].extend(params)
+        if optimizable in self._optimizable_to_parameter_map:
+            self._optimizable_to_parameter_map[optimizable].extend(params)
         else:
-            self.__optimizable_to_parameter_map[optimizable] = params
-        if len(self.__optimizable_to_parameter_map[optimizable]) < 1:
-            self.__optimizable_to_parameter_map.pop(optimizable)
+            self._optimizable_to_parameter_map[optimizable] = params
+        if len(self._optimizable_to_parameter_map[optimizable]) < 1:
+            self._optimizable_to_parameter_map.pop(optimizable)
 
     def remove(self, optimizable: Optimizable, params: Quantity | list[Quantity] | None = None):
         """Remove the given optimizable or parameter(s) from the optimization map.
@@ -117,7 +117,7 @@ class OptimizationMap:
         """
         try:
             if params is None:
-                self.__optimizable_to_parameter_map.pop(optimizable)
+                self._optimizable_to_parameter_map.pop(optimizable)
             else:
                 parameters_list: list[Quantity] = params if isinstance(params, list) else [params]
                 self.filter_parameters(lambda quantity: quantity not in parameters_list)
@@ -139,9 +139,9 @@ class OptimizationMap:
         new_parameters_list = new_parameters if isinstance(new_parameters, list) else [new_parameters]
 
         for old_param, new_param in zip(old_parameters_list, new_parameters_list):
-            for i, param in enumerate(self.__optimizable_to_parameter_map[optimizable]):
+            for i, param in enumerate(self._optimizable_to_parameter_map[optimizable]):
                 if id(param) == id(old_param):
-                    self.__optimizable_to_parameter_map[optimizable][i] = new_param
+                    self._optimizable_to_parameter_map[optimizable][i] = new_param
 
     def get_optimizables(self) -> set[Optimizable]:
         """Return all optimizable objects that were added to this map.
@@ -152,7 +152,7 @@ class OptimizationMap:
             Set of all optimizable objects from the map.
 
         """
-        return set(self.__optimizable_to_parameter_map.keys())
+        return set(self._optimizable_to_parameter_map.keys())
 
     def get_parameters(self, optimizable: Optimizable) -> list[Quantity] | None:
         """Return all quantities associated with the given parameter.
@@ -169,7 +169,7 @@ class OptimizationMap:
             added yet).
 
         """
-        return self.__optimizable_to_parameter_map[optimizable]
+        return self._optimizable_to_parameter_map[optimizable]
 
     def get_all_parameters(self) -> list[Quantity]:
         """Return all parameters that were added to the system map.
@@ -181,7 +181,7 @@ class OptimizationMap:
 
         """
         quantities = []
-        for params in self.__optimizable_to_parameter_map.values():
+        for params in self._optimizable_to_parameter_map.values():
             quantities.extend(params)
         return quantities
 
@@ -194,7 +194,7 @@ class OptimizationMap:
         to compute.
 
         """
-        for optimizable, params in self.__optimizable_to_parameter_map.items():
+        for optimizable, params in self._optimizable_to_parameter_map.items():
             optimizable.set_optimizable_parameters(params)
             optimizable.set_all_optimizable_parameters(self.get_all_parameters())
 
@@ -211,11 +211,11 @@ class OptimizationMap:
             Filter function that maps quantities to boolean values.
 
         """
-        for key in self.__optimizable_to_parameter_map.keys():
-            filtered = filter(filter_function, self.__optimizable_to_parameter_map[key])
-            self.__optimizable_to_parameter_map[key] = list(filtered)
-        self.__optimizable_to_parameter_map = dict(
-            (k, v) for k, v in self.__optimizable_to_parameter_map.items() if len(v) > 0
+        for key in self._optimizable_to_parameter_map.keys():
+            filtered = filter(filter_function, self._optimizable_to_parameter_map[key])
+            self._optimizable_to_parameter_map[key] = list(filtered)
+        self._optimizable_to_parameter_map = dict(
+            (k, v) for k, v in self._optimizable_to_parameter_map.items() if len(v) > 0
         )
 
     def filter_by_name(self, name: str):
@@ -271,7 +271,7 @@ class OptimizationMap:
             If the name of any Optimizable or Quantity is None or not unique.
         """
         data = dict()
-        for optimizable, quantities in self.__optimizable_to_parameter_map.items():
+        for optimizable, quantities in self._optimizable_to_parameter_map.items():
             # Check that the optimizable's name is valid
             if len((optimizable.name or "").strip()) == 0 or optimizable.name in data:
                 raise SerializationException("Optimizable does not have a name or the name is not unique.")
@@ -302,7 +302,7 @@ class OptimizationMap:
         SerialisationException
             If the dict contains an Optimizable or a Quantity that does not exist in this optimization map.
         """
-        optimizables_for_name = {opt.name: opt for opt in self.__optimizable_to_parameter_map.keys()}
+        optimizables_for_name = {opt.name: opt for opt in self._optimizable_to_parameter_map.keys()}
         for optimizable_name, values in data.items():
             if optimizable_name not in optimizables_for_name:
                 raise SerializationException(

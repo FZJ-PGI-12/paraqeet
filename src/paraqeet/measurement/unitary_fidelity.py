@@ -34,9 +34,9 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
     """
 
-    __basis_states: Array | None
-    __target_costates: Array
-    __propagation: DifferentiablePropagation
+    _basis_states: Array | None
+    _target_costates: Array
+    _propagation: DifferentiablePropagation
 
     def __init__(
         self,
@@ -44,16 +44,16 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         gate: Array,
         basis_states: Array | None = None,
     ):
-        self.__propagation = propagation
+        self._propagation = propagation
         if basis_states is not None:
-            self.__propagation.set_initial_state(basis_states)
+            self._propagation.set_initial_state(basis_states)
         else:
             basis_states = jnp.eye(gate.shape[0])
-        self.__basis_states = basis_states
+        self._basis_states = basis_states
         self.set_ideal_gate(gate)
 
     @staticmethod
-    def __fid(overlaps: Array) -> float:
+    def _fid(overlaps: Array) -> float:
         """Gate fidelity from state overlaps.
 
         Parameters
@@ -83,11 +83,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
         """
         # TODO: Fix typing
-        states = self.__propagation.propagate(time=times)
+        states = self._propagation.propagate(time=times)
         overlaps = []
-        for ii, s in enumerate(self.__target_costates.T):
+        for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
-        return self.__fid(jnp.asarray(overlaps))
+        return self._fid(jnp.asarray(overlaps))
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
@@ -99,21 +99,21 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
         """
         # TODO: Fix typing
-        states, dg_dp_list = self.__propagation.get_value_and_gradient(time=times)  # gradient of states wrt parameters
+        states, dg_dp_list = self._propagation.get_value_and_gradient(time=times)  # gradient of states wrt parameters
         overlaps = []
-        for ii, s in enumerate(self.__target_costates.T):
+        for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         f = jnp.average(jnp.asarray(overlaps))
 
         df_dp_list = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
-            for ii, s in enumerate(self.__target_costates.T):
+            for ii, s in enumerate(self._target_costates.T):
                 gs.append(jnp.vdot(s, dg_dp[:, ii]))
             g = jnp.average(jnp.asarray(gs))
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
-        fid = self.__fid(jnp.asarray(overlaps))
+        fid = self._fid(jnp.asarray(overlaps))
         return fid, jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def set_ideal_gate(self, gate: Array):
@@ -125,7 +125,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Target state computation via this gate.
 
         """
-        if self.__basis_states is None:
-            self.__target_costates = gate
+        if self._basis_states is None:
+            self._target_costates = gate
         else:
-            self.__target_costates = self.__basis_states @ gate
+            self._target_costates = self._basis_states @ gate

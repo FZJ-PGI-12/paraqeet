@@ -32,7 +32,7 @@ class OpenSystem(EquationOfMotion):
     """
 
     _ode_propagation: bool
-    __sparse_superop: bool
+    _sparse_superop: bool
     _get_value_method: Callable
     _hamiltonian: DifferentiableHamiltonian
 
@@ -43,7 +43,7 @@ class OpenSystem(EquationOfMotion):
         ode_propagation: bool = False,
     ):
         self._hamiltonian = hamiltonian
-        self.__sparse_superop = sparse_superop
+        self._sparse_superop = sparse_superop
         self.ode_propagation = ode_propagation
 
     @property
@@ -55,11 +55,11 @@ class OpenSystem(EquationOfMotion):
         bool
             Flag to store sparse matrices.
         """
-        return self.__sparse_superop
+        return self._sparse_superop
 
     @sparse_superop.setter
     def sparse_superop(self, sparse_superop: bool) -> None:
-        self.__sparse_superop = sparse_superop
+        self._sparse_superop = sparse_superop
 
     @property
     def ode_propagation(self) -> bool:
@@ -77,9 +77,9 @@ class OpenSystem(EquationOfMotion):
         self._ode_propagation = ode_propagation
 
         if ode_propagation:
-            self._get_value_method = self.__get_ode_propagation_eom
+            self._get_value_method = self._get_ode_propagation_eom
         else:
-            self._get_value_method = vmap(self.__create_lindbladian_superop)
+            self._get_value_method = vmap(self._create_lindbladian_superop)
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of optimizable parameters.
@@ -103,7 +103,7 @@ class OpenSystem(EquationOfMotion):
         """
         return self._hamiltonian.get_collapseops()
 
-    def __get_ode_propagation_eom(self, times: Array) -> tuple[Array, list[Array]]:
+    def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, list[Array]]:
         """
         Return the coherent and incoherent EOM parts seperately.
         Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
@@ -124,7 +124,7 @@ class OpenSystem(EquationOfMotion):
         cols: list[Array] = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
         return -1j * ham_eom, cols
 
-    def __create_hamiltonian_superop(self, t) -> Array | BCOO:
+    def _create_hamiltonian_superop(self, t) -> Array | BCOO:
         """Create the Hamiltonian superoperator for one time point `t`."""
         identityop = jnp.eye(self._hamiltonian.dimension())
         ham = self._hamiltonian.get_value_at_timestep(t)
@@ -133,7 +133,7 @@ class OpenSystem(EquationOfMotion):
             return BCOO.fromdense(superop)
         return superop
 
-    def __create_collapse_superop(self) -> Array | BCOO:
+    def _create_collapse_superop(self) -> Array | BCOO:
         """Create the superoperator due to the collapse part. This is time independent."""
         dim = self._hamiltonian.dimension()
         identityop = jnp.eye(dim)
@@ -148,10 +148,10 @@ class OpenSystem(EquationOfMotion):
             return BCOO.fromdense(superop)
         return superop
 
-    def __create_lindbladian_superop(self, t) -> Array | BCOO:
+    def _create_lindbladian_superop(self, t) -> Array | BCOO:
         """Create the Lindbladian superoperator for one time point `t`."""
-        ham_super_op = self.__create_hamiltonian_superop(t)
-        col_super_op = self.__create_collapse_superop()
+        ham_super_op = self._create_hamiltonian_superop(t)
+        col_super_op = self._create_collapse_superop()
         return ham_super_op + col_super_op
 
     # TODO: check the times-Array: internally a method might be called which expects only one timestep
@@ -170,20 +170,20 @@ class OpenSystem(EquationOfMotion):
         Array
             RHS with dimension [t, n, n]  with t: time, n: hilbert space
         """
-        # TODO: in case the matrix_method is __create_lindbladian_superop, only one timestep is expected!
+        # TODO: in case the matrix_method is _create_lindbladian_superop, only one timestep is expected!
         return self._get_value_method(times)
 
     @staticmethod
     @jit
-    def __kron(A, B):
+    def _kron(A, B):
         return jnp.kron(A, B)
 
-    def __create_hamiltonian_grad_superop(self, timestep: float):
+    def _create_hamiltonian_grad_superop(self, timestep: float):
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
         identityop = jnp.eye(self._hamiltonian.dimension())
         ham_grad = self._hamiltonian.get_gradient_at_timestep(timestep)
-        term1 = -1j * vmap(self.__kron, in_axes=(None, 0))(identityop, ham_grad)
-        term2 = 1j * vmap(self.__kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
+        term1 = -1j * vmap(self._kron, in_axes=(None, 0))(identityop, ham_grad)
+        term2 = 1j * vmap(self._kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
         superop = term1 + term2
         return superop
 
@@ -197,8 +197,8 @@ class OpenSystem(EquationOfMotion):
                 eom = self._get_value_method(times)
                 grads = -1j * grads
             else:
-                eom = vmap(self.__create_lindbladian_superop)(times)
+                eom = vmap(self._create_lindbladian_superop)(times)
                 # TODO: times is an Array but float is expected
                 # ignoring mypy due to vmap
-                grads = vmap(self.__create_hamiltonian_grad_superop)(times)  # type: ignore
+                grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
         return eom, grads
