@@ -184,7 +184,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
     optmap.add(tone, [params[0]] + params[2:])
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, generators=[gen], generators_order=[0])
+    goat = GOATOverGRAPE(zeroone, generators=[gen])
     opt_grad = DCRABoptimizerGradient(
         goat,
         optimization_map=optmap,

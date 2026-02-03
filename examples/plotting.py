@@ -86,7 +86,7 @@ def plot_signal_and_dynamics(
         return pops
 
     states = propagation.propagate(times)
-    sig = generator.generate_signal(times) / 1e6 / (2 * np.pi)
+    sig = generator.get_value(times) / 1e6 / (2 * np.pi)
 
     if axes is None:
         _, axes = plt.subplots(2, figsize=(4, 5), sharex=True)
@@ -130,9 +130,9 @@ def plot_signal(
 ):
     """Plot signal from Generator or Envelope."""
     if isinstance(device, Generator):
-        sig = device.generate_signal(times) / 1e6 / (2 * np.pi)
+        sig = device.get_value(times) / 1e6 / (2 * np.pi)
     else:
-        sig = device.compute_output(times) / 1e6 / (2 * np.pi)
+        sig = device.get_value(times) / 1e6 / (2 * np.pi)
 
     if axes is None:
         _, axes = plt.subplots(1, figsize=(4, 3))

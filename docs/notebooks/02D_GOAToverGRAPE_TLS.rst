@@ -207,7 +207,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
     optmap.add(tone)
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, generators=[gen], generators_order=[0])
+    goat = GOATOverGRAPE(zeroone, generators=[gen])
     opt_grad = ScipyoptimizerGradient(goat, optimization_map=optmap)
 
 .. code:: ipython3

@@ -100,7 +100,6 @@ Flattop Gaussian envelope (defined here with multiple parameters),
     drag_tone = DRAGMixer(
         tone,
         deltas=[Quantity(0.5 * anharm, min_value=3 * anharm, max_value=anharm / 3, unit="Hz", two_pi=True, name="Delta")],
-        t_final=Quantity(t_final, 0.9 * t_final, 1, 1 * t_final, name="t_final"),
     )
     drag_tone.multiply_flat_top = True
     
@@ -250,7 +249,7 @@ Optimization
     optmap.add(drag_tone)
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, generators=[gen], generators_order=[0])
+    goat = GOATOverGRAPE(zeroone, generators=[gen])
     
     opt = ScipyOptimizer(goat, optimization_map=optmap)
     optgrad = ScipyOptimizerGradient(goat, optimization_map=optmap)

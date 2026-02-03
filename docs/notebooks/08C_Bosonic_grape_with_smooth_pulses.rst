@@ -206,7 +206,7 @@ numbers.
             fid = StateTransferFidelityGRAPE(
                 propagation=prop, initial_state=initial_state, target_state=target_state, times=tlist
             )
-            goat_over_grape_fid = GOATOverGRAPE(fid, generators=[gen_res, gen_qubit], generators_order=[0, 1])
+            goat_over_grape_fid = GOATOverGRAPE(fid, generators=[gen_res, gen_qubit])
             dcrab_fid_list.append(goat_over_grape_fid)
     
         return initial_state_list, target_state_list, fock_number_op_list, prop_list, dcrab_fid_list
