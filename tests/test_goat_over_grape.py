@@ -98,7 +98,7 @@ def model(gen):
 
 @pytest.fixture
 def prop(model):
-    prop = ScipyExpmGRAPE(model, res=1e9)
+    prop = ScipyExpmGRAPE(model, resolution=1e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>

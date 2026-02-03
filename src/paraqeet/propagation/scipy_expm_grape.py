@@ -48,8 +48,8 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
     _target_state: Array | None = None
     _schirmer_derivative: bool = False
 
-    def __init__(self, model: EquationOfMotion, res: float):
-        super().__init__(model, res)
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
 
     def set_target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.

@@ -31,7 +31,7 @@ DRIVE = DriveOperator(GEN, is_longitudinal=False)
 CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[DRIVE])
 MODEL = ClosedSystem(CONTROLLED_QUBIT)
 
-PROP = ScipyExpmGOAT(MODEL, res=100e9)
+PROP = ScipyExpmGOAT(MODEL, resolution=100e9)
 
 INIT = np.array([[1.0], [0]])
 TARGET = np.array([[0.0], [1]])

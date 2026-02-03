@@ -84,7 +84,7 @@ def tls(tls_hamiltonian, gradient_functions):
 def fid(tls):
     """Get the fidelity function"""
     model = ClosedSystem(tls)
-    prop = ScipyExpmGOAT(model, res=100e9)
+    prop = ScipyExpmGOAT(model, resolution=100e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>

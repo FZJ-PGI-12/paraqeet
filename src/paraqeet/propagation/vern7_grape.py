@@ -26,7 +26,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
     The state propagations are done by the `Vern7 ODE` method.
 
-    _res: float
+    _resolution: float
         Simulation resolution.
     _initial_state: Array = None
         Initial state for forward propagation.
@@ -36,8 +36,8 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
     _target_state: Array | None = None
 
-    def __init__(self, model: EquationOfMotion, res: float):
-        super().__init__(model, res)
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
 
         if self.is_open:
             self._reverse_step_function = self._reverse_lindblad_step
@@ -164,6 +164,11 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             time_grid, dt = self._construct_times(time, ti)
             times_interp = self._interpolate_time(time_grid, dt)
             times_interp = times_interp[:-1] + dt / 2
+
+            if len(times_interp) < 9:
+                raise ConfigurationException(
+                    "Propagation resolution has been set very low. Higher resolution needed for this method."
+                )
 
             # TODO: currently seperate time grids are required for the EOM and the gradients.
             # TODO: Can we use one so that the value and gradients are computed simultaneously?

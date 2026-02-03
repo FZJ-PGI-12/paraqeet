@@ -94,39 +94,6 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
             gen._update_inphase_and_outofphase()
         return grape.calculate_normalized_scalar(times=times)
 
-    def _construct_times(self, time, ti):
-        """Construct one-dimensional vector of time.
-
-        In specified resolution at a snapshot.
-
-        *NOTE - This function is taken from `ScipyExpm._construct_times`
-        to match propagation and measurement time grids.*
-
-        Parameters
-        ----------
-        time: Array
-            Array of timesteps.
-        ti: int
-            Snapshot of the time at a current step
-
-        Returns
-        -------
-        Array
-            Array of timestamps in specified resolution.
-        int
-            Difference in time step.
-
-        """
-        t0 = time[ti - 1]
-        t1 = time[ti]
-        steps = int(jnp.ceil((t1 - t0) * self._propagation._res))
-        times = jnp.linspace(t0, t1, steps, endpoint=False)
-        if steps < 2:
-            dt = t1 - t0
-        else:
-            dt = times[1] - times[0]
-        return times, dt
-
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
@@ -147,7 +114,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         # Construct the same time grid as propagation to evaluate control gradients
         interp_times = jnp.array([])
         for ti in range(1, len(times)):
-            t_interpolated, dt = self._construct_times(times, ti)
+            t_interpolated, dt = self._propagation._construct_times(times, ti)
             interp_times = jnp.append(interp_times, t_interpolated, axis=0)
 
         time_grid = interp_times[:-1] + dt / 2

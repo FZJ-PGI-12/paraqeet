@@ -2,6 +2,9 @@
 
 from abc import ABC, abstractmethod
 
+import jax.numpy as jnp
+import numpy as np
+
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.open_system import OpenSystem
 from paraqeet.quantity import Array
@@ -16,15 +19,19 @@ class Propagation(ABC):
     ----------
     model: Model
         Represents the equation of motion for a given Hamiltonian.
-
+    resolution: float
+        Propagation resolution used to solve the equation of motion.
+        The corresponding time step dt = 1/resolution
     """
 
     _model: EquationOfMotion | None
     _initial_state: Array | None = None
     _is_open: bool = False
+    _resolution: float
 
-    def __init__(self, model: EquationOfMotion | None):
+    def __init__(self, model: EquationOfMotion | None, resolution: float):
         self._model = model
+        self._resolution = resolution
         if isinstance(model, OpenSystem):
             self.is_open = True
 
@@ -37,6 +44,46 @@ class Propagation(ABC):
     def is_open(self, flag) -> None:
         """Set if the propagation is for open or closed system."""
         self._is_open = flag
+
+    @property
+    def resolution(self) -> float:
+        """Return the propagation resolution."""
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, resolution: float) -> None:
+        """Set the propagation resolution."""
+        self._resolution = resolution
+
+    def _construct_times(self, time, ti):
+        """Construct one-dimensional vector of time.
+
+        Interpolate the user-specified times to match the propagation resolution.
+
+        Parameters
+        ----------
+        time: Array
+            Array of timesteps.
+        ti: int
+            Snapshot of the time at a current step
+
+        Returns
+        -------
+        Array
+            Array of timestamps in specified resolution.
+        int
+            Difference in time step.
+
+        """
+        t0 = time[ti - 1]
+        t1 = time[ti]
+        steps = int(np.ceil((t1 - t0) * self.resolution))
+        times = jnp.linspace(t0, t1, steps, endpoint=False)
+        if steps < 2:
+            dt = t1 - t0
+        else:
+            dt = times[1] - times[0]
+        return times, dt
 
     # TODO: Keep or remove get_parameters?
     # @staticmethod

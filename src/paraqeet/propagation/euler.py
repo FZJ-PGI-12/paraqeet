@@ -23,8 +23,9 @@ class Euler(Propagation):
 
     """
 
-    def __init__(self, model: EquationOfMotion):
-        super().__init__(model)
+    def __init__(self, model: EquationOfMotion, resolution: float = 1e9):
+        # TODO: setting a default value for resolution
+        super().__init__(model, resolution)
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.

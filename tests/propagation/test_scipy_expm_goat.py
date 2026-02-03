@@ -13,22 +13,22 @@ from tests.propagation.test_common_propagation import needs_initial_state
 def expm():
     """Return a Scipy piecewise exponentiation solver generating function."""
 
-    def _method(dimension, res):
-        return ScipyExpmGOAT(DummyEquationsOfMotion(EmptyHamiltonian(dimension)), res=res)
+    def _method(dimension, resolution):
+        return ScipyExpmGOAT(DummyEquationsOfMotion(EmptyHamiltonian(dimension)), resolution=resolution)
 
     return _method
 
 
 def test_parameters(expm):
     """Test parameters from the equations of motion."""
-    propagation = expm(dimension=np.random.randint(10), res=3)
+    propagation = expm(dimension=np.random.randint(10), resolution=3)
     assert propagation.get_parameters() == []
 
 
 def test_resolution(expm):
     """Test the resolution of the solver."""
     for _ in range(10):
-        propagation = expm(dimension=np.random.randint(2, 100), res=3)
+        propagation = expm(dimension=np.random.randint(2, 100), resolution=3)
         resolution = np.random.randint(1, 1000)
         propagation.resolution = resolution
         assert propagation.resolution == resolution
@@ -44,7 +44,7 @@ def test_state_dimension_vector(random_state, expm, ts):
     for _ in range(10):
         dim = np.random.randint(2, 10)
         state = random_state(dim)
-        propagation = expm(dim, res=3)
+        propagation = expm(dim, resolution=3)
         propagation.set_initial_state(state)
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
@@ -58,10 +58,10 @@ def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
         dim = np.random.randint(2, 10)
         state = random_matrix(dim, dim)
         if is_open:
-            propagation = expm(dim**2, res=3)
+            propagation = expm(dim**2, resolution=3)
             propagation.is_open = True
         else:
-            propagation = expm(dim, res=3)
+            propagation = expm(dim, resolution=3)
         propagation.set_initial_state(state)
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
@@ -70,5 +70,5 @@ def test_state_dimension_matrix(random_matrix, expm, ts, is_open):
 
 def test_needs_initial_state(random_state, expm):
     for dim in range(2, 10):
-        propagation = expm(dim, res=3)
+        propagation = expm(dim, resolution=3)
         needs_initial_state(propagation, dim)

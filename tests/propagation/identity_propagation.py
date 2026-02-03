@@ -15,7 +15,7 @@ class IdentityPropagation(DifferentiablePropagation):
     _state: Array
 
     def __init__(self):
-        super().__init__(None)
+        super().__init__(None, None)
 
     def set_initial_state(self, state: Array):
         """Set the initial state of the system.

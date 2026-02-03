@@ -56,7 +56,7 @@ def prop(gen, request):
         model = OpenSystem(controlled_qubit)
     elif request.param == "closedSystem":
         model = ClosedSystem(controlled_qubit)
-    return ScipyExpmGOAT(model=model, res=RES)
+    return ScipyExpmGOAT(model=model, resolution=RES)
 
 
 @pytest.fixture

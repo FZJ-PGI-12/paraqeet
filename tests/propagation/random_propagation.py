@@ -41,7 +41,7 @@ class RandomPropagation(Propagation, Differentiable):
         generate_matrices: bool = False,
         auto_update: bool = True,
     ):
-        super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)))
+        super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)), 1e9)
         self._dimension = dimension
         self._create_matrices = generate_matrices
         self._auto_update = auto_update

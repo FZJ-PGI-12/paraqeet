@@ -23,10 +23,10 @@ class Vern7(Propagation):
     Implements Vern7 ODE Solver algorithm non adaptive (fixed time-step) version.
     """
 
-    _res: float
+    _resolution: float
     _initial_state: Array | None = None
 
-    def __init__(self, model: EquationOfMotion, res: float):
+    def __init__(self, model: EquationOfMotion, resolution: float):
         """
         Parameters
         ----------
@@ -35,8 +35,8 @@ class Vern7(Propagation):
         res: float
             Resolution at which to sample the EOM
         """
-        super().__init__(model)
-        self.resolution = res
+        super().__init__(model, resolution)
+        self.resolution = resolution
 
         if self.is_open:
             self.step_function = self._lindblad_step
@@ -54,16 +54,6 @@ class Vern7(Propagation):
                 )
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
-    @property
-    def resolution(self) -> float:
-        """Get the resolution of the system."""
-        return self._res
-
-    @resolution.setter
-    def resolution(self, res: float):
-        """Set the resolution of the propagation."""
-        self._res = res
-
     @staticmethod
     def _commutator(A: Array, B: Array):
         return jnp.matmul(A, B) - jnp.matmul(B, A)
@@ -75,18 +65,6 @@ class Vern7(Propagation):
     @staticmethod
     def _dagger(op: Array):
         return op.conj().T
-
-    def _construct_times(self, time, ti):
-        """Construct one-dimensional vector of time."""
-        t0 = time[ti - 1]
-        t1 = time[ti]
-        steps = int(np.ceil((t1 - t0) * self._res))
-        times = jnp.linspace(t0, t1, steps, endpoint=False)
-        if steps < 2:
-            dt = t1 - t0
-        else:
-            dt = times[1] - times[0]
-        return times, dt
 
     @staticmethod
     def _interpolate_time(times, dt):

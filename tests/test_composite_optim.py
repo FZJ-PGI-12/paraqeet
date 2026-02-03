@@ -121,7 +121,7 @@ def coupled_transmons(tone):
     )
     hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
     model = ClosedSystem(hamiltonian)
-    prop = ScipyExpmGOAT(model=model, res=RES)
+    prop = ScipyExpmGOAT(model=model, resolution=RES)
 
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
     pauli_z = np.array([[1, 0], [0.0, -1]])

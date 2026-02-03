@@ -19,9 +19,10 @@ class DifferentiablePropagation(Propagation, Differentiable):
 
     _initial_state: Array | None = None
     _is_open: bool = False
+    _resolution: float
 
-    def __init__(self, model: EquationOfMotion):
-        super().__init__(model)
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
 
     @abstractmethod
     def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:

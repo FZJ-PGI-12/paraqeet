@@ -31,52 +31,12 @@ class ScipyExpm(Propagation):
 
     """
 
-    _res: float
+    _resolution: float
     _initial_state: Array | None = None
 
-    def __init__(self, model: EquationOfMotion, res: float):
-        super().__init__(model)
-        self.resolution = res
-
-    @property
-    def resolution(self) -> float:
-        """Get the resolution of the system."""
-        return self._res
-
-    @resolution.setter
-    def resolution(self, res: float):
-        """Set the resolution of the propagation."""
-        self._res = res
-
-    def _construct_times(self, time, ti):
-        """Construct one-dimensional vector of time.
-
-        In specified resolution at a snapshot.
-
-        Parameters
-        ----------
-        time: Array
-            Array of timesteps.
-        ti: int
-            Snapshot of the time at a current step
-
-        Returns
-        -------
-        Array
-            Array of timestamps in specified resolution.
-        int
-            Difference in time step.
-
-        """
-        t0 = time[ti - 1]
-        t1 = time[ti]
-        steps = int(jnp.ceil((t1 - t0) * self._res))
-        times = jnp.linspace(t0, t1, steps, endpoint=False)
-        if steps < 2:
-            dt = t1 - t0
-        else:
-            dt = times[1] - times[0]
-        return times, dt
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
+        self.resolution = resolution
 
     def set_initial_state(self, state):
         """Set initial state."""

@@ -27,7 +27,9 @@ class RungeKutta(Propagation):
     _initial_time_step: float | None
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
-        super().__init__(model)
+        # TODO: settting a default value for resolution
+        initial_time_step = 0.1e-9 if initial_time_step is None else initial_time_step
+        super().__init__(model, resolution=1 / initial_time_step)
         self._initial_state: Array
         self._initial_time_step = initial_time_step
 
