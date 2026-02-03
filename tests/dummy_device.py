@@ -1,7 +1,7 @@
 """Testing the device functions."""
 
-from functools import partial
 from collections.abc import Callable
+from functools import partial
 
 import jax.numpy as jnp
 from jax import jit

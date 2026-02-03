@@ -2,9 +2,10 @@
 
 import jax
 import jax.numpy as jnp
+
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
 from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
+from paraqeet.model.drive import Drive
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)

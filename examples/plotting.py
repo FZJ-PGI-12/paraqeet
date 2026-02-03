@@ -1,19 +1,18 @@
 """A plotting library for ParaQeet."""
 
-import matplotlib.pyplot as plt
-import matplotlib_inline.backend_inline
-import matplotlib as mpl
-
-import numpy as np
 import json
 
 import jax.numpy as jnp
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib_inline.backend_inline
+import numpy as np
 from jax import vmap
 
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
-from paraqeet.signal.waveform import Waveform
 from paraqeet.signal.generator import Generator
+from paraqeet.signal.waveform import Waveform
 
 matplotlib_inline.backend_inline.set_matplotlib_formats("png")
 

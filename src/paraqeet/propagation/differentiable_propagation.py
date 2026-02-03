@@ -1,6 +1,7 @@
 """Class definition of the State propagation model."""
 
 from abc import abstractmethod
+
 from paraqeet.differentiable import Differentiable
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.propagation import Propagation

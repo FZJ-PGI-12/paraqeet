@@ -1,5 +1,6 @@
 """Class definition of the Bayesian Optimizer model."""
 
+import jax.numpy as jnp
 from bayes_opt import BayesianOptimization
 
 from paraqeet.exceptions import ConfigurationException
@@ -7,8 +8,6 @@ from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 from paraqeet.quantity import Array
-
-import jax.numpy as jnp
 
 
 class BayesianOptimizer(Optimizer):

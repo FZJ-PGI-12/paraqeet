@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
 from jax import vmap
+
 from paraqeet.differentiable import Differentiable
 from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array

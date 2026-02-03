@@ -1,5 +1,7 @@
 """optimize a dCRAB pulse by a Scipy gradient based optimizer."""
 
+import warnings
+
 import jax.numpy as jnp
 import numpy as np
 from scipy.optimize import minimize
@@ -13,8 +15,6 @@ from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.waveform import DRAGMixer
-
-import warnings
 
 warnings.simplefilter("once")
 

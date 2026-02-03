@@ -1,21 +1,20 @@
 """Test dCRAB optimization using GOAT over GRAPE. This is same as the example 02E_GOAToverGRAPE_dCRAB"""
 
+import numpy as np
 import pytest
 
-import numpy as np
-from paraqeet.quantity import Quantity
-from tests.model.spin_rwa import SpinRWA
-
-from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.signal.envelopes import DCRABEnvelope
-from paraqeet.signal.waveform import FlatTopGaussianFilter
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
-from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import DCRABEnvelope
+from paraqeet.signal.pwc_generator import PWCGenerator
+from paraqeet.signal.waveform import FlatTopGaussianFilter
+from tests.model.spin_rwa import SpinRWA
 
 T_FINAL = 20e-9
 TLIST = np.linspace(0, T_FINAL, 40)

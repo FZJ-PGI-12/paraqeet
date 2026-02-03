@@ -1,5 +1,6 @@
 """Class definition for the Evelopes."""
 
+import time
 from abc import abstractmethod
 from collections.abc import Callable
 from functools import partial
@@ -11,8 +12,6 @@ from jax.scipy.special import erf
 
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.waveform import Waveform
-
-import time
 
 jax.config.update("jax_enable_x64", True)
 

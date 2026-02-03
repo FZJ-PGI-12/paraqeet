@@ -2,8 +2,8 @@
 
 from collections.abc import Callable
 
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
 from scipy.optimize import minimize
 
 from paraqeet.measurement.measurement import NormalizableMeasurement

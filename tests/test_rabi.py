@@ -1,13 +1,12 @@
 """Testing the Rabi Analytic Model."""
 
+import jax
 import pytest
 from numpy.testing import assert_almost_equal
 
 from paraqeet.measurement.rabi_experiment import RabiExperiment
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-
-import jax
 
 jax.config.update("jax_enable_x64", True)
 
