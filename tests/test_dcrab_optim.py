@@ -84,7 +84,7 @@ def opt_grad(tone, fid, gen, prop):
     optmap.add(tone, [params[0]] + params[2:])
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, prop, generators=[gen], generators_order=[0])
+    goat = GOATOverGRAPE(fid, prop, generators=[gen])
     opt_grad = DCRABOptimizerGradient(
         goat,
         optimization_map=optmap,

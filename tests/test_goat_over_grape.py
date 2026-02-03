@@ -127,13 +127,13 @@ def opt_grad(tone, fid, gen, prop):
     optmap.add(tone)
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, prop, generators=gen, generators_order=[0])
+    goat = GOATOverGRAPE(fid, prop, generators=gen)
     opt_grad = ScipyOptimizerGradient(goat, optimization_map=optmap)
     return opt_grad
 
 
 def test_can_measure(fid, gen, prop):
-    fid = GOATOverGRAPE(fid, prop, generators=[gen], generators_order=[0])
+    fid = GOATOverGRAPE(fid, prop, generators=[gen])
     val, grad = fid.get_value_and_gradient(times=TLIST)
     assert 0 <= fid.measure(times=TLIST)
     assert 0 <= val <= 1
