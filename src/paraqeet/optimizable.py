@@ -140,6 +140,3 @@ class Optimizable(ABC):
 
         """
         return id(param) in [id(opt_param) for opt_param in self._optimizable_parameters]
-
-
-# TODO: put Differentiable here and implement calculate_gradient

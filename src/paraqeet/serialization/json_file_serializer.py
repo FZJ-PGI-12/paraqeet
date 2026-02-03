@@ -1,10 +1,12 @@
+"""Class definition of JSONFileSerializer."""
+
 import json
 
-from paraqeet.exceptions import SerialisationException
-from paraqeet.serialisation.serialiser import Serialiser
+from paraqeet.exceptions import SerializationException
+from paraqeet.serialization.serializer import Serializer
 
 
-class JSONFileSerialiser(Serialiser):
+class JSONFileSerializer(Serializer):
     """Writes data into and read data from JSON files in a human-readable format."""
 
     __COMMENT_KEY = "__comment"
@@ -26,7 +28,7 @@ class JSONFileSerialiser(Serialiser):
         with open(self.__file) as f:
             data = json.load(f)
             if not isinstance(data, dict):
-                raise SerialisationException("File does not contain a dictionary.")
+                raise SerializationException("File does not contain a dictionary.")
 
             if self.__COMMENT_KEY in data:
                 del data[self.__COMMENT_KEY]

@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 
-from paraqeet.exceptions import SerialisationException
+from paraqeet.exceptions import SerializationException
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Quantity
 
@@ -274,13 +274,13 @@ class OptimizationMap:
         for optimizable, quantities in self.__optimizable_to_parameter_map.items():
             # Check that the optimizable's name is valid
             if len((optimizable.name or "").strip()) == 0 or optimizable.name in data:
-                raise SerialisationException("Optimizable does not have a name or the name is not unique.")
+                raise SerializationException("Optimizable does not have a name or the name is not unique.")
 
             # Check that the quantities' names are valid
             quantity_names = [(q.get_name() or "").strip() for q in quantities]
             non_empty_quantity_names = list(filter(lambda name: len(name) > 0, quantity_names))
             if len(quantities) != len(set(non_empty_quantity_names)):
-                raise SerialisationException(
+                raise SerializationException(
                     f"Quantities in {optimizable.name} have empty or non-unique names within the optimizable."
                 )
 
@@ -305,7 +305,7 @@ class OptimizationMap:
         optimizables_for_name = {opt.name: opt for opt in self.__optimizable_to_parameter_map.keys()}
         for optimizable_name, values in data.items():
             if optimizable_name not in optimizables_for_name:
-                raise SerialisationException(
+                raise SerializationException(
                     f'An optimizable with the name "{optimizable_name}" does not exist in the optimization map.'
                 )
             optimizable = optimizables_for_name[optimizable_name]
@@ -313,5 +313,5 @@ class OptimizationMap:
             quantities_for_name = {q.get_name(): q for q in optimizable.get_parameters()}
             for quantity_name, quantity_values in values.items():
                 if quantity_name not in quantities_for_name:
-                    raise SerialisationException(f'Quantity "{quantity_name}" does not exist in {optimizable_name}.')
+                    raise SerializationException(f'Quantity "{quantity_name}" does not exist in {optimizable_name}.')
                 quantities_for_name[quantity_name].from_dict(quantity_values)

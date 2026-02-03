@@ -5,7 +5,7 @@ import random
 import numpy as np
 import pytest
 
-from paraqeet.exceptions import ConfigurationException, SerialisationException
+from paraqeet.exceptions import ConfigurationException, SerializationException
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -278,5 +278,5 @@ def test_exporting(opt_map_with_optimizables, dummy_optimizable) -> None:
 
     # Test if importing fails if an optimizable does not yet exist in the optmap
     dictionary["new-optimizable"] = dummy_optimizable(1)
-    with pytest.raises(SerialisationException):
+    with pytest.raises(SerializationException):
         opt_map_with_optimizables.from_dict(dictionary)
