@@ -163,7 +163,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             # Interpolate times
             time_grid, dt = self._construct_times(time, ti)
             times_interp = self._interpolate_time(time_grid, dt)
-            times_interp = times_interp[:-1] + dt / 2
+            times_interp = times_interp + dt / 2
 
             if len(times_interp) < 9:
                 raise ConfigurationException(

@@ -4,7 +4,6 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
