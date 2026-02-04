@@ -43,6 +43,7 @@ class CustomHamiltonian(DifferentiableHamiltonian):
     ):
         self._hamiltonian_function = hamiltonian_function
         self._parameters = parameters
+        # TODO: is a leading underscore missing here?
         self.gradient_functions = gradient_functions
         self.collapse_operators = collapse_operators
 

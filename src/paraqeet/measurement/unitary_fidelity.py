@@ -52,6 +52,8 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         self._basis_states = basis_states
         self.set_ideal_gate(gate)
 
+    # TODO: since this method is declared as static, it belongs to the class, not to the instance. 
+    # It should be called accordingly.
     @staticmethod
     def _fid(overlaps: Array) -> float:
         """Gate fidelity from state overlaps.
@@ -99,7 +101,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
         """
         # TODO: Fix typing
-        states, dg_dp_list = self._propagation.get_value_and_gradient(time=times)  # gradient of states wrt parameters
+        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))

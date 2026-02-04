@@ -8,6 +8,10 @@ from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
 
+# TODO: Is Drive a Differentiable object? If so, it should inherit from Differentiable at least 
+# for the purpose of clarity and consistency. Would it make sense to add a default 
+# implementation of the abstract Differentiable method get_value_and_gradient?
+# If not, we should rename the methods to e.g. get_hamiltonian_gradient to avoid confusion.
 class Drive(Optimizable):
     """Represents a time-dependent drive on a subsystem.
 
@@ -62,7 +66,7 @@ class Drive(Optimizable):
         """
         pass
 
-    def get_gradient(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_gradient(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the gradient of the system.
 
         Returns the gradient of the matrix representation of the Hamiltonian
@@ -72,7 +76,7 @@ class Drive(Optimizable):
         ----------
         annihilation_operator : Array
             Operator of the subsystem to which this drive is attached.
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -84,7 +88,7 @@ class Drive(Optimizable):
 
         """
         # Ignoring mypy here as vmap makes the array to float
-        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, t)  #  type: ignore
+        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  #  type: ignore
 
     @abstractmethod
     def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:

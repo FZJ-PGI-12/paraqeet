@@ -360,7 +360,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
             + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
         )
 
-    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -371,7 +371,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         This propagation method assumes a PWC pulse as input.
         """
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("ScipyExpmGRAPE.get_value_and_gradient needs at least two time points.")
 
         if self._initial_state is None:
@@ -381,8 +381,8 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
             raise ConfigurationException("Target state is not set")
 
         if self.is_open:
-            psis, grads = self._gradient_open_systems(time)
+            psis, grads = self._gradient_open_systems(times)
         else:
-            psis, grads = self._gradient_closed_system(time)
+            psis, grads = self._gradient_closed_system(times)
 
         return psis, grads

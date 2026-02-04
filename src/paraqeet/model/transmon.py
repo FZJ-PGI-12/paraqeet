@@ -10,7 +10,7 @@ from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
-
+# TODO: How can a Transmon be a Hamiltonian? Transmon has a Hamiltonian... We should use compoisition here.
 class Transmon(DifferentiableHamiltonian):
     """Hamiltonian of an anharmonic oscillator.
 

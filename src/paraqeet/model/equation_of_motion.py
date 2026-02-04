@@ -22,6 +22,8 @@ class EquationOfMotion(Optimizable):
     """
 
     _hamiltonian: DifferentiableHamiltonian
+    # TODO: this is the first "public" variable used without the property-decorator.
+    # Should we add a property for it?
     ode_propagation: bool = False
 
     def __init__(self, hamiltonian: DifferentiableHamiltonian):
@@ -48,12 +50,12 @@ class EquationOfMotion(Optimizable):
         return self.get_value(time) @ state
 
     @abstractmethod
-    def get_value(self, time: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Abstract method to get the prefactor matrix.
 
         Parameters
         ----------
-        time: Array
+        times: Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -69,13 +71,16 @@ class EquationOfMotion(Optimizable):
         """
         pass
 
+    # TODO: Since this method delegates the call to the Hamiltonian-instance, should
+    # we rename it to get_habiltonian_value_and_gradient or similar? Otherwise it suggests
+    # that it returns the gradient of the equation of motion itself.
     @abstractmethod
-    def get_value_and_gradient(self, t: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             Any one-dimensional vector of timestamps.
 
         Raises

@@ -8,6 +8,9 @@ from paraqeet.model.drive import Drive
 from paraqeet.quantity import Array, Quantity
 
 
+# TODO: Why does Qubit inherit from Hamiltonian? Is a qubit really an operator? 
+# What does a derivative of a qubit mean physically? Does get_value_at_timestep
+# mean a measurement of the qubit at a certain time? 
 class Qubit(DifferentiableHamiltonian):
     """Hamiltonian of a single qubit frequency/2 * sigma_z.
 
@@ -33,6 +36,7 @@ class Qubit(DifferentiableHamiltonian):
     _temp: Quantity | None
     _t2star: Quantity | None
 
+    # TODO: should we move DifferentiableHamiltonian-object to the constructor instead of inheriting from it?
     def __init__(
         self,
         frequency: Quantity,

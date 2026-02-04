@@ -117,7 +117,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
         return psis_t, lamdas_t
 
-    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -130,7 +130,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
         Note: This method only computes the first order gradients right now.
         """
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("Vern7GRAPE.get_value_and_gradient needs at least two time points.")
 
         if self._initial_state is None:
@@ -156,12 +156,12 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         psis_list = [init_state]
         lamdas_list = [target_state]
 
-        for ti in range(1, len(time)):
+        for ti in range(1, len(times)):
             psi_t = psis_list[ti - 1]
             lamda_t = lamdas_list[ti - 1]
 
             # Interpolate times
-            time_grid, dt = self._construct_times(time, ti)
+            time_grid, dt = self._construct_times(times, ti)
             times_interp = self._interpolate_time(time_grid, dt)
             times_interp = times_interp + dt / 2
 
@@ -186,7 +186,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         lamdas = jnp.array(lamdas_list)
 
         lamdas = jnp.flip(lamdas, axis=0)
-        _, dh_dps = grad_func(time[:-1] + dt / 2)
+        _, dh_dps = grad_func(times[:-1] + dt / 2)
         dh_dps = jnp.array(dh_dps) * dt
 
         grads = []

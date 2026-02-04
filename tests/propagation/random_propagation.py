@@ -83,10 +83,10 @@ class RandomPropagation(Propagation, Differentiable):
             self.update()
         return jnp.array([self._state] * len(time))
 
-    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
-        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self._state)))
-        return self.propagate(time), empty_gradient
+        empty_gradient = jnp.zeros(shape=(len(times), 0, len(self._state)))
+        return self.propagate(times), empty_gradient
 
     @staticmethod
     @partial(jit, static_argnums=(0,))

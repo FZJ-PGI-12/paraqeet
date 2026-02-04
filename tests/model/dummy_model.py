@@ -43,13 +43,13 @@ class DummyEquationsOfMotion(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian.get_value(t)
 
-    def get_value_and_gradient(self, t) -> Array:
+    def get_value_and_gradient(self, times) -> Array:
         """Compute the gradient of get_value.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         """
-        return -1.0j * self._hamiltonian.get_gradient_at_timestep(t)
+        return -1.0j * self._hamiltonian.get_gradient_at_timestep(times)

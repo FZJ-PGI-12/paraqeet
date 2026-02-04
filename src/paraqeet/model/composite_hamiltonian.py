@@ -25,7 +25,6 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         List of couplings between the various subsystems
     """
 
-    # TODO: Should be DifferentiableHamiltonian
     _subsystems: list[DifferentiableHamiltonian]
     _couplings: list[TwoBodyCoupling]
     _dimensions: list[int]

@@ -66,6 +66,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
         return annihilation_ops
 
+    # TODO: is t a one time point or an array of time points?
     def get_RWA_couplings(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
@@ -100,6 +101,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         # ignoring mypy due to vmap
         return vmap(self.get_RWA_gradients_one_time)(times)  # type: ignore
 
+    # TODO: should we rename this method to get_RWA_gradient_at_timestep for consistency?
     def get_RWA_gradients_one_time(self, t: float) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 

@@ -10,7 +10,8 @@ from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
-
+# TODO: Why is a resonator a Hamiltonian? Isn't a resonator a quantum system which has a Hamiltonian
+#  as a property? What does “derivative of a resonator” mean physically?
 class Resonator(DifferentiableHamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
@@ -35,6 +36,7 @@ class Resonator(DifferentiableHamiltonian):
     _temp: Quantity | None
     _t2star: Quantity | None
 
+    # TODO: we should think about the composition here instead of inheritance from DifferentiableHamiltonian.
     def __init__(
         self,
         dimension: int,

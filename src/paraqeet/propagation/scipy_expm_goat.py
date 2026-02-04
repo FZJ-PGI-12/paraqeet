@@ -81,7 +81,7 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
 
-    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
         Parameters
@@ -95,7 +95,7 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
             First dimension is time, second dimension is the parameter.
 
         """
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("ScipyExpmGOAT.get_value_and_gradient needs at least two time points.")
 
         if self._initial_state is None:
@@ -109,8 +109,8 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
 
         grad_func = self._model.get_value_and_gradient
 
-        for ti in range(1, len(time)):
-            times, dt = self._construct_times(time, ti)
+        for ti in range(1, len(times)):
+            times, dt = self._construct_times(times, ti)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
             eom, grads = grad_func(times + dt / 2)

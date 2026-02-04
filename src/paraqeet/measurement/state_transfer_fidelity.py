@@ -60,6 +60,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         else:
             self._overlap = self._overlap_vec
 
+    # TODO: since these methods are declared as static, they belong to the class, not to the instance. 
+    # They should be called accordingly. (e.g. StateTransferFidelity._fid(...) instead of self._fid(...))
     @staticmethod
     def _fid(overlap: Array) -> float:
         return float(jnp.abs(jnp.average(overlap)) ** 2)
@@ -107,7 +109,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self._propagation.get_value_and_gradient(time=times)
+        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(self._target_state, final_state)
@@ -160,7 +162,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         if self._gradient_function is None:
             self._gradient_function = jit(grad(self._fid, argnums=0))
 
-        states, dg_dp_list = self._propagation.get_value_and_gradient(time=times)
+        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(self._target_state, final_state)
@@ -201,7 +203,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, grads = self._propagation.get_value_and_gradient(time=times)
+        states, grads = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
         if self._propagation.is_open:
