@@ -7,7 +7,7 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax import grad, jacfwd, jit, vmap
+from jax import jacfwd, jit, vmap
 from jax.scipy.special import erf
 
 from paraqeet.differentiable import Differentiable
@@ -147,7 +147,7 @@ class Waveform(Optimizable, Differentiable):
 
         """
         t_arr = jnp.array(times, ndmin=1)
-        env_time_grad_fun = grad(self.get_value, argnums=0)
+        env_time_grad_fun = jacfwd(self.get_value, argnums=0)
         env_time_grad = vmap(env_time_grad_fun, in_axes=(0,))(t_arr)
         return jnp.squeeze(env_time_grad)
 
