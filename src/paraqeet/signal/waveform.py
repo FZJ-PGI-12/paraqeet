@@ -20,6 +20,7 @@ jax.config.update("jax_enable_x64", True)
 class Waveform(Optimizable, Differentiable):
     """Classical electronics."""
 
+    _partial_grads_function: Callable | None = None
     _gradient_function: Callable | None = None
     _grad_arg_nums: tuple[int, ...] = ()
 
@@ -39,6 +40,7 @@ class Waveform(Optimizable, Differentiable):
 
         """
         grads = jacfwd(signal_function, argnums=argnums)
+        self._partial_grads_function = grads
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
@@ -150,6 +152,35 @@ class Waveform(Optimizable, Differentiable):
         env_time_grad_fun = jacfwd(self.get_value, argnums=0)
         env_time_grad = vmap(env_time_grad_fun, in_axes=(0,))(t_arr)
         return jnp.squeeze(env_time_grad)
+
+    def get_time_and_parameter_gradient(self, times: Array | float) -> Array:
+        r"""Compute the double derivative with respect to parameter and time.
+
+        This function computes $\\frac{\\partial^2 \\Omega}{\\partial t \\partial \alpha}$
+        for a pulse $\\Omega(t)$ and parameter $\\alpha$.
+
+        Parameters
+        ----------
+        times: Array
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        Array
+            Returns a vector signals time derivative.
+
+        """
+        params = self.get_parameters()
+        param_values = [param.get_value() for param in params]
+        t_arr = jnp.array(times, ndmin=1)
+        grads = jnp.empty((t_arr.shape[0], 0))
+        if self._partial_grads_function is not None:
+            env_time_and_param_grad_fun = jacfwd(self._partial_grads_function, argnums=-1)
+            env_time_and_param_grad = env_time_and_param_grad_fun(*param_values, t_arr)
+            grads = jnp.stack(env_time_and_param_grad, axis=1)
+            grads = jnp.diagonal(grads, axis1=0, axis2=-1)
+            grads = jnp.transpose(grads, axes=(2, 0, 1))
+        return jnp.squeeze(grads, axis=-1)
 
 
 class LocalOscillator(Waveform):
@@ -445,8 +476,10 @@ class DRAGMixer(Waveform):
         gradients = jnp.zeros(shape=(times_arr.shape[0], 0))
 
         # Collect gradients wrt envelope parameters
-        for tone in self._envs:
+        for i, tone in enumerate(self._envs):
             _, grads = tone.get_value_and_gradient(times_arr)
+            mixed_der = tone.get_time_and_parameter_gradient(times_arr)
+            grads += -1.0j / delta_values[i] * mixed_der
             gradients = jnp.append(gradients, grads, axis=1)
 
         # Collect gradients wrt deltas
