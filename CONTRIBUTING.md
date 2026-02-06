@@ -61,6 +61,7 @@ pre-commit install
 
 - Keep an updated `Unreleased` section during the merge request. 
 - At the time of release change the `Unrelease` to the version number.
+- Add version number with a v. E.g., v0.1.0 .
 - Avoid dumping git log into the changelog.
 - Add a comparision link at the end of the document.
 - Add date in the year-month-day format
