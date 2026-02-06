@@ -79,7 +79,14 @@ class Waveform(Optimizable, Differentiable):
 
     @abstractmethod
     def _evaluate(self, *args, **kwargs) -> Array:
-        """Evaluate the output of the system."""
+        """Evaluate the output of the system.
+
+        *Note- It is recommended to make this function a 'pure' JAX function supporting JIT.*
+        *The arguments are supposed to be arranged as (parameters, t), i.e., time after parameters.*
+        *The type of arguments should be jax.Array.*
+        *The output has to be a scalar for a scalar time input to support AD.*
+        *Use jax.squeeze() to remove extra dimensions.*
+        """
         pass
 
     @abstractmethod
@@ -496,6 +503,8 @@ class FlatTopGaussianFilter(Waveform):
     """A shape filter that forces the pulse to smoothly start and end at zero.
     This filter multiplies the input pulse with a flat-top Gaussian pulse.
 
+    *Note - Use filters before the generators. Else Automatic differentiation does not work.*
+
     This is similar to `PWCGenerator.multiply_flat_top = True`.
     """
 
@@ -599,5 +608,7 @@ class FlatTopGaussianFilter(Waveform):
         for tone in self._envs:
             value, grads = tone.get_value_and_gradient(times)
             total_env += value
-            gradients = jnp.append(gradients, grads * jnp.expand_dims(smoothing, axis=1), axis=1)
+            smoothing = jnp.reshape(smoothing, smoothing.shape + (1,) * (grads.ndim - smoothing.ndim))
+            gradients = jnp.reshape(gradients, gradients.shape + (1,) * (grads.ndim - gradients.ndim))
+            gradients = jnp.append(gradients, grads * smoothing, axis=1)
         return jnp.squeeze(total_env * smoothing), jnp.array(gradients)
