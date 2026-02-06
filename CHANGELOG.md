@@ -26,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `restrict_subsystem` and `_preprocess_vector` from measurement.
-- 
 
 ## [v0.9.1] - 2025-11-20
 
@@ -37,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a dCRAB optimizer.
 - FlatTopGaussianFilter instead of multiply_flat_top method.
 
-### Chaged
+### Changed
 
 - Extends the GOAToverGRAPE method to support mutiple generators
 
