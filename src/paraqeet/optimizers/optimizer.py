@@ -84,13 +84,13 @@ class Optimizer(ABC):
     """Base class for all classes that implement an optimization algorithm.
 
     The class accepts a list of optimizable parameters from the lower layers
-    which shall be optimized in order to minimise the given measure.
+    which shall be optimized in order to minimize the given measure.
 
     Parameters
     ----------
     measure: Measurement
         Implementation of the Measurement class that measures the observable
-        to be minimised.
+        to be minimized.
     optimizables: OptimizationMap
         An optimization map containing all parameters that can be optimized.
         If none, an empty map will be created to which the parameters can

@@ -7,7 +7,7 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax import grad, jacfwd, jit, vmap
+from jax import jacfwd, jit, vmap
 from jax.scipy.special import erf
 
 from paraqeet.differentiable import Differentiable
@@ -20,6 +20,7 @@ jax.config.update("jax_enable_x64", True)
 class Waveform(Optimizable, Differentiable):
     """Classical electronics."""
 
+    _partial_grads_function: Callable | None = None
     _gradient_function: Callable | None = None
     _grad_arg_nums: tuple[int, ...] = ()
 
@@ -39,6 +40,7 @@ class Waveform(Optimizable, Differentiable):
 
         """
         grads = jacfwd(signal_function, argnums=argnums)
+        self._partial_grads_function = grads
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
@@ -77,7 +79,14 @@ class Waveform(Optimizable, Differentiable):
 
     @abstractmethod
     def _evaluate(self, *args, **kwargs) -> Array:
-        """Evaluate the output of the system."""
+        """Evaluate the output of the system.
+
+        *Note- It is recommended to make this function a 'pure' JAX function supporting JIT.*
+        *The arguments are supposed to be arranged as (parameters, t), i.e., time after parameters.*
+        *The type of arguments should be jax.Array.*
+        *The output has to be a scalar for a scalar time input to support AD.*
+        *Use jax.squeeze() to remove extra dimensions.*
+        """
         pass
 
     @abstractmethod
@@ -147,9 +156,38 @@ class Waveform(Optimizable, Differentiable):
 
         """
         t_arr = jnp.array(times, ndmin=1)
-        env_time_grad_fun = grad(self.get_value, argnums=0)
+        env_time_grad_fun = jacfwd(self.get_value, argnums=0)
         env_time_grad = vmap(env_time_grad_fun, in_axes=(0,))(t_arr)
         return jnp.squeeze(env_time_grad)
+
+    def get_time_and_parameter_gradient(self, times: Array | float) -> Array:
+        r"""Compute the double derivative with respect to parameter and time.
+
+        This function computes $\\frac{\\partial^2 \\Omega}{\\partial t \\partial \alpha}$
+        for a pulse $\\Omega(t)$ and parameter $\\alpha$.
+
+        Parameters
+        ----------
+        times: Array
+            One-dimensional vector of timestamps.
+
+        Returns
+        -------
+        Array
+            Returns a vector signals time derivative.
+
+        """
+        params = self.get_parameters()
+        param_values = [param.get_value() for param in params]
+        t_arr = jnp.array(times, ndmin=1)
+        grads = jnp.empty((t_arr.shape[0], 0))
+        if self._partial_grads_function is not None:
+            env_time_and_param_grad_fun = jacfwd(self._partial_grads_function, argnums=-1)
+            env_time_and_param_grad = env_time_and_param_grad_fun(*param_values, t_arr)
+            grads = jnp.stack(env_time_and_param_grad, axis=1)
+            grads = jnp.diagonal(grads, axis1=0, axis2=-1)
+            grads = jnp.transpose(grads, axes=(2, 0, 1))
+        return jnp.squeeze(grads, axis=-1)
 
 
 class LocalOscillator(Waveform):
@@ -445,8 +483,10 @@ class DRAGMixer(Waveform):
         gradients = jnp.zeros(shape=(times_arr.shape[0], 0))
 
         # Collect gradients wrt envelope parameters
-        for tone in self._envs:
+        for i, tone in enumerate(self._envs):
             _, grads = tone.get_value_and_gradient(times_arr)
+            mixed_der = tone.get_time_and_parameter_gradient(times_arr)
+            grads += -1.0j / delta_values[i] * mixed_der
             gradients = jnp.append(gradients, grads, axis=1)
 
         # Collect gradients wrt deltas
@@ -462,6 +502,8 @@ class DRAGMixer(Waveform):
 class FlatTopGaussianFilter(Waveform):
     """A shape filter that forces the pulse to smoothly start and end at zero.
     This filter multiplies the input pulse with a flat-top Gaussian pulse.
+
+    *Note - Use filters before the generators. Else Automatic differentiation does not work.*
 
     This is similar to `PWCGenerator.multiply_flat_top = True`.
     """
@@ -566,5 +608,7 @@ class FlatTopGaussianFilter(Waveform):
         for tone in self._envs:
             value, grads = tone.get_value_and_gradient(times)
             total_env += value
-            gradients = jnp.append(gradients, grads * jnp.expand_dims(smoothing, axis=1), axis=1)
+            smoothing = jnp.reshape(smoothing, smoothing.shape + (1,) * (grads.ndim - smoothing.ndim))
+            gradients = jnp.reshape(gradients, gradients.shape + (1,) * (grads.ndim - gradients.ndim))
+            gradients = jnp.append(gradients, grads * smoothing, axis=1)
         return jnp.squeeze(total_env * smoothing), jnp.array(gradients)
