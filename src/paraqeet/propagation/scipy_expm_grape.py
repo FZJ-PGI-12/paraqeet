@@ -79,7 +79,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
                     if target_state.shape[-1] == target_state.shape[-2]:
                         # This is a density matrix
-                        target_state = self._convert_dm_to_vec(target_state, dim_generator)
+                        target_state = ScipyExpm._convert_dm_to_vec(target_state, dim_generator)
             except Exception as e:
                 raise ConfigurationException(
                     f"Obtained a state vector of shape {target_state.shape} as target state. "
@@ -285,7 +285,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         eom_func = self._model.get_value
         eom = eom_func(time_grid) * dt
 
-        us = vmap(self._exponentiate, in_axes=(0,))(eom)
+        us = vmap(ScipyExpmGRAPE._exponentiate, in_axes=(0,))(eom)
 
         psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
@@ -294,7 +294,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         dim = eom.shape[-2]
         if self.is_open:
             psis = jnp.array(psis)
-            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
+            psis = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return jnp.array(psis)
 
     def _gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
@@ -321,9 +321,9 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         dim = hams.shape[-2]
 
         if self._schirmer_derivative:
-            exponentiating_function = self._exponentiate_schirmer
+            exponentiating_function = ScipyExpmGRAPE._exponentiate_schirmer
         else:
-            exponentiating_function = self._exponentiate_frechet
+            exponentiating_function = ScipyExpmGRAPE._exponentiate_frechet
 
         for i in range(n_params):
             us, d_us = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dh_dps[:, i, ...])
@@ -343,7 +343,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         grads = []
         for i in range(n_params):
             grad = vmap(
-                self._sandwich_op_values, in_axes=(0, 0, 0)
+                ScipyExpmGRAPE._sandwich_op_values, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
                 u_grads[:, i, ...],  # type: ignore

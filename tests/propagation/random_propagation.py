@@ -111,8 +111,8 @@ class RandomPropagation(Propagation, Differentiable):
             # generate a random density matrix by rotating a
             # random diagonal matrix
             rho = jnp.diag(np.random.random(self._dimension))
-            self._state = self.__create_random_dm(self._dimension, rho)
+            self._state = RandomPropagation.__create_random_dm(self._dimension, rho)
         else:
             # generate a random state vector
             state = np.random.random((self._dimension, 1)) + 1j * np.random.random((self._dimension, 1))
-            self._state = self.__create_random_vec(state)
+            self._state = RandomPropagation.__create_random_vec(state)

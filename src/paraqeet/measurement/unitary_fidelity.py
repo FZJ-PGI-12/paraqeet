@@ -89,7 +89,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
-        return self._fid(jnp.asarray(overlaps))
+        return UnitaryFidelity._fid(jnp.asarray(overlaps))
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
@@ -115,7 +115,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             g = jnp.average(jnp.asarray(gs))
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
-        fid = self._fid(jnp.asarray(overlaps))
+        fid = UnitaryFidelity._fid(jnp.asarray(overlaps))
         return fid, jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def set_ideal_gate(self, gate: Array):

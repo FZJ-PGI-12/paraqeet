@@ -301,7 +301,7 @@ class DRAGMixer(Waveform):
         deltas: list[Quantity] | None = None,
     ) -> None:
         self._envs = envelopes if isinstance(envelopes, list) else [envelopes]
-        self._add_deltas(self._envs, deltas)
+        DRAGMixer._add_deltas(self._envs, deltas)
 
     def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
@@ -317,7 +317,7 @@ class DRAGMixer(Waveform):
         params = list()
         for tone in self._envs:
             params += tone.get_parameters()
-            params += [self._get_tone_delta(tone)]
+            params += [DRAGMixer._get_tone_delta(tone)]
         return params
 
     def get_envelopes(self) -> list[Waveform]:
@@ -403,7 +403,7 @@ class DRAGMixer(Waveform):
         Array
             Returns a vector carrier signal.
         """
-        deltas = [self._get_tone_delta(tone).get_value() for tone in self._envs]
+        deltas = [DRAGMixer._get_tone_delta(tone).get_value() for tone in self._envs]
         return self._evaluate(times, *deltas)
 
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
@@ -438,7 +438,7 @@ class DRAGMixer(Waveform):
         Array
             Array of gradients wrt each parameter for each time point.
         """
-        deltas = [self._get_tone_delta(tone) for tone in self._envs]
+        deltas = [DRAGMixer._get_tone_delta(tone) for tone in self._envs]
         delta_values = [delta.get_value() for delta in deltas]
         times_arr = jnp.array(times, ndmin=1)
 

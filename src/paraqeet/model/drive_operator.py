@@ -113,5 +113,5 @@ class DriveOperator(Drive):
 
         """
         signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape((-1, 1, 1))
-        matrix = self._repeat(self._compute_matrix(a), signal_grad.shape[0])
+        matrix = Drive._repeat(self._compute_matrix(a), signal_grad.shape[0])
         return signal_grad * matrix

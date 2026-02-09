@@ -76,7 +76,7 @@ class ScipyExpm(Propagation):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
                     if state.shape[-1] == state.shape[-2]:
                         # This is a density matrix. Convert to vectorized form.
-                        state = self._convert_dm_to_vec(state, int(jnp.sqrt(dim_generator)))
+                        state = ScipyExpm._convert_dm_to_vec(state, int(jnp.sqrt(dim_generator)))
 
                     # check if it is a list of vectorized density matrices
                     elif state.shape[-1] == dim_generator:
@@ -162,7 +162,7 @@ class ScipyExpm(Propagation):
         """
 
         def propagate_body(psis_t, index):
-            psis_t = self._propagate_psi(eom[index], psis_t)
+            psis_t = ScipyExpm._propagate_psi(eom[index], psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
@@ -235,7 +235,7 @@ class ScipyExpm(Propagation):
         # if open system convert back the vectorized density matrices to matrix shape
         if self.is_open:
             dim = int(jnp.sqrt(eom.shape[-1]))
-            psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
+            psis_arr = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
         return psis_arr
 
     # TODO: implement get_collapseops method

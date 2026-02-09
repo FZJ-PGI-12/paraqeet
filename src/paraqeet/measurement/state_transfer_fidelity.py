@@ -60,8 +60,6 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         else:
             self._overlap = self._overlap_vec
 
-    # TODO: since these methods are declared as static, they belong to the class, not to the instance. 
-    # They should be called accordingly. (e.g. StateTransferFidelity._fid(...) instead of self._fid(...))
     @staticmethod
     def _fid(overlap: Array) -> float:
         return float(jnp.abs(jnp.average(overlap)) ** 2)
@@ -98,7 +96,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         states = self._propagation.propagate(time=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
-        return self._fid(f)
+        return StateTransferFidelity._fid(f)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
@@ -116,7 +114,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         for dg_dp in dg_dp_list[-1]:
             g = self._overlap(self._target_state, dg_dp)
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
-        return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
 
 class StateTransferFidelityAD(StateTransferFidelity):
@@ -170,7 +168,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
             g = self._overlap(self._target_state, dg_dp)
             dfdp = self._gradient_function(f) * g
             df_dp_list.append(jnp.real(dfdp))
-        return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
 
 class StateTransferFidelityGRAPE(StateTransferFidelity):
@@ -210,4 +208,4 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
             grads = jnp.real(jnp.linalg.trace(grads)).flatten()
         else:
             grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
-        return self._fid(f), grads  # shape scalar, (n_parameters,)
+        return StateTransferFidelity._fid(f), grads  # shape scalar, (n_parameters,)

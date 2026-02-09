@@ -75,7 +75,7 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
     def _propagate_gradient(self, n_params, psis_t, eom, grads, steps_arr):
         def propagate_body(psis_t, index):
             goat_ham = self._create_goat_ham(n_params, eom[index], grads[index])
-            psis_t = self._propagate_psi(goat_ham, psis_t)
+            psis_t = ScipyExpm._propagate_psi(goat_ham, psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
@@ -126,6 +126,6 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
 
         if self.is_open:
             dim = int(jnp.sqrt(eom.shape[-1]))
-            psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
-            dpsis_arr = vmap(vmap(self._convert_vec_to_dm, in_axes=(0, None)), in_axes=(0, None))(dpsis_arr, dim)
+            psis_arr = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
+            dpsis_arr = vmap(vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None)), in_axes=(0, None))(dpsis_arr, dim)
         return psis_arr, dpsis_arr

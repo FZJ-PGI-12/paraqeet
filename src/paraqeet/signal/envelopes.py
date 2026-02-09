@@ -397,11 +397,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
         """
         ramp_up = 1 + erf((t - t_up) / ramp_time)
-        ramp_up_t_dir = self._dir_erf((t - t_up) / ramp_time)
+        ramp_up_t_dir = FlatTopGaussianEnvelope._dir_erf((t - t_up) / ramp_time)
         ramp_up_t_dir /= ramp_time
 
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
-        ramp_down_t_dir = self._dir_erf((-t + t_down) / ramp_time)
+        ramp_down_t_dir = FlatTopGaussianEnvelope._dir_erf((-t + t_down) / ramp_time)
         ramp_down_t_dir *= -1 / ramp_time
 
         prod_dir = ramp_up * ramp_down_t_dir + ramp_up_t_dir * ramp_down
@@ -434,7 +434,7 @@ class FlatTopGaussianEnvelope(Envelope):
             on the optimizable parameters.
 
         """
-        ramp_up_dir = self._dir_erf((t - t_up) / ramp_time)
+        ramp_up_dir = FlatTopGaussianEnvelope._dir_erf((t - t_up) / ramp_time)
         ramp_up_dir /= -ramp_time
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
         return amp * ramp_up_dir * ramp_down / 4
@@ -466,7 +466,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
         """
         ramp_up = 1 + erf((t - t_up) / ramp_time)
-        ramp_down_dir = self._dir_erf((-t + t_down) / ramp_time)
+        ramp_down_dir = FlatTopGaussianEnvelope._dir_erf((-t + t_down) / ramp_time)
         ramp_down_dir /= ramp_time
         return amp * ramp_up * ramp_down_dir / 4
 
@@ -497,11 +497,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
         """
         ramp_up = 1 + erf((t - t_up) / ramp_time)
-        ramp_up_dir = self._dir_erf((t - t_up) / ramp_time)
+        ramp_up_dir = FlatTopGaussianEnvelope._dir_erf((t - t_up) / ramp_time)
         ramp_up_dir *= -(t - t_up) / (ramp_time**2)
 
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
-        ramp_down_dir = self._dir_erf((-t + t_down) / ramp_time)
+        ramp_down_dir = FlatTopGaussianEnvelope._dir_erf((-t + t_down) / ramp_time)
         ramp_down_dir *= -(-t + t_down) / (ramp_time**2)
 
         prod_dir = ramp_up * ramp_down_dir + ramp_up_dir * ramp_down

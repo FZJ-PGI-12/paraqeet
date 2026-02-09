@@ -66,10 +66,10 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         return jnp.matmul(state, h)
 
     def _reverse_lindblad_step(self, state: Array, h: Array, cols: list[Array]):
-        del_rho = self._commutator(h, state)
+        del_rho = Vern7._commutator(h, state)
         for col in cols:
-            del_rho -= jnp.matmul(jnp.matmul(self._dagger(col), state), col)
-            del_rho += 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), state)
+            del_rho -= jnp.matmul(jnp.matmul(Vern7._dagger(col), state), col)
+            del_rho += 0.5 * Vern7._anti_commutator(jnp.matmul(Vern7._dagger(col), col), state)
         return del_rho
 
     @partial(jit, static_argnums=(0,))
@@ -162,7 +162,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
             # Interpolate times
             time_grid, dt = self._construct_times(times, ti)
-            times_interp = self._interpolate_time(time_grid, dt)
+            times_interp = Vern7._interpolate_time(time_grid, dt)
             times_interp = times_interp + dt / 2
 
             if len(times_interp) < 9:
@@ -193,7 +193,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         n_params = dh_dps.shape[1]
         for i in range(n_params):
             if self.is_open:
-                fwd_prop_state = vmap(self._commutator, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
+                fwd_prop_state = vmap(Vern7._commutator, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
             else:
                 fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
 
