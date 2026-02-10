@@ -11,8 +11,8 @@ This is performed by using chain rule -
 .. math:: \frac{\partial J}{\partial p} = \sum_k \frac{\partial J}{\partial c_k} \frac{\partial c_k}{\partial p}
 
 where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
-:math:`\vec{p}` are the analytical parameters of the control pulse $c(t)
-:raw-latex:`\equiv `c(:raw-latex:`\vec{p}`, t) $, and
+:math:`\vec{p}` are the analytical parameters of the control pulse
+:math:`c(t) \equiv c(\vec{p}, t)`, and
 :math:`\frac{\partial J}{\partial c_k}` are the gradients from GRAPE.
 
 1. Generate a PWC pulse shape
