@@ -69,8 +69,6 @@ package-dir = {"" = "src"}
 [tool.setuptools.package-data]
 "paraqeet" = ["py.typed"]
 
-[tool.setuptools_scm]
-version_file = "src/paraqeet/_version.py"
 # mypy configurations
 [tool.mypy]
 python_version = "3.12"
@@ -114,9 +112,6 @@ ignore_errors = true
 [tool.ruff]
 # set the maximum line length to 120
 line-length = 120
-exclude = [
-    "src/paraqeet/_version.py",
-]
 
 [tool.ruff.lint]
 extend-select = [

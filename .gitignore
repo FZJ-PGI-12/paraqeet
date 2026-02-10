@@ -156,6 +156,3 @@ aux_notebooks/testing_fft.py
 examples/test_scipy_optimizer.ipynb
 list_of_issues_and_todos
 examples/testing_notebook.ipynb
-
-# setuptools_scm generated version file
-src/paraqeet/_version.py
