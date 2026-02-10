@@ -34,7 +34,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     Implements dCRAB optimization involving super-iterations that adds additional
     optimization components to the dCRAB envelope and freezes the older parameters.
 
-    *Note - This works with a `DCRABEnvelope` or a `DRAGMixer` with `list[DCRABEnvelope]` as envelopes.*
+    *Note - This works with a `DCRABEnvelope` or a `list[DCRABEnvelope]` as envelopes.*
 
     _num_iteration: int
         Current iteration number.
@@ -103,9 +103,14 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
             if isinstance(opt, DCRABEnvelope):
                 dcrab_envs.append(opt)
                 relevant_optimizables.append(opt)
-            elif isinstance(opt, DRAGMixer):
-                dcrab_envs.extend(opt.get_envelopes())  # type:ignore
-                relevant_optimizables.append(opt)  # type:ignore
+            else:
+                try:
+                    dcrab_envs.extend(opt.get_envelopes())  # type:ignore
+                    relevant_optimizables.append(opt)  # type:ignore
+                except:
+                    raise ConfigurationException(
+                        "Optimizable is not a `DCRABEnvelope` nor does it have a `get_envelope` method."
+                    )
 
         # Add new parameters to the dCRAB envelope
         for n, env in enumerate(dcrab_envs):
@@ -307,6 +312,8 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         init = []
         for qty in self._optimization_map.get_all_parameters():
             init.append(qty.get_reduced_value())
+
+        self.best_params = list(jnp.concatenate(init).flatten())
 
         try:
             result = self._minimize_infidelity(init)
