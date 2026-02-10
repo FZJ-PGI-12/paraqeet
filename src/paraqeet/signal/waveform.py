@@ -532,7 +532,7 @@ class FlatTopGaussianFilter(Waveform):
         return params
 
     def get_envelopes(self) -> list[Waveform]:
-        """Return envelopes from the DRAGMixer."""
+        """Return envelopes from the FlatTopGaussianFilter."""
         return self._envs
 
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
