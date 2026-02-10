@@ -18,7 +18,7 @@ class TwoBodyCoupling(Optimizable):
     Hamiltonian. This class implements longitudinal and transversal
     coupling with a constant scalar coefficient.
     The coefficient is the only optimizable parameter.
-    Subclasses can alter the behavior by overriding the getMatrix function.
+    Subclasses can alter the behavior by overriding the `get_couplings` function.
 
     Parameters
     ----------
