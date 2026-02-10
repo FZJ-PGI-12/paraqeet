@@ -114,6 +114,9 @@ ignore_errors = true
 [tool.ruff]
 # set the maximum line length to 120
 line-length = 120
+exclude = [
+    "src/paraqeet/_version.py",
+]
 
 [tool.ruff.lint]
 extend-select = [
