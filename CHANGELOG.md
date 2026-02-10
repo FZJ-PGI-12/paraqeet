@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `restrict_subsystem` and `_preprocess_vector` from measurement.
 
-## [v0.9.1] - 2025-11-20
+## [v0.10.0] - 2025-11-20
 
 ### Added
 
@@ -42,4 +42,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/compare/main...100-clean-up-inheritance?from_project_id=7369
-[v0.9.1]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet 
+[v0.10.0]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet

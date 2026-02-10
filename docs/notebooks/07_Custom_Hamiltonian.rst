@@ -6,8 +6,9 @@ In this example we demonstrate how a custom Hamiltonian function
 
 .. code:: ipython3
 
-    import matplotlib.pyplot as plt
     import jax.numpy as jnp
+    import matplotlib.pyplot as plt
+    
     import paraqeet as pq
 
 1. Define the parameters, Hamiltonian function and gradient functions
@@ -56,8 +57,8 @@ Here we define a two level system (TLS) Hamiltonian, with a cosine drive
 
 .. code:: ipython3
 
-    from paraqeet.model.custom_hamiltonian import CustomHamiltonian
     from paraqeet.model.closed_system import ClosedSystem
+    from paraqeet.model.custom_hamiltonian import CustomHamiltonian
     
     tls = CustomHamiltonian(
         hamiltonian_function=tls_hamiltonian,
@@ -78,7 +79,8 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
     
     t_final = 12e-9
     
-    prop = ScipyExpmGOAT(model, res=100e9)
+    prop = ScipyExpmGOAT(model, resolution=100e9)
+    times = jnp.array([0.0, t_final])
     
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
@@ -86,14 +88,10 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=jnp.array([0.0, t_final]),
     )
 
 .. code:: ipython3
 
-    import plotting  # import the configuration from plotting
-    
-    
     def make_plot():
         """Plot the signal."""
         ts = jnp.linspace(0, t_final, 1001)
@@ -120,7 +118,7 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 
 .. parsed-literal::
 
-    (<Figure size 500x500 with 2 Axes>,
+    (<Figure size 400x400 with 2 Axes>,
      array([<Axes: ylabel='Field [MHz]'>,
             <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
 
@@ -183,7 +181,7 @@ Here we demonstrate both the cases.
 
 .. code:: ipython3
 
-    zeroone.measure()
+    zeroone.measure(times)
 
 
 
@@ -208,7 +206,7 @@ Here we demonstrate both the cases.
 
 .. code:: ipython3
 
-    opt.optimize()
+    opt.optimize(times)
 
 
 
@@ -228,7 +226,7 @@ Here we demonstrate both the cases.
 
 .. parsed-literal::
 
-    (<Figure size 500x500 with 2 Axes>,
+    (<Figure size 400x400 with 2 Axes>,
      array([<Axes: ylabel='Field [MHz]'>,
             <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
 
@@ -236,4 +234,17 @@ Here we demonstrate both the cases.
 
 
 .. image:: 07_Custom_Hamiltonian_files/07_Custom_Hamiltonian_19_1.png
+
+
+.. code:: ipython3
+
+    zeroone.measure(times)
+
+
+
+
+.. parsed-literal::
+
+    0.9999999999999851
+
 

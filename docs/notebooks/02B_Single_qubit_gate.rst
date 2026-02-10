@@ -1,60 +1,42 @@
 Single spin Part 2: Gradient descent gate optimization
 ======================================================
 
-First, we make the necessary imports.
+In this notebook, we show how to use ``ParaQeet`` to optimize a
+single-qubit gate, specifically an :math:`X`-gate.
 
 .. code:: ipython3
 
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.optimization_map import OptimizationMap
-    from paraqeet.quantity import Quantity
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.model.qubit import Qubit
+    from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
 
 System Setup
 ------------
 
-For signal generation, we define a simple cosine shaped tone generator
-:math:`A \cos(\omega t)`
+We first set up the qubit system we want to control. We set the qubit
+frequency :math:`\omega_q / 2 \pi` to be :math:`4.327884` GHz and define
+the Hamiltonian as
 
-.. code:: ipython3
+.. math:: H(t)=H_\text{drift}+H_c(t)= \frac{\omega_q}{2} \sigma_z + \Omega(t)\sigma_x, 
 
-    t_final = 10e-9
-    tone = ConstantEnvelope()
-    tone.t_final.set_value(t_final)
-    gen = IQMixer(envelopes=[tone])
-
-We can inspect the pre-defined parameters with
-
-.. code:: ipython3
-
-    params = gen.get_parameters()
-
-in this case amplitude :math:`A` and frequency :math:`\omega` and phase
-:math:`\phi`.
-
-Next, we setup the qubit system we want to control. We set the qubit
-frequency :math:`\omega_q` to be 4.8 GHz and define the Hamiltonian as
-
-.. math:: H(t)=H_\text{drift}+H_c(t)= \frac{\omega_q}{2} \sigma_z + \Omega(t)\sigma_x
-
-, where :math:`\Omega(t)=A\cos(\omega t+\phi)` will be supplied by the
-generator.
+\ where :math:`\Omega(t)` will be supplied by the generator.
 
 .. code:: ipython3
 
     freq = 4.327884e9 * 2 * np.pi
     
-    drive = DriveOperator(gen, is_longitudinal=False)
+    # drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(
         frequency=Quantity(
             freq,
@@ -63,9 +45,54 @@ generator.
             unit="Hz",
             name="Qubit frequency",
         ),
-        drives=[drive],
+        drives=[],
     )
-    
+
+For signal generation, we define a simple cosine shaped tone generator
+:math:`A \cos(\omega t)`
+
+.. code:: ipython3
+
+    t_simu = 10e-9
+    tone = ConstantEnvelope()
+    # In this notebook we set the parameter t_final equal to the simulation
+    # time, but it is not strictly necessary as long as t_final is larger
+    # than t_simu (see the notebook 02A_Single_qubit_state_preparation.ipynb)
+    tone.t_final.set_value(t_simu)
+    gen = IQMixer(envelopes=[tone])
+
+We can inspect the parameters with
+
+.. code:: ipython3
+
+    params_tone = tone.get_parameters()
+    print(params_tone)
+    params_gen = gen.get_parameters()
+    print(params_gen)
+
+
+.. parsed-literal::
+
+    [Amplitude: 24.7 MHz x 2pi, t_final: 10 ns]
+    [Amplitude: 24.7 MHz x 2pi, t_final: 10 ns, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
+
+
+In this notebook, we would like to optimize the amplitude ``Amplitude``
+and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
+
+.. code:: ipython3
+
+    drive = DriveOperator(gen, is_longitudinal=False)
+    controlled_qubit.drives = [drive]
+    model = ClosedSystem(controlled_qubit)
+
+In this notebook, we would like to optimize the amplitude ``Amplitude``
+and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
+
+.. code:: ipython3
+
+    drive = DriveOperator(gen, is_longitudinal=False)
+    controlled_qubit.drives = [drive]
     model = ClosedSystem(controlled_qubit)
 
 Textbook values for implementing an :math:`X` rotation on this system at
@@ -75,53 +102,50 @@ optimization procedure.
 
 .. code:: ipython3
 
-    params[0].set_value(0.5 * np.pi / t_final)
-    params[2].set_value(1.01 * freq)
+    params_gen[0].set_value(0.5 * np.pi / t_simu)
+    params_gen[2].set_value(1.01 * freq)
 
 We select a propagation method, piecewise constant exponentation, and
-configure :math:`\sigma_x` as a target gate. Also we initialize the full
-basis at time 0 with :math:`\mathcal{I}_2`
+configure an :math:`X`-gate as a target gate. Also we initialize the
+identity at time :math:`0`.
 
 .. code:: ipython3
 
-    prop = ScipyExpmGOAT(model, res=500e9)
+    prop = ScipyExpmGOAT(model, resolution=500e9)
+    times = np.array([0.0, t_simu])
     
-    pauli_x = np.array([[0.0, 1], [1, 0.0]])
-    pauli_y = np.array([[0.0, -1j], [1j, 0.0]])
-    pauli_z = np.array([[1, 0], [0.0, -1]])
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
+    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
     
     prop.set_initial_state(np.identity(2))
     gate_fid = UnitaryFidelity(
         propagation=prop,
         gate=pauli_x,
-        times=np.array([0.0, t_final]),
     )
 
 .. code:: ipython3
 
     from plotting import plot_signal_and_dynamics
     
-    ts = np.linspace(0.0, t_final, 501)
+    ts = np.linspace(0.0, t_simu, 501)
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
 
 
 
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_12_0.png
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_16_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    gate_fid.measure()
-
-
+    print(f"Gate fidelity: {gate_fid.measure(times)}")
 
 
 .. parsed-literal::
 
-    0.09555411208408474
-
+    Gate fidelity: 0.09555411208408474
 
 
 We define an optimizer and link our fidelity measure as a goal function
@@ -131,12 +155,12 @@ frequency, as in the state transfer example.
 .. code:: ipython3
 
     optmap = OptimizationMap()
-    optmap.add(gen, [params[0], params[2]])
+    optmap.add(gen, [params_gen[0], params_gen[2]])
     opt = ScipyOptimizerGradient(gate_fid, optimization_map=optmap)
 
 .. code:: ipython3
 
-    opt.optimize()
+    opt.optimize(times)
 
 
 
@@ -153,7 +177,7 @@ frequency, as in the state transfer example.
 
 
 
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_18_0.png
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_22_0.png
 
 
 Dynamics of Pauli operators
@@ -176,9 +200,9 @@ information to identify the problem.
 
     def plot_pauli():
         """Plot the Pauli operators."""
-        ts = np.linspace(0, t_final, 1001)
+        ts = np.linspace(0, t_simu, 1001)
         states = prop.propagate(ts)
-        sig = gen.generate_signal(ts) / 1e6 / (2 * np.pi)
+        sig = gen.get_value(ts) / 1e6 / (2 * np.pi)
     
         fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
         ax[0].plot(ts / 1e-9, sig)
@@ -211,25 +235,25 @@ information to identify the problem.
 
 
 
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_21_1.png
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_25_1.png
 
 
 Instead, we look at the expecation values of the three Pauli operators
 and observe that the qubit is rotating at its eigenfrequency along the
 Z-axis. We can mitigate this problem by allowing the rotation axis of
-our drive to shift and inclide the phase parameter in the optimization.
+our drive to shift and include the phase parameter in the optimization.
 
 .. code:: ipython3
 
     optmap = OptimizationMap()
-    optmap.add(tone, [params[0], params[2], params[3]])
+    optmap.add(tone, [params_gen[0], params_gen[2], params_gen[3]])
     opt = ScipyOptimizer(gate_fid, optimization_map=optmap)
 
 .. code:: ipython3
 
-    params[0].set_value(0.5 * np.pi / t_final)
-    params[2].set_value(1.01 * freq)
-    opt.optimize()
+    params_gen[0].set_value(0.5 * np.pi / t_simu)
+    params_gen[2].set_value(1.01 * freq)
+    opt.optimize(times)
 
 
 
@@ -257,5 +281,5 @@ our drive to shift and inclide the phase parameter in the optimization.
 
 
 
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_25_1.png
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_29_1.png
 

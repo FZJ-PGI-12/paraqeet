@@ -76,7 +76,7 @@ that the system starts in the initial state
 
 Let :math:`\varepsilon(t) = (\varepsilon_{r}(t), \varepsilon_{q}(t))`.
 For a fixed time :math:`T`, the system evolves to a state
-:math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t)) | \Psi_{\mathrm{initial}} \rangle`.
+:math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t))  | \Psi_{\mathrm{initial}} \rangle`.
 We thus want to maximize the state fidelity, i.e., the overlap between
 :math:`| \Psi_{\mathrm{target}} \rangle` and :math:`| \Psi(t) \rangle`:
 
@@ -95,24 +95,24 @@ the resonator and qubit pulses, respectively.
 
 .. code:: ipython3
 
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
     
-    from paraqeet.quantity import Quantity
-    from paraqeet.model.resonator import Resonator
-    from paraqeet.model.qubit import Qubit
-    from paraqeet.model.coupling import Coupling
-    from paraqeet.signal.envelopes import GaussEnvelope
-    from paraqeet.signal.pwc_generator import PWCGenerator
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+    from paraqeet.measurement.smoothness import Smoothness
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.model.closed_system import ClosedSystem
+    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+    from paraqeet.model.coupling import TwoBodyCoupling
+    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.resonator import Resonator
+    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.measurement.smoothness import Smoothness
+    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.quantity import Quantity
+    from paraqeet.signal.envelopes import GaussEnvelope
+    from paraqeet.signal.pwc_generator import PWCGenerator
 
 We initialize our pulses as simple Gaussian envelopes. Additionally, we
 require fix ranges for the minimum and maximum amplitudes.
@@ -152,8 +152,8 @@ Similarly one can plot the qubit tone.
     ts = np.linspace(0, t_final, 1001)
     fig, ax = plt.subplots(1, figsize=(5, 3))
     
-    plot_signal(tone_res, ts, ax, linestyle="-", label="Smooth")
-    plot_signal(gen_res, ts, ax, linestyle="--", label="PWC")
+    plot_signal(gen_res, ts, ax, linestyle="--", label="Resonator pulse")
+    plot_signal(gen_qubit, ts, ax, linestyle="-", label="Qubit pulse")
     
     plt.legend()
     plt.show()
@@ -242,8 +242,9 @@ numbers.
                 drives=[drive_res],
             )
             resonator_list.append(resonator)
-            coupling = Coupling(
-                [resonator, qubit],
+            coupling = TwoBodyCoupling(
+                resonator,
+                qubit,
                 is_longitudinal=True,
                 coefficient=Quantity(value=chi, min_value=chi / 2, max_value=2 * chi),
             )
@@ -252,7 +253,7 @@ numbers.
             hamiltonian_list.append(ham)
             model = ClosedSystem(hamiltonian=ham)
             model_list.append(model)
-            prop = ScipyExpmGRAPE(model, res=1e9)
+            prop = ScipyExpmGRAPE(model, resolution=1e9)
     
             initial_res_state = np.zeros([n, 1], dtype=complex)
             initial_res_state[0, 0] = 1  # vacuum state
@@ -268,14 +269,12 @@ numbers.
             fock_number_op_list.append(n_op)
     
             prop.set_initial_state(initial_state)
-            prop.target_state = target_state
+            prop.set_target_state(target_state)
             prop.use_schirmer_derivative = True
     
             prop_list.append(prop)
     
-            fid = StateTransferFidelityGRAPE(
-                propagation=prop, initial_state=initial_state, target_state=target_state, times=tlist
-            )
+            fid = StateTransferFidelityGRAPE(propagation=prop, initial_state=initial_state, target_state=target_state)
     
             fid_list.append(fid)
     
@@ -338,8 +337,8 @@ dynamics.
         """Plot the states."""
         ts = np.linspace(0, t_final, n_times)
         states = prop_list[item].propagate(ts)
-        sig_res = gen_res.generate_signal(ts)
-        sig_qubit = gen_qubit.generate_signal(ts)
+        sig_res = gen_res.get_value(ts)
+        sig_qubit = gen_qubit.get_value(ts)
         pop_initial_state = (np.abs(initial_state_list[item].conj().T @ states) ** 2).flatten()
         pop_target_state = (np.abs(target_state_list[item].conj().T @ states) ** 2).flatten()
     
@@ -396,18 +395,18 @@ We can compute the fidelities for the different truncation numbers
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure()}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure()}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.2067436053211263
+    Fidelity at N_T=3 = 0.20674360532112698
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=4 = 0.14197098648890233
+    Fidelity at N_T=4 = 0.14197098648890208
 
 
 which are quite poor! We now proceed with the pulse optimization.
@@ -443,20 +442,20 @@ which are quite poor! We now proceed with the pulse optimization.
 .. code:: ipython3
 
     %%time
-    opt.optimize()
+    opt.optimize(gen_res.tlist)
 
 
 .. parsed-literal::
 
-    CPU times: user 2min 25s, sys: 1.41 s, total: 2min 27s
-    Wall time: 41.7 s
+    CPU times: user 2min 25s, sys: 941 ms, total: 2min 26s
+    Wall time: 40.4 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.004241814930537657, 'iterations': 158, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.0041791411698838266, 'iterations': 157, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -477,14 +476,14 @@ The new fidelities are
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure()}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure()}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9475693477178125
-    Fidelity at N_T=4 = 0.9631119242149566
+    Fidelity at N_T=3 = 0.9480360654391466
+    Fidelity at N_T=4 = 0.9647818644725782
 
 
 Setting truncation to higher values
@@ -583,18 +582,18 @@ Initial fidelity before optimization
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure()}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure()}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=30 = 0.0191897809908802
+    Fidelity at N_T=30 = 0.01918978099088022
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=31 = 0.019189780990880208
+    Fidelity at N_T=31 = 0.019189780990880253
 
 
 We redefine the optimizer and perform the optimization again with higher
@@ -613,20 +612,20 @@ truncation numbers
 .. code:: ipython3
 
     %%time
-    opt.optimize()
+    opt.optimize(gen_res.tlist)
 
 
 .. parsed-literal::
 
-    CPU times: user 8h 23min 39s, sys: 23min 41s, total: 8h 47min 21s
-    Wall time: 11min 46s
+    CPU times: user 10h 17min 31s, sys: 30min 39s, total: 10h 48min 11s
+    Wall time: 15min 5s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.003695502233559078, 'iterations': 269, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.0029511036979938954, 'iterations': 321, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -634,14 +633,18 @@ The new fidelities are
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure()}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure()}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=30 = 0.9756092572351025
-    Fidelity at N_T=31 = 0.9755700654718467
+    Fidelity at N_T=30 = 0.9850090383356761
+
+
+.. parsed-literal::
+
+    Fidelity at N_T=31 = 0.9849668579826837
 
 
 And the dynamics of the system under these optimized pulses looks like

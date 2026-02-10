@@ -7,14 +7,14 @@ First, we make the necessary imports.
 
     import numpy as np
     
-    from paraqeet.optimization_map import OptimizationMap
-    from paraqeet.quantity import Quantity
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.model.transmon import Transmon
+    from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
     from paraqeet.signal.waveform import DRAGMixer
@@ -32,6 +32,19 @@ corrected signal in the DRAGMixer
     env_tone = GaussEnvelope()
     env_tone.t_final.set_value(t_final)
     drag_tone = DRAGMixer(envelopes=env_tone)
+
+.. code:: ipython3
+
+    drag_tone._envs[0]._delta
+
+
+
+
+.. parsed-literal::
+
+    Delta: -1.26 GHz
+
+
 
 .. code:: ipython3
 
@@ -68,7 +81,7 @@ corrected signal in the DRAGMixer
     
     params = gen.get_parameters()
     
-    prop = ScipyExpmGOAT(model, res=500e9)
+    prop = ScipyExpmGOAT(model, resolution=500e9)
     prop.set_initial_state(np.eye(qubit_levels))
 
 .. code:: ipython3
@@ -135,7 +148,6 @@ reference defined above is used.
     gate_fid = UnitaryFidelity(
         propagation=prop,
         gate=rx(np.pi / 2),
-        times=np.array([0.0, t_final]),
     )
 
 Plot initial pulse shape and population transfer. Target is the full
@@ -150,14 +162,15 @@ population transfer,i.e., an X-gate.
 
 
 
-.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_14_0.png
+.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_15_0.png
 
 
 As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    gate_fid.measure()
+    times = np.array([0.0, t_final])
+    gate_fid.measure(times)
 
 
 
@@ -185,7 +198,7 @@ and the parameters of the cosine tone.
 
 .. code:: ipython3
 
-    opt.optimize()
+    opt.optimize(times)
 
 
 
@@ -228,7 +241,7 @@ population transfer,i.e., an X-gate.
 
 
 
-.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_23_0.png
+.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_24_0.png
 
 
 We can see from the plot and optimizer output that we have found better
@@ -237,7 +250,7 @@ smaller than initially.
 
 .. code:: ipython3
 
-    gate_fid.measure()
+    gate_fid.measure(times)
 
 
 
