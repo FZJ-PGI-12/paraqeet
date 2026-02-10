@@ -110,7 +110,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
                 except Exception as e:
                     raise ConfigurationException(
                         "Optimizable is not a `DCRABEnvelope` nor does it have a `get_envelope` method.\n"
-                        + "Raised exception {e}"
+                        + f"Raised exception {e}"
                     )
 
         # Add new parameters to the dCRAB envelope
