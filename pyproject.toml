@@ -5,11 +5,11 @@
 
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=80", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "paraqeet"
-version = "0.9.1"
+dynamic = ["version"]
 description = "Toolset for control, calibration and characterization of physical systems"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -69,6 +69,8 @@ package-dir = {"" = "src"}
 [tool.setuptools.package-data]
 "paraqeet" = ["py.typed"]
 
+[tool.setuptools_scm]
+version_file = "src/paraqeet/_version.py"
 # mypy configurations
 [tool.mypy]
 python_version = "3.12"
