@@ -45,9 +45,8 @@ We introduce the usage of the package with some examples. These are also availab
 
 .. toctree::
    :maxdepth: 1
-   :glob:
 
-   notebooks/*
+   notebooks/index
 
 
 API Documentation

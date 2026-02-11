@@ -19,12 +19,6 @@ extensions = [
     "sphinx.ext.autosummary",  # Create neat summary tables
 ]
 
-# Autodoc settings to extract members
-autodoc_default_options = {
-    "members": True,
-    "undoc-members": True,
-    "show-inheritance": True,
-}
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
 autodoc_typehints = "description"
