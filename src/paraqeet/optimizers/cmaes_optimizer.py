@@ -17,20 +17,22 @@ class CMAEsOptimizer(Optimizer):
     """Wrapper for the pycma implementation of CMA-Es.
 
     The pycmi implementation has the following custom options for optimization:
-    noise: float
+
+    - noise: float
         Artificial noise added to a function evaluation.
-    init_point: boolean
+    - init_point: boolean
         Force the use of the initial point in the first generation.
-    spread: float
+    - spread: float
         Adjust the parameter spread of the first generation cloud.
-    stop_at_convergence : int
+    - stop_at_convergence : int
         Custom stopping condition. Stop if the cloud shrunk for this number of
         generations.
-    stop_at_sigma: float
+    - stop_at_sigma: float
         Custom stopping condition. Stop if the cloud shrunk to this standard
         deviation.
 
     See also: http://cma.gforge.inria.fr/apidocs-pycma/
+
 
     Parameters
     ----------

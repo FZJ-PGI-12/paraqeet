@@ -859,8 +859,10 @@ class DCRABEnvelope(Envelope):
 
     def get_parameters(self):
         """Return the parameters of the CRAB signal.
+
         The parameters are arranged as follows,
-            [amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]
+        `[amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]`
+
         """
         params = [self.amplitude, self._t_final]
         params.extend(self._real_coefficients)

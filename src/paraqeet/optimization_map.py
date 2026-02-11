@@ -269,6 +269,7 @@ class OptimizationMap:
         ------
         SerialisationException
             If the name of any Optimizable or Quantity is None or not unique.
+
         """
         data = dict()
         for optimizable, quantities in self._optimizable_to_parameter_map.items():
