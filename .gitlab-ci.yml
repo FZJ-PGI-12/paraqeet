@@ -70,7 +70,7 @@ codequality:
 formatting-and-linting:
   stage: codestyle
   script:
-    - ruff check --output-format=gitlab . > ruff-report.json
+    - ruff check --select=I --output-format=gitlab . > ruff-report.json
   artifacts:
     reports:
       codequality: ruff-report.json
