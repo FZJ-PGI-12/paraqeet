@@ -148,6 +148,7 @@ okteto.yml
 .DS_Store
 
 # Doc build
+_build
 doc/_build
 doc/source/*
 
