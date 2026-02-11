@@ -11,7 +11,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI - Version](https://img.shields.io/pypi/v/paraqeet)](https://pypi.org/project/paraqeet/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paraqeet)]((https://pypi.org/project/paraqeet/))
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paraqeet.svg)]((https://pypi.org/project/paraqeet/))
 
 *Note: This is a preview version, a 1.0.0 release is forthcoming.*
 
