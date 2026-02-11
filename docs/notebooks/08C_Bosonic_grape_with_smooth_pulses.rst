@@ -678,7 +678,7 @@ Finally, lets plot the variation of infidelity with evaluation number.
 
 
 Setting truncation to higher value
----------------------------------
+----------------------------------
 
 Here we set the truncation values to 30 and 31 levels for a more
 realistic simulation and rerun the entire simulation.
