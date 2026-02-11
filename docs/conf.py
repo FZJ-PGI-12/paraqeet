@@ -1,6 +1,12 @@
 from sphinx_pyproject import SphinxConfig
 
-config = SphinxConfig("../pyproject.toml", globalns=globals())
+from importlib.metadata import version
+
+__version__ = version("paraqeet")
+release = __version__
+config = SphinxConfig("../pyproject.toml", globalns=globals(), config_overrides = {"version": __version__})
+
+
 
 extensions = [
     "sphinx.ext.napoleon",  # to parse numpy stye python docstrings
