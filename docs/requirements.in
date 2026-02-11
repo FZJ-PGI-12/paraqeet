@@ -9,5 +9,5 @@ sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
 recommonmark==0.7.1
 nbsphinx==0.9.7
-sphinx_press_theme==0.9.1
 ipython==9.3.0
+pydata-sphinx-theme==0.16.1
