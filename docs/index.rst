@@ -9,7 +9,7 @@ ParaQeet -  A quantum optimal control toolkit with simple parameter management
 
 You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
 
-Choose a pulse parametrisation, simulate a quantum system, and optimize.
+Choose a pulse parametrization, simulate a quantum system, and optimize.
 
 Combining Quantum Optimal Control methods with automatic differentiation with JAX.
 Aimed at resource efficient computation.
@@ -26,13 +26,14 @@ Each module interacts only with the module above it in hierarchy.
    :alt: layers
 
 
-Currently implementated optimization methods
+Currently implemented optimization methods
+
 - GRAPE: Gradient Ascent Pulse Enginnering
 - GOAT: Gradient Optimization of Analytic conTrols
 - dCRAB : (Gradient based) dressed Chopped RAndom Basis
 
 Installation
-========
+============
 .. toctree::
    
    usage
@@ -52,12 +53,12 @@ We introduce the usage of the package with some examples. These are also availab
 API Documentation
 =================
 
-.. toctree::
-   :maxdepth: 1
-   :glob:
-   
-   source/*
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:
 
+   paraqeet
 
 Indices and tables
 ==================
