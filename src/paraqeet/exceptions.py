@@ -35,10 +35,10 @@ class IncompatibleQuantityException(Exception):
     pass
 
 
-class IncompatibleOptimisationMap(Exception):
+class IncompatibleOptimizationMap(Exception):
     """Raise when incorrect number of quantities are specified.
 
-    Raised when the number of quantities specified in optimisation map
+    Raised when the number of quantities specified in optimization map
     doesnt match the number of gradients computed.
 
     """
@@ -46,7 +46,7 @@ class IncompatibleOptimisationMap(Exception):
     pass
 
 
-class SerialisationException(Exception):
-    """Raised when reading or writing of a Quantity or an OptimisationMap fails."""
+class SerializationException(Exception):
+    """Raised when reading or writing of a Quantity or an OptimizationMap fails."""
 
     pass

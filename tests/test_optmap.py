@@ -1,15 +1,15 @@
-"""Testing the optimisation map."""
+"""Testing the optimization map."""
+
+import random
 
 import numpy as np
 import pytest
-import random
 
-from paraqeet.exceptions import ConfigurationException, SerialisationException
-from paraqeet.optimisation_map import OptimisationMap
-
-from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.exceptions import ConfigurationException, SerializationException
+from paraqeet.optimization_map import OptimizationMap
 from paraqeet.signal.envelopes import ConstantEnvelope, FlatTopGaussianEnvelope
-from tests.test_optimisable import DummyOptimisable
+from paraqeet.signal.iq_mixer import IQMixer
+from tests.test_optimizable import DummyOptimizable
 
 TONE = ConstantEnvelope()
 GEN = IQMixer(envelopes=[TONE])
@@ -18,45 +18,45 @@ PARAMS = TONE.get_parameters()
 
 @pytest.fixture
 def optmap():
-    return OptimisationMap()
+    return OptimizationMap()
 
 
 @pytest.fixture
-def dummy_optimisable(random_quantity):
-    def _method(num_params: int) -> DummyOptimisable:
-        return DummyOptimisable(random_quantity, num_params)
+def dummy_optimizable(random_quantity):
+    def _method(num_params: int) -> DummyOptimizable:
+        return DummyOptimizable(random_quantity, num_params)
 
     return _method
 
 
 @pytest.fixture
-def random_optimisables(random_quantity):
-    """Create random optimisables."""
-    return [DummyOptimisable(random_quantity, np.random.randint(2, 10)) for i in range(2, 10)]
+def random_optimizables(random_quantity):
+    """Create random optimizables."""
+    return [DummyOptimizable(random_quantity, np.random.randint(2, 10)) for i in range(2, 10)]
 
 
 @pytest.fixture
-def opt_map_with_optimisables(random_optimisables):
-    """Create a optimisation map with optimisables."""
-    optmap = OptimisationMap()
-    for i, optimisable in enumerate(random_optimisables):
-        optmap.add(optimisable)
+def opt_map_with_optimizables(random_optimizables):
+    """Create a optimization map with optimizables."""
+    optmap = OptimizationMap()
+    for i, optimizable in enumerate(random_optimizables):
+        optmap.add(optimizable)
 
-        # Assign valid and unique names to the optimisable and its quantities
-        optimisable.name = f"optimisable {i}"
-        for j, quantity in enumerate(optimisable.get_parameters()):
-            quantity.set_name(f"optimisable {i} - quantity {j}")
+        # Assign valid and unique names to the optimizable and its quantities
+        optimizable.name = f"optimizable {i}"
+        for j, quantity in enumerate(optimizable.get_parameters()):
+            quantity.set_name(f"optimizable {i} - quantity {j}")
     return optmap
 
 
 def test_get_parameters(optmap) -> None:
-    """Get the test parameters from the optimisation map."""
+    """Get the test parameters from the optimization map."""
     optmap.add(TONE, PARAMS)
     assert len(optmap.get_all_parameters()) == len(PARAMS)
 
 
 def test_parameters_overwrite(optmap) -> None:
-    """Override parameters from the optimisation map."""
+    """Override parameters from the optimization map."""
     optmap.add(TONE, [PARAMS[1]])
     assert optmap.get_all_parameters() == [PARAMS[1]]
 
@@ -82,201 +82,201 @@ def test_filter(optmap) -> None:
     assert pars == filterd
 
 
-def test_properties(optmap, dummy_optimisable) -> None:
-    optmap.add(dummy_optimisable(1))
+def test_properties(optmap, dummy_optimizable) -> None:
+    optmap.add(dummy_optimizable(1))
     assert type(optmap.__str__()) is str
     assert type(optmap.__repr__()) is str
 
 
-def test_optimisables_are_added(optmap, dummy_optimisable) -> None:
-    opt1 = dummy_optimisable(1)
+def test_optimizables_are_added(optmap, dummy_optimizable) -> None:
+    opt1 = dummy_optimizable(1)
     optmap.add(opt1)
-    assert opt1 in optmap.get_optimisables()
+    assert opt1 in optmap.get_optimizables()
     assert optmap.get_parameters(opt1) is not None
     assert len(optmap.get_all_parameters()) == 1
     optmap.remove(opt1)
 
-    opt2 = dummy_optimisable(0)
+    opt2 = dummy_optimizable(0)
     optmap.add(opt2)
-    assert opt2 not in optmap.get_optimisables()
-    assert len(optmap.get_optimisables()) == 0
+    assert opt2 not in optmap.get_optimizables()
+    assert len(optmap.get_optimizables()) == 0
     with pytest.raises(Exception):
         optmap.get_parameters(opt2)
     assert len(optmap.get_all_parameters()) == 0
 
 
-def test_access_to_all_optimisables_parameters(optmap, dummy_optimisable) -> None:
+def test_access_to_all_optimizables_parameters(optmap, dummy_optimizable) -> None:
     """Test for accessing all the otpimisable parameters in the optmap from
-    the Optimisable objects.
+    the Optimizable objects.
     """
-    opt1 = dummy_optimisable(1)
-    opt2 = dummy_optimisable(2)
+    opt1 = dummy_optimizable(1)
+    opt2 = dummy_optimizable(2)
     optmap.add(opt1)
     optmap.add(opt2)
-    optmap.register_params_with_optimisables()
-    assert len(opt1.optimisable_parameters) < len(optmap.get_all_parameters())
-    assert len(opt2.optimisable_parameters) < len(optmap.get_all_parameters())
-    assert optmap.get_all_parameters() == opt1.all_optimisable_parameters
-    assert optmap.get_all_parameters() == opt2.all_optimisable_parameters
+    optmap.register_params_with_optimizables()
+    assert len(opt1.optimizable_parameters) < len(optmap.get_all_parameters())
+    assert len(opt2.optimizable_parameters) < len(optmap.get_all_parameters())
+    assert optmap.get_all_parameters() == opt1.all_optimizable_parameters
+    assert optmap.get_all_parameters() == opt2.all_optimizable_parameters
 
 
 def test_no_initial_parameters() -> None:
     """Test for initial parameters for a map.
 
     After initialisation, the map should not contain any
-    optimisables or parameters.
+    optimizables or parameters.
 
     """
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     assert len(optmap.get_all_parameters()) == 0
-    assert len(optmap.get_optimisables()) == 0
+    assert len(optmap.get_optimizables()) == 0
 
 
-def test_adding_optimisables(random_optimisables) -> None:
-    """Test adding optimisables to a map.
+def test_adding_optimizables(random_optimizables) -> None:
+    """Test adding optimizables to a map.
 
-    After adding an optimisable, it should be in the list.
+    After adding an optimizable, it should be in the list.
 
     """
-    optmap = OptimisationMap()
-    for i, optimisable in enumerate(random_optimisables):
-        optmap.add(optimisable)
-        assert len(optmap.get_optimisables()) == i + 1
-        assert optimisable in optmap.get_optimisables()
+    optmap = OptimizationMap()
+    for i, optimizable in enumerate(random_optimizables):
+        optmap.add(optimizable)
+        assert len(optmap.get_optimizables()) == i + 1
+        assert optimizable in optmap.get_optimizables()
 
 
-def test_adding_all_parameters(random_optimisables) -> None:
+def test_adding_all_parameters(random_optimizables) -> None:
     """Test adding of all parameters.
 
-    Adding an optimisable with all its parameters should
+    Adding an optimizable with all its parameters should
     increase to the number of parameters by the correct amount.
 
     """
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     num_params = 0
-    for _, optimisable in enumerate(random_optimisables):
-        num_params += len(optimisable.get_parameters())
+    for _, optimizable in enumerate(random_optimizables):
+        num_params += len(optimizable.get_parameters())
 
-        optmap.add(optimisable)
+        optmap.add(optimizable)
         assert len(optmap.get_all_parameters()) == num_params
 
-        intersection = [p for p in optimisable.get_parameters() if p in optmap.get_all_parameters()]
-        assert len(intersection) == len(optimisable.get_parameters())
-        parameters = optmap.get_parameters(optimisable)
+        intersection = [p for p in optimizable.get_parameters() if p in optmap.get_all_parameters()]
+        assert len(intersection) == len(optimizable.get_parameters())
+        parameters = optmap.get_parameters(optimizable)
         if parameters is not None:
-            intersection2 = [p for p in optimisable.get_parameters() if p in parameters]
+            intersection2 = [p for p in optimizable.get_parameters() if p in parameters]
         else:
             raise ConfigurationException(
-                f"{optimisable}.get_parameters() returns None. No quantities specified in {optimisable}."
+                f"{optimizable}.get_parameters() returns None. No quantities specified in {optimizable}."
             )
-        assert len(intersection2) == len(optimisable.get_parameters())
+        assert len(intersection2) == len(optimizable.get_parameters())
 
 
-def test_adding_some_parameters(random_optimisables) -> None:
+def test_adding_some_parameters(random_optimizables) -> None:
     """Test adding of some parameters.
 
-    Adding an optimisable with some of its parameters should increase
+    Adding an optimizable with some of its parameters should increase
     to the number of parameters by the correct amount.
 
     """
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     num_params = 0
-    for _, optimisable in enumerate(random_optimisables):
+    for _, optimizable in enumerate(random_optimizables):
         num_added = (
-            np.random.randint(1, len(optimisable.get_parameters())) if len(optimisable.get_parameters()) > 1 else 1
+            np.random.randint(1, len(optimizable.get_parameters())) if len(optimizable.get_parameters()) > 1 else 1
         )
-        parameters = random.sample(optimisable.get_parameters(), num_added)
+        parameters = random.sample(optimizable.get_parameters(), num_added)
         num_params += num_added
-        optmap.add(optimisable, parameters)
+        optmap.add(optimizable, parameters)
 
         all_p = optmap.get_all_parameters()
         assert len(all_p) == num_params
 
-        intersection = [p for p in optimisable.get_parameters() if p in optmap.get_all_parameters()]
+        intersection = [p for p in optimizable.get_parameters() if p in optmap.get_all_parameters()]
         assert len(intersection) == num_added
-        new_parameters = optmap.get_parameters(optimisable)
+        new_parameters = optmap.get_parameters(optimizable)
         if new_parameters is not None:
-            intersection2 = [p for p in optimisable.get_parameters() if p in new_parameters]
+            intersection2 = [p for p in optimizable.get_parameters() if p in new_parameters]
         else:
             raise ConfigurationException(
-                f"{optimisable}.get_parameters() returns None. No quantities specified in {optimisable}."
+                f"{optimizable}.get_parameters() returns None. No quantities specified in {optimizable}."
             )
         assert len(intersection2) == num_added
 
 
-def test_removing_optimisables(opt_map_with_optimisables) -> None:
-    """Test removing optimisables.
+def test_removing_optimizables(opt_map_with_optimizables) -> None:
+    """Test removing optimizables.
 
-    After removing an optimisable, it should not be in the list anymore.
+    After removing an optimizable, it should not be in the list anymore.
 
     """
-    optimisables = opt_map_with_optimisables.get_optimisables()
+    optimizables = opt_map_with_optimizables.get_optimizables()
 
-    for i, optimisable in enumerate(optimisables):
-        opt_map_with_optimisables.remove(optimisable)
-        assert optimisable not in opt_map_with_optimisables.get_optimisables()
-        assert len(opt_map_with_optimisables.get_optimisables()) == len(optimisables) - (i + 1)
+    for i, optimizable in enumerate(optimizables):
+        opt_map_with_optimizables.remove(optimizable)
+        assert optimizable not in opt_map_with_optimizables.get_optimizables()
+        assert len(opt_map_with_optimizables.get_optimizables()) == len(optimizables) - (i + 1)
 
 
-def test_removing_parameters(opt_map_with_optimisables) -> None:
+def test_removing_parameters(opt_map_with_optimizables) -> None:
     """Test removing paramters.
 
-    Removing an optimisable should decrease to the number of parameters
+    Removing an optimizable should decrease to the number of parameters
     by the correct amount.
 
     """
-    optimisables = opt_map_with_optimisables.get_optimisables()
-    num_params = sum([len(o.get_parameters()) for o in optimisables])
+    optimizables = opt_map_with_optimizables.get_optimizables()
+    num_params = sum([len(o.get_parameters()) for o in optimizables])
 
-    for _, optimisable in enumerate(optimisables):
-        num_params -= len(optimisable.get_parameters())
+    for _, optimizable in enumerate(optimizables):
+        num_params -= len(optimizable.get_parameters())
 
-        opt_map_with_optimisables.remove(optimisable)
-        assert len(opt_map_with_optimisables.get_all_parameters()) == num_params
+        opt_map_with_optimizables.remove(optimizable)
+        assert len(opt_map_with_optimizables.get_all_parameters()) == num_params
 
-        intersection = [p for p in optimisable.get_parameters() if p in opt_map_with_optimisables.get_all_parameters()]
+        intersection = [p for p in optimizable.get_parameters() if p in opt_map_with_optimizables.get_all_parameters()]
         assert len(intersection) == 0
         with pytest.raises(Exception):
-            opt_map_with_optimisables.get_parameters(optimisable)
+            opt_map_with_optimizables.get_parameters(optimizable)
 
 
-def test_exporting_fails(opt_map_with_optimisables) -> None:
-    """Tests if exporting fails if the optimisables or quantities do not have unique names."""
-    optimisables = list(opt_map_with_optimisables.get_optimisables())
+def test_exporting_fails(opt_map_with_optimizables) -> None:
+    """Tests if exporting fails if the optimizables or quantities do not have unique names."""
+    optimizables = list(opt_map_with_optimizables.get_optimizables())
 
-    # Test bad names of optimisables
-    not_allowed = [None, "", optimisables[1].name]
+    # Test bad names of optimizables
+    not_allowed = [None, "", optimizables[1].name]
     for x in not_allowed:
-        optimisables[0].name = x
+        optimizables[0].name = x
         with pytest.raises(Exception):
-            opt_map_with_optimisables.to_dict()
-    optimisables[0].name = "optimisable 0"
+            opt_map_with_optimizables.to_dict()
+    optimizables[0].name = "optimizable 0"
 
     # Test bad names of quantities
-    quantities = optimisables[0].get_parameters()
-    print("Changing: ", optimisables[0].name)
+    quantities = optimizables[0].get_parameters()
+    print("Changing: ", optimizables[0].name)
     not_allowed = [quantities[1].get_name()]
     for x in not_allowed:
         quantities[0].set_name(x)
         with pytest.raises(Exception):
-            opt_map_with_optimisables.to_dict()
+            opt_map_with_optimizables.to_dict()
 
 
-def test_exporting(opt_map_with_optimisables, dummy_optimisable) -> None:
-    """Tests if all optimisables and quantities are being exported."""
-    optimisables = list(opt_map_with_optimisables.get_optimisables())
+def test_exporting(opt_map_with_optimizables, dummy_optimizable) -> None:
+    """Tests if all optimizables and quantities are being exported."""
+    optimizables = list(opt_map_with_optimizables.get_optimizables())
 
-    dictionary = opt_map_with_optimisables.to_dict()
-    assert len(dictionary) == len(optimisables)
-    for optimisable in optimisables:
-        assert optimisable.name in dictionary
-        assert len(optimisable.get_parameters()) == len(dictionary[optimisable.name])
+    dictionary = opt_map_with_optimizables.to_dict()
+    assert len(dictionary) == len(optimizables)
+    for optimizable in optimizables:
+        assert optimizable.name in dictionary
+        assert len(optimizable.get_parameters()) == len(dictionary[optimizable.name])
 
     # Test if re-importing works
-    opt_map_with_optimisables.from_dict(dictionary)
-    assert list(opt_map_with_optimisables.get_optimisables()) == optimisables
+    opt_map_with_optimizables.from_dict(dictionary)
+    assert list(opt_map_with_optimizables.get_optimizables()) == optimizables
 
-    # Test if importing fails if an optimisable does not yet exist in the optmap
-    dictionary["new-optimisable"] = dummy_optimisable(1)
-    with pytest.raises(SerialisationException):
-        opt_map_with_optimisables.from_dict(dictionary)
+    # Test if importing fails if an optimizable does not yet exist in the optmap
+    dictionary["new-optimizable"] = dummy_optimizable(1)
+    with pytest.raises(SerializationException):
+        opt_map_with_optimizables.from_dict(dictionary)

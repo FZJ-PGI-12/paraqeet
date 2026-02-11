@@ -1,13 +1,12 @@
 """Class definition for a mixed state transfer fidelity model."""
 
-from paraqeet.quantity import Array
 import jax.numpy as jnp
 import jax.scipy.linalg as sclin
 
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array
 
 
 class MixedStateTransferFidelity(Measurement):
@@ -29,29 +28,22 @@ class MixedStateTransferFidelity(Measurement):
 
     """
 
-    __target_state: Array
-    __target_state_sqrt: Array
-    __propagation: Propagation
-    __times: Array
+    _target_state: Array
+    _target_state_sqrt: Array
+    _propagation: Propagation
 
     def __init__(
         self,
         propagation: Propagation,
         targetState: Array,
-        times: Array,
     ):
-        self.__propagation = propagation
-        self.__target_state = targetState
-        self.__times = times
+        self._propagation = propagation
+        self._target_state = targetState
 
         # store the sqrt of the density matrix to simplify the measurement
-        self.__target_state_sqrt = sclin.sqrtm(self.__target_state)
+        self._target_state_sqrt = sclin.sqrtm(self._target_state)
 
-    def get_parameters(self) -> list[Quantity]:
-        """Returns an empty list."""
-        return []
-
-    def measure(self) -> Array:
+    def measure(self, times: Array) -> Array | float:
         """Measure overlap between initial and final state of density matrices.
 
         Returns
@@ -65,15 +57,14 @@ class MixedStateTransferFidelity(Measurement):
             Raises an exception if required vector shape is not received.
 
         """
-        state = self.__propagation.propagate(self.__times)[-1]
-        state = self._preprocess_matrix(state)
-        if state.shape != self.__target_state.shape:
+        state = self._propagation.propagate(times)[-1]
+        if state.shape != self._target_state.shape:
             raise IncompatibleLayersException(
-                f"Need a state vector of size {self.__target_state.shape}"
+                f"Need a state vector of size {self._target_state.shape}"
                 "for the state transfer fidelity, "
                 "but got shape {state.shape}"
             )
 
         # density matrix
-        product = self.__target_state_sqrt @ state @ self.__target_state_sqrt
+        product = self._target_state_sqrt @ state @ self._target_state_sqrt
         return jnp.abs(jnp.trace(sclin.sqrtm(product))) ** 2

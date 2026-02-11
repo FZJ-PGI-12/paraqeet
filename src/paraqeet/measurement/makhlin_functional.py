@@ -1,12 +1,14 @@
 """Class definition of the Makhlin functional."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 
-from paraqeet.exceptions import ConfigurationException, IncompatibleLayersException
+from paraqeet.exceptions import (
+    ConfigurationException,
+    IncompatibleLayersException,
+)
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array
 
 
 class MakhlinFunctional(Measurement):
@@ -31,32 +33,24 @@ class MakhlinFunctional(Measurement):
 
     """
 
-    __propagation: Propagation
-    __ideal_invariants: Array | None
+    _propagation: Propagation
+    _ideal_invariants: Array | None
 
     def __init__(
         self,
         propagation: Propagation,
-        times: Array,
         ideal_invariants: Array | None = None,
     ):
-        super().__init__(times=times)
-        self.__propagation = propagation
-        self.__ideal_invariants = ideal_invariants
+        self._propagation = propagation
+        self._ideal_invariants = ideal_invariants
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get the parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns the list of parameters of the system.
-
-        """
-        return []
-
-    def measure(self) -> Array:
+    def measure(self, times: Array) -> Array | float:
         """Measure distance of the propagator to a perfect entangler.
+
+        Parameters
+        ----------
+        times : Array
+            One-dimensional vector of timestamps.
 
         Returns
         -------
@@ -70,20 +64,19 @@ class MakhlinFunctional(Measurement):
             4x4 operator is not received.
 
         """
-        if self._times is None:
+        if not times:
             raise ConfigurationException("Time array was not specified")
 
-        u = self.__propagation.propagate(self._times)[-1]
-        u = self._preprocess_matrix(u)
+        u = self._propagation.propagate(times)[-1]
         if u.shape != (4, 4):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
-        gs = self.__makhlin_invariants(u)
-        if self.__ideal_invariants is not None:
-            return jnp.array(jnp.linalg.norm(gs - self.__ideal_invariants))
+        gs = self._makhlin_invariants(u)
+        if self._ideal_invariants is not None:
+            return jnp.array(jnp.linalg.norm(gs - self._ideal_invariants))
         else:
             return jnp.abs(gs[2] * jnp.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
-    def __makhlin_invariants(self, u: Array) -> tuple[Array, Array, Array]:
+    def _makhlin_invariants(self, u: Array) -> tuple[Array, Array, Array]:
         """Compute the Makhlin invariants for a matrix U.
 
         Returns a tuple with the three invariants g1, g2 and g3.

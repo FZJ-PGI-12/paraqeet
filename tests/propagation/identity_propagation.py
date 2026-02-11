@@ -1,21 +1,21 @@
 """Test the identity propagation model."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
-from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity
+
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.quantity import Array, Quantity
 
 
-class IdentityPropagation(StatePropagation):
+class IdentityPropagation(DifferentiablePropagation):
     """Mock identity propagation implementation.
 
     Returns the initial state as the target state.
     """
 
-    __state: Array
+    _state: Array
 
     def __init__(self):
-        super().__init__(None)
+        super().__init__(None, None)
 
     def set_initial_state(self, state: Array):
         """Set the initial state of the system.
@@ -28,7 +28,7 @@ class IdentityPropagation(StatePropagation):
             Given state to be set as the initial state.
 
         """
-        self.__state = state
+        self._state = state
 
     def propagate(self, time: Array) -> Array:
         """Get the propagated state across the timestamps.
@@ -44,11 +44,11 @@ class IdentityPropagation(StatePropagation):
             Returns the propagated values of the state across timestamps.
 
         """
-        return jnp.array([self.__state] * len(time))
+        return jnp.array([self._state] * len(time))
 
-    def gradient(self, time: Array) -> Array:
+    def get_value_and_gradient(self, time: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
-        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
+        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self._state)))
         return self.propagate(time), empty_gradient
 
     def get_parameters(self) -> list[Quantity]:

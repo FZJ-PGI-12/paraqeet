@@ -3,7 +3,7 @@ repos:
     rev: v0.8.3
     hooks:
       - id: ruff  # linter
-        args: [ --fix, --config=pyproject.toml ]
+        args: [ --fix, --config=pyproject.toml, --select=I]
       - id: ruff-format  # formatter
         args: [--config=pyproject.toml ]
 -   repo: https://github.com/pre-commit/mirrors-mypy

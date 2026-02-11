@@ -17,9 +17,9 @@ class FileLogger(Logger):
 
     """
 
-    __logdir: str
-    __logfile: str
-    __result_file: str
+    _logdir: str
+    _logfile: str
+    _result_file: str
 
     def __init__(self, logdir: str = ".") -> None:
         self.logdir = logdir
@@ -27,7 +27,7 @@ class FileLogger(Logger):
     @property
     def logdir(self) -> str:
         """Returns the current log directory."""
-        return self.__logdir
+        return self._logdir
 
     @logdir.setter
     def logdir(self, logdir: str):
@@ -41,11 +41,11 @@ class FileLogger(Logger):
             Destination directory to store the logs.
 
         """
-        self.__logdir = logdir
-        self.__logfile = os.path.join(self.__logdir, "opt.log")
-        self.__result_file = os.path.join(self.__logdir, "opt.result")
-        if not os.path.isdir(self.__logdir):
-            os.makedirs(self.__logdir)
+        self._logdir = logdir
+        self._logfile = os.path.join(self._logdir, "opt.log")
+        self._result_file = os.path.join(self._logdir, "opt.result")
+        if not os.path.isdir(self._logdir):
+            os.makedirs(self._logdir)
 
     def start(self):
         """Start logging."""
@@ -69,7 +69,7 @@ class FileLogger(Logger):
             "Parameters": formatted_params,
             "Goal": infidelity,
         }
-        with open(self.__logfile, "a") as log:
+        with open(self._logfile, "a") as log:
             log.write(json.dumps(status))
             log.write("\n")
             log.flush()
@@ -84,7 +84,7 @@ class FileLogger(Logger):
 
         """
         super().stop()
-        with open(self.__result_file, "a") as log:
+        with open(self._result_file, "a") as log:
             if result_message:
                 log.write(result_message)
                 log.write("\n")

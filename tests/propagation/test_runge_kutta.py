@@ -1,7 +1,8 @@
 """Test the Runge-Kutta propagation model."""
 
-import pytest
 import numpy as np
+import pytest
+
 from paraqeet.propagation.runge_kutta import RungeKutta
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptyHamiltonian
@@ -67,6 +68,6 @@ def test_time_steps(rk, random_state):
     runge_kutta.set_initial_state(state)
     with pytest.raises(
         ValueError,
-        match="Runge-Kutta propagation needs at least two time steps",
+        match="RungeKutta.propagate needs at least two time steps",
     ):
         runge_kutta.propagate(time)

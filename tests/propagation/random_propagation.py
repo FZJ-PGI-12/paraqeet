@@ -1,19 +1,20 @@
 """Test the random propagation model."""
 
 from functools import partial
-from jax import jit
-import numpy as np
-import jax.numpy as jnp
-from scipy.stats import unitary_group
-from paraqeet.quantity import Array
 
+import jax.numpy as jnp
+import numpy as np
+from jax import jit
+from scipy.stats import unitary_group
+
+from paraqeet.differentiable import Differentiable
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 
-class RandomPropagation(Propagation):
+class RandomPropagation(Propagation, Differentiable):
     """Mock random propagation implementation.
 
     Returns random state vectors, density matrices, or propagators.
@@ -29,10 +30,10 @@ class RandomPropagation(Propagation):
         If false, propagate will return the same state until update was called.
     """
 
-    __dimension: int
-    __create_matrices: bool
-    __auto_update: bool
-    __state: Array
+    _dimension: int
+    _create_matrices: bool
+    _auto_update: bool
+    _state: Array
 
     def __init__(
         self,
@@ -40,10 +41,10 @@ class RandomPropagation(Propagation):
         generate_matrices: bool = False,
         auto_update: bool = True,
     ):
-        super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)))
-        self.__dimension = dimension
-        self.__create_matrices = generate_matrices
-        self.__auto_update = auto_update
+        super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)), 1e9)
+        self._dimension = dimension
+        self._create_matrices = generate_matrices
+        self._auto_update = auto_update
         self.update()
         self.is_open = False
 
@@ -78,14 +79,14 @@ class RandomPropagation(Propagation):
             Returns the updated state of the system.
 
         """
-        if self.__auto_update:
+        if self._auto_update:
             self.update()
-        return jnp.array([self.__state] * len(time))
+        return jnp.array([self._state] * len(time))
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         # Returns an empty gradient because the class has 0 parameters
-        empty_gradient = jnp.zeros(shape=(len(time), 0, len(self.__state)))
-        return self.propagate(time), empty_gradient
+        empty_gradient = jnp.zeros(shape=(len(times), 0, len(self._state)))
+        return self.propagate(times), empty_gradient
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
@@ -106,12 +107,12 @@ class RandomPropagation(Propagation):
         new random state.
 
         """
-        if self.__create_matrices:
+        if self._create_matrices:
             # generate a random density matrix by rotating a
             # random diagonal matrix
-            rho = jnp.diag(np.random.random(self.__dimension))
-            self.__state = self.__create_random_dm(self.__dimension, rho)
+            rho = jnp.diag(np.random.random(self._dimension))
+            self._state = RandomPropagation.__create_random_dm(self._dimension, rho)
         else:
             # generate a random state vector
-            state = np.random.random((self.__dimension, 1)) + 1j * np.random.random((self.__dimension, 1))
-            self.__state = self.__create_random_vec(state)
+            state = np.random.random((self._dimension, 1)) + 1j * np.random.random((self._dimension, 1))
+            self._state = RandomPropagation.__create_random_vec(state)

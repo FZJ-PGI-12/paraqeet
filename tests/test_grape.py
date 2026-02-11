@@ -1,20 +1,22 @@
-"""Testing the GRAPE optimisation of a TLS system."""
+"""Testing the GRAPE optimization of a TLS system."""
 
-import pytest
 import numpy as np
+import pytest
 
+from paraqeet.measurement.state_transfer_fidelity import (
+    StateTransferFidelityGRAPE,
+)
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.qubit import Qubit
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.vern7_grape import Vern7GRAPE
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import GaussEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.model.qubit import Qubit
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.open_system import OpenSystem
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from paraqeet.propagation.vern7_grape import Vern7GRAPE
 
 T_FINAL = 20e-9
 FREQ = 1e6
@@ -54,12 +56,12 @@ def model(pwc_gen, request):
 def states(model, request):
     """Compare the overlap of the initial and final state."""
     if request.param == "expm":
-        prop_method = ScipyExpmGRAPE(model=model, res=1e9)
+        prop_method = ScipyExpmGRAPE(model=model, resolution=2e9)
         if prop_method.is_open:
             pytest.skip("Currently, ScipyExpmGRAPE is not implemented for open system.")
     elif request.param == "ode":
         model.ode_propagation = True
-        prop_method = Vern7GRAPE(model=model, res=1e9)
+        prop_method = Vern7GRAPE(model=model, resolution=10e9)
 
     init = np.array([[1.0], [0.0]])
     target = np.array([[0.0], [1]])
@@ -69,31 +71,30 @@ def states(model, request):
         target = np.matmul(target, target.T)
 
     prop_method.set_initial_state(init)
-    prop_method.target_state = target
+    prop_method.set_target_state(target)
 
     return StateTransferFidelityGRAPE(
         propagation=prop_method,
         initial_state=init,
         target_state=target,
-        times=TLIST,
     )
 
 
 @pytest.fixture
 def opt_map(pwc_gen):
-    """Create an optimisation map."""
-    optmap = OptimisationMap()
+    """Create an optimization map."""
+    optmap = OptimizationMap()
     optmap.add(pwc_gen)
     return optmap
 
 
 @pytest.fixture
 def opt(states, opt_map):
-    """Create a scipy optimiser gradient object over states."""
-    return ScipyOptimiserGradient(measure=states, optimisation_map=opt_map)
+    """Create a scipy optimizer gradient object over states."""
+    return ScipyOptimizerGradient(measure=states, optimization_map=opt_map)
 
 
 def test_optim_grape(opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = opt.optimise()
+    res = opt.optimize(times=TLIST)
     assert res.value < 1e-2

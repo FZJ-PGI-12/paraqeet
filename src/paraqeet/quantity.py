@@ -7,9 +7,9 @@ from collections.abc import Callable
 from sys import float_info
 from typing import Self
 
-import numpy as np
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from paraqeet.exceptions import IncompatibleQuantityException
 
@@ -60,19 +60,19 @@ class Quantity:
 
     """
 
-    __unit: str
-    __name: str
-    __length: int
-    __shape: tuple[int, ...]
+    _unit: str
+    _name: str
+    _length: int
+    _shape: tuple[int, ...]
     # internal representation of the value
-    __value: Array
-    __offset: Array
-    __scale: Array
-    __two_pi: bool
-    __dependent: bool
-    __dependencies: list
-    __relation: Callable | None
-    __dependents: list
+    _value: Array
+    _offset: Array
+    _scale: Array
+    _two_pi: bool
+    _dependent: bool
+    _dependencies: list
+    _relation: Callable | None
+    _dependents: list
 
     def __init__(
         self,
@@ -86,37 +86,37 @@ class Quantity:
         if value is None or max_value is None or min_value is None:
             raise IncompatibleQuantityException("value, minimum, and maximum must be not null")
 
-        self.__unit = unit
-        self.__name = name
-        self.__scale = jnp.array(0)
-        self.__two_pi = two_pi
+        self._unit = unit
+        self._name = name
+        self._scale = jnp.array(0)
+        self._two_pi = two_pi
 
-        value_fixed = self.__fix_parameter_types(value)
-        min_value_fixed = self.__fix_parameter_types(min_value)
-        max_value_fixed = self.__fix_parameter_types(max_value)
+        value_fixed = self._fix_parameter_types(value)
+        min_value_fixed = self._fix_parameter_types(min_value)
+        max_value_fixed = self._fix_parameter_types(max_value)
 
-        min_value_fixed, max_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
+        min_value_fixed, max_value_fixed = self._fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
 
-        self.__shape = value_fixed.shape
-        self.__length = int(np.prod(value_fixed.shape))
+        self._shape = value_fixed.shape
+        self._length = int(np.prod(value_fixed.shape))
 
-        self.__offset = min_value_fixed
-        self.__scale = jnp.abs(max_value_fixed - min_value_fixed)
+        self._offset = min_value_fixed
+        self._scale = jnp.abs(max_value_fixed - min_value_fixed)
 
         # if this quantity is dependent on/calculated from other quantities
-        self.__dependent = False
+        self._dependent = False
         # all Quantities that this quantity calculates from
-        self.__dependencies = list()
+        self._dependencies = list()
         # the relation function that calculated value from dependencies
-        self.__relation = None
+        self._relation = None
 
         # all Quantities that use this quantity to calculate value
-        self.__dependents = list()
+        self._dependents = list()
 
         self.set_value(value)
 
     @staticmethod
-    def __fix_shapes(value: Array, min_value: Array, max_value: Array) -> tuple[Array, Array]:
+    def _fix_shapes(value: Array, min_value: Array, max_value: Array) -> tuple[Array, Array]:
         # If value is an array and the bounds are floats, the same bounds are used for all values. The floats are
         # converted into constant arrays.
         if not np.size(value) == 1 and np.size(min_value) == 1:
@@ -131,7 +131,7 @@ class Quantity:
         return min_value, max_value
 
     @staticmethod
-    def __fix_parameter_types(param: Array | float) -> Array:
+    def _fix_parameter_types(param: Array | float) -> Array:
         """
         Makes sure that the parameter is a jax numpy array of type jnp.float64. Primitive floats are wrapped into a
         1d-array
@@ -152,8 +152,8 @@ class Quantity:
         list[Quantity]
             List of parameter dependencies.
         """
-        if self.__dependent:
-            return self.__dependencies
+        if self._dependent:
+            return self._dependencies
         return []
 
     @property
@@ -169,7 +169,7 @@ class Quantity:
         list[Quantity]
             List of parameter dependencies.
         """
-        return self.__dependents
+        return self._dependents
 
     @classmethod
     def relational(
@@ -264,7 +264,7 @@ class Quantity:
             max_value=quantity.get_max_value(),
             unit=quantity.get_unit(),
             name=quantity.get_name(),
-            two_pi=quantity.__two_pi,
+            two_pi=quantity._two_pi,
         )
         qty.add_relation(quantity, lambda x: x)
         return qty
@@ -278,7 +278,7 @@ class Quantity:
         if False:
             The value of this quantity is independent of any other quantity
         """
-        return self.__dependent
+        return self._dependent
 
     def add_relation(
         self,
@@ -309,13 +309,13 @@ class Quantity:
                 "Set 'check_units=False' if this behavior is wanted."
             )
 
-        self.__dependent = True
-        self.__dependencies = other
-        self.__relation = relation
+        self._dependent = True
+        self._dependencies = other
+        self._relation = relation
         self.update()
 
-        for qty in self.__dependencies:
-            qty.__dependents.append(self)
+        for qty in self._dependencies:
+            qty._dependents.append(self)
 
     def update(self):
         """Update value of the parameter.
@@ -324,11 +324,11 @@ class Quantity:
         is dependent on is changed.
 
         """
-        self.__set_value(self.__relation(*[qty.get_value() for qty in self.__dependencies]))
+        self._set_value(self._relation(*[qty.get_value() for qty in self._dependencies]))
 
     def get_value(self) -> Array:
         """Get value of the parameter."""
-        return self.__scale * (self.__value + 1) / 2 + self.__offset
+        return self._scale * (self._value + 1) / 2 + self._offset
 
     def get_reduced_value(self) -> Array:
         """Return the value in the reduced representation.
@@ -339,7 +339,7 @@ class Quantity:
             Value from the reduced representation.
 
         """
-        return jnp.reshape(self.__value, (-1, 1))
+        return jnp.reshape(self._value, (-1, 1))
 
     def set_value(self, value: Array | float) -> None:
         """Set the value of this quantity.
@@ -358,66 +358,66 @@ class Quantity:
             from 'min_value' or 'max_value', or if this is a dependent quantity
 
         """
-        if self.__dependent:
+        if self._dependent:
             raise ValueError(
                 "Cannot set value on dependent quantities, \
                     as it is calculated from other quantities."
             )
 
-        self.__set_value(value)
+        self._set_value(value)
 
-    def __set_value(self, value: Array | float) -> None:
+    def _set_value(self, value: Array | float) -> None:
         """Set value for the parameter."""
-        if jnp.any(self.__scale < float_info.epsilon):
+        if jnp.any(self._scale < float_info.epsilon):
             raise ValueError(
-                f"The range between the minimum ({self.__to_string(self.get_min_value())}) "
-                f"and maximum ({self.__to_string(self.get_max_value())}) values is too "
+                f"The range between the minimum ({self._to_string(self.get_min_value())}) "
+                f"and maximum ({self._to_string(self.get_max_value())}) values is too "
                 f"small. Consider changing the bounds or use reduced units."
             )
-        val = self.__fix_parameter_types(value)
-        if val.shape != self.__shape:
+        val = self._fix_parameter_types(value)
+        if val.shape != self._shape:
             raise IncompatibleQuantityException("The new value must have the same shape as the old value")
 
-        tmp = 2 * (np.reshape(val, self.__shape) - self.__offset) / self.__scale - 1
+        tmp = 2 * (np.reshape(val, self._shape) - self._offset) / self._scale - 1
 
         if jnp.any(jnp.abs(tmp) > 1.0):
             print("Error: ", val, self.get_min_value(), self.get_max_value())
             raise ValueError(
-                f"Value {self.__to_string(val)} out of bounds for quantity with "
-                f"min_val: {self.__to_string(self.get_min_value())} and "
-                f"max_val: {self.__to_string(self.get_max_value())}",
+                f"Value {self._to_string(val)} out of bounds for quantity with "
+                f"min_val: {self._to_string(self.get_min_value())} and "
+                f"max_val: {self._to_string(self.get_max_value())}",
             )
-        self.__value = tmp
+        self._value = tmp
 
         # update all Quantities that depend on self
-        for qty in self.__dependents:
+        for qty in self._dependents:
             qty.update()
 
     def set_reduced_value(self, value: Array | float) -> None:
         """Set reduced value limit for parameter."""
-        value_fixed = self.__fix_parameter_types(value)
-        if value_fixed.shape != self.__shape:
+        value_fixed = self._fix_parameter_types(value)
+        if value_fixed.shape != self._shape:
             raise IncompatibleQuantityException(
                 f"The new value must have the same shape as the old value. \
-                Got shape {value_fixed.shape}, expected shape {self.__shape}."
+                Got shape {value_fixed.shape}, expected shape {self._shape}."
             )
-        self.__value = value_fixed
+        self._value = value_fixed
 
     def get_min_value(self) -> Array:
         """Get minimum value of parameter."""
-        return self.__offset
+        return self._offset
 
     def get_max_value(self) -> Array:
         """Get maximum value of parameter."""
-        return self.__scale + self.__offset
+        return self._scale + self._offset
 
     def get_scale(self) -> Array:
         """Get scale of parameter."""
-        return self.__scale
+        return self._scale
 
     def get_length(self) -> int:
         """Get length of parameter."""
-        return self.__length
+        return self._length
 
     def set_limits(self, min_value: Array | float, max_value: Array | float) -> None:
         """Set the allowed minimum and maximum of this quantity.
@@ -431,30 +431,30 @@ class Quantity:
 
         """
         old_value = self.get_value()
-        min_value_fixed = self.__fix_parameter_types(min_value)
-        max_value_fixed = self.__fix_parameter_types(max_value)
+        min_value_fixed = self._fix_parameter_types(min_value)
+        max_value_fixed = self._fix_parameter_types(max_value)
 
-        min_value_fixed, max_value_fixed = self.__fix_shapes(old_value, min_value_fixed, max_value_fixed)
+        min_value_fixed, max_value_fixed = self._fix_shapes(old_value, min_value_fixed, max_value_fixed)
 
-        self.__offset = min_value_fixed
-        self.__scale = np.abs(max_value_fixed - min_value_fixed)
+        self._offset = min_value_fixed
+        self._scale = np.abs(max_value_fixed - min_value_fixed)
         # the value is based on offset and scale and needs to be updated
-        self.__set_value(old_value)
+        self._set_value(old_value)
 
     def set_value_and_limits(self, value: Array | float, min_value: Array | float, max_value: Array | float) -> None:
         """
         This can be used to set the value and the limits to new values at the same time. This function does not raise
         an exception if the new value is outside of the old limits.
         """
-        value_fixed = self.__fix_parameter_types(value)
-        min_value_fixed = self.__fix_parameter_types(min_value)
-        max_value_fixed = self.__fix_parameter_types(max_value)
+        value_fixed = self._fix_parameter_types(value)
+        min_value_fixed = self._fix_parameter_types(min_value)
+        max_value_fixed = self._fix_parameter_types(max_value)
 
-        min_value_fixed, max_value_fixed = self.__fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
+        min_value_fixed, max_value_fixed = self._fix_shapes(value_fixed, min_value_fixed, max_value_fixed)
 
-        self.__offset = min_value_fixed
-        self.__scale = np.abs(max_value_fixed - min_value_fixed)
-        self.__set_value(value_fixed)
+        self._offset = min_value_fixed
+        self._scale = np.abs(max_value_fixed - min_value_fixed)
+        self._set_value(value_fixed)
 
     def get_name(self) -> str:
         """Return the symbol or description or this quantity.
@@ -468,25 +468,25 @@ class Quantity:
             Value of the name attribute.
 
         """
-        return self.__name
+        return self._name
 
     def set_name(self, name: str) -> None:
         """Assigns a new name to this quantity."""
-        self.__name = name
+        self._name = name
 
     def get_unit(self) -> str:
         """Get unit of measurement from paramter."""
-        return self.__unit
+        return self._unit
 
     def is_scalar(self) -> bool:
         """Check if parameter is scalar."""
-        return self.__length == 1
+        return self._length == 1
 
     def is_vector(self) -> bool:
         """Check if parameter is vector."""
-        return self.__length > 1 and len(self.__shape) == 1
+        return self._length > 1 and len(self._shape) == 1
 
-    # Python specific functions
+    # Python specific magic functions that enalble the use of e.g., binary math operators
     def __add__(self, other) -> Quantity:
         """Magic method for addition by operand."""
         out_val = copy.deepcopy(self)
@@ -598,13 +598,13 @@ class Quantity:
 
     def __eq__(self, other) -> bool:
         """Magic method for representation of equality operation."""
-        if self.__shape != other.__shape:
+        if self._shape != other._shape:
             return False
         return all(self.get_value() == other.get_value())
 
     def __ne__(self, other) -> bool:
         """Magic method for representation of not-equal operation."""
-        if self.__shape != other.__shape:
+        if self._shape != other._shape:
             return True
         return any(self.get_value() != other.get_value())
 
@@ -661,7 +661,7 @@ class Quantity:
 
     def __len__(self):
         """Magic method for calculation of length."""
-        return self.__length
+        return self._length
 
     def __getitem__(self, key):
         """Magic method for selection of item.
@@ -672,7 +672,7 @@ class Quantity:
             Index of object for retrieval.
 
         """
-        if self.__length == 1 and key == 0:
+        if self._length == 1 and key == 0:
             return self.get_value()
         return self.get_value().__getitem__(key)
 
@@ -689,7 +689,7 @@ class Quantity:
             If the length of the parameter is greater than 1.
 
         """
-        if self.__length > 1:
+        if self._length > 1:
             raise NotImplementedError
         return float(np.squeeze(self.get_value()))
 
@@ -698,10 +698,10 @@ class Quantity:
         return self.__str__()
 
     def __str__(self):
-        """Human readable representation of the parameters set to optimise."""
-        return self.__to_string(self.get_value())
+        """Human readable representation of the parameters set to optimize."""
+        return self._to_string(self.get_value())
 
-    def __to_string(self, val: Array):
+    def _to_string(self, val: Array):
         """Represent parameter as custom defined string value."""
         ret = ""
         if len(val) > 1:
@@ -712,34 +712,34 @@ class Quantity:
         for ii, entry in enumerate(val):
             if ii == len(val) - 1:
                 delimiter = ""
-            if self.__unit != "":
-                if self.__two_pi:
-                    ret += self.__make_human_readable(entry / np.pi / 2) + self.__unit + " x 2pi" + delimiter
+            if self._unit != "":
+                if self._two_pi:
+                    ret += Quantity._make_human_readable(entry / np.pi / 2) + self._unit + " x 2pi" + delimiter
                 else:
-                    ret += self.__make_human_readable(entry) + self.__unit + delimiter
+                    ret += Quantity._make_human_readable(entry) + self._unit + delimiter
             else:
-                if self.__two_pi:
-                    ret += self.__make_human_readable(entry / np.pi / 2, use_prefix=False) + " x 2pi" + delimiter
+                if self._two_pi:
+                    ret += Quantity._make_human_readable(entry / np.pi / 2, use_prefix=False) + " x 2pi" + delimiter
                 else:
-                    ret += self.__make_human_readable(entry, use_prefix=False) + delimiter
-        if self.__name:
+                    ret += Quantity._make_human_readable(entry, use_prefix=False) + delimiter
+        if self._name:
             if len(val) > 1:
-                ret = self.__name + ": " + ret + "]"
+                ret = self._name + ": " + ret + "]"
             else:
-                ret = self.__name + ": " + ret
+                ret = self._name + ": " + ret
         else:
             if len(val) > 1:
                 ret = ret + "]"
         return ret
 
     @staticmethod
-    def __make_human_readable(val, use_prefix: bool = True) -> str:
+    def _make_human_readable(val, use_prefix: bool = True) -> str:
         """Convert to human readable string in engineering notation.
 
         Parameters
         ----------
         use_prefix: bool=True
-            Adds a prefix string derived from '__engineering_number'
+            Adds a prefix string derived from '_engineering_number'
             to the final format string.
 
         Returns
@@ -749,7 +749,7 @@ class Quantity:
 
         """
         if use_prefix:
-            num, prefix = Quantity.__engineering_number(val)
+            num, prefix = Quantity._engineering_number(val)
             formatted_string = f"{num:.3g} " + prefix
         else:
             formatted_string = f"{val:.3g}"
@@ -757,7 +757,7 @@ class Quantity:
 
     # Internal utility functions
     @staticmethod
-    def __engineering_number(val: float) -> tuple[float, str]:
+    def _engineering_number(val: float) -> tuple[float, str]:
         """Convert number to engineering notation.
 
         Returns number and prefix.
@@ -801,16 +801,16 @@ class Quantity:
     def to_dict(self) -> dict:
         """
         Creates a dictionary representation of this quantity that can be stored. The returned dict is compatible with
-        the fromDict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
+        the from_dict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
         dimensional quantities (tensors) will be flattened into a list but their proper shape is stored as well.
         """
         if self.dependent:
             raise UserWarning("Saving of dependent quantities is not supported yet")
 
         return {
-            "unit": self.__unit,
-            "shape": self.__shape,
-            "two_pi": self.__two_pi,
+            "unit": self._unit,
+            "shape": self._shape,
+            "two_pi": self._two_pi,
             "value": self.get_value().flatten().tolist(),
             "min": self.get_min_value().tolist(),
             "max": self.get_max_value().tolist(),
@@ -821,13 +821,13 @@ class Quantity:
         Loads the quantity from a dictionary. The dictionary must have the same form as the one created by the toDict
         function. All properties of this quantity (value, name, etc.) will be overwritten.
         """
-        self.__unit = data["unit"]
-        self.__shape = data["shape"]
-        self.__length = int(np.prod(self.__shape))
-        self.__two_pi = data["two_pi"]
+        self._unit = data["unit"]
+        self._shape = data["shape"]
+        self._length = int(np.prod(self._shape))
+        self._two_pi = data["two_pi"]
 
         # The value and limits need to be set at the same time so that the new value is not out of range
-        value = np.array(data["value"]).reshape(self.__shape)
-        min_val = np.array(data["min"]).reshape(self.__shape)
-        max_val = np.array(data["max"]).reshape(self.__shape)
+        value = np.array(data["value"]).reshape(self._shape)
+        min_val = np.array(data["min"]).reshape(self._shape)
+        max_val = np.array(data["max"]).reshape(self._shape)
         self.set_value_and_limits(value, min_val, max_val)

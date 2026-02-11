@@ -1,10 +1,11 @@
-from paraqeet.measurement.smoothness import Smoothness
-from paraqeet.signal.envelopes import GaussEnvelope
-from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.quantity import Quantity
-from paraqeet.optimisation_map import OptimisationMap
 import numpy as np
 import pytest
+
+from paraqeet.measurement.smoothness import Smoothness
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import GaussEnvelope
+from paraqeet.signal.pwc_generator import PWCGenerator
 
 
 @pytest.fixture
@@ -42,22 +43,22 @@ def test_smoothness_init(pwc_gen):
 def test_smoothness_measure(pwc_gen):
     smoothness = Smoothness(pwc_generator=pwc_gen)
     expected_measured_value = 0.9999547789963114
-    assert np.abs(smoothness.measure_normalised_scalar() - expected_measured_value) < 1e-8
+    assert np.abs(smoothness.calculate_normalized_scalar(pwc_gen._time_grid) - expected_measured_value) < 1e-8
 
 
 def test_smoothness_gradient(pwc_gen, another_tone):
     smoothness = Smoothness(pwc_generator=pwc_gen)
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(pwc_gen, pwc_gen.get_parameters())
     # We add dummy parameters to check if the gradient is computed
     # correctly by padding zeros
     # optmap.add(tone_qubit, tone_qubit.get_parameters())
     optmap.add(another_tone, another_tone.get_parameters())
-    optmap.register_params_with_optimisables()
-    assert len(optmap.get_all_parameters()) == len(another_tone.optimisable_parameters) + len(
-        pwc_gen.optimisable_parameters
+    optmap.register_params_with_optimizables()
+    assert len(optmap.get_all_parameters()) == len(another_tone.optimizable_parameters) + len(
+        pwc_gen.optimizable_parameters
     )
-    _, gradient = smoothness.measure_with_gradient()
+    _, gradient = smoothness.get_value_and_gradient(times=pwc_gen.tlist)
     num_opt_params = 0
     for param in optmap.get_all_parameters():
         num_opt_params += param.get_value().shape[0]

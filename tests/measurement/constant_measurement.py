@@ -1,14 +1,14 @@
 """Class definition for a mock system that always returns the same value."""
 
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 
-from paraqeet.quantity import Quantity
+from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
-class ConstantMeasurement(Measurement):
+class ConstantMeasurement(Measurement, Differentiable):
     """Mock implementation that always returns the same value.
 
     Parameters
@@ -22,31 +22,18 @@ class ConstantMeasurement(Measurement):
         Time variable value.
     """
 
-    __propagation: Propagation
-    __value: Array
+    _propagation: Propagation
+    _value: Array
 
     def __init__(
         self,
         propagation: Propagation,
         value: Array = jnp.array(1.0),
-        times: Array = jnp.array(0.0),
     ):
-        super().__init__(times=times)
-        self.__propagation = propagation
-        self.__value = value
+        self._propagation = propagation
+        self._value = value
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get the system parameters.
-
-        Parameters
-        ----------
-        list[Quantity]
-            List of parameters of the system.
-
-        """
-        return []
-
-    def measure(self) -> Array:
+    def measure(self, times: Array) -> Array:
         """Get the measurement value.
 
         Returns
@@ -55,9 +42,9 @@ class ConstantMeasurement(Measurement):
             The value of the measurement.
 
         """
-        return self.__value
+        return self._value
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get measurement value and gradient"""
-        grad = jnp.array([self.__value, 0.0])
-        return self.__value, grad
+        grad = jnp.array([self._value, 0.0])
+        return self._value, grad

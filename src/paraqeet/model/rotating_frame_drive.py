@@ -3,21 +3,21 @@
 import jax.numpy as jnp
 
 from paraqeet.model.drive import Drive
-from paraqeet.quantity import Quantity, Array
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
 
 
 class RotatingFrameDrive(Drive):
     """Drive Hamiltonian in the Frame rotating at the frequency of the drive.
 
-    __signal_generator: Generator
+    _signal_generator: Generator
         Signal Generator without a LO, like the PWCGenerator
     """
 
-    __signal_generator: Generator
+    _signal_generator: Generator
 
     def __init__(self, signal_generator: Generator):
-        self.__signal_generator = signal_generator
+        self._signal_generator = signal_generator
 
     @property
     def generator(self) -> Generator:
@@ -29,7 +29,7 @@ class RotatingFrameDrive(Drive):
             Returns the signal generator object from the system.
 
         """
-        return self.__signal_generator
+        return self._signal_generator
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -42,7 +42,7 @@ class RotatingFrameDrive(Drive):
         """
         return self.generator.get_parameters()
 
-    def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_value_at_timestep(self, annihilation_operator: Array, t: float) -> Array:
         r"""Implement drive in the rotating frame of drive.
 
         Drive Hamiltonian is implemented as
@@ -56,10 +56,10 @@ class RotatingFrameDrive(Drive):
         t: Array
             One time step
         """
-        env = self.generator.generate_signal(jnp.array([t]))
+        env = self.generator.get_value(jnp.array([t]))
         return env * annihilation_operator + jnp.conjugate(env) * annihilation_operator.conj().T
 
-    def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -69,7 +69,7 @@ class RotatingFrameDrive(Drive):
         ----------
         annihilation_operator: Array
             Operator for longitudinal or transverse drive.
-        t: Array
+        timestep: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -78,5 +78,6 @@ class RotatingFrameDrive(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        env_grad = self.generator.generate_signal_gradient(jnp.array([t])).reshape((-1, 1, 1))
+        _, env_grad = self.generator.get_value_and_gradient(jnp.array([timestep]))
+        env_grad = env_grad.reshape((-1, 1, 1))
         return env_grad * annihilation_operator + jnp.conjugate(env_grad) * annihilation_operator.conj().T

@@ -1,15 +1,15 @@
 """Test the composite Hamiltonian model."""
 
-import pytest
 import numpy as np
+import pytest
 
-from paraqeet.quantity import Quantity
-from paraqeet.model.coupling import Coupling
-from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
-from paraqeet.signal.iq_mixer import IQMixer
+from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.model.coupling import TwoBodyCoupling
 from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.transmon import Transmon
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 LEN_SIG = 101
 
@@ -28,7 +28,7 @@ def time_samples():
 def tone():
     """Return a cosine tone."""
     tone = FlatTopGaussianEnvelope()
-    tone.set_optimisable_parameters(tone.get_parameters())
+    tone.set_optimizable_parameters(tone.get_parameters())
     return tone
 
 
@@ -98,8 +98,9 @@ def coupled_transmons(transmon):
         transmon2 = transmon(dim2)
 
         couplingStr = np.abs(transmon1.frequency.get_value() - transmon2.frequency.get_value()) * 0.05
-        coupling = Coupling(
-            [transmon1, transmon2],
+        coupling = TwoBodyCoupling(
+            transmon1,
+            transmon2,
             is_longitudinal=False,
             coefficient=Quantity(couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"),
             use_rwa=use_rwa,
@@ -125,8 +126,9 @@ def coupled_transmons_chain(transmon, random_quantity):
             for i in range(len(transmons) - 1)
         ]
         couplings = [
-            Coupling(
-                [transmons[i], transmons[i + 1]],
+            TwoBodyCoupling(
+                subsystem_A=transmons[i],
+                subsystem_B=transmons[i + 1],
                 is_longitudinal=False,
                 coefficient=Quantity(
                     coupling_strengths[i], 0.8 * coupling_strengths[i], 1.2 * coupling_strengths[i], "Hz"
@@ -149,33 +151,33 @@ def test_dimension(coupled_transmons):
         assert hamil.dimension() == dim1 * dim2
 
 
-def test_get_matrix_one_time(uncoupled_transmons):
+def test_get_value_one_time(uncoupled_transmons):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = uncoupled_transmons(dim1, dim2)
-        hams = hamil.get_matrix_one_time(0)
+        hams = hamil.get_value_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_get_matrix_one_time_rwa(coupled_transmons):
+def test_get_value_one_time_rwa(coupled_transmons):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2, use_rwa=True)
-        hams = hamil.get_matrix_one_time(0)
+        hams = hamil.get_value_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_get_matrix(coupled_transmons, time_samples):
+def test_get_value(coupled_transmons, time_samples):
     """Test shape of Matrix produced by compositeHamiltonian."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2)
-        hams = hamil.get_matrix(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 
@@ -189,9 +191,9 @@ def test_gradient(gen, coupled_transmons, time_samples):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2)
-        hamil.set_optimisable_parameters(hamil.get_parameters())
-        grads = gen.generate_signal_gradient(time_samples)
-        ham_grads = hamil.gradient(time_samples)
+        hamil.set_optimizable_parameters(hamil.get_parameters())
+        _, grads = gen.get_value_and_gradient(time_samples)
+        _, ham_grads = hamil.get_value_and_gradient(time_samples)
         assert ham_grads.shape == (
             grads.shape[0],
             grads.shape[1] * 2 + 5,

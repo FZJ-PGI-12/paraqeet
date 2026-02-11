@@ -1,4 +1,4 @@
-Single spin Part 3: Single qubit gate optimisation using GRAPE
+Single spin Part 3: Single qubit gate optimization using GRAPE
 ==============================================================
 
 1. Generate a PWC pulse shape
@@ -58,11 +58,10 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    from paraqeet.quantity import Quantity
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
     from paraqeet.model.transmon import Transmon
-    
+    from paraqeet.quantity import Quantity
     
     freq = 7.86e9 * 2 * np.pi
     dims = 3
@@ -93,14 +92,15 @@ The Hamiltonain in the rotating frame of the drive is given by -
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
     
+    prop = ScipyExpmGRAPE(model, resolution=1e9)
     
-    prop = ScipyExpmGRAPE(model, res=1e9)
+    init = np.array([[1.0], [0.0], [0.0]])  # |0>
+    target = np.array([[0.0], [1.0], [0.0]])  # |1>
     
-    init = np.array([[1.0], [0.0], [0]])  # |0>
-    target = np.array([[0.0], [1.0], [0]])  # |1>
+    times = np.array([0.0, t_final])
     
     prop.set_initial_state(init)
-    prop.target_state = target
+    prop.set_target_state(target)
     
     prop.use_schirmer_derivative = True
     
@@ -108,7 +108,6 @@ The Hamiltonain in the rotating frame of the drive is given by -
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=tlist,
     )
 
 .. code:: ipython3
@@ -127,43 +126,43 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    zeroone.measure()
+    zeroone.measure(times)
 
 
 
 
 .. parsed-literal::
 
-    0.3097264170189858
+    0.7449176579124753
 
 
 
 3. Opimisation
 --------------
 
-We define an optimiser and link our fidelity measure as a goal function
-and the parameters of the cosine tone and optimise just amplitude and
+We define an optimizer and link our fidelity measure as a goal function
+and the parameters of the cosine tone and optimize just amplitude and
 frequency, as in the state transfer example.
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen, params)
-    opt = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
+    opt = ScipyOptimizerGradient(zeroone, optimization_map=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize(gen.tlist)
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.2687367540186187e-09, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 4.911978601640499e-09, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 

@@ -12,8 +12,8 @@ this software package.
 
     import matplotlib.pyplot as plt
     import numpy as np
-    from paraqeet.quantity import Quantity
     
+    from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
 
@@ -28,12 +28,15 @@ initial guess, sampling at 21 points during a gate time of 20ns.
     tlist = np.linspace(0, t_final, 21)
     tone = GaussEnvelope(amplitude=Quantity(np.pi / t_final / 3, -np.pi / t_final, np.pi / t_final))
     tone.t_final.set_value(t_final)
+    
     gen = PWCGenerator(envelopes=[tone], tlist=tlist)
     gen.multiply_flat_top = True
     gen.max_amplitude = 2 * 1e8
 
 We have added the option ``multiplyFlatTop``, to ensure the pulse to
-start and end smoothly at 0 and ``t_final``.
+start and end smoothly at 0 and ``t_final``. This acts like the
+``FlatTopGaussianFilter``, but enforced directly by the
+``PWCGenerator``.
 
 .. code:: ipython3
 
@@ -58,12 +61,13 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
+    from paraqeet import Array
     from paraqeet.model.closed_system import ClosedSystem
+    from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
     from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-    from paraqeet.model.hamiltonian import Hamiltonian
     
     
-    class SpinRWA(Hamiltonian):
+    class SpinRWA(DifferentiableHamiltonian):
         """A Single Spin."""
     
         def __init__(self, drives=None):
@@ -71,13 +75,29 @@ As a simple toy model, we use a single spin.
             self.sigma_p = np.array([[0j, 1], [0, 0]])
             self.dim = 2
     
-        def get_matrix_one_time(self, t):
+        def get_value_at_timestep(self, timestep: float) -> Array:
             """Just sigma-X."""
-            return self._drives[0].get_matrix_one_time(self.sigma_p, t)
+            return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
     
-        def gradient(self, t):
+        def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
             """Gradient is just the drive matrix."""
-            return self._drives[0].gradient(self.sigma_p, t)
+            return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
+    
+        def get_gradient_at_timestep(self, time):
+            """Computes the gradient"""
+            return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
+    
+        def dimension(self) -> int:
+            """Returns the dimension"""
+            raise self.d
+    
+        def get_collapseops(self) -> list[tuple[Array, Array]]:
+            """Returns an empyt list since we study closed system dynamics"""
+            return []
+    
+        def get_parameters(self):
+            """Returns the parameters, which in this case are only the drive parameters"""
+            return self._get_drive_parameters()
     
     
     drive = RotatingFrameDrive(gen)
@@ -89,20 +109,19 @@ As a simple toy model, we use a single spin.
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
     
+    prop = ScipyExpmGRAPE(model, resolution=2e9)
     
-    prop = ScipyExpmGRAPE(model, res=1e9)
-    
-    init = np.array([[1.0], [0]])  # |0>
-    target = np.array([[0.0], [1]])  # |1>
+    init = np.array([[1.0], [0.0]])  # |0>
+    target = np.array([[0.0], [1.0]])  # |1>
     
     prop.set_initial_state(init)
-    prop.target_state = target
+    prop.set_target_state(target)
+    times = np.array([0.0, t_final])
     
     zeroone = StateTransferFidelityGRAPE(
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=tlist,
     )
 
 .. code:: ipython3
@@ -119,32 +138,37 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    zeroone.measure()
+    zeroone.measure(times)
 
 
 
 
 .. parsed-literal::
 
-    0.10336679494545335
+    0.7318323723330802
 
 
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
-    
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
     
-    opt_grad = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
+    opt_grad = ScipyOptimizerGradient(zeroone, optimization_map=optmap)
+
+Unlike the previous examples, for GRAPE based optimization, we need to
+specify the exact time grid used to discretize the signal for
+optimization. This is required to compute the correct gradients at the
+exact time points. The time grid used for discretization can be found
+from a ``PWCGenerator`` using ``gen.tlist``.
 
 .. code:: ipython3
 
-    opt_grad.optimise()
+    opt_grad.optimize(gen.tlist)
 
 
 
@@ -164,7 +188,7 @@ iterations.
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_16_0.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_17_0.png
 
 
 With open system
@@ -174,17 +198,14 @@ Lets first reset the pulse and create a open-system model
 
 .. code:: ipython3
 
-    import matplotlib.pyplot as plt
     import numpy as np
-    from paraqeet.quantity import Quantity
     
+    from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
 
 .. code:: ipython3
 
-    t_final = 20e-9
-    tlist = np.linspace(0, t_final, 21)
     tone = GaussEnvelope(amplitude=Quantity(np.pi / t_final / 3, -np.pi / t_final, np.pi / t_final))
     tone.t_final.set_value(t_final)
     gen = PWCGenerator(envelopes=[tone], tlist=tlist)
@@ -193,13 +214,13 @@ Lets first reset the pulse and create a open-system model
 
 .. code:: ipython3
 
-    from paraqeet.model.open_system import OpenSystem
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-    from paraqeet.model.hamiltonian import Hamiltonian
     import jax.numpy as jnp
     
+    from paraqeet.model.open_system import OpenSystem
+    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
     
-    class SpinRWA(Hamiltonian):
+    
+    class SpinRWA(DifferentiableHamiltonian):
         """A Single Spin."""
     
         def __init__(self, drives=None):
@@ -208,21 +229,29 @@ Lets first reset the pulse and create a open-system model
             self.sigma_m = np.array([[0j, 0], [1, 0]])
             self.sigma_z = np.array([[1, 0j], [0, -1]])
             self.dim = 2
-            self.t1 = Quantity(50e-9, 1e-9, 100e-9)
+            self.t1 = Quantity(10e-6, 1e-6, 100e-6)
             self.temp = Quantity(10e-3, 1e-3, 50e-3)
-            self.t2star = Quantity(100e-9, 1e-9, 100e-9)
+            self.t2star = Quantity(20e-6, 1e-6, 100e-6)
     
-        def dimension(self):
-            """Return TLS dimension."""
-            return self.dim
-    
-        def get_matrix_one_time(self, t):
+        def get_value_at_timestep(self, timestep: float) -> Array:
             """Just sigma-X."""
-            return self._drives[0].get_matrix_one_time(self.sigma_p, t)
+            return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
     
-        def gradient(self, t):
+        def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
             """Gradient is just the drive matrix."""
-            return self._drives[0].gradient(self.sigma_p, t)
+            return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
+    
+        def get_gradient_at_timestep(self, time):
+            """Computes the gradient"""
+            return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
+    
+        def dimension(self) -> int:
+            """Returns the dimension"""
+            raise self.d
+    
+        def get_parameters(self):
+            """Returns the parameters, which in this case are only the drive parameters"""
+            return self._get_drive_parameters()
     
         def get_decay_rates(self) -> list[float]:
             """Return decay rate for T1, T2star and Temp respectively."""
@@ -260,7 +289,7 @@ Lets test GRAPE with ODE-propgation
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.propagation.vern7_grape import Vern7GRAPE
     
-    prop = Vern7GRAPE(model, res=1e9)
+    prop = Vern7GRAPE(model, resolution=10e9)
     
     init = np.array([[1.0], [0.0j]])  # |0>
     target = np.array([[0.0j], [1.0]])  # |1>
@@ -269,13 +298,12 @@ Lets test GRAPE with ODE-propgation
     target = jnp.matmul(target, target.T.conj())
     
     prop.set_initial_state(init)
-    prop.target_state = target
+    prop.set_target_state(target)
     
     zeroone = StateTransferFidelityGRAPE(
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=tlist,
     )
 
 .. code:: ipython3
@@ -285,47 +313,46 @@ Lets test GRAPE with ODE-propgation
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_24_0.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_25_0.png
 
 
 .. code:: ipython3
 
-    zeroone.measure()
+    zeroone.measure(times)
 
 
 
 
 .. parsed-literal::
 
-    0.006921055509936116
+    0.01065874418116775
 
 
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
-    
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(gen)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
 .. code:: ipython3
 
-    opt_grad = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
+    opt_grad = ScipyOptimizerGradient(zeroone, optimization_map=optmap)
     opt_grad.set_options({"disp": True})
 
 .. code:: ipython3
 
-    opt_grad.optimise()
+    opt_grad.optimize(tlist)
 
 
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.3986234856331238, 'iterations': 71, 'message': 'ABNORMAL: '}
+    {'status': 1, 'value': 0.003370122392267527, 'iterations': 38, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -335,18 +362,18 @@ Lets test GRAPE with ODE-propgation
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_29_0.png
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_30_0.png
 
 
 .. code:: ipython3
 
-    zeroone.measure()
+    zeroone.measure(times)
 
 
 
 
 .. parsed-literal::
 
-    0.6037315068515552
+    0.9966263172520764
 
 

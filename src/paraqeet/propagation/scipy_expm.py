@@ -2,23 +2,21 @@
 
 from functools import partial
 
+import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity
-
-import jax
+from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpm(StatePropagation):
+class ScipyExpm(Propagation):
     """Piecewise matrix exponential propagation system.
 
     Solve the equation of motion by piecewise exponentation with the
@@ -33,81 +31,27 @@ class ScipyExpm(StatePropagation):
 
     """
 
-    _res: float
+    _resolution: float
     _initial_state: Array | None = None
 
-    def __init__(self, model: EquationOfMotion, res: float):
-        super().__init__(model)
-        self.resolution = res
-
-    @property
-    def resolution(self) -> float:
-        """Get the resolution of the system."""
-        return self._res
-
-    @resolution.setter
-    def resolution(self, res: float):
-        """Set the resolution of the propagation."""
-        self._res = res
-
-    def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimisable parameters of the system.
-
-        Note: Method has no optimisable parameters.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns an empty list.
-
-        """
-        return []
-
-    def _construct_times(self, time, ti):
-        """Construct one-dimensional vector of time.
-
-        In specified resolution at a snapshot.
-
-        Parameters
-        ----------
-        time: Array
-            Array of timesteps.
-        ti: int
-            Snapshot of the time at a current step
-
-        Returns
-        -------
-        Array
-            Array of timestamps in specified resolution.
-        int
-            Difference in time step.
-
-        """
-        t0 = time[ti - 1]
-        t1 = time[ti]
-        steps = int(jnp.ceil((t1 - t0) * self._res))
-        times = jnp.linspace(t0, t1, steps, endpoint=False)
-        if steps < 2:
-            dt = t1 - t0
-        else:
-            dt = times[1] - times[0]
-        return times, dt
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
+        self.resolution = resolution
 
     def set_initial_state(self, state):
         """Set initial state."""
         # Verify if `model.ode_propagation` is set to `False`.
         # ode_propgation returns hamiltonian and collapse operators separately.
-        eom = self._model.get_matrix(jnp.array([0.0]))
+        eom = self._model.get_value(jnp.array([0.0]))
+        dim_generator = eom.shape[1]
 
         if len(eom) == 2:
             raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
 
-        dim_generator = eom.shape[1]
-
-        state = self.__check_and_fix_state_shape(state, dim_generator)
+        state = self._check_and_fix_state_shape(state, dim_generator)
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
-    def __check_and_fix_state_shape(self, state, dim_generator):
+    def _check_and_fix_state_shape(self, state, dim_generator):
         # For closed system check if the initial state has the right dimensions.
         if not self.is_open:
             if len(state.shape) == 1:  # (n,) array
@@ -132,7 +76,7 @@ class ScipyExpm(StatePropagation):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
                     if state.shape[-1] == state.shape[-2]:
                         # This is a density matrix. Convert to vectorized form.
-                        state = self._convert_dm_to_vec(state, int(jnp.sqrt(dim_generator)))
+                        state = ScipyExpm._convert_dm_to_vec(state, int(jnp.sqrt(dim_generator)))
 
                     # check if it is a list of vectorized density matrices
                     elif state.shape[-1] == dim_generator:
@@ -218,7 +162,7 @@ class ScipyExpm(StatePropagation):
         """
 
         def propagate_body(psis_t, index):
-            psis_t = self._propagate_psi(eom[index], psis_t)
+            psis_t = ScipyExpm._propagate_psi(eom[index], psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
@@ -266,13 +210,16 @@ class ScipyExpm(StatePropagation):
             If the initial state is not set.
 
         """
+        if len(time) < 2:
+            raise ValueError("ScipyExpm.propagate needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
 
         if self._model is not None:
-            eom_func = self._model.get_matrix
+            eom_func = self._model.get_value
         else:
             raise ConfigurationException("No equation of motion is configured.")
         psis = [init_state]
@@ -288,5 +235,7 @@ class ScipyExpm(StatePropagation):
         # if open system convert back the vectorized density matrices to matrix shape
         if self.is_open:
             dim = int(jnp.sqrt(eom.shape[-1]))
-            psis_arr = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
+            psis_arr = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
         return psis_arr
+
+    # TODO: implement get_collapseops method

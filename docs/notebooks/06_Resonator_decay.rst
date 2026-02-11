@@ -8,17 +8,16 @@ example.
 
 .. code:: ipython3
 
-    import matplotlib.pyplot as plt
-    
-    import numpy as np
     import jax.numpy as jnp
+    import matplotlib.pyplot as plt
+    import numpy as np
     
+    from paraqeet.model.drive_operator import DriveOperator
+    from paraqeet.model.open_system import OpenSystem
+    from paraqeet.model.resonator import Resonator
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ZeroEnvelope
-    from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.signal.iq_mixer import IQMixer
-    from paraqeet.model.resonator import Resonator
-    from paraqeet.model.open_system import OpenSystem
 
 1. Using ``ScipyExmp``
 ----------------------
@@ -89,7 +88,7 @@ Exponentiating the full Lindbladian super-operator
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = ScipyExpm(model, res=100e9)
+    prop = ScipyExpm(model, resolution=100e9)
     prop.set_initial_state(init_dm)
 
 .. code:: ipython3
@@ -234,7 +233,7 @@ plot coherent state populations
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = ScipyExpm(model, res=100e9)
+    prop = ScipyExpm(model, resolution=100e9)
     prop.set_initial_state(coherent_state)
     
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
@@ -266,7 +265,7 @@ Set ``model.ode_propagation = True``
     ts = np.linspace(0, t_final, 101)
     init_dm = generate_basis_state(dims, 4, dm=True)
     
-    prop = Vern7(model, res=100e9)
+    prop = Vern7(model, resolution=100e9)
     prop.set_initial_state(init_dm)
     
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
@@ -308,7 +307,7 @@ Set ``model.ode_propagation = True``
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = Vern7(model, res=100e9)
+    prop = Vern7(model, resolution=100e9)
     prop.set_initial_state(coherent_state)
     
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);

@@ -39,7 +39,7 @@ def test_create_dense_matrix(open_system):
         system = open_system(dim)
         system.sparse_superop = True
         assert system.sparse_superop is True
-        matrix = system.get_matrix(random_time_vector)
+        matrix = system.get_value(random_time_vector)
         assert matrix.shape == (len(random_time_vector), dim**2, dim**2)
 
 
@@ -50,7 +50,7 @@ def test_create_sparse_matrix(open_system):
         system = open_system(dim)
         system.sparse_superop = False
         assert system.sparse_superop is False
-        matrix = system.get_matrix(random_time_vector)
+        matrix = system.get_value(random_time_vector)
         assert matrix.shape == (len(random_time_vector), dim**2, dim**2)
 
 

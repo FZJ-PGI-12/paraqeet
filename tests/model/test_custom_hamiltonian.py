@@ -1,18 +1,19 @@
-import pytest
-import numpy.random as random
 import jax.numpy as jnp
-from paraqeet.quantity import Quantity, Array
-from paraqeet.model.custom_hamiltonian import CustomHamiltonian
-from paraqeet.model.closed_system import ClosedSystem
+import numpy.random as random
+import pytest
+
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.custom_hamiltonian import CustomHamiltonian
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.quantity import Array, Quantity
 
 sigma_x = jnp.array([[0j, 1], [1, 0]])
 sigma_z = jnp.diag(jnp.array([1.0, -1.0]))
 FREQ = 4.8e9 * 2 * jnp.pi
-t_final = 10e-9
+T_FINAL = 10e-9
 
 
 amplitude = Quantity(
@@ -83,30 +84,25 @@ def tls(tls_hamiltonian, gradient_functions):
 def fid(tls):
     """Get the fidelity function"""
     model = ClosedSystem(tls)
-    prop = ScipyExpmGOAT(model, res=100e9)
+    prop = ScipyExpmGOAT(model, resolution=100e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
-    zeroone = StateTransferFidelity(
-        propagation=prop,
-        initial_state=init,
-        target_state=target,
-        times=jnp.array([0.0, t_final]),
-    )
+    zeroone = StateTransferFidelity(propagation=prop, initial_state=init, target_state=target)
     return zeroone
 
 
 @pytest.fixture
 def opt(tls, fid):
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tls)
-    opt = ScipyOptimiserGradient(fid, optimisation_map=optmap)
+    opt = ScipyOptimizerGradient(fid, optimization_map=optmap)
     return opt
 
 
-def test_optimisation(opt):
-    """Test gradient based optimisation."""
-    res = opt.optimise()
+def test_optimization(opt):
+    """Test gradient based optimization."""
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-4
 
 
@@ -121,5 +117,5 @@ def test_shapes(random_matrix):
         assert hamil.dimension() == dim
 
         times = jnp.linspace(0, random.randint(1, 100) * random.random(), random.randint(2, 20))
-        assert hamil.get_matrix_one_time(times[-1]).shape == (dim, dim)
-        assert hamil.get_matrix(times).shape == (len(times), dim, dim)
+        assert hamil.get_value_at_timestep(times[-1]).shape == (dim, dim)
+        assert hamil.get_value(times).shape == (len(times), dim, dim)

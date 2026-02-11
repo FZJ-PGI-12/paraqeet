@@ -1,13 +1,13 @@
 """Class definition of a random measurement model for testing."""
 
 import numpy as np
-from paraqeet.quantity import Array
-from paraqeet.quantity import Quantity
-from paraqeet.measurement.measurement import Measurement
+
+from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array
 
 
-class RandomMeasurement(Measurement):
+class RandomMeasurement(NormalizableMeasurement):
     """Mock class that returns a random measurement value between 0 and 1.
 
     Parameters
@@ -19,24 +19,16 @@ class RandomMeasurement(Measurement):
         One-dimensional vector of timestamps.
     """
 
-    __propagation: Propagation
+    _propagation: Propagation
 
-    def __init__(self, propagation: Propagation, times: Array):
-        super().__init__(times=times)
-        self.__propagation = propagation
+    def __init__(self, propagation: Propagation):
+        self._propagation = propagation
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get parameters of the system.
+    # TODO: Check the implementation method measure
+    def measure(self, times: Array) -> Array | float:
+        return self.calculate_normalized_scalar(times=times)
 
-        Returns
-        -------
-        list[Quantity]
-            The list of parameters of the system.
-
-        """
-        return []
-
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Return the result of measurement.
 
         Returns

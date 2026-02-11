@@ -1,15 +1,13 @@
-"""Class definition of the optimisable model."""
+"""Class definition of the optimizable model."""
 
 from abc import abstractmethod
 
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.optimisable import Optimisable
-from paraqeet.quantity import Quantity
 
-
-class EquationOfMotion(Optimisable):
+class EquationOfMotion(Optimizable):
     """Represents the equation of motion for a given Hamiltonian.
 
     Implementations can for example be the Schrödinger equation for a
@@ -23,27 +21,13 @@ class EquationOfMotion(Optimisable):
 
     """
 
-    _hamiltonian: Hamiltonian
+    _hamiltonian: DifferentiableHamiltonian
+    # TODO: this is the first "public" variable used without the property-decorator.
+    # Should we add a property for it?
+    ode_propagation: bool = False
 
-    def __init__(self, hamiltonian: Hamiltonian):
+    def __init__(self, hamiltonian: DifferentiableHamiltonian):
         self._hamiltonian = hamiltonian
-
-    @abstractmethod
-    def get_parameters(self) -> list[Quantity]:
-        """Abstract method to get parameters of the model.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns the list of parameters as Quantities.
-
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
-        """
-        raise NotImplementedError()
 
     def get_right_hand_side(self, time: Array, state: Array) -> Array:
         """Return the right-hand side of the equations of motion.
@@ -63,15 +47,15 @@ class EquationOfMotion(Optimisable):
             The right-hand side of the equation of motion at each time stamp.
 
         """
-        return self.get_matrix(time) @ state
+        return self.get_value(time) @ state
 
     @abstractmethod
-    def get_matrix(self, time: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Abstract method to get the prefactor matrix.
 
         Parameters
         ----------
-        time: Array
+        times: Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -85,15 +69,18 @@ class EquationOfMotion(Optimisable):
             Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass
 
+    # TODO: Since this method delegates the call to the Hamiltonian-instance, should
+    # we rename it to get_habiltonian_value_and_gradient or similar? Otherwise it suggests
+    # that it returns the gradient of the equation of motion itself.
     @abstractmethod
-    def gradient(self, t: Array) -> Array:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             Any one-dimensional vector of timestamps.
 
         Raises
@@ -102,4 +89,4 @@ class EquationOfMotion(Optimisable):
             Subclasses derived from this class must implement this method.
 
         """
-        raise NotImplementedError()
+        pass

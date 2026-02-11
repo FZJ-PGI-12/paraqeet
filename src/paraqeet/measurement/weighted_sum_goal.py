@@ -1,16 +1,17 @@
 """Class definition of the Weighted Sum Goal model."""
 
-import jax.numpy as jnp
-import numpy as np
-from paraqeet.quantity import Array
-
-from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.measurement import Measurement
-from paraqeet.quantity import Quantity
 import itertools
 
+import jax.numpy as jnp
+import numpy as np
 
-class WeightedSumGoal(Measurement):
+from paraqeet.differentiable import Differentiable
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.quantity import Array
+
+
+class WeightedSumGoal(NormalizableMeasurement, Differentiable):
     """Combine multiple measurements into a single goal function.
 
     Parameters
@@ -43,19 +44,20 @@ class WeightedSumGoal(Measurement):
 
     """
 
-    __measurements: list[Measurement]
-    __weights: Array
-    __sum_of_squares_options: dict | None
-    __measurements_in_sum_of_squares: list[Measurement]
+    _measurements: list[NormalizableMeasurement]
+    _weights: Array
+    _sum_of_squares_options: dict | None
+    _measurements_in_sum_of_squares: list[NormalizableMeasurement]
 
-    def __init__(self, measurements: list[Measurement], weights: Array, sum_of_squares_options: dict | None = None):
-        super().__init__(jnp.array(0.0))
-        self.__measurements = measurements
-        self.__weights = weights
-        self.__sum_of_squares_options = sum_of_squares_options
+    def __init__(
+        self, measurements: list[NormalizableMeasurement], weights: Array, sum_of_squares_options: dict | None = None
+    ):
+        self._measurements = measurements
+        self._weights = weights
+        self._sum_of_squares_options = sum_of_squares_options
         if len(measurements) != len(weights):
             raise ConfigurationException(
-                f"Incompatible number of measurements {len(measurements)}" " and weights {len(weights)}"
+                f"Incompatible number of measurements {len(measurements)} and weights {{len(weights)}}"
             )
         if sum_of_squares_options is not None:
             expected_keys = ["weight", "meas_bool"]
@@ -68,39 +70,35 @@ class WeightedSumGoal(Measurement):
             if not np.isclose(sum(weights) + sum_of_squares_options["weight"], 1.0):
                 raise UserWarning("Total supplied weights are not normalized.")
 
-            self.__measurements_in_sum_of_squares = [
+            self._measurements_in_sum_of_squares = [
                 meas for meas, flag in zip(measurements, sum_of_squares_options["meas_bool"]) if flag
             ]
         else:
             if not np.isclose(sum(weights), 1.0):
                 raise UserWarning("Supplied weights are not normalized.")
-            self.__measurements_in_sum_of_squares = []
+            self._measurements_in_sum_of_squares = []
 
     @property
-    def measurements(self) -> list[Measurement]:
+    def measurements(self) -> list[NormalizableMeasurement]:
         """Returns the list of measurement"""
-        return self.__measurements
+        return self._measurements
 
     @property
     def weights(self) -> Array:
         """Returns the weights used in the weighted goal function"""
-        return self.__weights
+        return self._weights
 
     @property
     def sum_of_square_options(self) -> dict | None:
         """Returns the dictionary with the options about the sum of square differences goal function"""
-        return self.__sum_of_squares_options
+        return self._sum_of_squares_options
 
     @property
-    def measurements_in_sum_of_squares(self) -> list[Measurement]:
+    def measurements_in_sum_of_squares(self) -> list[NormalizableMeasurement]:
         """Returns the list of measurement included in the sum of square difference cost function"""
-        return self.__measurements_in_sum_of_squares
+        return self._measurements_in_sum_of_squares
 
-    def get_parameters(self) -> list[Quantity]:
-        """Returns an empty list."""
-        return []
-
-    def measure(self) -> Array | float:
+    def measure(self, times: Array) -> Array | float:
         """Sum of plain weighted measurements.
 
         Returns
@@ -109,21 +107,21 @@ class WeightedSumGoal(Measurement):
             Returns the plain weighted sum.
 
         """
-        values = [m.measure() for m in self.__measurements]
+        values = [m.measure(times=times) for m in self._measurements]
         sum_meas: Array | float = 0.0
-        for ii, w in enumerate(self.__weights):
+        for ii, w in enumerate(self._weights):
             sum_meas += w * values[ii]
-        if self.__sum_of_squares_options is not None:
+        if self._sum_of_squares_options is not None:
             sum_square_diff: Array | float = 0.0
             values_in_sum_of_squares = [
-                val for val, flag in zip(values, self.__sum_of_squares_options["meas_bool"]) if flag
+                val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
             ]
             for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
                 sum_square_diff += (meas_a - meas_b) ** 2
-            sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
+            sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
         return sum_meas
 
-    def measure_normalised_scalar(self) -> float:
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Sum of weighted measurements from normalized measurements.
 
         Returns
@@ -132,21 +130,21 @@ class WeightedSumGoal(Measurement):
             Returns the normalized weighted sum.
 
         """
-        values = [m.measure_normalised_scalar() for m in self.__measurements]
+        values = [m.calculate_normalized_scalar(times=times) for m in self._measurements]
         sum_meas = 0.0
-        for ii, w in enumerate(self.__weights):
+        for ii, w in enumerate(self._weights):
             sum_meas += w * values[ii]
-        if self.__sum_of_squares_options is not None:
+        if self._sum_of_squares_options is not None:
             values_in_sum_of_squares = [
-                val for val, flag in zip(values, self.__sum_of_squares_options["meas_bool"]) if flag
+                val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
             ]
             sum_square_diff = 0.0
             for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
                 sum_square_diff += (meas_a - meas_b) ** 2
-            sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
+            sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
         return float(sum_meas)
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Sum of weighted measurements from gradient-ized measurements.
 
         Returns
@@ -157,16 +155,26 @@ class WeightedSumGoal(Measurement):
             Returns the sum of gradients.
 
         """
-        values_and_gradients = [m.measure_with_gradient() for m in self.__measurements]
+        # TODO: Move this to __init__, and store a differentiable_measurements: bool and check here.
+        for mes in self._measurements:
+            if not isinstance(mes, Differentiable):
+                raise ConfigurationException(
+                    "All measurements must be Differentiable to compute the gradient of the WeightedSumGoal"
+                )
+
+        # TODO: Remove the check by moving the check to init
+        values_and_gradients = [
+            m.get_value_and_gradient(times=times) for m in self._measurements if isinstance(m, Differentiable)
+        ]
         sum_meas = jnp.array(0)
         sum_grads = jnp.zeros_like(values_and_gradients[0][1])
-        for ii, w in enumerate(self.__weights):
+        for ii, w in enumerate(self._weights):
             sum_meas += w * values_and_gradients[ii][0]
             sum_grads += w * values_and_gradients[ii][1]
-        if self.__sum_of_squares_options is not None:
+        if self._sum_of_squares_options is not None:
             values_and_gradients_in_sum_of_squares = [
                 val_grad
-                for val_grad, flag in zip(values_and_gradients, self.__sum_of_squares_options["meas_bool"])
+                for val_grad, flag in zip(values_and_gradients, self._sum_of_squares_options["meas_bool"])
                 if flag
             ]
             sum_square_diff = jnp.array(0)
@@ -175,6 +183,6 @@ class WeightedSumGoal(Measurement):
             for meas_a, meas_b in itertools.combinations(values_and_gradients_in_sum_of_squares, 2):
                 sum_square_diff += (meas_a[0] - meas_b[0]) ** 2
                 grads_diff += 2 * (meas_a[0] - meas_b[0]) * (meas_a[1] - meas_b[1])
-            sum_meas += self.__sum_of_squares_options["weight"] * sum_square_diff
-            sum_grads += self.__sum_of_squares_options["weight"] * grads_diff
+            sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
+            sum_grads += self._sum_of_squares_options["weight"] * grads_diff
         return float(sum_meas), sum_grads

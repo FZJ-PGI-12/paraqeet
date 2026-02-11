@@ -1,9 +1,9 @@
 """Class definition of the empty Hamiltonian for testing."""
 
 import numpy as np
-from paraqeet.quantity import Array
+
 from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 
 
 class EmptyHamiltonian(Hamiltonian):
@@ -15,14 +15,14 @@ class EmptyHamiltonian(Hamiltonian):
         The dimension for the representation of the Hamiltonian.
     """
 
-    __dimension: int
+    _dimension: int
 
     def __init__(self, dimension: int):
         super().__init__([])
 
-        self.__dimension = dimension
+        self._dimension = dimension
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters
@@ -36,8 +36,24 @@ class EmptyHamiltonian(Hamiltonian):
             The matrix representation of the Hamiltonian.
 
         """
-        return np.zeros((len(t), self.__dimension, self.__dimension))
+        return np.zeros((len(times), self._dimension, self._dimension))
 
     def get_parameters(self) -> list[Quantity]:
         """ """
         return []
+
+    # TODO: implement abstract methods from Hamiltonian
+    def dimension(self) -> int:
+        raise NotImplementedError("Method not implemented yet.")
+
+    # TODO: implement abstract methods from Hamiltonian
+    def get_value_at_timestep(self, timestep: Array) -> Array:
+        raise NotImplementedError("Method not implemented yet.")
+
+    # TODO: implement abstract methods from Hamiltonian
+    def get_gradient_at_timestep(self, t: Array) -> Array:
+        raise NotImplementedError("Method not implemented yet.")
+
+    # TODO: implement abstract methods from Hamiltonian
+    def get_collapseops(self) -> list[tuple[Array, Array]]:
+        raise NotImplementedError("Method not implemented yet.")

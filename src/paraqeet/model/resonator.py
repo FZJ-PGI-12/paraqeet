@@ -1,23 +1,21 @@
 """Class definition of the Resonator Hamiltonian model."""
 
+import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.quantity import Array
-
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity
-
-import jax
+from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
-
-class Resonator(Hamiltonian):
+# TODO: Why is a resonator a Hamiltonian? Isn't a resonator a quantum system which has a Hamiltonian
+#  as a property? What does “derivative of a resonator” mean physically?
+class Resonator(DifferentiableHamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
-    The only optimisable parameter is the frequency.
+    The only optimizable parameter is the frequency.
 
     Parameters
     ----------
@@ -30,14 +28,15 @@ class Resonator(Hamiltonian):
 
     """
 
-    __dimension: int
-    __frequency: Quantity
-    __annihilation_op: Array
-    __num_op: Array
-    __t1: Quantity | None
-    __temp: Quantity | None
-    __t2star: Quantity | None
+    _dimension: int
+    _frequency: Quantity
+    _annihilation_op: Array
+    _num_op: Array
+    _t1: Quantity | None
+    _temp: Quantity | None
+    _t2star: Quantity | None
 
+    # TODO: we should think about the composition here instead of inheritance from DifferentiableHamiltonian.
     def __init__(
         self,
         dimension: int,
@@ -48,57 +47,57 @@ class Resonator(Hamiltonian):
         t2star: Quantity | None = None,
     ):
         super().__init__(drives=drives)
-        self.__dimension = dimension
-        self.__frequency = frequency
-        self.__annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
-        self.__num_op = self.__annihilation_op.T @ self.__annihilation_op
+        self._dimension = dimension
+        self._frequency = frequency
+        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
+        self._num_op = self._annihilation_op.T @ self._annihilation_op
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
 
     def dimension(self):
         """Get the dimension of the resonator."""
-        return self.__dimension
+        return self._dimension
 
     @property
     def frequency(self) -> Quantity:
         """Get the frequency of the resonator."""
-        return self.__frequency
+        return self._frequency
 
     @frequency.setter
     def frequency(self, frequency: Quantity) -> None:
         """Set the frequency of the resonator."""
-        self.__frequency = frequency
+        self._frequency = frequency
 
     @property
     def t1(self) -> Quantity | None:
         """Get the t1 of the resonator."""
-        return self.__t1
+        return self._t1
 
     @t1.setter
     def t1(self, t1: Quantity | None) -> None:
         """Set the t1 of the resonator."""
-        self.__t1 = t1
+        self._t1 = t1
 
     @property
     def temp(self) -> Quantity | None:
         """Get the temp of the resonator."""
-        return self.__temp
+        return self._temp
 
     @temp.setter
     def temp(self, temp: Quantity | None) -> None:
         """Set the temp of the resonator."""
-        self.__temp = temp
+        self._temp = temp
 
     @property
     def t2star(self) -> Quantity | None:
         """Get the t2star of the resonator."""
-        return self.__t2star
+        return self._t2star
 
     @t2star.setter
     def t2star(self, t2star: Quantity | None) -> None:
         """Set the t2star of the resonator."""
-        self.__t2star = t2star
+        self._t2star = t2star
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
@@ -109,14 +108,14 @@ class Resonator(Hamiltonian):
             Returns the list of parameters of the system.
 
         """
-        return self._get_drive_parameters() + [self.__frequency]
+        return self._get_drive_parameters() + [self._frequency]
 
-    def get_matrix_one_time(self, t: Array) -> Array:
+    def get_value_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
         ----------
-        t : float
+        timestep : float
             One time stamp.
 
         Returns
@@ -125,15 +124,15 @@ class Resonator(Hamiltonian):
             The drive matrix at a single timestamp.
 
         """
-        H = self.__frequency.get_value() * self.__num_op
-        return H + self._get_drive_matrix_one_time(self.__annihilation_op, t)
+        H = self._frequency.get_value() * self._num_op
+        return H + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
 
-    def gradient_one_time(self, t: Array) -> Array:
+    def get_gradient_at_timestep(self, time: float) -> Array:
         """Get the gradient of the drive.
 
         Parameters
         ----------
-        t : float
+        times : float
             One time stamp.
 
         Returns
@@ -143,13 +142,12 @@ class Resonator(Hamiltonian):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_one_time(self.__annihilation_op, t)
+        derivatives = self._get_drive_gradients_at_timestep(self._annihilation_op, time)
 
         # Combine with the derivative wrt the frequency
-        if self._is_optimised(self.__frequency):
-            grad = self.__num_op.reshape((1,) + self.__num_op.shape)
+        if self._is_optimized(self._frequency):
+            grad = self._num_op.reshape((1,) + self._num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
-
         return derivatives
 
     def get_decay_rates(self) -> list[Array]:
@@ -177,7 +175,7 @@ class Resonator(Hamiltonian):
             List of collapse operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-        col_t1 = self.__annihilation_op
-        col_temp = self.__annihilation_op.T
-        col_t2star = 2 * self.__num_op
+        col_t1 = self._annihilation_op
+        col_temp = self._annihilation_op.T
+        col_t2star = 2 * self._num_op
         return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]

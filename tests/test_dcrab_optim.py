@@ -1,21 +1,20 @@
 """Test dCRAB optimization using GOAT over GRAPE. This is same as the example 02E_GOAToverGRAPE_dCRAB"""
 
+import numpy as np
 import pytest
 
-import numpy as np
-from paraqeet.quantity import Quantity
-from tests.model.tls import TLS
-
-from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.signal.envelopes import DCRABEnvelope
-from paraqeet.signal.waveform import FlatTopGaussianFilter
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.dcrab_optimiser_gradient import DCRABOptimiserGradient
-from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.quantity import Quantity
+from paraqeet.signal.envelopes import DCRABEnvelope
+from paraqeet.signal.pwc_generator import PWCGenerator
+from paraqeet.signal.waveform import FlatTopGaussianFilter
+from tests.model.spin_rwa import SpinRWA
 
 T_FINAL = 20e-9
 TLIST = np.linspace(0, T_FINAL, 40)
@@ -47,41 +46,47 @@ def gen(tone):
 @pytest.fixture
 def model(gen):
     drive = RotatingFrameDrive(gen)
-    spin = TLS(drives=[drive])
+    spin = SpinRWA(drives=[drive])
     model = ClosedSystem(spin)
     return model
 
 
 @pytest.fixture
-def fid(model):
-    prop = ScipyExpmGRAPE(model, res=1e9)
+def prop(model):
+    prop = ScipyExpmGRAPE(model, resolution=1e9)
 
     init = np.array([[1.0], [0]])  # |0>
     target = np.array([[0.0], [1]])  # |1>
 
     prop.set_initial_state(init)
-    prop.target_state = target
+    prop.set_target_state(target)
+    return prop
+
+
+@pytest.fixture
+def fid(prop):
+    init = np.array([[1.0], [0]])  # |0>
+    target = np.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=TLIST,
     )
     return zeroone
 
 
 @pytest.fixture
-def opt_grad(tone, fid, gen):
-    optmap = OptimisationMap()
+def opt_grad(tone, fid, gen, prop):
+    optmap = OptimizationMap()
     params = tone.get_parameters()
     optmap.add(tone, [params[0]] + params[2:])
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, generators=[gen], generators_order=[0])
-    opt_grad = DCRABOptimiserGradient(
+    goat = GOATOverGRAPE(fid, prop, generators=[gen])
+    opt_grad = DCRABOptimizerGradient(
         goat,
-        optimisation_map=optmap,
+        optimization_map=optmap,
         super_iteration_every=150,
         max_super_iteration_num=5,
         print_every_iteration_num=10,
@@ -92,5 +97,5 @@ def opt_grad(tone, fid, gen):
 
 
 def test_goat_over_grape(opt_grad):
-    res = opt_grad.optimise()
+    res = opt_grad.optimize(TLIST)
     assert res.value < 1e-4

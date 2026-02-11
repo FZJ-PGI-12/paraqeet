@@ -1,12 +1,13 @@
 """Class definition of the Logger model."""
 
+from abc import ABC
 from datetime import datetime
 
 from paraqeet.quantity import Quantity
 
 
-class Logger:
-    """Abstract base class that can be used as a callback in the optimiser."""
+class Logger(ABC):
+    """Abstract base class that can be used as a callback in the optimizer."""
 
     _start_time: datetime
     _stop_time: datetime

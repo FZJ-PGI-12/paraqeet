@@ -5,23 +5,24 @@ from functools import partial
 
 import jax.numpy as jnp
 import numpy as np
+import numpy.testing as testing
+import pytest
 from jax import jit
 from jax.scipy.special import erf
-import pytest
-import numpy.testing as testing
 
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.measurement.state_transfer_fidelity import (
+    StateTransferFidelityGRAPE,
+)
+from paraqeet.model.closed_system import ClosedSystem
+from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
-
+from tests.model.spin_rwa import SpinRWA
 
 T_FINAL = 20e-9
 TLIST = jnp.linspace(0, T_FINAL, 26)
@@ -38,16 +39,16 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_time: Quantity,
     ):
         self._amplitude = amplitude
-        self.__t_up = t_up
-        self.__t_down = t_down
-        self.__ramp_time = ramp_time
+        self._t_up = t_up
+        self._t_down = t_down
+        self._ramp_time = ramp_time
 
         self._gradient_function: Callable | None = None
         self._grad_arg_nums: tuple[int, ...] = ()
 
     def get_parameters(self):
         """Get all parameters of the system."""
-        return [self._amplitude, self.__t_up, self.__t_down, self.__ramp_time]
+        return [self._amplitude, self._t_up, self._t_down, self._ramp_time]
 
     @partial(jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, t: Array):
@@ -55,30 +56,14 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_down = 1 + erf((-t + t_down) / ramp_time)
         return jnp.squeeze(amp * ramp_up * ramp_down / 4)
 
-    def compute_output(self, t: Array) -> Array:
+    def get_value(self, t: Array | float) -> Array:
         """Compute pulse shape."""
         amp = self._amplitude.get_value()
-        t_up = self.__t_up.get_value()
-        t_down = self.__t_down.get_value()
-        ramp_time = self.__ramp_time.get_value()
-        return self._evaluate(amp, t_up, t_down, ramp_time, t)
-
-
-class SpinRWA(Hamiltonian):
-    """A Single Spin."""
-
-    def __init__(self, drives=None):
-        super().__init__(drives)
-        self.sigma_p = jnp.array([[0j, 1], [0, 0]])
-        self.dim = 2
-
-    def get_matrix_one_time(self, t):
-        """Just sigma-X."""
-        return self._drives[0].get_matrix_one_time(self.sigma_p, t)
-
-    def gradient(self, t):
-        """Gradient is just the drive matrix."""
-        return self._drives[0].gradient(self.sigma_p, t)
+        t_up = self._t_up.get_value()
+        t_down = self._t_down.get_value()
+        ramp_time = self._ramp_time.get_value()
+        # returns JitWrapped
+        return self._evaluate(amp, t_up, t_down, ramp_time, t)  # type: ignore
 
 
 @pytest.fixture
@@ -112,45 +97,52 @@ def model(gen):
 
 
 @pytest.fixture
-def fid(model):
-    prop = ScipyExpmGRAPE(model, res=1e9)
+def prop(model):
+    prop = ScipyExpmGRAPE(model, resolution=1e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
 
     prop.set_initial_state(init)
-    prop.target_state = target
+    prop.set_target_state(target)
+    return prop
+
+
+@pytest.fixture
+def fid(prop):
+    init = jnp.array([[1.0], [0]])  # |0>
+    target = jnp.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=TLIST,
     )
     return zeroone
 
 
 @pytest.fixture
-def opt_grad(tone, fid, gen):
-    optmap = OptimisationMap()
+def opt_grad(tone, fid, gen, prop):
+    optmap = OptimizationMap()
     optmap.add(tone)
-    optmap.register_params_with_optimisables()
+    optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, generators=gen, generators_order=[0])
-    optGrad = ScipyOptimiserGradient(goat, optimisation_map=optmap)
-    return optGrad
+    goat = GOATOverGRAPE(fid, prop, generators=gen)
+    opt_grad = ScipyOptimizerGradient(goat, optimization_map=optmap)
+    return opt_grad
 
 
-def test_can_measure(tone, fid, gen):
-    fid = GOATOverGRAPE(fid, generators=[gen], generators_order=[0])
-    assert 0 <= fid.measure()
-    assert 0 <= fid.measure_normalised_scalar() <= 1
+def test_can_measure(fid, gen, prop):
+    fid = GOATOverGRAPE(fid, prop, generators=[gen])
+    val, grad = fid.get_value_and_gradient(times=TLIST)
+    assert 0 <= fid.measure(times=TLIST)
+    assert 0 <= val <= 1
 
-    value, grad = fid.measure_with_gradient()
+    value = fid.calculate_normalized_scalar(times=TLIST)
     assert 0 <= value
     testing.assert_array_less(np.zeros_like(grad), grad)
 
 
 def test_goat_over_grape(opt_grad):
-    res = opt_grad.optimise()
+    res = opt_grad.optimize(times=TLIST)
     assert res.value < 1e-4

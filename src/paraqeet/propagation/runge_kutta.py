@@ -5,11 +5,11 @@ from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.state_propagation import StatePropagation
-from paraqeet.quantity import Quantity, Array
+from paraqeet.propagation.propagation import Propagation
+from paraqeet.quantity import Array, Quantity
 
 
-class RungeKutta(StatePropagation):
+class RungeKutta(Propagation):
     """Propagation via the Runge-Kutta Scipy implementation.
 
     Uses scipy's Runge-Kutta implementation for propagating
@@ -24,12 +24,14 @@ class RungeKutta(StatePropagation):
 
     """
 
-    __initial_time_step: float | None
+    _initial_time_step: float | None
 
     def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
-        super().__init__(model)
+        # TODO: settting a default value for resolution
+        initial_time_step = 0.1e-9 if initial_time_step is None else initial_time_step
+        super().__init__(model, resolution=1 / initial_time_step)
         self._initial_state: Array
-        self.__initial_time_step = initial_time_step
+        self._initial_time_step = initial_time_step
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -37,7 +39,7 @@ class RungeKutta(StatePropagation):
         Returns
         -------
         list[Quantity]
-            List of optimisable parameters of the system.
+            List of optimizable parameters of the system.
 
         """
         return []
@@ -80,7 +82,7 @@ class RungeKutta(StatePropagation):
             raise ConfigurationException("Initial state is not set")
 
         if len(time) < 2:
-            raise ValueError("Runge-Kutta propagation needs at least two time steps")
+            raise ValueError("RungeKutta.propagate needs at least two time steps")
 
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
@@ -94,7 +96,7 @@ class RungeKutta(StatePropagation):
         # function has to iterate over the time steps itself.
         states = [self._initial_state]
         for ti in range(1, len(time)):
-            dt = self.__initial_time_step
+            dt = self._initial_time_step
             if dt is None or dt > time[ti] - time[ti - 1]:
                 dt = float(time[ti] - time[ti - 1]) / 5
 

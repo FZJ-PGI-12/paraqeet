@@ -1,16 +1,17 @@
 """Test the Resonator model."""
 
-import pytest
 import numpy as np
+import pytest
 
+from paraqeet.differentiable import Differentiable
+from paraqeet.model.drive_operator import DriveOperator
 from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.resonator import Resonator
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
-from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.resonator import Resonator
-from paraqeet.signal.iq_mixer import IQMixer
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
+from paraqeet.signal.iq_mixer import IQMixer
 
 DIMS = 3
 FREQ = 4.8e9 * 2 * np.pi
@@ -83,7 +84,7 @@ def expm(open_resonator):
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    prop = ScipyExpm(open_resonator, res=100e9)
+    prop = ScipyExpm(open_resonator, resolution=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
@@ -95,16 +96,16 @@ def ode(open_resonator):
     init_dm = np.matmul(init, init.T)
 
     open_resonator.ode_propagation = True
-    prop = Vern7(open_resonator, res=100e9)
+    prop = Vern7(open_resonator, resolution=100e9)
     prop.set_initial_state(init_dm)
     return prop
 
 
-def test_get_matrix(hamiltonian, time_samples):
+def test_get_value(hamiltonian, time_samples):
     """Test the getMatrix method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_matrix(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 
@@ -117,9 +118,12 @@ def test_gradient(gen, hamiltonian, time_samples):
     """
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hamil.set_optimisable_parameters(hamil.get_parameters())
-        grads = gen.generate_signal_gradient(time_samples)
-        ham_grads = hamil.gradient(time_samples)
+        if not isinstance(hamil, Differentiable):
+            continue
+        hamil.set_optimizable_parameters(hamil.get_parameters())
+        _, grads = gen.get_value_and_gradient(time_samples)
+        #  TODO: fix error related to the length of time_samples-array
+        _, ham_grads = hamil.get_value_and_gradient(time_samples)
         assert ham_grads.shape == (grads.shape[0], grads.shape[1] + 1, dim, dim)
 
 

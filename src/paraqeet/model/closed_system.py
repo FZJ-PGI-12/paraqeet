@@ -1,10 +1,12 @@
 """Class definition of a closed model."""
 
 from collections.abc import Callable
+
 import jax.numpy as jnp
-from paraqeet.quantity import Quantity, Array
-from paraqeet.model.hamiltonian import Hamiltonian
+
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.quantity import Array, Quantity
 
 
 class ClosedSystem(EquationOfMotion):
@@ -19,9 +21,9 @@ class ClosedSystem(EquationOfMotion):
 
     """
 
-    _get_matrix_method: Callable
+    _get_value_method: Callable
 
-    def __init__(self, hamiltonian: Hamiltonian, ode_propagation: bool = False):
+    def __init__(self, hamiltonian: DifferentiableHamiltonian, ode_propagation: bool = False):
         super().__init__(hamiltonian)
         self.ode_propagation = ode_propagation
 
@@ -41,22 +43,22 @@ class ClosedSystem(EquationOfMotion):
         self._ode_propagation = ode_propagation
 
         if ode_propagation:
-            self._get_matrix_method = self.__get_ode_propagation_eom
+            self._get_value_method = self._get_ode_propagation_eom
         else:
-            self._get_matrix_method = self.__get_eom
+            self._get_value_method = self._get_eom
 
     def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimisable parameters.
+        """Get a list of optimizable parameters.
 
         Returns
         -------
         List[Quantity]
-            List of optimisable parameters of the system.
+            List of optimizable parameters of the system.
 
         """
         return self._hamiltonian.get_parameters()
 
-    def __get_eom(self, time: Array) -> Array:
+    def _get_eom(self, times: Array) -> Array:
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -65,7 +67,7 @@ class ClosedSystem(EquationOfMotion):
 
         Parameters
         ----------
-        time : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -75,16 +77,16 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._hamiltonian.get_matrix(time)
+        return -1.0j * self._hamiltonian.get_value(times)
 
-    def __get_ode_propagation_eom(self, time: Array) -> tuple[Array, Array]:
+    def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
         """Get the matrix equations of motion for ODE solver.
 
         Here we return an empty array for the collapse operator.
         """
-        return -1.0j * self._hamiltonian.get_matrix(time), jnp.empty((1,), dtype=jnp.complex128)
+        return -1.0j * self._hamiltonian.get_value(times), jnp.empty((1,), dtype=jnp.complex128)
 
-    def get_matrix(self, time: Array):
+    def get_value(self, times: Array):
         """Get the matrix equations of motion.
 
         Computes the right hand side of the Schrödinger equation
@@ -93,7 +95,7 @@ class ClosedSystem(EquationOfMotion):
 
         Parameters
         ----------
-        time : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -103,14 +105,14 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return self._get_matrix_method(time)
+        return self._get_value_method(times)
 
-    def gradient(self, t) -> Array:
+    def get_value_and_gradient(self, times) -> tuple[Array, Array]:
         """Compute the gradient of getMatrix.
 
         Parameters
         ----------
-        t : Array
+        times : Array
             Vector of time samples.
 
         Returns
@@ -119,4 +121,5 @@ class ClosedSystem(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        return -1.0j * self._hamiltonian.gradient(t)
+        eom, eom_gradient = self._hamiltonian.get_value_and_gradient(times)
+        return -1.0j * eom, -1.0j * eom_gradient

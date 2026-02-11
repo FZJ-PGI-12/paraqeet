@@ -1,13 +1,14 @@
 """Coupling Hamiltonian in the rotating frame of drive."""
 
 import jax.numpy as jnp
+from jax import vmap
 
-from paraqeet.model.coupling import Coupling
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.quantity import Quantity, Array
+from paraqeet.model.coupling import TwoBodyCoupling
+from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
+from paraqeet.quantity import Array, Quantity
 
 
-class RotatingFrameCoupling(Coupling):
+class RotatingFrameCoupling(TwoBodyCoupling):
     """Implements the coupling in the rotating frame of the drive.
 
     If multiple subsystems are coupled specify the difference frequency of the
@@ -26,23 +27,25 @@ class RotatingFrameCoupling(Coupling):
         Diffrence of drive frequencies for multiple subsystems.
     """
 
-    _subsystems: list[Hamiltonian]
+    _subsystem_A: DifferentiableHamiltonian
+    _subsystem_B: DifferentiableHamiltonian
     _coefficient: Quantity
-    __diff_freq: Quantity
+    _diff_freq: Quantity
 
     def __init__(
         self,
-        subsystems: list[Hamiltonian],
+        subsystem_A: DifferentiableHamiltonian,
+        subsystem_B: DifferentiableHamiltonian,
         coefficient: Quantity,
         diffFreq: Quantity,
     ):
-        super().__init__(subsystems, coefficient, is_longitudinal=False)
-        self.__diff_freq = diffFreq
+        super().__init__(subsystem_A, subsystem_B, coefficient, is_longitudinal=False)
+        self._diff_freq = diffFreq
 
     def get_parameters(self) -> list[Quantity]:
         """Return the coupling coeffecient and the difference frequency.
 
-        NOTE - Optimisation using relational quantities can be optimise the
+        NOTE - Optimization using relational quantities can be optimize the
         drive frequencies for the two subsystems.
 
         Parameters
@@ -51,20 +54,20 @@ class RotatingFrameCoupling(Coupling):
             Returns the list of parameters of the system.
 
         """
-        return [self._coefficient, self.__diff_freq]
+        return [self._coefficient, self._diff_freq]
 
-    def __coupling_operators(self) -> list[Array]:
+    def _coupling_operators(self) -> list[Array]:
         """Return the annhilation operator. Special implementation for two subsystems."""
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")
-        dim = self.subsystems[0].dimension()
+        dim = self.subsystem_A.dimension()
         annihilation_ops: list[Array] = [jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1))]
-        if len(self.subsystems) == 2:
-            dim = self.subsystems[1].dimension()
-            annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
+        dim = self.subsystem_B.dimension()
+        annihilation_ops.append(jnp.sqrt(jnp.diag(jnp.arange(1, dim), k=1)).conj().T)
         return annihilation_ops
 
-    def get_matrices_one_time(self, t: Array) -> list[list[Array]]:
+    # TODO: is t a one time point or an array of time points?
+    def get_RWA_couplings(self, t: Array) -> list[list[Array]]:
         """Return the matrix representation of the coupling for all subsystems.
 
         A list of terms in the coupling is returned, where each of the term
@@ -82,18 +85,24 @@ class RotatingFrameCoupling(Coupling):
         list[list[Array]]
             The outer list are the coupling terms. The inner list contains
             matrices for each subsystem. The matrices (Array) have the same
-            shape as the subsystem's Hamiltonian.get_matrix_one_time: (n,n)
+            shape as the subsystem's Hamiltonian.get_value_one_time: (n,n)
             with n the subsystem dimension.
         """
-        annihilation_ops = self.__coupling_operators()
-        if len(annihilation_ops) > 2:
-            raise NotImplementedError()
+        annihilation_ops = self._coupling_operators()
 
-        annihilation_ops[0] *= self._coefficient.get_value() * jnp.exp(1j * self.__diff_freq.get_value() * t)
+        annihilation_ops[0] *= self._coefficient.get_value() * jnp.exp(1j * self._diff_freq.get_value() * t)
         annihilation_ops_conj = [a.conj().T for a in annihilation_ops]
         return [annihilation_ops, annihilation_ops_conj]
 
-    def gradient_one_time(self, t: Array) -> list[list[list[Array]]]:
+    def get_RWA_gradients(self, times: Array):
+        """Compute the gradients of the coupling expression in the rotating frame, i.e.
+        include a phase factor for several timesteps.
+        """
+        # ignoring mypy due to vmap
+        return vmap(self.get_RWA_gradients_one_time)(times)  # type: ignore
+
+    # TODO: should we rename this method to get_RWA_gradient_at_timestep for consistency?
+    def get_RWA_gradients_one_time(self, t: float) -> list[list[list[Array]]]:
         """Get the one-time gradient of the matrix.
 
         Returns the gradient of the matrix representation of the coupling
@@ -110,16 +119,16 @@ class RotatingFrameCoupling(Coupling):
         -------
         list[list[list[Array]]]
             The outer list represents the gradients with respect to
-            all optimised parameters. The rest is in the same shape as the
+            all optimized parameters. The rest is in the same shape as the
             result of get_matrices_one_time.
 
         """
-        annihilation_ops = self.__coupling_operators()
-        if self._is_optimised(self._coefficient):
-            annihilation_ops[0] *= jnp.exp(1j * self.__diff_freq.get_value() * t)
+        annihilation_ops = self._coupling_operators()
+        if self._is_optimized(self._coefficient):
+            annihilation_ops[0] *= jnp.exp(1j * self._diff_freq.get_value() * t)
             annihilationOps_conj = [a.conj().T for a in annihilation_ops]
             grads = [[annihilation_ops, annihilationOps_conj]]
-        elif self._is_optimised(self.__diff_freq):
+        elif self._is_optimized(self._diff_freq):
             annihilation_ops[0] *= self._coefficient.get_value() * 1j * t
             annihilationOps_conj = [a.conj().T for a in annihilation_ops]
             grads = [[annihilation_ops, annihilationOps_conj]]

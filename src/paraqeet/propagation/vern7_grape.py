@@ -1,21 +1,22 @@
 """Class definition of the 7th-order Verner ODE solver for GRAPE."""
 
 from functools import partial
-from jax import jit, vmap
-from jax.lax import scan, dynamic_slice_in_dim
-import jax.numpy as jnp
-
-from paraqeet.quantity import Array
-from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.vern7 import Vern7
 
 import jax
+import jax.numpy as jnp
+from jax import jit, vmap
+from jax.lax import dynamic_slice_in_dim, scan
+
+from paraqeet.exceptions import ConfigurationException
+from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.vern7 import Vern7
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7GRAPE(Vern7):
+class Vern7GRAPE(Vern7, DifferentiablePropagation):
     """
     Solve EOMs by 7th order ODE method to compute gradients using GRAPE.
 
@@ -25,7 +26,7 @@ class Vern7GRAPE(Vern7):
 
     The state propagations are done by the `Vern7 ODE` method.
 
-    _res: float
+    _resolution: float
         Simulation resolution.
     _initial_state: Array = None
         Initial state for forward propagation.
@@ -35,21 +36,15 @@ class Vern7GRAPE(Vern7):
 
     _target_state: Array | None = None
 
-    def __init__(self, model: EquationOfMotion, res: float):
-        super().__init__(model, res)
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
 
         if self.is_open:
-            self.__reverse_step_function = self._reverse_lindblad_step
+            self._reverse_step_function = self._reverse_lindblad_step
         else:
-            self.__reverse_step_function = self._reverse_schrodinger_step
+            self._reverse_step_function = self._reverse_schrodinger_step
 
-    @property
-    def target_state(self) -> Array | None:
-        """Returns the current target state for backward propagation."""
-        return self._target_state
-
-    @target_state.setter
-    def target_state(self, target_state: Array) -> None:
+    def set_target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
@@ -71,10 +66,10 @@ class Vern7GRAPE(Vern7):
         return jnp.matmul(state, h)
 
     def _reverse_lindblad_step(self, state: Array, h: Array, cols: list[Array]):
-        del_rho = self._commutator(h, state)
+        del_rho = Vern7._commutator(h, state)
         for col in cols:
-            del_rho -= jnp.matmul(jnp.matmul(self._dagger(col), state), col)
-            del_rho += 0.5 * self._anti_commutator(jnp.matmul(self._dagger(col), col), state)
+            del_rho -= jnp.matmul(jnp.matmul(Vern7._dagger(col), state), col)
+            del_rho += 0.5 * Vern7._anti_commutator(jnp.matmul(Vern7._dagger(col), col), state)
         return del_rho
 
     @partial(jit, static_argnums=(0,))
@@ -114,15 +109,15 @@ class Vern7GRAPE(Vern7):
             )
             return lamdas_t, lamdas_t
 
-        psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
+        psis_t, _ = scan(forward_propagation, psis_t, steps_arr)
 
-        self.step_function = self.__reverse_step_function
+        self.step_function = self._reverse_step_function
         eom = (-1) * jnp.flip(eom, axis=0)
-        lamdas_t, lamdas_list = scan(backward_propagation, lamdas_t, steps_arr)
+        lamdas_t, _ = scan(backward_propagation, lamdas_t, steps_arr)
 
-        return psis_list, lamdas_list
+        return psis_t, lamdas_t
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -135,6 +130,9 @@ class Vern7GRAPE(Vern7):
 
         Note: This method only computes the first order gradients right now.
         """
+        if len(times) < 2:
+            raise ValueError("Vern7GRAPE.get_value_and_gradient needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
@@ -147,37 +145,55 @@ class Vern7GRAPE(Vern7):
 
         if self._model is None:
             raise ConfigurationException("No equation of motion is configured.")
-        eom_func = self._model.get_matrix
-        grad_func = self._model.gradient
+        eom_func = self._model.get_value
+        grad_func = self._model.get_value_and_gradient
 
         # Verify if `model.ode_propagation` is set to `True`.
         # ode_propgation returns hamiltonian and collapse operators separately.
-        eom_parts = eom_func(jnp.array([0]))
-        if len(eom_parts) != 2:
+        if not self._model.ode_propagation:
             raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
-        dt = time[1] - time[0]
-        interp_time = self._interpolate_time(time, dt)
-        time_grid = interp_time[:-1] + dt / 2
+        psis_list = [init_state]
+        lamdas_list = [target_state]
 
-        eom, cols = eom_func(time_grid)
-        dh_dps = jnp.array(grad_func(time[:-1] + dt / 2)) * dt
+        for ti in range(1, len(times)):
+            psi_t = psis_list[ti - 1]
+            lamda_t = lamdas_list[ti - 1]
 
-        psis, lamdas = self._forward_and_backward_propagation(
-            init_state, target_state, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time[:-1]), 1)
-        )
+            # Interpolate times
+            time_grid, dt = self._construct_times(times, ti)
+            times_interp = Vern7._interpolate_time(time_grid, dt)
+            times_interp = times_interp + dt / 2
 
-        psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-        lamdas = jnp.concat([jnp.expand_dims(target_state, axis=0), lamdas], axis=0)
+            if len(times_interp) < 9:
+                raise ConfigurationException(
+                    "Propagation resolution has been set very low. Higher resolution needed for this method."
+                )
+
+            # TODO: currently seperate time grids are required for the EOM and the gradients.
+            # TODO: Can we use one so that the value and gradients are computed simultaneously?
+
+            eom, cols = eom_func(times_interp)
+
+            psi_t, lamda_t = self._forward_and_backward_propagation(
+                psi_t, lamda_t, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time_grid), 1)
+            )
+
+            psis_list.append(psi_t)
+            lamdas_list.append(lamda_t)
+
+        psis = jnp.array(psis_list)
+        lamdas = jnp.array(lamdas_list)
 
         lamdas = jnp.flip(lamdas, axis=0)
+        _, dh_dps = grad_func(times[:-1] + dt / 2)
+        dh_dps = jnp.array(dh_dps) * dt
 
         grads = []
-
         n_params = dh_dps.shape[1]
         for i in range(n_params):
             if self.is_open:
-                fwd_prop_state = vmap(self._commutator, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
+                fwd_prop_state = vmap(Vern7._commutator, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
             else:
                 fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
 

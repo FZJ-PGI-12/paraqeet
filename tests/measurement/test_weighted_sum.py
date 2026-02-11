@@ -1,15 +1,17 @@
 """Test the weighted sum goal."""
 
-from tests.propagation.identity_propagation import IdentityPropagation
-from tests.measurement.constant_measurement import ConstantMeasurement
+import itertools
 
 import numpy as np
 import pytest
+
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
 from paraqeet.quantity import Array
-import itertools
+from tests.measurement.constant_measurement import ConstantMeasurement
+from tests.propagation.identity_propagation import IdentityPropagation
 
 
 @pytest.fixture
@@ -23,7 +25,7 @@ def random_meas(random_unitary_matrix):
         propagation.set_initial_state(gate)
         cz = np.identity(4)
         cz[-1, -1] = -1.0
-        meas_list.append(UnitaryFidelity(propagation, cz, np.array([1.0])))
+        meas_list.append(UnitaryFidelity(propagation, cz))
     return meas_list
 
 
@@ -32,9 +34,10 @@ def test_weighted_sum_goal(random_meas):
     weights = np.random.random(len(random_meas))
     weights /= sum(weights)
     goal = WeightedSumGoal(measurements=random_meas, weights=weights)
-    assert goal.measure() >= 0
+    times = np.array([1.0])
+    assert goal.measure(times=times) >= 0
     # Rounding errors might cause the value to be slightly larger than 1
-    assert 0 <= np.round(goal.measure_normalised_scalar(), 8) <= 1
+    assert 0 <= np.round(goal.calculate_normalized_scalar(times=times), 8) <= 1
 
 
 def test_weighted_sum_goal_options(random_meas):
@@ -62,7 +65,8 @@ def test_weighted_sum_goal_sum_of_squares(random_meas):
     meas_list_bool[-1] = False
     sum_of_squares_options = {"weight": weight_sum_of_squares, "meas_bool": meas_list_bool}
     goal = WeightedSumGoal(measurements=random_meas, weights=weights, sum_of_squares_options=sum_of_squares_options)
-    values = [m.measure() for m in random_meas]
+    times = np.array([1.0])
+    values = [m.measure(times=times) for m in random_meas]
     sum_meas: Array | float = 0.0
     for ii, w in enumerate(weights):
         sum_meas += w * values[ii]
@@ -71,7 +75,7 @@ def test_weighted_sum_goal_sum_of_squares(random_meas):
     for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
         sum_square_diff += (meas_a - meas_b) ** 2
     sum_meas += sum_of_squares_options["weight"] * sum_square_diff
-    assert np.abs(goal.measure() - sum_meas) <= 1e-8
+    assert np.abs(goal.measure(times=times) - sum_meas) <= 1e-8
 
 
 def test_weighted_sum_goal_sum_of_squares_gradient():
@@ -88,8 +92,9 @@ def test_weighted_sum_goal_sum_of_squares_gradient():
     meas_list_bool = [True for _ in range(num_meas)]
     sum_of_squares_options = {"weight": weight_sum_of_squares, "meas_bool": meas_list_bool}
     goal = WeightedSumGoal(measurements=meas_list, weights=weights, sum_of_squares_options=sum_of_squares_options)
-    _, grad = goal.measure_with_gradient()
-    values_and_gradients = [m.measure_with_gradient() for m in meas_list]
+    times = np.array([1.0])
+    _, grad = goal.get_value_and_gradient(times=times)
+    values_and_gradients = [m.get_value_and_gradient(times=times) for m in meas_list if isinstance(m, Differentiable)]
     sum_grads = np.zeros_like(values_and_gradients[0][1])
     for ii, w in enumerate(weights):
         sum_grads += w * values_and_gradients[ii][1]
@@ -117,8 +122,8 @@ def test_weighted_sum_goal_mismatched_weights():
         WeightedSumGoal(measurements=[], weights=[0.2, 0.3, 0.5])
 
 
-def test_weighted_sum_goal_weights_not_normalised():
-    """Test the not normalised weighted sum goal function.
+def test_weighted_sum_goal_weights_not_normalized():
+    """Test the not normalized weighted sum goal function.
 
     Raises
     ------

@@ -1,25 +1,26 @@
-Gradient-based optimisation of a cross-resonance gate between two transmons
+Gradient-based optimization of a cross-resonance gate between two transmons
 ===========================================================================
 
 .. code:: ipython3
 
     import itertools
+    
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
-    from paraqeet.signal.iq_mixer import IQMixer
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-    from paraqeet.propagation.propagation import Propagation
-    from paraqeet.model.drive_operator import DriveOperator
-    from paraqeet.model.coupling import Coupling
+    from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.closed_system import ClosedSystem
     from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+    from paraqeet.model.coupling import TwoBodyCoupling
+    from paraqeet.model.drive_operator import DriveOperator
     from paraqeet.model.transmon import Transmon
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
-    from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.optimisation_map import OptimisationMap
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+    from paraqeet.propagation.propagation import Propagation
+    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
     from paraqeet.quantity import Quantity
+    from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
+    from paraqeet.signal.iq_mixer import IQMixer
     
     np.set_printoptions(linewidth=400)
 
@@ -30,12 +31,12 @@ The sytem consists of two coupled transmons with three levels each. We
 fix the transmon frequency and anharmonicity to values that don’t have
 any unwanted frequency collisions. The coupling strength is fixed as
 well. These parameters have to be specified as Quantites with a range,
-but we will not pass them to the optimised in order to keep them fixed.
+but we will not pass them to the optimized in order to keep them fixed.
 Additionally, the first transmon is driven at the frequency of the
 second one to apply a cross-resonance (CR) gate. The second transmon is
 driven to fix the phases of the gate.
 
-Here the tone values are set such that the optimisation process is fast.
+Here the tone values are set such that the optimization process is fast.
 Generally with a lot of parameters ``ScipyExpmGOAT`` (in its current
 form), can take considerably long time.
 
@@ -157,8 +158,9 @@ form), can take considerably long time.
         ),
         drives=[drive2],
     )
-    coupling = Coupling(
-        [transmon1, transmon2],
+    coupling = TwoBodyCoupling(
+        transmon1,
+        transmon2,
         is_longitudinal=False,
         coefficient=Quantity(
             25e6 * 2 * np.pi,
@@ -174,7 +176,7 @@ form), can take considerably long time.
 
 .. parsed-literal::
 
-    [Amp: 190 MHz x 2pi, Gate time: 150 ns] [Amp: 9.18 MHz x 2pi, Gate time: 150 ns]
+    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns] [Amp: 9.18 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
 
 
 .. code:: ipython3
@@ -194,10 +196,10 @@ form), can take considerably long time.
 
     from plotting import plot_signal
     
-    times = np.linspace(0, t_final, 201)
+    tlist = np.linspace(0, t_final, 201)
     fig, ax = plt.subplots(1, figsize=(5, 3))
-    plot_signal(tone1, times, ax, linestyle="-", label="Drive 1")
-    plot_signal(tone2, times, ax, linestyle="-", label="Drive 2")
+    plot_signal(tone1, tlist, ax, linestyle="-", label="Drive 1")
+    plot_signal(tone2, tlist, ax, linestyle="-", label="Drive 2")
     ax.legend(loc=1, frameon=True)
     plt.show()
 
@@ -211,7 +213,7 @@ idling.
 
 .. code:: ipython3
 
-    matrix = hamiltonian.get_matrix_one_time(0.0)
+    matrix = hamiltonian.get_value_at_timestep(0.0)
     evals = np.linalg.eigvalsh(matrix)
     print("Energies in GHz: ", np.round(evals / 1e6) / 1e3 / (2 * np.pi))
     transitions = evals[1:] - evals[:-1]
@@ -244,49 +246,57 @@ idling.
 
 
 
-Reducing to subsystems
-----------------------
+Computing the gate fidelity
+---------------------------
 
 We select a propagation method, piecewise constant exponentation, and
-configure CR as a target gate. Also we initialize the full basis at time
-0 with :math:`\mathbb{I}_4` in order to compute the full propagator. The
-``restrict_subsystems`` method has been used to truncate the Hilbert
-space to 4 dimensions to compare the propagator to the ideal gate.
+configure CR as a target gate.
 
 .. code:: ipython3
 
     model = ClosedSystem(hamiltonian)
-    prop = ScipyExpmGOAT(model, res=100e9)
+    prop = ScipyExpmGOAT(model, resolution=100e9)
     
-    pauli_x = np.array([[0.0, 1], [1, 0.0]])
-    pauli_y = np.array([[0.0, -1j], [1j, 0.0]])
-    pauli_z = np.array([[1, 0], [0.0, -1]])
+    # We need to pad the operators with zeros so we introduce a helper zero matrix
+    dim = transmon1.dimension() * transmon2.dimension()
+    padding = ((0, dim - 4), (0, dim - 4))
     
-    pauli_ix = np.kron(np.identity(2), pauli_x)
-    pauli_iy = np.kron(np.identity(2), pauli_y)
-    pauli_iz = np.kron(np.identity(2), pauli_z)
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
+    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
     
-    pauli_zx = np.exp(1j * np.pi / 4) * np.kron(pauli_z, pauli_x)
+    pauli_ix = np.pad(np.kron(np.identity(2), pauli_x), pad_width=padding, mode="constant", constant_values=0.0)
+    pauli_iy = np.pad(np.kron(np.identity(2), pauli_y), pad_width=padding, mode="constant", constant_values=0.0)
+    pauli_iz = np.pad(np.kron(np.identity(2), pauli_z), pad_width=padding, mode="constant", constant_values=0.0)
     
-    cr_gate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
+    pauli_zx = np.pad(
+        np.exp(1j * np.pi / 4) * np.kron(pauli_z, pauli_x), pad_width=padding, mode="constant", constant_values=0.0
+    )
+    
+    cr_gate = np.pad(
+        np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]]),
+        pad_width=padding,
+        mode="constant",
+        constant_values=0.0,
+    )
     
     cr_gate = pauli_zx @ cr_gate
+    
+    times = np.array([0.0, t_final])
     
     prop.set_initial_state(np.identity(transmon1.dimension() * transmon2.dimension()))
     gate_fid = UnitaryFidelity(
         propagation=prop,
         gate=cr_gate,
-        times=np.array([0.0, t_final]),
     )
-    gate_fid.restrict_subsystems([transmon1.dimension(), transmon2.dimension()], [2, 2])
-    gate_fid.measure()
+    gate_fid.measure(times)
 
 
 
 
 .. parsed-literal::
 
-    0.8410664317253163
+    0.13180213234859084
 
 
 
@@ -298,25 +308,25 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         basis2 = [i for i in range(transmon2.dimension())]
         labels = [rf"$|{i},{j}\rangle$" for (i, j) in itertools.product(basis1, basis2)]
     
-        signal1 = generator1.generate_signal(times)
-        signal2 = generator2.generate_signal(times)
-        states = propagation.propagate(times)
+        signal1 = generator1.get_value(tlist)
+        signal2 = generator2.get_value(tlist)
+        states = propagation.propagate(tlist)
     
         _, ax = plt.subplots(3, figsize=(4, 6), sharex=True)
-        ax[0].plot(times / 1e-9, signal1)
-        ax[0].plot(times / 1e-9, signal2)
+        ax[0].plot(tlist / 1e-9, signal1)
+        ax[0].plot(tlist / 1e-9, signal2)
         ax[0].set_xlabel("Time [ns]")
         ax[0].set_ylabel("Signal [Hz]")
         ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
-        ax[1].plot(times / 1e-9, np.abs(states)[:, :, 0] ** 2, label=labels)
+        ax[1].plot(tlist / 1e-9, np.abs(states)[:, :, 0] ** 2, label=labels)
         ax[1].set_xlabel("Time [ns]")
         ax[1].set_ylabel("Population")
         ax[1].legend(ncols=2)
         ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
         ax[2].plot(
-            times / 1e-9,
+            tlist / 1e-9,
             np.abs(states)[:, :, transmon2.dimension()] ** 2,
             label=labels,
         )
@@ -342,33 +352,32 @@ space to 4 dimensions to compare the propagator to the ideal gate.
         """Get the expected value."""
         ex = []
         for state in states:
-            state = gate_fid._preprocess_vector(state)
             ex.append(np.real(state.conj() @ Op @ state.T))
         return ex
     
     
     def plot_pauli():
         """Plot the Pauli operators."""
-        states = prop.propagate(times)
-        sig1 = generator1.generate_signal(times)
-        sig2 = generator2.generate_signal(times)
+        states = prop.propagate(tlist)
+        sig1 = generator1.get_value(tlist)
+        sig2 = generator2.get_value(tlist)
     
         fig, ax = plt.subplots(3, figsize=(4, 6), sharex=True)
-        ax[0].plot(times / 1e-9, sig1)
-        ax[0].plot(times / 1e-9, sig2)
+        ax[0].plot(tlist / 1e-9, sig1)
+        ax[0].plot(tlist / 1e-9, sig2)
         ax[0].set_ylabel("Field [MHz]")
         ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
-        ax[1].plot(times / 1e-9, expecation_value(pauli_ix, states[:, :, 0]))
-        ax[1].plot(times / 1e-9, expecation_value(pauli_iy, states[:, :, 0]))
-        ax[1].plot(times / 1e-9, expecation_value(pauli_iz, states[:, :, 0]))
+        ax[1].plot(tlist / 1e-9, expecation_value(pauli_ix, states[:, :, 0]))
+        ax[1].plot(tlist / 1e-9, expecation_value(pauli_iy, states[:, :, 0]))
+        ax[1].plot(tlist / 1e-9, expecation_value(pauli_iz, states[:, :, 0]))
         ax[1].set_ylabel(r"$\langle 0, x|\hat\sigma_i|0, x\rangle$")
         ax[1].legend(["X", "Y", "Z"])
         ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
-        ax[2].plot(times / 1e-9, expecation_value(pauli_ix, states[:, :, transmon2.dimension()]))
-        ax[2].plot(times / 1e-9, expecation_value(pauli_iy, states[:, :, transmon2.dimension()]))
-        ax[2].plot(times / 1e-9, expecation_value(pauli_iz, states[:, :, transmon2.dimension()]))
+        ax[2].plot(tlist / 1e-9, expecation_value(pauli_ix, states[:, :, transmon2.dimension()]))
+        ax[2].plot(tlist / 1e-9, expecation_value(pauli_iy, states[:, :, transmon2.dimension()]))
+        ax[2].plot(tlist / 1e-9, expecation_value(pauli_iz, states[:, :, transmon2.dimension()]))
         ax[2].set_ylabel(r"$\langle 1, x|\hat\sigma_i|1, x\rangle$")
         ax[-1].set_xlabel("Time [ns]")
         ax[2].legend(["X", "Y", "Z"])
@@ -393,11 +402,11 @@ space to 4 dimensions to compare the propagator to the ideal gate.
 .. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_12_1.png
 
 
-Optimisation
+Optimization
 ------------
 
 We define an optimizer and link our fidelity measure as a goal function.
-The only optimisable parameter is the frequency of transmon 1.
+The only optimizable parameter is the frequency of transmon 1.
 
 .. code:: ipython3
 
@@ -408,24 +417,24 @@ The only optimisable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    [Amp: 190 MHz x 2pi, Gate time: 150 ns]
+    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
 
 
 
 .. code:: ipython3
 
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tone1)
     print(optmap)
     
-    opt = ScipyOptimiserGradient(gate_fid, optimisation_map=optmap)
+    opt = ScipyOptimizerGradient(gate_fid, optimization_map=optmap)
     opt.set_options({"ftol": 0.1})
 
 
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.FlatTopGaussianEnvelope'> ====
-    [Amp: 190 MHz x 2pi, Gate time: 150 ns]
+    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
     
     
 
@@ -440,21 +449,21 @@ The only optimisable parameter is the frequency of transmon 1.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.FlatTopGaussianEnvelope'> ====
-    [Amp: 190 MHz x 2pi, Gate time: 150 ns]
+    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
 
 
 
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize(times)
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.10112855762826345, 'iterations': 4, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.8566635903399564, 'iterations': 4, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 

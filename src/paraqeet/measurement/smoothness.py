@@ -5,17 +5,18 @@ References
 [Heeres2017] R. Heeres et al., Nat. Comm. 8, 94 (2017)
 """
 
-from paraqeet.measurement.measurement import Measurement
-from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.quantity import Array, Quantity
-
 import jax
 import jax.numpy as jnp
+
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.quantity import Array
+from paraqeet.signal.pwc_generator import PWCGenerator
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Smoothness(Measurement):
+class Smoothness(NormalizableMeasurement, Differentiable):
     """Smoothness of a pulse. It follows the definition in
     Heeres et al., https://arxiv.org/abs/1608.02430 (2017), in particular
     Eqs. 23 and 24 of the supplementary material.
@@ -31,14 +32,16 @@ class Smoothness(Measurement):
     _pwc_generator: PWCGenerator
 
     def __init__(self, pwc_generator: PWCGenerator):
-        super().__init__(pwc_generator.tlist)
+        # super().__init__(pwc_generator.tlist)
         self._pwc_generator = pwc_generator
 
-    def get_parameters(self) -> list[Quantity]:
-        """Returns an empty list."""
-        return []
+    def measure(self, times: Array) -> Array | float:
+        """Return measurement in the range [0, 1]."""
+        return self.calculate_normalized_scalar(times)
 
-    def measure_normalised_scalar(self) -> float:
+    # TODO: This should depend on the internal time grid and not on the input time value.
+    # This means that the `times` should just be a float.
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Returns the normalized sum of consecutive square differences of the pulse.
         As the maximums difference is twice the maximum amplitude, the normalization
         factor is the number of piecewise constants minus 1 time sthe maximum
@@ -49,7 +52,7 @@ class Smoothness(Measurement):
         float
             The normalized sum of consecutive square differences in the pulse.
         """
-        pulse = self._pwc_generator.generate_signal(self._times)
+        pulse = self._pwc_generator.get_value(times)
         num_pwc = jnp.shape(pulse)[0]
 
         norm_coeff = (num_pwc - 1) * (2 * self._pwc_generator.max_amplitude) ** 2
@@ -68,11 +71,11 @@ class Smoothness(Measurement):
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
         return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
-        Compute the measurement value as in measure_normalised_scalar()
-        and the gradient with respect to all parameters in the optimisation map.
+        Compute the measurement value as in measure_normalized_scalar()
+        and the gradient with respect to all parameters in the optimization map.
         For parameters that are not in the passed PWCGenerator the partial derivative
         if simply zero.
 
@@ -82,8 +85,8 @@ class Smoothness(Measurement):
             Tuple of function value as bare float and gradient of shape (n_parameters,)
 
         """
-        opt_pwc_params = self._pwc_generator.optimisable_parameters
-        opt_params = self._pwc_generator.all_optimisable_parameters
+        opt_pwc_params = self._pwc_generator.optimizable_parameters
+        opt_params = self._pwc_generator.all_optimizable_parameters
 
         def get_partial_derivative(n, vec):
             """Derivatives of the smoothness measure for 3 cases: starting point, center and end point.
@@ -120,4 +123,4 @@ class Smoothness(Measurement):
         else:
             gradient = jnp.empty((1, 0))  # this is purely conventional
 
-        return self.measure_normalised_scalar(), gradient
+        return self.calculate_normalized_scalar(times), gradient

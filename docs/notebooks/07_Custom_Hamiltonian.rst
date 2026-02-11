@@ -2,22 +2,23 @@ Using a custom Hamiltonian function with ParaQeet
 =================================================
 
 In this example we demonstrate how a custom Hamiltonian function
-``H(t, params)`` can be used to simulate and optimise quantum systems.
+``H(t, params)`` can be used to simulate and optimize quantum systems.
 
 .. code:: ipython3
 
-    import matplotlib.pyplot as plt
     import jax.numpy as jnp
+    import matplotlib.pyplot as plt
+    
     import paraqeet as pq
 
 1. Define the parameters, Hamiltonian function and gradient functions
 ---------------------------------------------------------------------
 
-Define a Hamiltonian as a function of time and optimisable parameters.
-The optimisable paramter need to be of the type ``pq.Quantity``.
+Define a Hamiltonian as a function of time and optimizable parameters.
+The optimizable paramter need to be of the type ``pq.Quantity``.
 
 Here we define a two level system (TLS) Hamiltonian, with a cosine drive
-(with optimisable paramters Amplitude and Frequency).
+(with optimizable paramters Amplitude and Frequency).
 
 .. code:: ipython3
 
@@ -56,8 +57,8 @@ Here we define a two level system (TLS) Hamiltonian, with a cosine drive
 
 .. code:: ipython3
 
-    from paraqeet.model.custom_hamiltonian import CustomHamiltonian
     from paraqeet.model.closed_system import ClosedSystem
+    from paraqeet.model.custom_hamiltonian import CustomHamiltonian
     
     tls = CustomHamiltonian(
         hamiltonian_function=tls_hamiltonian,
@@ -78,7 +79,8 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
     
     t_final = 12e-9
     
-    prop = ScipyExpmGOAT(model, res=100e9)
+    prop = ScipyExpmGOAT(model, resolution=100e9)
+    times = jnp.array([0.0, t_final])
     
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
@@ -86,14 +88,10 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=jnp.array([0.0, t_final]),
     )
 
 .. code:: ipython3
 
-    import plotting  # import the configuration from plotting
-    
-    
     def make_plot():
         """Plot the signal."""
         ts = jnp.linspace(0, t_final, 1001)
@@ -120,7 +118,7 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 
 .. parsed-literal::
 
-    (<Figure size 500x500 with 2 Axes>,
+    (<Figure size 400x400 with 2 Axes>,
      array([<Axes: ylabel='Field [MHz]'>,
             <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
 
@@ -130,11 +128,11 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
 .. image:: 07_Custom_Hamiltonian_files/07_Custom_Hamiltonian_9_1.png
 
 
-3. Gradient based optimisation
+3. Gradient based optimization
 ------------------------------
 
-While using the above setup one can perform gradient free optimisation.
-To do a gradient based optimisation, we need to provide the gradient of
+While using the above setup one can perform gradient free optimization.
+To do a gradient based optimization, we need to provide the gradient of
 the Hamiltonian wrt each parameter in the Hamiltonian function.
 
 These gradient functions can be written as analytical functions or
@@ -183,7 +181,7 @@ Here we demonstrate both the cases.
 
 .. code:: ipython3
 
-    zeroone.measure()
+    zeroone.measure(times)
 
 
 
@@ -194,21 +192,21 @@ Here we demonstrate both the cases.
 
 
 
-4. Create optmap and optimise
+4. Create optmap and optimize
 -----------------------------
 
 .. code:: ipython3
 
-    from paraqeet.optimisation_map import OptimisationMap
-    from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+    from paraqeet.optimization_map import OptimizationMap
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
-    optmap = OptimisationMap()
+    optmap = OptimizationMap()
     optmap.add(tls)
-    opt = ScipyOptimiserGradient(zeroone, optimisation_map=optmap)
+    opt = ScipyOptimizerGradient(zeroone, optimization_map=optmap)
 
 .. code:: ipython3
 
-    opt.optimise()
+    opt.optimize(times)
 
 
 
@@ -228,7 +226,7 @@ Here we demonstrate both the cases.
 
 .. parsed-literal::
 
-    (<Figure size 500x500 with 2 Axes>,
+    (<Figure size 400x400 with 2 Axes>,
      array([<Axes: ylabel='Field [MHz]'>,
             <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object))
 
@@ -236,4 +234,17 @@ Here we demonstrate both the cases.
 
 
 .. image:: 07_Custom_Hamiltonian_files/07_Custom_Hamiltonian_19_1.png
+
+
+.. code:: ipython3
+
+    zeroone.measure(times)
+
+
+
+
+.. parsed-literal::
+
+    0.9999999999999851
+
 

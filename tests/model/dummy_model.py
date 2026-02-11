@@ -1,10 +1,7 @@
 """Class definition of the Dummy model for testing."""
 
-from paraqeet.quantity import Array
-
-from paraqeet.quantity import Quantity
-from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.quantity import Array, Quantity
 
 
 class DummyEquationsOfMotion(EquationOfMotion):
@@ -16,7 +13,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
         Class object for a matrix representation of a Hamiltonian.
     """
 
-    def __init__(self, hamiltonian: Hamiltonian):
+    def __init__(self, hamiltonian):
         super().__init__(hamiltonian)
 
     def get_parameters(self) -> list[Quantity]:
@@ -30,7 +27,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
         """
         return []
 
-    def get_matrix(self, t: Array) -> Array:
+    def get_value(self, t: Array) -> Array:
         """Get the matrix representation of the equations of motion.
 
         Parameters
@@ -44,15 +41,15 @@ class DummyEquationsOfMotion(EquationOfMotion):
             Returns the matrix equations of motion.
 
         """
-        return -1.0j * self._hamiltonian.get_matrix(t)
+        return -1.0j * self._hamiltonian.get_value(t)
 
-    def gradient(self, t) -> Array:
-        """Compute the gradient of get_matrix.
+    def get_value_and_gradient(self, times) -> Array:
+        """Compute the gradient of get_value.
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         """
-        return -1.0j * self._hamiltonian.gradient(t)
+        return -1.0j * self._hamiltonian.get_gradient_at_timestep(times)

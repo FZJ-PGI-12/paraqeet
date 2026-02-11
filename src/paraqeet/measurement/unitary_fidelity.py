@@ -1,17 +1,17 @@
 """Class definition of the unitary fidelity model."""
 
+import jax
 import jax.numpy as jnp
 
-from paraqeet.measurement.measurement import Measurement
-from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Quantity, Array
-
-import jax
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class UnitaryFidelity(Measurement):
+class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     """Unitary fidelity measurement model.
 
     Fidelity measure that compares the propagator with a desired gate
@@ -34,39 +34,28 @@ class UnitaryFidelity(Measurement):
 
     """
 
-    __basis_states: Array | None
-    __target_costates: Array
-    __propagation: Propagation
+    _basis_states: Array | None
+    _target_costates: Array
+    _propagation: DifferentiablePropagation
 
     def __init__(
         self,
-        propagation: Propagation,
+        propagation: DifferentiablePropagation,
         gate: Array,
-        times: Array,
         basis_states: Array | None = None,
     ):
-        super().__init__(times)
-        self.__propagation = propagation
+        self._propagation = propagation
         if basis_states is not None:
-            self.__propagation.set_initial_state(basis_states)
+            self._propagation.set_initial_state(basis_states)
         else:
             basis_states = jnp.eye(gate.shape[0])
-        self.__basis_states = basis_states
+        self._basis_states = basis_states
         self.set_ideal_gate(gate)
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            Returns the parameters of the system.
-
-        """
-        return []
-
+    # TODO: since this method is declared as static, it belongs to the class, not to the instance. 
+    # It should be called accordingly.
     @staticmethod
-    def __fid(overlaps: Array) -> float:
+    def _fid(overlaps: Array) -> float:
         """Gate fidelity from state overlaps.
 
         Parameters
@@ -82,7 +71,11 @@ class UnitaryFidelity(Measurement):
         """
         return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    def measure_normalised_scalar(self) -> float:
+    def measure(self, times: Array) -> Array | float:
+        """Return measurement in the range [0, 1]."""
+        return self.calculate_normalized_scalar(times=times)
+
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -91,14 +84,14 @@ class UnitaryFidelity(Measurement):
             L2 norm of the last time step compared to the ideal gate.
 
         """
-        states = self.__propagation.propagate(time=self._times)
-        states = self._preprocess_matrix(states)
+        # TODO: Fix typing
+        states = self._propagation.propagate(time=times)
         overlaps = []
-        for ii, s in enumerate(self.__target_costates.T):
+        for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
-        return self.__fid(jnp.asarray(overlaps))
+        return UnitaryFidelity._fid(jnp.asarray(overlaps))
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns
@@ -107,23 +100,22 @@ class UnitaryFidelity(Measurement):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self.__propagation.gradient(time=self._times)  # gradient of states wrt parameters
-        states = self._preprocess_matrix(states)
-        dg_dp_list = self._preprocess_matrix(dg_dp_list)
+        # TODO: Fix typing
+        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)  # gradient of states wrt parameters
         overlaps = []
-        for ii, s in enumerate(self.__target_costates.T):
+        for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         f = jnp.average(jnp.asarray(overlaps))
 
         df_dp_list = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
-            for ii, s in enumerate(self.__target_costates.T):
+            for ii, s in enumerate(self._target_costates.T):
                 gs.append(jnp.vdot(s, dg_dp[:, ii]))
             g = jnp.average(jnp.asarray(gs))
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
-        fid = self.__fid(jnp.asarray(overlaps))
+        fid = UnitaryFidelity._fid(jnp.asarray(overlaps))
         return fid, jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def set_ideal_gate(self, gate: Array):
@@ -135,7 +127,7 @@ class UnitaryFidelity(Measurement):
             Target state computation via this gate.
 
         """
-        if self.__basis_states is None:
-            self.__target_costates = gate
+        if self._basis_states is None:
+            self._target_costates = gate
         else:
-            self.__target_costates = self.__basis_states @ gate
+            self._target_costates = self._basis_states @ gate

@@ -1,10 +1,9 @@
 """Class definition of the Generator Drive model."""
 
-from paraqeet.quantity import Array
 import jax.numpy as jnp
 
 from paraqeet.model.drive import Drive
-from paraqeet.quantity import Quantity
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
 
 
@@ -23,12 +22,12 @@ class DriveOperator(Drive):
 
     """
 
-    __generator: Generator
-    __is_longitudinal: bool
+    _generator: Generator
+    _is_longitudinal: bool
 
     def __init__(self, generator: Generator, is_longitudinal: bool):
-        self.__generator = generator
-        self.__is_longitudinal = is_longitudinal
+        self._generator = generator
+        self._is_longitudinal = is_longitudinal
 
     @property
     def generator(self) -> Generator:
@@ -40,7 +39,7 @@ class DriveOperator(Drive):
             Returns the signal generator object from the system.
 
         """
-        return self.__generator
+        return self._generator
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -51,7 +50,7 @@ class DriveOperator(Drive):
             List of optimizable parameters of the system.
 
         """
-        return self.__generator.get_parameters()
+        return self._generator.get_parameters()
 
     def _compute_matrix(self, a: Array) -> Array:
         """Return the operator for the longitudinal or transverse drive.
@@ -67,9 +66,9 @@ class DriveOperator(Drive):
             Returns the operator for the longitudinal or transverse drive.
 
         """
-        return (jnp.conjugate(a.T) @ a) if self.__is_longitudinal else (jnp.conjugate(a.T) + a)
+        return (jnp.conjugate(a.T) @ a) if self._is_longitudinal else (jnp.conjugate(a.T) + a)
 
-    def get_matrix_one_time(self, a: Array, t: Array) -> Array:
+    def get_value_at_timestep(self, a: Array, t: float) -> Array:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -88,11 +87,13 @@ class DriveOperator(Drive):
             Returns the shape-shifted coefficient from the drive.
 
         """
-        signal = self.__generator.generate_signal(t)
+        # TODO: generator.get_value expects an array, even for one time point.
+        # Is the naming of the method correct then?
+        signal = self._generator.get_value(t)
         matrix = self._compute_matrix(a)
         return signal * matrix
 
-    def gradient_one_time(self, a: Array, t: Array) -> Array:
+    def get_gradient_at_timestep(self, a: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -102,7 +103,7 @@ class DriveOperator(Drive):
         ----------
         a: Array
             Operator for longitudinal or transverse drive.
-        t: Array
+        timestep: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -111,6 +112,6 @@ class DriveOperator(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signal_grad = self.__generator.generate_signal_gradient_one_time(jnp.array(t, ndmin=1)).reshape((-1, 1, 1))
-        matrix = self._repeat(self._compute_matrix(a), signal_grad.shape[0])
+        signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape((-1, 1, 1))
+        matrix = Drive._repeat(self._compute_matrix(a), signal_grad.shape[0])
         return signal_grad * matrix

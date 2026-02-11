@@ -1,6 +1,6 @@
 """Class definition of the Scipy piecewise exponential propagation model.
 
-Uses the GRAPE optimisation method.
+Uses the GRAPE optimization method.
 Assumes that the signal is piecewise constant (PWC) without an LO and the
 Hamiltonian is defined in the rotating frame of drive.
 
@@ -10,19 +10,20 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array
 from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm, expm_frechet
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpmGRAPE(ScipyExpm):
+class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
     """Solve EOMs by piecewise exponentation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
@@ -42,19 +43,15 @@ class ScipyExpmGRAPE(ScipyExpm):
         matrix exponential. If false, use frechet derivative.
     """
 
+    # TODO: Add internal time-list as an attribute that stores the times to evaluate the pulse at
+
     _target_state: Array | None = None
     _schirmer_derivative: bool = False
 
-    def __init__(self, model: EquationOfMotion, res: float):
-        super().__init__(model, res)
+    def __init__(self, model: EquationOfMotion, resolution: float):
+        super().__init__(model, resolution)
 
-    @property
-    def target_state(self) -> Array | None:
-        """Returns the current target state for backward propagation."""
-        return self._target_state
-
-    @target_state.setter
-    def target_state(self, target_state: Array) -> None:
+    def set_target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
@@ -66,7 +63,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         # ode_propgation returns hamiltonian and collapse operators separately.
         if self._model is None:
             raise ConfigurationException("No equation of motion is configured.")
-        eom = self._model.get_matrix(jnp.array([0]))
+        eom = self._model.get_value(jnp.array([0]))
         if len(eom) == 2:
             raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
 
@@ -82,7 +79,7 @@ class ScipyExpmGRAPE(ScipyExpm):
                     # check if it is a square matrix. Check the last 2 dimensions are equal.
                     if target_state.shape[-1] == target_state.shape[-2]:
                         # This is a density matrix
-                        target_state = self._convert_dm_to_vec(target_state, dim_generator)
+                        target_state = ScipyExpm._convert_dm_to_vec(target_state, dim_generator)
             except Exception as e:
                 raise ConfigurationException(
                     f"Obtained a state vector of shape {target_state.shape} as target state. "
@@ -110,7 +107,7 @@ class ScipyExpmGRAPE(ScipyExpm):
 
     @staticmethod
     @jit
-    def __sandwich_op_values(
+    def _sandwich_op_values(
         bwd_propagated_state: Array,
         op: Array,
         fwd_propagated_state: Array,
@@ -271,6 +268,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
     def propagate(self, time: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
+        if len(time) < 2:
+            raise ValueError("ScipyExpmGRAPE.propagate needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
@@ -282,10 +282,10 @@ class ScipyExpmGRAPE(ScipyExpm):
         if self._model is None:
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
-        eom_func = self._model.get_matrix
+        eom_func = self._model.get_value
         eom = eom_func(time_grid) * dt
 
-        us = vmap(self._exponentiate, in_axes=(0,))(eom)
+        us = vmap(ScipyExpmGRAPE._exponentiate, in_axes=(0,))(eom)
 
         psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
@@ -294,10 +294,10 @@ class ScipyExpmGRAPE(ScipyExpm):
         dim = eom.shape[-2]
         if self.is_open:
             psis = jnp.array(psis)
-            psis = vmap(self._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
+            psis = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return jnp.array(psis)
 
-    def __gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
+    def _gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
@@ -305,15 +305,15 @@ class ScipyExpmGRAPE(ScipyExpm):
         if self._model is None:
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
-        eom_func = self._model.get_matrix
-        grad_func = self._model.gradient
+        grad_func = self._model.get_value_and_gradient
 
         dt = time[1] - time[0]
 
         time_grid = time[:-1] + dt / 2
 
-        hams = eom_func(time_grid) * dt
-        dh_dps = jnp.array(grad_func(time_grid)) * dt
+        hams, dh_dps = grad_func(time_grid)
+        hams = hams * dt
+        dh_dps = jnp.array(dh_dps) * dt
 
         u_grads_list = []
         n_params = dh_dps.shape[1]
@@ -321,9 +321,9 @@ class ScipyExpmGRAPE(ScipyExpm):
         dim = hams.shape[-2]
 
         if self._schirmer_derivative:
-            exponentiating_function = self._exponentiate_schirmer
+            exponentiating_function = ScipyExpmGRAPE._exponentiate_schirmer
         else:
-            exponentiating_function = self._exponentiate_frechet
+            exponentiating_function = ScipyExpmGRAPE._exponentiate_frechet
 
         for i in range(n_params):
             us, d_us = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dh_dps[:, i, ...])
@@ -343,7 +343,7 @@ class ScipyExpmGRAPE(ScipyExpm):
         grads = []
         for i in range(n_params):
             grad = vmap(
-                self.__sandwich_op_values, in_axes=(0, 0, 0)
+                ScipyExpmGRAPE._sandwich_op_values, in_axes=(0, 0, 0)
             )(
                 lamdas[1:],
                 u_grads[:, i, ...],  # type: ignore
@@ -354,13 +354,13 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         return psis, jnp.array(grads)
 
-    def __gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
+    def _gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
         raise NotImplementedError(
-            "Currently ScipyExpmGRAPE is not supported for open system optimisation."
+            "Currently ScipyExpmGRAPE is not supported for open system optimization."
             + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
         )
 
-    def gradient(self, time: Array) -> tuple[Array, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and
@@ -371,6 +371,9 @@ class ScipyExpmGRAPE(ScipyExpm):
 
         This propagation method assumes a PWC pulse as input.
         """
+        if len(times) < 2:
+            raise ValueError("ScipyExpmGRAPE.get_value_and_gradient needs at least two time points.")
+
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
@@ -378,8 +381,8 @@ class ScipyExpmGRAPE(ScipyExpm):
             raise ConfigurationException("Target state is not set")
 
         if self.is_open:
-            psis, grads = self.__gradient_open_systems(time)
+            psis, grads = self._gradient_open_systems(times)
         else:
-            psis, grads = self.__gradient_closed_system(time)
+            psis, grads = self._gradient_closed_system(times)
 
         return psis, grads

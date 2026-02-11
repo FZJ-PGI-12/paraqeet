@@ -3,24 +3,24 @@
 import warnings
 from collections.abc import Callable
 
+import jax
 import jax.numpy as jnp
-from paraqeet.quantity import Array, Quantity
 from jax import grad, jit
 
-from paraqeet.measurement.measurement import Measurement
-from paraqeet.propagation.state_propagation import StatePropagation
-
-import jax
+from paraqeet.differentiable import Differentiable
+from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class StateTransferFidelity(Measurement):
+class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     """Fidelity measure that compares overlap of the initial and final state.
 
     Parameters
     ----------
-    propagation : StatePropagation
+    propagation : DifferentiablePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     initial_state : Array
@@ -34,16 +34,14 @@ class StateTransferFidelity(Measurement):
 
     _initial_state: Array
     _target_state: Array
-    _propagation: StatePropagation
+    _propagation: DifferentiablePropagation
 
     def __init__(
         self,
-        propagation: StatePropagation,
+        propagation: DifferentiablePropagation,
         initial_state: Array,
         target_state: Array,
-        times: Array,
     ):
-        super().__init__(times=times)
         self._propagation = propagation
         self._initial_state = initial_state
         self._target_state = target_state
@@ -74,22 +72,33 @@ class StateTransferFidelity(Measurement):
     def _overlap_dm(target_state, final_state):
         return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
-    def measure_normalised_scalar(self) -> float:
-        """Measure overlap between initial and target state.
+    def measure(self, times: Array) -> Array | float:
+        """Return measurement in the range [0, 1]."""
+        return self.calculate_normalized_scalar(times=times)
+
+    def calculate_normalized_scalar(self, times: Array | float) -> float:
+        """Measure overlap between initial and target state. To be used with an optimizer.
+
+        Parameters
+        ----------
+        times : Array
+            One-dimensional vector of timestamps.
 
         Returns
         -------
-        Array
-            Overlap between initial and target state in a JAX ArrayLike format.
+        float
+            Overlap between initial and target state in a bare float.
 
         """
-        states = self._propagation.propagate(time=self._times)
-        states = self._preprocess_vector(states)
+        # TODO: `propagate` needs at least two time points initial and final.
+        # TODO: Does Measurement implement default conversion from times: float -> Array?
+        # TODO: Fix typing
+        states = self._propagation.propagate(time=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
-        return self._fid(f)
+        return StateTransferFidelity._fid(f)
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -98,26 +107,14 @@ class StateTransferFidelity(Measurement):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self._propagation.gradient(time=self._times)
-        states = self._preprocess_vector(states)
-        dg_dp_list = self._preprocess_vector(dg_dp_list)
+        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = self._overlap(self._target_state, dg_dp)
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
-        return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
-
-    def get_parameters(self) -> list[Quantity]:
-        """Get the parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            List of parameters of the system.
-        """
-        return []
+        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
 
 class StateTransferFidelityAD(StateTransferFidelity):
@@ -137,22 +134,21 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
     """
 
-    __gradient_function: Callable | None
+    _gradient_function: Callable | None
 
     def __init__(
         self,
-        propagation: StatePropagation,
+        propagation: DifferentiablePropagation,
         initial_state: Array,
         target_state: Array,
-        times: Array,
     ):
-        super().__init__(propagation, initial_state, target_state, times)
-        self.__gradient_function = None
+        super().__init__(propagation, initial_state, target_state)
+        self._gradient_function = None
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
 
-        Overwrite inherited `measureWithGradient` to calculate
+        Overwrite inherited `measure_with_gradient` to calculate
         gradients using AD.
 
         Returns
@@ -161,30 +157,28 @@ class StateTransferFidelityAD(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        if self.__gradient_function is None:
-            self.__gradient_function = jit(grad(self._fid, argnums=0))
+        if self._gradient_function is None:
+            self._gradient_function = jit(grad(self._fid, argnums=0))
 
-        states, dg_dp_list = self._propagation.gradient(time=self._times)
-        states = self._preprocess_vector(states)
-        dg_dp_list = self._preprocess_vector(dg_dp_list)
+        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(self._target_state, final_state)
         for dg_dp in dg_dp_list[-1]:
             g = self._overlap(self._target_state, dg_dp)
-            dfdp = self.__gradient_function(f) * g
+            dfdp = self._gradient_function(f) * g
             df_dp_list.append(jnp.real(dfdp))
-        return self._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
 
 class StateTransferFidelityGRAPE(StateTransferFidelity):
     """Fidelity measure that compares overlap of the initial and final state.
 
-    For GRAPE the optimisable parameters are vector quantities.
+    For GRAPE the optimizable parameters are vector quantities.
 
     Parameters
     ----------
-    propagation : StatePropagation
+    propagation : DifferentiablePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
     initial_state : Array
@@ -196,9 +190,9 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     """
 
-    _propagation: StatePropagation
+    _propagation: DifferentiablePropagation
 
-    def measure_with_gradient(self) -> tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -207,12 +201,11 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, grads = self._propagation.gradient(time=self._times)
-        states = self._preprocess_vector(states)
+        states, grads = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
         if self._propagation.is_open:
             grads = jnp.real(jnp.linalg.trace(grads)).flatten()
         else:
             grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
-        return self._fid(f), grads  # shape scalar, (n_parameters,)
+        return StateTransferFidelity._fid(f), grads  # shape scalar, (n_parameters,)

@@ -1,35 +1,38 @@
-"""Testing the GOAT optimisation model."""
+"""Testing the GOAT optimization model."""
 
 import numpy as np
 import pytest
 
-from paraqeet.model.open_system import OpenSystem
-from paraqeet.optimisation_map import OptimisationMap
-from paraqeet.quantity import Quantity
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.open_system import OpenSystem
 from paraqeet.model.qubit import Qubit
-from paraqeet.optimisers.scipy_optimiser import ScipyOptimiser
-from paraqeet.optimisers.scipy_optimiser_gradient import ScipyOptimiserGradient
+from paraqeet.optimization_map import OptimizationMap
+from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
+from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
 
 FREQ = 4.327884e9 * 2 * np.pi
 T_FINAL = 13e-9
+
 RES = 100e9
-T1 = Quantity(10e-6, 1e-9, 100e-6)
+T1 = Quantity(10e-6, 1e-6, 100e-6)
 TEMP = Quantity(10e-3, 1e-3, 50e-3)
-T2STAR = Quantity(10e-6, 1e-9, 100e-6)
+T2STAR = Quantity(20e-6, 1e-6, 100e-6)
 
 
 @pytest.fixture
 def tone():
     """Return a cosine tone with a fixed error-function shaped envelope."""
     env = FlatTopGaussianEnvelope()
-    env.t_final.set_value(T_FINAL)
+    env._t_up.set_value(T_FINAL / 5)
+    env._t_down.set_value(4 * T_FINAL / 5)
+    env._ramp_time.set_value(T_FINAL / 10)
     return env
 
 
@@ -53,7 +56,7 @@ def prop(gen, request):
         model = OpenSystem(controlled_qubit)
     elif request.param == "closedSystem":
         model = ClosedSystem(controlled_qubit)
-    return ScipyExpmGOAT(model=model, res=RES)
+    return ScipyExpmGOAT(model=model, resolution=RES)
 
 
 @pytest.fixture
@@ -70,7 +73,6 @@ def states(prop):
         propagation=prop,
         initial_state=init,
         target_state=target,
-        times=np.array([0.0, T_FINAL]),
     )
 
 
@@ -78,71 +80,70 @@ def states(prop):
 def gates(prop):
     """Compare the propagator with a gate via the L2 norm."""
     if prop.is_open:
-        pytest.skip("Gate optimisation is only implemented for closed system.")
+        pytest.skip("Gate optimization is only implemented for closed system.")
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
     prop.set_initial_state(np.identity(2))
     return UnitaryFidelity(
         propagation=prop,
         gate=pauli_x,
-        times=np.array([0.0, T_FINAL]),
     )
 
 
 @pytest.fixture
 def opt_map(gen):
-    """Create an optimisation map."""
+    """Create an optimization map."""
     params = gen.get_parameters()
     params[0].set_value(0.5 * np.pi / T_FINAL)
-    params[2].set_value(1.01 * FREQ)
-    optmap = OptimisationMap()
-    # Not optimizing t_final
-    optmap.add(gen, [params[0], params[2], params[3]])
+    params[-2].set_value(1.01 * FREQ)
+    optmap = OptimizationMap()
+    # Not optimizing t_up, t_down, ramp_time
+    optmap.add(gen, [params[0], params[-2], params[-1]])
     return optmap
 
 
 @pytest.fixture
 def grad_opt(states, opt_map):
-    """Create a scipy optimiser gradient object over states."""
-    return ScipyOptimiserGradient(measure=states, optimisation_map=opt_map)
+    """Create a scipy optimizer gradient object over states."""
+    return ScipyOptimizerGradient(measure=states, optimization_map=opt_map)
 
 
 @pytest.fixture
 def grad_gates_opt(gates, opt_map):
-    """Create a scipy optimiser gradient object over gates."""
-    return ScipyOptimiserGradient(measure=gates, optimisation_map=opt_map)
+    """Create a scipy optimizer gradient object over gates."""
+    return ScipyOptimizerGradient(measure=gates, optimization_map=opt_map)
 
 
 @pytest.fixture
 def opt(states, opt_map):
-    """Create a scipy optimiser object over states."""
-    return ScipyOptimiser(measure=states, optimisation_map=opt_map)
+    """Create a scipy optimizer object over states."""
+    return ScipyOptimizer(measure=states, optimization_map=opt_map)
 
 
 @pytest.fixture
 def gates_opt(gates, opt_map):
-    """Create a scipy optimiser gradient object over gates."""
-    return ScipyOptimiser(measure=gates, optimisation_map=opt_map)
+    """Create a scipy optimizer gradient object over gates."""
+    return ScipyOptimizer(measure=gates, optimization_map=opt_map)
 
 
 def test_optim_finite_diff(opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = opt.optimise()
+    res = opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_goat(grad_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = grad_opt.optimise()
+    res = grad_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_gates_finite_diff(gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = gates_opt.optimise()
+    res = gates_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2
 
 
 def test_optim_goat_gates(grad_gates_opt) -> None:
     """Check that the optimization goes below threshold."""
-    res = grad_gates_opt.optimise()
+    res = grad_gates_opt.optimize(times=T_FINAL)
     assert res.value < 1e-2

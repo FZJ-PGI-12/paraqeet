@@ -1,6 +1,6 @@
-from sphinx_pyproject import SphinxConfig
-
 from importlib.metadata import version
+
+from sphinx_pyproject import SphinxConfig
 
 __version__ = version("paraqeet")
 release = __version__

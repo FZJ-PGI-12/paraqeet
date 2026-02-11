@@ -1,21 +1,25 @@
-"""Class definition of a Drive optimisable model."""
+"""Class definition of a Drive optimizable model."""
 
-from abc import ABC
+from abc import abstractmethod
 
 from jax import vmap
+
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
-from paraqeet.optimisable import Optimisable
 
-
-class Drive(Optimisable, ABC):
+# TODO: Is Drive a Differentiable object? If so, it should inherit from Differentiable at least 
+# for the purpose of clarity and consistency. Would it make sense to add a default 
+# implementation of the abstract Differentiable method get_value_and_gradient?
+# If not, we should rename the methods to e.g. get_hamiltonian_gradient to avoid confusion.
+class Drive(Optimizable):
     """Represents a time-dependent drive on a subsystem.
 
     This can for example be a microwave or flux drive.
 
     """
 
-    def get_matrix(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_value(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -27,7 +31,7 @@ class Drive(Optimisable, ABC):
         ----------
         annihilation_operator : Array
             Operator of the subsystem to which this drive is attached
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -36,15 +40,12 @@ class Drive(Optimisable, ABC):
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        return vmap(self.get_matrix_one_time, in_axes=(None, 0))(annihilation_operator, t)
+        # vmap iterates over the times array and returns float. Not caught by mypy.
+        return vmap(self.get_value_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  # type: ignore
 
-    def get_matrix_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    @abstractmethod
+    def get_value_at_timestep(self, annihilation_operator: Array, t: float) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
@@ -62,15 +63,10 @@ class Drive(Optimisable, ABC):
         Array
             Matrix of shape [n, n]  with `n` as the Hilbert space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
-    def gradient(self, annihilation_operator: Array, t: Array) -> Array:
+    def get_gradient(self, annihilation_operator: Array, times: Array) -> Array:
         """Return the gradient of the system.
 
         Returns the gradient of the matrix representation of the Hamiltonian
@@ -80,7 +76,7 @@ class Drive(Optimisable, ABC):
         ----------
         annihilation_operator : Array
             Operator of the subsystem to which this drive is attached.
-        t: Array
+        times: Array
             Vector of time samples.
 
         Returns
@@ -89,15 +85,13 @@ class Drive(Optimisable, ABC):
             Array of shape [t, p, n, n] with 't' as time, 'p' as number of
             parameters and 'n' as the Hilbert space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
 
         """
-        return vmap(self.gradient_one_time, in_axes=(None, 0))(annihilation_operator, t)
+        # Ignoring mypy here as vmap makes the array to float
+        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  #  type: ignore
 
-    def gradient_one_time(self, annihilation_operator: Array, t: Array) -> Array:
+    @abstractmethod
+    def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
         """Get the one-time gradient of the system.
 
         Returns the gradient of the matrix representation of the
@@ -107,7 +101,7 @@ class Drive(Optimisable, ABC):
         ----------
         annihilation_operator : Array
             Operator of the subsystem to which this drive is attached.
-        t: float
+        timestep: float
             One time step.
 
         Returns
@@ -116,13 +110,8 @@ class Drive(Optimisable, ABC):
             Array of shape [p, n, n] with 'p' as the number
             of parameters and 'n' as the  Hilbert space dimension.
 
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
         """
-        raise NotImplementedError()
+        pass
 
     @staticmethod
     def _repeat(mat: Array, num: int) -> Array:
