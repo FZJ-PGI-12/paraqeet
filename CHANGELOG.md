@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v0.11.0]
+## [v0.11.0] - 2026-02-11
 
 ### Added
 - Base classes derive from ABC. 
@@ -48,6 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First release.
 
 
-[unreleased]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/compare/v0.9.1...100-clean-up-inheritance?from_project_id=7369
-[v0.10.0]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/compare/v0.9.1...main?from_project_id=7369
+[v0.11.0]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.11.0?ref_type=tags
+[v0.10.0]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.10.0?ref_type=tags
 [v0.9.1]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.9.1?ref_type=tags
