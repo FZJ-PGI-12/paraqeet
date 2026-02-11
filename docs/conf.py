@@ -28,7 +28,12 @@ exclude_patterns = ["**.ipynb_checkpoints"]
 html_theme = "pydata_sphinx_theme"
 
 html_theme_options = {
-    "logo": {"image": "../logo.png"},
+    "logo": {
+        "alt_text": "ParaQeet",
+        "text": "ParaQeet",
+        "image_light": "../logo.png",
+        "image_dark": "../logo.png",
+    },
     "gitlab_url": "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet",
     "show_nav_level": 1,
     "show_toc_level": 1,
