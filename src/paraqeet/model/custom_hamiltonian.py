@@ -24,9 +24,9 @@ class CustomHamiltonian(DifferentiableHamiltonian):
     it takes a single time point (scalar) as input and returns  a jax array of dimensions [n, n].
 
     Additionally, to optimize the parameters, one needs to pass a list of
-    gradient functions correspoding to each parameter, in the same order as the parameter list.
+    gradient functions corresponding to each parameter, in the same order as the parameter list.
 
-    To use open system simulation, provide a list of tuples of decay rates and corresponding collapse opearators.
+    To use open system simulation, provide a list of tuples of decay rates and corresponding collapse operators.
     """
 
     _hamiltonian_function: Callable[[Array, Any], Array] | Callable[[float, Any], Array]
@@ -95,7 +95,7 @@ class CustomHamiltonian(DifferentiableHamiltonian):
         if len(self.gradient_functions) != len(params):
             raise ConfigurationException(
                 f"Got {len(params)} parameters but got {len(self.gradient_functions)}. "
-                + "Provide gradient methods for all the input paramters"
+                + "Provide gradient methods for all the input parameters"
             )
         grads = jnp.array([grad_func(timestep, *params) for grad_func in self.gradient_functions])
         return grads

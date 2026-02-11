@@ -39,7 +39,7 @@ class Euler(Propagation):
         return []
 
     def propagate(self, time: Array) -> Array:
-        """Calulate the first order Euler propagation.
+        """Calculate the first order Euler propagation.
 
         Performs the actual propagation calculation.
 

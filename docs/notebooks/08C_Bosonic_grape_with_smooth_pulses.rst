@@ -141,7 +141,7 @@ numbers.
 
     def create_experiment(n_fock_truncation_list, fock_target):
         """
-        Create the inital and target states, for the given Fock numbers.
+        Create the initial and target states, for the given Fock numbers.
         Also create the propagations and measurements for the given truncation numbers and target Fock states.
         """
         resonator_list = []
@@ -363,7 +363,7 @@ be the parameters of the ``DCRABEnvelope`` tone.
 
 
 
-Furhter, we can write the optmization progress into a log file, which we
+Further, we can write the optimization progress into a log file, which we
 can later use to plot the infidelity vs function evaluation.
 
 .. code:: ipython3
@@ -633,7 +633,7 @@ see an improvement.
 
 We can also compare the dynamics with the higher truncation number.
 Ideally, if the pulse amplitude is not high enough to produce artifacts
-due to the truncation of Hilbert space, the dyanmics in the two cases
+due to the truncation of Hilbert space, the dynamics in the two cases
 should match each other. Else one needs to either reduce the pulse
 amplitude or increase the truncation cutoff.
 
@@ -677,11 +677,11 @@ Finally, lets plot the variation of infidelity with evaluation number.
 .. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_33_0.png
 
 
-Setting trunction to higher value
+Setting truncation to higher value
 ---------------------------------
 
 Here we set the truncation values to 30 and 31 levels for a more
-realistic simualtion and rerun the entire simulation.
+realistic simulation and rerun the entire simulation.
 
 *Note - The following takes about 60 mins to run on an AMD-EPYC Milan
 processor with 128 cores and 256GB RAM (might take more depending on the
@@ -865,7 +865,7 @@ Initial fidelity before optimization
 
 
 
-Redefine the optmap and the optmizer and rerun the optimization
+Redefine the optmap and the optimizer and rerun the optimization
 
 .. code:: ipython3
 
@@ -1540,7 +1540,7 @@ And the new fidelities are
 Here the dynamics and the fidelities are very similar to one another,
 indicating no truncation artifacts.
 
-Lets plot the optimized pulses and dyanmics
+Lets plot the optimized pulses and dynamics
 
 .. code:: ipython3
 

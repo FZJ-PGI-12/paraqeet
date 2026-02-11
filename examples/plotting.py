@@ -63,10 +63,10 @@ def plot_signal_and_dynamics(
     linewidth: float = 1.5,
     marker: str = "",
 ):
-    """Plot the signal and the correspoding dynamics.
+    """Plot the signal and the corresponding dynamics.
 
     If fig or ax is provided then ax[0] is used to plot the signal and ax[1] for dynamics.
-    This can be used to plot multiple signals and dyanmics on the same plot.
+    This can be used to plot multiple signals and dynamics on the same plot.
     """
 
     def calculate_populations(states, dm=False):

@@ -22,7 +22,7 @@ First, we make the necessary imports.
 1. Define the Gaussian Tone and put into the DRAGMixer
 ------------------------------------------------------
 
-The GaussTone explicitely allows for the evaluation of an envelope
+The GaussTone explicitly allows for the evaluation of an envelope
 signal and its time derivative which is then used to calculate the DRAG
 corrected signal in the DRAGMixer
 

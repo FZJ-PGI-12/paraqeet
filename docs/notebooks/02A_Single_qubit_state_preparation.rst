@@ -119,7 +119,7 @@ default to :math:`32 \, \mathrm{ns}`. This is not necessarily the
 simulation time, which is another parameter of our choice called
 ``t_simu`` in this case.
 
-Next, we select a propagation method, piecewise constant exponentation,
+Next, we select a propagation method, piecewise constant exponentiation,
 and configure a state transfer problem from :math:`\ket{0}` to
 :math:`\ket{1}`.
 
@@ -237,7 +237,7 @@ want to optimize, which can be accessed via the optmap as
     [Amplitude: 40 MHz x 2pi, lo_freq: 4.85 GHz x 2pi]
 
 
-We can now run the optmization as
+We can now run the optimization as
 
 .. code:: ipython3
 

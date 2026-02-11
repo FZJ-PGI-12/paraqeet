@@ -205,7 +205,7 @@ numbers.
 
     def create_experiment(n_fock_truncation_list, fock_target):
         """
-        Create the inital and target states, for the given Fock numbers.
+        Create the initial and target states, for the given Fock numbers.
         Also create the propagations and measurements for the given truncation numbers and target Fock states.
         """
         resonator_list = []

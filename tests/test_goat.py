@@ -47,7 +47,7 @@ def gen(tone):
 def prop(gen, request):
     """Solve the equation of motion.
 
-    By piecewise exponentation with the scipy package.
+    By piecewise exponentiation with the scipy package.
 
     """
     drive = DriveOperator(gen, is_longitudinal=False)

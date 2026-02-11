@@ -105,7 +105,7 @@ optimization procedure.
     params_gen[0].set_value(0.5 * np.pi / t_simu)
     params_gen[2].set_value(1.01 * freq)
 
-We select a propagation method, piecewise constant exponentation, and
+We select a propagation method, piecewise constant exponentiation, and
 configure an :math:`X`-gate as a target gate. Also we initialize the
 identity at time :math:`0`.
 
@@ -238,7 +238,7 @@ information to identify the problem.
 .. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_25_1.png
 
 
-Instead, we look at the expecation values of the three Pauli operators
+Instead, we look at the expectation values of the three Pauli operators
 and observe that the qubit is rotating at its eigenfrequency along the
 Z-axis. We can mitigate this problem by allowing the rotation axis of
 our drive to shift and include the phase parameter in the optimization.

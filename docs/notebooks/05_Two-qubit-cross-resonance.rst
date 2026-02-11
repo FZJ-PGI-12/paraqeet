@@ -27,10 +27,10 @@ Gradient-based optimization of a cross-resonance gate between two transmons
 System Setup
 ------------
 
-The sytem consists of two coupled transmons with three levels each. We
+The system consists of two coupled transmons with three levels each. We
 fix the transmon frequency and anharmonicity to values that don’t have
 any unwanted frequency collisions. The coupling strength is fixed as
-well. These parameters have to be specified as Quantites with a range,
+well. These parameters have to be specified as Quantities with a range,
 but we will not pass them to the optimized in order to keep them fixed.
 Additionally, the first transmon is driven at the frequency of the
 second one to apply a cross-resonance (CR) gate. The second transmon is
@@ -249,7 +249,7 @@ idling.
 Computing the gate fidelity
 ---------------------------
 
-We select a propagation method, piecewise constant exponentation, and
+We select a propagation method, piecewise constant exponentiation, and
 configure CR as a target gate.
 
 .. code:: ipython3

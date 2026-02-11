@@ -15,10 +15,10 @@ In this example we demonstrate how a custom Hamiltonian function
 ---------------------------------------------------------------------
 
 Define a Hamiltonian as a function of time and optimizable parameters.
-The optimizable paramter need to be of the type ``pq.Quantity``.
+The optimizable parameter need to be of the type ``pq.Quantity``.
 
 Here we define a two level system (TLS) Hamiltonian, with a cosine drive
-(with optimizable paramters Amplitude and Frequency).
+(with optimizable parameters Amplitude and Frequency).
 
 .. code:: ipython3
 

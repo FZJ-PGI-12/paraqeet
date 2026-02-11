@@ -26,7 +26,7 @@ class OpenSystem(EquationOfMotion):
     sparse_superop: bool
         Flag to save superoperator as sparse matrices.
     ode_propagation: bool
-        Flag to use ODE methods for propgation.
+        Flag to use ODE methods for propagation.
         If `true` then `get_value` method returns list of Hamiltonian (with time) and collapse operator.
         Else returns Lindblad superoperator.
     """
@@ -105,7 +105,7 @@ class OpenSystem(EquationOfMotion):
 
     def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, list[Array]]:
         """
-        Return the coherent and incoherent EOM parts seperately.
+        Return the coherent and incoherent EOM parts separately.
         Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
         and the incoherent part is a list of collapse operators
 

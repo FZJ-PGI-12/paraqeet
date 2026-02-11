@@ -74,7 +74,7 @@ class OptimizationMap:
     ):
         """Append an optimizable object and a list of its quantities to the map.
 
-        This method is similar to the `add` method, but instead of overwritting the
+        This method is similar to the `add` method, but instead of overwriting the
         existing entries, this appends the specified list of quantities to the
         already existing quantities.
 
@@ -111,7 +111,7 @@ class OptimizationMap:
         ----------
         optimizable: optimizable
             optimizable to be removed.
-        params: Quantity | list[Quanitity] | None.
+        params: Quantity | list[Quantity] | None.
             Parameter(s) to be removed from the optimization map. If None removes the optimizable.
 
         """

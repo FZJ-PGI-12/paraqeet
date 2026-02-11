@@ -78,7 +78,7 @@ optimization procedure.
     params_gen[0].set_value(0.5 * np.pi / t_simu)
     params_gen[2].set_value(1.01 * freq)
 
-We select a propagation method, piecewise constant exponentation, and
+We select a propagation method, piecewise constant exponentiation, and
 configure an :math:`X`-gate as a target gate. Also we initialize the
 identity at time :math:`0`.
 

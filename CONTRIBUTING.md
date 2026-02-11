@@ -9,7 +9,7 @@ source venv/bin/activate
 pip install -e .[dev]
 ```
 
-# Commiting changes
+# Committing changes
 
 Setup pre-commit hooks
 
@@ -63,6 +63,6 @@ pre-commit install
 - At the time of release change the `Unrelease` to the version number.
 - Add version number with a v. E.g., v0.1.0 .
 - Avoid dumping git log into the changelog.
-- Add a comparision link at the end of the document.
+- Add a comparison link at the end of the document.
 - Add date in the year-month-day format
 - Follow the https://keepachangelog.com/en/1.1.0/ guide for details about formatting.

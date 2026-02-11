@@ -81,7 +81,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         col,
         steps_arr,
     ):
-        """Forward propagate inital state and backward propagate target state.
+        """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
@@ -170,7 +170,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
                     "Propagation resolution has been set very low. Higher resolution needed for this method."
                 )
 
-            # TODO: currently seperate time grids are required for the EOM and the gradients.
+            # TODO: currently separate time grids are required for the EOM and the gradients.
             # TODO: Can we use one so that the value and gradients are computed simultaneously?
 
             eom, cols = eom_func(times_interp)

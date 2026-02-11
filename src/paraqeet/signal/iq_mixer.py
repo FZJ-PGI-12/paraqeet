@@ -10,7 +10,7 @@ from paraqeet.signal.waveform import LocalOscillator, Waveform
 class IQMixer(Generator):
     """Control signal generation.
 
-    Waveforms of envelopes (low bandwith) are mixed with a local oscillator
+    Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired control field to the system.
 
     Parameters
@@ -80,7 +80,7 @@ class IQMixer(Generator):
     def _complex_signal(self, times: Array | float) -> Array:
         """Generate a signal for time(s).
 
-        Doesnt take real value now for ease of gradient computation.
+        Doesn't take real value now for ease of gradient computation.
 
         Parameters
         ----------
@@ -122,24 +122,24 @@ class IQMixer(Generator):
         Since the
 
         .. math::
-            signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
+            signal = \Re(\epsilon(t)^*  \exp(i \omega t)  \exp(-i \phi))
 
         Derivative of the signal wrt optimizable parameter of envelope would be
 
         .. math::
-            0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+            0.5 * \Re(\partial \epsilon(t)^* \exp(i \omega t)  \exp(-i \phi))
 
         (TODO - Check the envelope derivatives)
 
         And derivative of signal wrt parameter of LO would be
 
         .. math::
-            0.5 i t \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+            0.5 i t \epsilon(t)^* \exp(i \omega t)  \exp(-i \phi))
 
         And derivative of signal wrt phase would be
 
         .. math::
-            -0.5 i \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+            -0.5 i \epsilon(t)^* \exp(i \omega t)  \exp(-i \phi))
 
         The 0.5 are due to the Wirtinger derivatives due to Re part.
 
@@ -191,24 +191,24 @@ class IQMixer(Generator):
         Since the
 
         .. math::
-            signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
+            signal = \Re(\epsilon(t)^*  \exp(i \omega t)  \exp(-i \phi))
 
         Derivative of the signal wrt optimizable parameter of envelope would be
 
         .. math::
-            0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+            0.5 * \Re(\partial \epsilon(t)^* \exp(i \omega t)  \exp(-i \phi))
 
         (TODO - Check the envelope derivatives)
 
         And derivative of signal wrt parameter of LO would be
 
         .. math::
-            0.5 i t \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+            0.5 i t \epsilon(t)^* \exp(i \omega t)  \exp(-i \phi))
 
         And derivative of signal wrt phase would be
 
         .. math::
-            -0.5 i \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
+            -0.5 i \epsilon(t)^* \exp(i \omega t)  \exp(-i \phi))
 
         The 0.5 are due to the Wirtinger derivatives due to Re part.
 

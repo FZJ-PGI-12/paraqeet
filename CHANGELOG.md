@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Base classes derive from ABC. 
 - Force classes to implement abstractmethods.
 - Base class Differentiable for classes that provide gradients.
-- Mixed derivative evalution in Waveform to fix DRAG gradients.
+- Mixed derivative evaluation in Waveform to fix DRAG gradients.
 - Add a CHANGELOG
 
 ### Changed
@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Extends the GOAToverGRAPE method to support mutiple generators
+- Extends the GOAToverGRAPE method to support multiple generators
 
 
 ## [v0.9.1] - 2025-07-03

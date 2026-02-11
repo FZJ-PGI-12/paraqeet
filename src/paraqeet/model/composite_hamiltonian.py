@@ -131,7 +131,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
     def get_gradient_at_timestep(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
-        Collects the gradients from every subsytem and coupling and constructs
+        Collects the gradients from every subsystem and coupling and constructs
         the matrix in the dimension of the composite system.
 
         Parameters
@@ -178,9 +178,11 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         r"""Put the matrices mat_list into a tensor product at positions `n`.
 
         All other positions are identity matrices:
+
         .. math::
-            1 \\otimes \\dots \\otimes 1 \\otimes mat_list_1 \\otimes 1
-                \\otimes \\dots \\otimes 1 \\otimes mat_list_2 \\dots
+            1 \otimes \dots \otimes 1 \otimes mat_list_1 \otimes 1
+                \otimes \dots \otimes 1 \otimes mat_list_2 \dots
+
         The dimensions are assumed to be the same as the subsystems.
 
         Parameters

@@ -19,7 +19,7 @@ jax.config.update("jax_enable_x64", True)
 class ScipyExpm(Propagation):
     """Piecewise matrix exponential propagation system.
 
-    Solve the equation of motion by piecewise exponentation with the
+    Solve the equation of motion by piecewise exponentiation with the
     Scipy package.
 
     Parameters
@@ -80,7 +80,7 @@ class ScipyExpm(Propagation):
 
                     # check if it is a list of vectorized density matrices
                     elif state.shape[-1] == dim_generator:
-                        # This is an egde case with batch dimension = n, where n is Hilbert space dimension
+                        # This is an edge case with batch dimension = n, where n is Hilbert space dimension
                         state = jnp.expand_dims(state, -1)
 
                     else:
@@ -95,7 +95,7 @@ class ScipyExpm(Propagation):
                     # vectorized density matrix or a list of vectorized density matrix
                     if state.shape[-1] == state.shape[-2]:
                         # list of vectorized density matrices
-                        # This is an egde case: batch dimension = n^2, where n is Hilbert space dimension
+                        # This is an edge case: batch dimension = n^2, where n is Hilbert space dimension
                         state = jnp.expand_dims(state, -1)
 
                     elif state.shape[-1] == 1:

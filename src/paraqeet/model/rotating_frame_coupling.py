@@ -24,7 +24,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
     coefficient: Quantity
         Constant drive coefficient.
     diffFreq: Quantity
-        Diffrence of drive frequencies for multiple subsystems.
+        Difference of drive frequencies for multiple subsystems.
     """
 
     _subsystem_A: DifferentiableHamiltonian
@@ -57,7 +57,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         return [self._coefficient, self._diff_freq]
 
     def _coupling_operators(self) -> list[Array]:
-        """Return the annhilation operator. Special implementation for two subsystems."""
+        """Return the annihilation operator. Special implementation for two subsystems."""
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")
         dim = self.subsystem_A.dimension()

@@ -279,7 +279,7 @@ coefficients for the optimization.
 
 As the parameters are added with random values, the optimization may not
 succeed sometimes. If it does not reach a low value restart the
-optimization. Here, we have choosen a seed that converges to the target
+optimization. Here, we have chosen a seed that converges to the target
 fidelity.
 
 .. code:: ipython3
