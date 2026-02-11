@@ -7,7 +7,8 @@ from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
-# TODO: Does a differantiable propagation make sense physically? Should we rather have 
+
+# TODO: Does a differantiable propagation make sense physically? Should we rather have
 # differantiable models and use composition instead?
 class DifferentiablePropagation(Propagation, Differentiable):
     """Propagation methods that provide a get_value_and_gradient method.
