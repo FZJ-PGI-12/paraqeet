@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.model.system import System
 from paraqeet.quantity import Array, Quantity
 
 
-class EmptyHamiltonian(Hamiltonian):
+class EmptySystem(System):
     """A Hamiltonian that is filled with zeros for all time steps.
 
     Parameters

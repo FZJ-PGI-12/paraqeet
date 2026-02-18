@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.propagation.runge_kutta import RungeKutta
 from tests.model.dummy_model import DummyEquationsOfMotion
-from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import needs_initial_state
 
 
@@ -14,7 +14,7 @@ def rk():
     """Return a Runge-Kutta model generating method."""
 
     def _method(dimension):
-        return RungeKutta(DummyEquationsOfMotion(EmptyHamiltonian(dimension)))
+        return RungeKutta(DummyEquationsOfMotion(EmptySystem(dimension)))
 
     return _method
 

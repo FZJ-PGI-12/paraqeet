@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 from tests.model.dummy_model import DummyEquationsOfMotion
-from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import needs_initial_state
 
 
@@ -14,7 +14,7 @@ def expm():
     """Return a Scipy piecewise exponentiation solver generating function."""
 
     def _method(dimension, resolution):
-        return ScipyExpmGOAT(DummyEquationsOfMotion(EmptyHamiltonian(dimension)), resolution=resolution)
+        return ScipyExpmGOAT(DummyEquationsOfMotion(EmptySystem(dimension)), resolution=resolution)
 
     return _method
 

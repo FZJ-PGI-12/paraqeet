@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.propagation.euler import Euler
 from tests.model.dummy_model import DummyEquationsOfMotion
-from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import needs_initial_state
 
 
@@ -14,7 +14,7 @@ def euler():
     """Return a Euler propagation model generating method."""
 
     def _method(dimension):
-        return Euler(DummyEquationsOfMotion(EmptyHamiltonian(dimension)))
+        return Euler(DummyEquationsOfMotion(EmptySystem(dimension)))
 
     return _method
 

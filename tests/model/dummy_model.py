@@ -13,8 +13,8 @@ class DummyEquationsOfMotion(EquationOfMotion):
         Class object for a matrix representation of a Hamiltonian.
     """
 
-    def __init__(self, hamiltonian):
-        super().__init__(hamiltonian)
+    def __init__(self, system):
+        super().__init__(system)
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the system.
@@ -27,7 +27,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
         """
         return []
 
-    def get_value(self, t: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Get the matrix representation of the equations of motion.
 
         Parameters
@@ -41,7 +41,7 @@ class DummyEquationsOfMotion(EquationOfMotion):
             Returns the matrix equations of motion.
 
         """
-        return -1.0j * self._hamiltonian.get_value(t)
+        return -1.0j * self._solvable.get_value(times)
 
     def get_value_and_gradient(self, times) -> Array:
         """Compute the gradient of get_value.
@@ -52,4 +52,4 @@ class DummyEquationsOfMotion(EquationOfMotion):
             One-dimensional vector of timestamps.
 
         """
-        return -1.0j * self._hamiltonian.get_gradient_at_timestep(times)
+        return -1.0j * self._solvable.get_gradient_at_timestep(times)

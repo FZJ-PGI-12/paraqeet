@@ -11,7 +11,7 @@ from paraqeet.differentiable import Differentiable
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array, Quantity
 from tests.model.dummy_model import DummyEquationsOfMotion
-from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.empty_hamiltonian import EmptySystem
 
 
 class RandomPropagation(Propagation, Differentiable):
@@ -41,7 +41,7 @@ class RandomPropagation(Propagation, Differentiable):
         generate_matrices: bool = False,
         auto_update: bool = True,
     ):
-        super().__init__(DummyEquationsOfMotion(EmptyHamiltonian(0)), 1e9)
+        super().__init__(DummyEquationsOfMotion(EmptySystem(0)), 1e9)
         self._dimension = dimension
         self._create_matrices = generate_matrices
         self._auto_update = auto_update

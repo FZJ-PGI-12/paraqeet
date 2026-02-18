@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from tests.model.dummy_model import DummyEquationsOfMotion
-from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import needs_initial_state
 
 
@@ -14,7 +14,7 @@ def expm():
     """Return a Scipy piecewise exponentitation solver generating method."""
 
     def _method(dimension, resolution):
-        return ScipyExpm(DummyEquationsOfMotion(EmptyHamiltonian(dimension)), resolution=resolution)
+        return ScipyExpm(DummyEquationsOfMotion(EmptySystem(dimension)), resolution=resolution)
 
     return _method
 
