@@ -7,12 +7,12 @@ from jax import jit, vmap
 from jax.experimental.sparse import BCOO
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.model.solvable import Solvable
 from paraqeet.quantity import Array, Quantity
 
 
-class OpenSystem(EquationOfMotion):
+class MasterEquation(EquationOfMotion):
     """
     Model of an open quantum system, defined by the Hamiltonian and collapse operators.
     Its dynamics given by the Lindblad master equation.
@@ -34,15 +34,15 @@ class OpenSystem(EquationOfMotion):
     _ode_propagation: bool
     _sparse_superop: bool
     _get_value_method: Callable
-    _hamiltonian: DifferentiableHamiltonian
+    _solvable: Solvable
 
     def __init__(
         self,
-        hamiltonian: DifferentiableHamiltonian,
+        solvable: Solvable,
         sparse_superop: bool = False,
         ode_propagation: bool = False,
     ):
-        self._hamiltonian = hamiltonian
+        self._solvable = solvable
         self._sparse_superop = sparse_superop
         self.ode_propagation = ode_propagation
 
@@ -81,17 +81,6 @@ class OpenSystem(EquationOfMotion):
         else:
             self._get_value_method = vmap(self._create_lindbladian_superop)
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimizable parameters.
-
-        Returns
-        -------
-        list[Quantity]
-            list of optimizable parameters of the system.
-
-        """
-        return self._hamiltonian.get_parameters()
-
     def get_collapseops(self) -> list[tuple[Array, Array]]:
         """Get a list of tuples of decay rates and collapse operators for each subsystem.
 
@@ -101,7 +90,7 @@ class OpenSystem(EquationOfMotion):
             list of collapse operators
 
         """
-        return self._hamiltonian.get_collapseops()
+        return self._solvable.get_collapseops()
 
     def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, list[Array]]:
         """
@@ -119,15 +108,15 @@ class OpenSystem(EquationOfMotion):
         tuple[Array, Array]
              Hamiltonian EOM ([t, N, N] matrix) and the `m` collapse operators ([m, N^2, N^2] matrix)
         """
-        ham_eom = self._hamiltonian.get_value(times)
+        ham_eom = self._solvable.get_value(times)
         rates_and_cols = self.get_collapseops()
         cols: list[Array] = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
         return -1j * ham_eom, cols
 
     def _create_hamiltonian_superop(self, t) -> Array | BCOO:
         """Create the Hamiltonian superoperator for one time point `t`."""
-        identityop = jnp.eye(self._hamiltonian.dimension())
-        ham = self._hamiltonian.get_value_at_timestep(t)
+        identityop = jnp.eye(self._solvable.dimension())
+        ham = self._solvable.get_value_at_timestep(t)
         superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
         if self.sparse_superop:
             return BCOO.fromdense(superop)
@@ -135,10 +124,10 @@ class OpenSystem(EquationOfMotion):
 
     def _create_collapse_superop(self) -> Array | BCOO:
         """Create the superoperator due to the collapse part. This is time independent."""
-        dim = self._hamiltonian.dimension()
+        dim = self._solvable.dimension()
         identityop = jnp.eye(dim)
         superop = jnp.zeros((dim**2, dim**2), dtype=jnp.float64)
-        rates_and_cols = self._hamiltonian.get_collapseops()
+        rates_and_cols = self.get_collapseops()
         for rate, col in rates_and_cols:
             superop += rate * jnp.kron(col.conj(), col)
             superop -= rate * jnp.kron(jnp.matmul(col.T, col.conj()), identityop) / 2
@@ -180,20 +169,20 @@ class OpenSystem(EquationOfMotion):
 
     def _create_hamiltonian_grad_superop(self, timestep: float):
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
-        identityop = jnp.eye(self._hamiltonian.dimension())
-        ham_grad = self._hamiltonian.get_gradient_at_timestep(timestep)
-        term1 = -1j * vmap(OpenSystem._kron, in_axes=(None, 0))(identityop, ham_grad)
-        term2 = 1j * vmap(OpenSystem._kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
+        identityop = jnp.eye(self._solvable.dimension())
+        ham_grad = self._solvable.get_gradient_at_timestep(timestep)
+        term1 = -1j * vmap(MasterEquation._kron, in_axes=(None, 0))(identityop, ham_grad)
+        term2 = 1j * vmap(MasterEquation._kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
         superop = term1 + term2
         return superop
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute the gradient of get_value."""
         # TODO: What to do if Hamiltonian is not differentiable?
-        if isinstance(self._hamiltonian, Differentiable):
+        if isinstance(self._solvable, Differentiable):
             if self.ode_propagation:
                 # TODO: Can the eom be obtained without calling the get_value method?
-                _, grads = self._hamiltonian.get_value_and_gradient(times)
+                _, grads = self._solvable.get_value_and_gradient(times)
                 eom = self._get_value_method(times)
                 grads = -1j * grads
             else:

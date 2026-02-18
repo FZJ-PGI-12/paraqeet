@@ -10,7 +10,7 @@ from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
 
-class Hamiltonian(Optimizable):
+class System(Optimizable):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines
@@ -42,7 +42,7 @@ class Hamiltonian(Optimizable):
         """
         pass
 
-    def get_value(self, times: Array) -> Array:
+    def get_hamiltonian(self, times: Array) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         The default implementation calls get_value_at_timestep for each time step.
@@ -62,10 +62,10 @@ class Hamiltonian(Optimizable):
 
         """
         # Ignoring mypy due to vmap
-        return jnp.array(vmap(self.get_value_at_timestep)(times))  # type: ignore
+        return jnp.array(vmap(self.get_hamiltonian_at_timestep)(times))  # type: ignore
 
     @abstractmethod
-    def get_value_at_timestep(self, timestep: float) -> Array:
+    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
@@ -81,6 +81,16 @@ class Hamiltonian(Optimizable):
 
         """
         pass
+
+    @abstractmethod
+    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
+        """Compute the gradient of this Hamiltonian wrt to parameters for a single timestep."""
+        pass
+
+    def get_hamiltonian_and_gradient(self, times: Array) -> tuple[Array, Array]:
+        """Compute value and gradient for given timesteps. The gradient call uses vmap over at_timestep methods."""
+        # ignoring mypy due to vmap
+        return self.get_hamiltonian(times), vmap(self.get_hamiltonian_gradient_at_timestep)(times)  # type: ignore
 
     @property
     def drives(self) -> list[Drive]:
@@ -219,28 +229,9 @@ class Hamiltonian(Optimizable):
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 
-    @staticmethod
-    def _repeat(mat: Array, num: int) -> Array:
-        """Repeat the matrix across time steps.
 
-        Utility function that repeats the matrix mat for each timestep
-        in the `num` array. Returns an array with shape [t, n, m] where
-        't' is the number of time steps and 'mat' is an 'n' times 'm' matrix.
-
-        Parameters
-        ----------
-        mat: Array
-            Matrix for repetition.
-        num: int
-            Number of repetitions.
-
-        Returns
-        -------
-        Array
-            Repeated matrix for each time step specified.
-
-        """
-        return mat.reshape((1,) + mat.shape).repeat(num, axis=0)
+class OpenSystem(System):
+    """System description that adds collapse operators for the simulation of dissipation, etc."""
 
     @abstractmethod
     def get_collapseops(self) -> list[tuple[Array, Array]]:

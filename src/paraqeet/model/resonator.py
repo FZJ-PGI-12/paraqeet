@@ -4,15 +4,14 @@ import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.drive import Drive
+from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
-# TODO: Why is a resonator a Hamiltonian? Isn't a resonator a quantum system which has a Hamiltonian
-#  as a property? What does “derivative of a resonator” mean physically?
-class Resonator(DifferentiableHamiltonian):
+
+class Resonator(OpenSystem):
     """Hamiltonian of a harmonic oscillator.
 
     The only optimizable parameter is the frequency.
@@ -110,7 +109,7 @@ class Resonator(DifferentiableHamiltonian):
         """
         return self._get_drive_parameters() + [self._frequency]
 
-    def get_value_at_timestep(self, timestep: float) -> Array:
+    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters

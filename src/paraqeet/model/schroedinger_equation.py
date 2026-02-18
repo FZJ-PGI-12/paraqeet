@@ -4,12 +4,12 @@ from collections.abc import Callable
 
 import jax.numpy as jnp
 
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.model.solvable import Solvable
 from paraqeet.quantity import Array, Quantity
 
 
-class ClosedSystem(EquationOfMotion):
+class SchroedingerEquation(EquationOfMotion):
     """Model of a closed physical system, defined by a Hamiltonian.
 
     Its dynamics is given by the Schrödinger equation.
@@ -23,8 +23,8 @@ class ClosedSystem(EquationOfMotion):
 
     _get_value_method: Callable
 
-    def __init__(self, hamiltonian: DifferentiableHamiltonian, ode_propagation: bool = False):
-        super().__init__(hamiltonian)
+    def __init__(self, solvable: Solvable, ode_propagation: bool = False):
+        super().__init__(solvable)
         self.ode_propagation = ode_propagation
 
     @property
@@ -47,17 +47,6 @@ class ClosedSystem(EquationOfMotion):
         else:
             self._get_value_method = self._get_eom
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get a list of optimizable parameters.
-
-        Returns
-        -------
-        List[Quantity]
-            List of optimizable parameters of the system.
-
-        """
-        return self._hamiltonian.get_parameters()
-
     def _get_eom(self, times: Array) -> Array:
         """Get the matrix equations of motion.
 
@@ -77,14 +66,14 @@ class ClosedSystem(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._hamiltonian.get_value(times)
+        return -1.0j * self._solvable.get_value(times)
 
     def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
         """Get the matrix equations of motion for ODE solver.
 
         Here we return an empty array for the collapse operator.
         """
-        return -1.0j * self._hamiltonian.get_value(times), jnp.empty((1,), dtype=jnp.complex128)
+        return -1.0j * self._solvable.get_value(times), jnp.empty((1,), dtype=jnp.complex128)
 
     def get_value(self, times: Array):
         """Get the matrix equations of motion.
@@ -121,5 +110,5 @@ class ClosedSystem(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        eom, eom_gradient = self._hamiltonian.get_value_and_gradient(times)
+        eom, eom_gradient = self._solvable.get_value_and_gradient(times)
         return -1.0j * eom, -1.0j * eom_gradient

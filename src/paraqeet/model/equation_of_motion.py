@@ -1,13 +1,12 @@
 """Class definition of the optimizable model."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
-from paraqeet.optimizable import Optimizable
+from paraqeet.model.solvable import Solvable
 from paraqeet.quantity import Array
 
 
-class EquationOfMotion(Optimizable):
+class EquationOfMotion(ABC):
     """Represents the equation of motion for a given Hamiltonian.
 
     Implementations can for example be the Schrödinger equation for a
@@ -21,33 +20,13 @@ class EquationOfMotion(Optimizable):
 
     """
 
-    _hamiltonian: DifferentiableHamiltonian
+    _solvable: Solvable
     # TODO: this is the first "public" variable used without the property-decorator.
     # Should we add a property for it?
     ode_propagation: bool = False
 
-    def __init__(self, hamiltonian: DifferentiableHamiltonian):
-        self._hamiltonian = hamiltonian
-
-    def get_right_hand_side(self, time: Array, state: Array) -> Array:
-        """Return the right-hand side of the equations of motion.
-
-        The format depends on the implementation and could for example
-        be a state vector or a matrix. Default implementation assumes a
-        homogeneous ODE with matrix operator given by self.getMatrix().
-
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            The right-hand side of the equation of motion at each time stamp.
-
-        """
-        return self.get_value(time) @ state
+    def __init__(self, solvable: Solvable):
+        self._solvable = solvable
 
     @abstractmethod
     def get_value(self, times: Array) -> Array:

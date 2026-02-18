@@ -6,11 +6,12 @@ import numpy as np
 
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
+from paraqeet.model.solvable import Solvable
+from paraqeet.model.system import OpenSystem, System
 from paraqeet.quantity import Array, Quantity
 
 
-class CompositeHamiltonian(DifferentiableHamiltonian):
+class CompositeSystem(Solvable):
     """A hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.
@@ -25,14 +26,14 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         List of couplings between the various subsystems
     """
 
-    _subsystems: list[DifferentiableHamiltonian]
+    _subsystems: list[System]
     _couplings: list[TwoBodyCoupling]
     _dimensions: list[int]
     _total_dimension: int
 
     def __init__(
         self,
-        subsystems: list[DifferentiableHamiltonian],
+        subsystems: list[System],
         couplings: list[TwoBodyCoupling] | None = None,
     ):
         super().__init__()
@@ -97,7 +98,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         """
         return self._dimensions
 
-    def get_value_at_timestep(self, timestep: float) -> Array:
+    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
         """Get matrix representation of the Hamiltonian for a single time point.
 
         Parameters
@@ -115,7 +116,7 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.get_value_at_timestep(timestep)
+            sub_matrix = subsystem.get_hamiltonian_at_timestep(timestep)
             matrix += self._tensor_product_with_identity([sub_matrix], [n])
 
         for coupling in self._couplings:
@@ -150,9 +151,6 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for one_index, subsystem in enumerate(self._subsystems):
-            if not isinstance(subsystem, DifferentiableHamiltonian):
-                raise IncompatibleLayersException(f"Expected {subsystem} to provide gradients.")
-
             # TODO: Fix typing
             # ignoring mypy due to vmap
             sub_gradients = subsystem.get_gradient_at_timestep(jnp.array(time, ndmin=1))  # type: ignore
@@ -216,7 +214,9 @@ class CompositeHamiltonian(DifferentiableHamiltonian):
         """
         all_collapse_ops = []
         for n, subsystem in enumerate(self._subsystems):
-            rates_and_cols = subsystem.get_collapseops()
-            for rate, col_op in rates_and_cols:
-                all_collapse_ops.append((rate, self._tensor_product_with_identity([col_op], [n])))
+            # TODO Could be solved better.
+            if isinstance(subsystem, OpenSystem):
+                rates_and_cols = subsystem.get_collapseops()
+                for rate, col_op in rates_and_cols:
+                    all_collapse_ops.append((rate, self._tensor_product_with_identity([col_op], [n])))
         return all_collapse_ops

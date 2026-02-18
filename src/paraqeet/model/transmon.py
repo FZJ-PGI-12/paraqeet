@@ -4,14 +4,14 @@ import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.drive import Drive
+from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
-# TODO: How can a Transmon be a Hamiltonian? Transmon has a Hamiltonian... We should use compoisition here.
-class Transmon(DifferentiableHamiltonian):
+
+class Transmon(OpenSystem):
     """Hamiltonian of an anharmonic oscillator.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
@@ -128,7 +128,7 @@ class Transmon(DifferentiableHamiltonian):
             self._anharmonicity,
         ]
 
-    def get_value_at_timestep(self, timestep: float) -> Array:
+    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
         """Get the drive matrix.
 
         Parameters
