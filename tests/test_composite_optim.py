@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.model.composite_system import CompositeSystem
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.drive import DriveOperator
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
@@ -119,8 +119,8 @@ def coupled_transmons(tone):
             "Hz",
         ),
     )
-    hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
-    model = ClosedSystem(hamiltonian)
+    hamiltonian = CompositeSystem([transmon1, transmon2], [coupling])
+    model = SchroedingerEquation(hamiltonian)
     prop = ScipyExpmGOAT(model=model, resolution=RES)
 
     pauli_x = np.array([[0.0, 1], [1, 0.0]])

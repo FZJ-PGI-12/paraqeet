@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.resonator import Resonator
 from paraqeet.quantity import Quantity
 
@@ -27,7 +27,7 @@ def open_system(
         hamil.t1 = Quantity(1e-9, 1e-9, 100e-6)
         hamil.temp = Quantity(10e-3, 1e-3, 50e-3)
         hamil.t2star = Quantity(10e-9, 1e-9, 100e-6)
-        return OpenSystem(hamil)
+        return MasterEquation(hamil)
 
     return _method
 

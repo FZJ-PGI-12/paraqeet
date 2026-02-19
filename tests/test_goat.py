@@ -5,10 +5,10 @@ import pytest
 
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.drive import DriveOperator
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -53,9 +53,9 @@ def prop(gen, request):
     drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
     if request.param == "openSystem":
-        model = OpenSystem(controlled_qubit)
+        model = MasterEquation(controlled_qubit)
     elif request.param == "closedSystem":
-        model = ClosedSystem(controlled_qubit)
+        model = SchroedingerEquation(controlled_qubit)
     return ScipyExpmGOAT(model=model, resolution=RES)
 
 

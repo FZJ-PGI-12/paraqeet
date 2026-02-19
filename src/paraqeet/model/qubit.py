@@ -133,7 +133,7 @@ class Qubit(OpenSystem):
         hamil = self._frequency.get_value() * self._drift
         return hamil + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
 
-    def get_gradient_at_timestep(self, time: float) -> Array:
+    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
         """Get the matrix representations of value and gradient of the drive as a tuple.
 
         Parameters

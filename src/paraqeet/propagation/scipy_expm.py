@@ -42,7 +42,7 @@ class ScipyExpm(Propagation):
         """Set initial state."""
         # Verify if `model.ode_propagation` is set to `False`.
         # ode_propgation returns hamiltonian and collapse operators separately.
-        eom = self._model.get_value(jnp.array([0.0]))
+        eom = self._eom.get_value(jnp.array([0.0]))
         dim_generator = eom.shape[1]
 
         if len(eom) == 2:
@@ -218,8 +218,8 @@ class ScipyExpm(Propagation):
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
 
-        if self._model is not None:
-            eom_func = self._model.get_value
+        if self._eom is not None:
+            eom_func = self._eom.get_value
         else:
             raise ConfigurationException("No equation of motion is configured.")
         psis = [init_state]

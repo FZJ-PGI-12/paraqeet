@@ -6,7 +6,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.quantity import Array
 
 
@@ -24,15 +24,15 @@ class Propagation(ABC):
         The corresponding time step dt = 1/resolution
     """
 
-    _model: EquationOfMotion | None
+    _eom: EquationOfMotion | None
     _initial_state: Array | None = None
     _is_open: bool = False
     _resolution: float
 
-    def __init__(self, model: EquationOfMotion | None, resolution: float):
-        self._model = model
+    def __init__(self, eom: EquationOfMotion, resolution: float):
+        self._eom = eom
         self._resolution = resolution
-        if isinstance(model, OpenSystem):
+        if isinstance(eom, MasterEquation):
             self.is_open = True
 
     @property
@@ -84,12 +84,6 @@ class Propagation(ABC):
         else:
             dt = times[1] - times[0]
         return times, dt
-
-    # TODO: Keep or remove get_parameters?
-    # @staticmethod
-    def get_parameters(self):
-        """Per default, propagation methods have no parameters to optimize."""
-        return []
 
     def set_initial_state(self, state: Array):
         """Set the initial state for the propagation. (Default implementation)

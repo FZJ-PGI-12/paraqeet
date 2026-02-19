@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.drive import DriveOperator
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
 

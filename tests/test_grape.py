@@ -6,10 +6,10 @@ import pytest
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
@@ -46,9 +46,9 @@ def model(pwc_gen, request):
     drive = RotatingFrameDrive(pwc_gen)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
     if request.param == "open_system":
-        model = OpenSystem(controlled_qubit)
+        model = MasterEquation(controlled_qubit)
     elif request.param == "closed_system":
-        model = ClosedSystem(controlled_qubit)
+        model = SchroedingerEquation(controlled_qubit)
     return model
 
 

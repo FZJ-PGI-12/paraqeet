@@ -59,8 +59,8 @@ class Euler(Propagation):
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
-        if self._model is not None:
-            equations_of_motion = self._model.get_value(time)
+        if self._eom is not None:
+            equations_of_motion = self._eom.get_value(time)
         else:
             raise ConfigurationException("No equation of motion is configured.")
 

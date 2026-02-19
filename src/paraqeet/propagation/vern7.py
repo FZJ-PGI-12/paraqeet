@@ -207,9 +207,9 @@ class Vern7(Propagation):
             raise ValueError("Propagation needs at least two time steps")
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
-        if self._model is None:
+        if self._eom is None:
             raise ConfigurationException("No equation of motion is configured.")
-        eom_func = self._model.get_value
+        eom_func = self._eom.get_value
 
         # Verify if `model.ode_propagation` is set to `True`.
         # ode_propgation returns hamiltonian and collapse operators separately.

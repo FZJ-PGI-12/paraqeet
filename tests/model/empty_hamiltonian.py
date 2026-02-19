@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from paraqeet.model.system import System
+from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array, Quantity
 
 
-class EmptySystem(System):
+class EmptyHamiltonian(OpenSystem):
     """A Hamiltonian that is filled with zeros for all time steps.
 
     Parameters
@@ -22,7 +22,7 @@ class EmptySystem(System):
 
         self._dimension = dimension
 
-    def get_value(self, times: Array) -> Array:
+    def get_hamiltonian(self, times: Array) -> Array:
         """Get the matrix representation of the Hamiltonian.
 
         Parameters
@@ -47,7 +47,7 @@ class EmptySystem(System):
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def get_value_at_timestep(self, timestep: Array) -> Array:
+    def get_hamiltonian_at_timestep(self, timestep: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian

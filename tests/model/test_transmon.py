@@ -5,8 +5,8 @@ import pytest
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.drive import DriveOperator
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.vern7 import Vern7
@@ -78,7 +78,7 @@ def open_transmon():
     resonator.t1 = T1
     resonator.temp = TEMP
     resonator.t2star = T2STAR
-    model = OpenSystem(resonator)
+    model = MasterEquation(resonator)
 
     return model
 

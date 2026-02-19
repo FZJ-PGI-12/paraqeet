@@ -6,7 +6,7 @@ import jax.numpy as jnp
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.solvable import Solvable
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array
 
 
 class SchroedingerEquation(EquationOfMotion):
@@ -66,14 +66,14 @@ class SchroedingerEquation(EquationOfMotion):
             and 'n' as Hilbert space dimension.
 
         """
-        return -1.0j * self._solvable.get_value(times)
+        return -1.0j * self._solvable.get_hamiltonian(times)
 
     def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, Array]:
         """Get the matrix equations of motion for ODE solver.
 
         Here we return an empty array for the collapse operator.
         """
-        return -1.0j * self._solvable.get_value(times), jnp.empty((1,), dtype=jnp.complex128)
+        return -1.0j * self._solvable.get_hamiltonian(times), jnp.empty((1,), dtype=jnp.complex128)
 
     def get_value(self, times: Array):
         """Get the matrix equations of motion.
@@ -110,5 +110,5 @@ class SchroedingerEquation(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        eom, eom_gradient = self._solvable.get_value_and_gradient(times)
+        eom, eom_gradient = self._solvable.get_hamiltonian_and_gradient(times)
         return -1.0j * eom, -1.0j * eom_gradient

@@ -14,8 +14,8 @@ from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
-from paraqeet.model.closed_system import ClosedSystem
 from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
@@ -92,7 +92,7 @@ def gen(tone):
 def model(gen):
     drive = RotatingFrameDrive(gen)
     spin = SpinRWA(drives=[drive])
-    model = ClosedSystem(spin)
+    model = SchroedingerEquation(spin)
     return model
 
 

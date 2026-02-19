@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.model.composite_system import CompositeSystem
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.drive import DriveOperator
 from paraqeet.model.transmon import Transmon
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -83,7 +83,7 @@ def uncoupled_transmons(transmon):
     def _method(dim1, dim2):
         transmon1 = transmon(dim1)
         transmon2 = transmon(dim2)
-        compositeHams = CompositeHamiltonian([transmon1, transmon2])
+        compositeHams = CompositeSystem([transmon1, transmon2])
         return compositeHams
 
     return _method
@@ -106,7 +106,7 @@ def coupled_transmons(transmon):
             use_rwa=use_rwa,
         )
 
-        compositeHams = CompositeHamiltonian([transmon1, transmon2], [coupling])
+        compositeHams = CompositeSystem([transmon1, transmon2], [coupling])
         return compositeHams
 
     return _method
@@ -114,7 +114,7 @@ def coupled_transmons(transmon):
 
 @pytest.fixture
 def coupled_transmons_chain(transmon, random_quantity):
-    def _method(dims: list[int], open_system: bool = True) -> CompositeHamiltonian:
+    def _method(dims: list[int], open_system: bool = True) -> CompositeSystem:
         transmons = [transmon(d) for d in dims]
         if open_system:
             for t in transmons:
@@ -137,7 +137,7 @@ def coupled_transmons_chain(transmon, random_quantity):
             for i in range(len(transmons) - 1)
         ]
 
-        return CompositeHamiltonian(transmons, couplings)
+        return CompositeSystem(transmons, couplings)
 
     return _method
 

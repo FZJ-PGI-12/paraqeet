@@ -3,7 +3,7 @@ import pytest
 
 from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.resonator import Resonator
-from paraqeet.model.rotating_frame_coupling import RotatingFrameCoupling
+from paraqeet.model.rotating_frame import RotatingFrameCoupling
 
 
 @pytest.fixture

@@ -5,9 +5,9 @@ import pytest
 
 from paraqeet.logger import Logger
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.drive import DriveOperator
 from paraqeet.model.qubit import Qubit
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
 from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
@@ -29,7 +29,7 @@ PARAMS[2].set_value(1.01 * FREQ)
 
 DRIVE = DriveOperator(GEN, is_longitudinal=False)
 CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[DRIVE])
-MODEL = ClosedSystem(CONTROLLED_QUBIT)
+MODEL = SchroedingerEquation(CONTROLLED_QUBIT)
 
 PROP = ScipyExpmGOAT(MODEL, resolution=100e9)
 

@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.drive import DriveOperator
 from paraqeet.model.qubit import Qubit
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope

@@ -3,8 +3,8 @@ import numpy.random as random
 import pytest
 
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.custom_hamiltonian import CustomHamiltonian
+from paraqeet.model.custom_system import CustomSystem
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
@@ -74,7 +74,7 @@ def gradient_functions():
 @pytest.fixture
 def tls(tls_hamiltonian, gradient_functions):
     """Closed system model."""
-    tls_hamil = CustomHamiltonian(
+    tls_hamil = CustomSystem(
         hamiltonian_function=tls_hamiltonian, parameters=[amplitude, frequency], gradient_functions=gradient_functions
     )
     return tls_hamil
@@ -83,7 +83,7 @@ def tls(tls_hamiltonian, gradient_functions):
 @pytest.fixture
 def fid(tls):
     """Get the fidelity function"""
-    model = ClosedSystem(tls)
+    model = SchroedingerEquation(tls)
     prop = ScipyExpmGOAT(model, resolution=100e9)
 
     init = jnp.array([[1.0], [0]])  # |0>
@@ -113,9 +113,9 @@ def test_shapes(random_matrix):
             mat = random_matrix(dim, dim)
             return mat + jnp.conjugate(mat).T
 
-        hamil = CustomHamiltonian(hamiltonian_function=generator, parameters=[])
+        hamil = CustomSystem(hamiltonian_function=generator, parameters=[])
         assert hamil.dimension() == dim
 
         times = jnp.linspace(0, random.randint(1, 100) * random.random(), random.randint(2, 20))
-        assert hamil.get_value_at_timestep(times[-1]).shape == (dim, dim)
-        assert hamil.get_value(times).shape == (len(times), dim, dim)
+        assert hamil.get_hamiltonian_at_timestep(times[-1]).shape == (dim, dim)
+        assert hamil.get_hamiltonian(times).shape == (len(times), dim, dim)

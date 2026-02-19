@@ -7,9 +7,11 @@ from jax import jit, vmap
 from jax.experimental.sparse import BCOO
 
 from paraqeet.differentiable import Differentiable
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.model.solvable import Solvable
-from paraqeet.quantity import Array, Quantity
+from paraqeet.model.system import OpenSystem
+from paraqeet.quantity import Array
 
 
 class MasterEquation(EquationOfMotion):
@@ -90,7 +92,12 @@ class MasterEquation(EquationOfMotion):
             list of collapse operators
 
         """
-        return self._solvable.get_collapseops()
+        sol = self._solvable
+        if isinstance(sol, OpenSystem):
+            coll_ops = sol.get_collapseops()
+        else:
+            raise ConfigurationException(f"{sol} is not an Open System.")
+        return coll_ops
 
     def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, list[Array]]:
         """
@@ -108,7 +115,7 @@ class MasterEquation(EquationOfMotion):
         tuple[Array, Array]
              Hamiltonian EOM ([t, N, N] matrix) and the `m` collapse operators ([m, N^2, N^2] matrix)
         """
-        ham_eom = self._solvable.get_value(times)
+        ham_eom = self._solvable.get_hamiltonian(times)
         rates_and_cols = self.get_collapseops()
         cols: list[Array] = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
         return -1j * ham_eom, cols

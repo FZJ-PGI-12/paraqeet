@@ -100,14 +100,14 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
-        if self._model is None:
+        if self._eom is None:
             raise ConfigurationException("No equation of motion is configured.")
-        n_params = self._model.get_value_and_gradient(jnp.array([0.0]))[1].shape[1]
+        n_params = self._eom.get_value_and_gradient(jnp.array([0.0]))[1].shape[1]
         dim = self._initial_state.shape[0]
         psis = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
-        grad_func = self._model.get_value_and_gradient
+        grad_func = self._eom.get_value_and_gradient
 
         for ti in range(1, len(times)):
             times, dt = self._construct_times(times, ti)

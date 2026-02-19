@@ -41,9 +41,9 @@ class DummyEquationsOfMotion(EquationOfMotion):
             Returns the matrix equations of motion.
 
         """
-        return -1.0j * self._solvable.get_value(times)
+        return -1.0j * self._solvable.get_hamiltonian(times)
 
-    def get_value_and_gradient(self, times) -> Array:
+    def get_value_and_gradient(self, times) -> tuple[Array, Array]:
         """Compute the gradient of get_value.
 
         Parameters
@@ -52,4 +52,5 @@ class DummyEquationsOfMotion(EquationOfMotion):
             One-dimensional vector of timestamps.
 
         """
-        return -1.0j * self._solvable.get_gradient_at_timestep(times)
+        ham, grad = self._solvable.get_hamiltonian_and_gradient(times)
+        return -1.0j * ham, -1.0j * grad
