@@ -1,11 +1,6 @@
 """Class definition of a closed model."""
 
-from collections.abc import Callable
-
-import jax.numpy as jnp
-
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.solvable import System
 from paraqeet.quantity import Array
 
 
@@ -20,17 +15,6 @@ class SchroedingerEquation(EquationOfMotion):
         Matrix representation of a Hamiltonian.
 
     """
-
-    _hamiltonian_func: Callable[[Array], Array]
-    _hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]]
-
-    def __init__(
-        self,
-        hamiltonian_func: Callable[[Array], Array],
-        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]],
-    ):
-        self._hamiltonian_func = hamiltonian_func
-        self._hamiltonian_and_gradient_func = hamiltonian_and_gradient_func
 
     def get_value(self, times: Array) -> Array:
         """Get the matrix equations of motion.

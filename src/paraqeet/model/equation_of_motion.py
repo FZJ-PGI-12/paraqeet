@@ -1,8 +1,8 @@
 """Class definition of the optimizable model."""
 
 from abc import ABC, abstractmethod
+from typing import Callable
 
-from paraqeet.model.solvable import System
 from paraqeet.quantity import Array
 
 
@@ -20,13 +20,16 @@ class EquationOfMotion(ABC):
 
     """
 
-    _system: System
-    # TODO: this is the first "public" variable used without the property-decorator.
-    # Should we add a property for it?
-    ode_propagation: bool = False
+    _hamiltonian_func: Callable[[Array], Array]
+    _hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]]
 
-    def __init__(self, system: System):
-        self._system = system
+    def __init__(
+        self,
+        hamiltonian_func: Callable[[Array], Array],
+        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+    ):
+        self._hamiltonian_func = hamiltonian_func
+        self._hamiltonian_and_gradient_func = hamiltonian_and_gradient_func
 
     @abstractmethod
     def get_value(self, times: Array) -> Array:
