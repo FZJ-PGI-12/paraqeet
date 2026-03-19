@@ -9,7 +9,7 @@ from jax.experimental.sparse import BCOO
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.solvable import Solvable
+from paraqeet.model.solvable import System
 from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array
 
@@ -36,11 +36,11 @@ class MasterEquation(EquationOfMotion):
     _ode_propagation: bool
     _sparse_superop: bool
     _get_value_method: Callable
-    _solvable: Solvable
+    _solvable: System
 
     def __init__(
         self,
-        solvable: Solvable,
+        solvable: OpenSystem,
         sparse_superop: bool = False,
         ode_propagation: bool = False,
     ):

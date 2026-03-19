@@ -6,7 +6,7 @@ import pytest
 from paraqeet.propagation.runge_kutta import RungeKutta
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
-from tests.propagation.test_common_propagation import needs_initial_state
+from tests.propagation.test_common_propagation import check_propagation
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def test_initial_state(rk, ts):
     """
     for dim in range(2, 20):
         propagation = rk(dim)
-        needs_initial_state(propagation, dim)
+        check_propagation(propagation, dim)
 
 
 def test_time_steps(rk, random_state):

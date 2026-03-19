@@ -4,9 +4,10 @@ import numpy as np
 import pytest
 
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.utils import convert_dm_to_vec, convert_vec_to_dm
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
-from tests.propagation.test_common_propagation import needs_initial_state
+from tests.propagation.test_common_propagation import check_propagation
 
 
 @pytest.fixture
@@ -14,15 +15,13 @@ def expm():
     """Return a Scipy piecewise exponentitation solver generating method."""
 
     def _method(dimension, resolution):
-        return ScipyExpm(DummyEquationsOfMotion(EmptySystem(dimension)), resolution=resolution)
+        return ScipyExpm(
+            eom_func=DummyEquationsOfMotion(EmptySystem(dimension)).get_value,
+            resolution=resolution,
+            initial_state=np.eye(dimension, dtype=np.complex128),
+        )
 
     return _method
-
-
-def test_parameters(expm):
-    """Test parameters from the propagation."""
-    propagation = expm(dimension=np.random.randint(10), resolution=3)
-    assert propagation.get_parameters() == []
 
 
 def test_resolution(expm):
@@ -45,10 +44,10 @@ def test_state_dimension_vector(random_state, expm, ts):
         dim = np.random.randint(2, 30)
         state = random_state(dim)
         propagation = expm(dim, resolution=3)
-        propagation.set_initial_state(state)
+        propagation.initial_state = state
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
-        assert propagated_states.shape[1:] == state.shape + (1,)
+        assert propagated_states.shape[1:] == state.shape
 
 
 def test_state_dimension_rect_matrix(random_matrix, expm, ts):
@@ -58,7 +57,7 @@ def test_state_dimension_rect_matrix(random_matrix, expm, ts):
         dim = basis + np.random.randint(1, 3)
         state = random_matrix(dim, basis)  # rect matrix with dim>basis
         propagation = expm(dim, resolution=3)
-        propagation.set_initial_state(state)
+        propagation.initial_state = state
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape
@@ -71,7 +70,7 @@ def test_state_dimension_square_matrix(expm, ts):
         dim = basis + np.random.randint(1, 3)
         state = np.eye(dim, dtype=np.complex128)
         propagation = expm(dim, resolution=3)
-        propagation.set_initial_state(state)
+        propagation.initial_state = state
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape
@@ -83,27 +82,14 @@ def test_state_dimension_matrix_open(random_matrix, expm, ts):
         dim = np.random.randint(2, 10)
         state = random_matrix(dim, dim)
         propagation = expm(dim**2, resolution=3)
-        propagation.is_open = True
-        propagation.set_initial_state(state)
+        propagation.initial_state = convert_dm_to_vec(state, dim)
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
-        assert propagated_states.shape[1:] == state.shape
+        assert propagated_states.shape[1:] == convert_dm_to_vec(state, dim).shape
+        assert convert_vec_to_dm(propagated_states[-1], dim).shape == state.shape
 
 
-def test_state_dimension_square_matrix_open(expm, ts):
-    """Test for a batch of initial states for propagation."""
-    for _ in range(5):
-        dim = np.random.randint(2, 10)
-        state = np.eye(dim, dtype=np.complex128)
-        propagation = expm(dim**2, resolution=3)
-        propagation.is_open = True
-        propagation.set_initial_state(state)
-        propagated_states = propagation.propagate(ts)
-        assert propagated_states.shape[0] == len(ts)
-        assert propagated_states.shape[1:] == state.shape
-
-
-def test_initial_state(model):
+def test_initial_state(eom):
     """Test whether the initial state is set.
 
     Raises
@@ -113,16 +99,17 @@ def test_initial_state(model):
 
     """
     dim = np.random.randint(2, 10)
-    m = model(dim)
-    propagation = ScipyExpm(model=m, resolution=3)
-    needs_initial_state(propagation, dim)
+    m = eom(dim)
+    propagation = ScipyExpm(eom_func=m, resolution=3, initial_state=np.eye(dim, dtype=np.complex128))
+
+    check_propagation(propagation, dim)
 
 
-def test_construct_times(model):
+def test_construct_times(eom):
     """Test the construction times for the model."""
     res = 100e9
 
-    propagation = ScipyExpm(model=model, resolution=res)
+    propagation = ScipyExpm(eom_func=eom, resolution=res, initial_state=np.eye(10, dtype=np.complex128))
 
     # Test if times array is constructed correctly for a 1ns list
     t_start = 1e-9

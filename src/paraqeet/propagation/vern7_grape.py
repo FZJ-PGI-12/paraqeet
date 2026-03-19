@@ -143,14 +143,14 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
-        if self._eom is None:
+        if self._eom_func is None:
             raise ConfigurationException("No equation of motion is configured.")
-        eom_func = self._eom.get_value
-        grad_func = self._eom.get_value_and_gradient
+        eom_func = self._eom_func.get_value
+        grad_func = self._eom_func.get_value_and_gradient
 
         # Verify if `model.ode_propagation` is set to `True`.
         # ode_propgation returns hamiltonian and collapse operators separately.
-        if not self._eom.ode_propagation:
+        if not self._eom_func.ode_propagation:
             raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
         psis_list = [init_state]

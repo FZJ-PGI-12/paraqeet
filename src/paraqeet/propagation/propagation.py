@@ -1,12 +1,11 @@
 """Class definition of the Propagation model."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 
 import jax.numpy as jnp
 import numpy as np
 
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.master_equation import MasterEquation
 from paraqeet.quantity import Array
 
 
@@ -24,26 +23,12 @@ class Propagation(ABC):
         The corresponding time step dt = 1/resolution
     """
 
-    _eom: EquationOfMotion | None
-    _initial_state: Array | None = None
-    _is_open: bool = False
+    _eom_func: Callable[[Array], Array]
     _resolution: float
 
-    def __init__(self, eom: EquationOfMotion, resolution: float):
-        self._eom = eom
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float):
+        self._eom_func = eom_func
         self._resolution = resolution
-        if isinstance(eom, MasterEquation):
-            self.is_open = True
-
-    @property
-    def is_open(self) -> bool:
-        """Return if the propagation is for open or closed system."""
-        return self._is_open
-
-    @is_open.setter
-    def is_open(self, flag) -> None:
-        """Set if the propagation is for open or closed system."""
-        self._is_open = flag
 
     @property
     def resolution(self) -> float:
@@ -85,22 +70,6 @@ class Propagation(ABC):
             dt = times[1] - times[0]
         return times, dt
 
-    def set_initial_state(self, state: Array):
-        """Set the initial state for the propagation. (Default implementation)
-
-        Propagation implementations that do not need the state should not
-        implement this function.
-
-        Subclasses can access the state in the _initial_sate field.
-
-        Parameters
-        ----------
-        state: Array
-            Parameter value to be set as the initial state for the propagation.
-
-        """
-        self._initial_state = state
-
     @abstractmethod
     def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
@@ -125,3 +94,23 @@ class Propagation(ABC):
         # TODO: Distinguish between internal time (class property), i.e. the time grid of the
         # method vs. time points (input parameter) desired by other classes, e.g. Measurements
         pass
+
+
+class StatePropagation(Propagation):
+    """Abstract class to implement methods to propagate states."""
+
+    _initial_state: Array
+
+    def __init__(self, eom_func, resolution, initial_state):
+        super().__init__(eom_func, resolution)
+        self.initial_state = initial_state
+
+    @property
+    def initial_state(self):
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, state: Array):
+        """Set initial state."""
+        # TODO: Provide explicit wrappers for multiple initial states or density vectors
+        self._initial_state = jnp.array(state, dtype=jnp.complex128)

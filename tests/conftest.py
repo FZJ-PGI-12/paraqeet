@@ -32,11 +32,11 @@ def identity():
 
 
 @pytest.fixture
-def model():
+def eom():
     """Return a dummy model generation function."""
 
     def _method(dimension):
-        return DummyEquationsOfMotion(EmptySystem(dimension))
+        return DummyEquationsOfMotion(EmptySystem(dimension)).get_value
 
     return _method
 
@@ -51,7 +51,7 @@ def random_state():
 
     def _method(dimension):
         state = np.random.random(dimension) + 1j * np.random.random(dimension)
-        return state / np.sqrt(np.vdot(state, state))
+        return np.expand_dims(state / np.sqrt(np.vdot(state, state)), axis=1)
 
     return _method
 

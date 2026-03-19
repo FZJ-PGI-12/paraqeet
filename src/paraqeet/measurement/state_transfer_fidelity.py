@@ -34,17 +34,16 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     _initial_state: Array
     _target_state: Array
+    _overlap: Callable
     _propagation: DifferentiablePropagation
 
     def __init__(
-        self,
-        propagation: DifferentiablePropagation,
-        initial_state: Array,
-        target_state: Array,
+        self, propagation: DifferentiablePropagation, initial_state: Array, target_state: Array, overlap: Callable
     ):
         self._propagation = propagation
         self._initial_state = initial_state
         self._target_state = target_state
+        self._overlap = overlap
         if target_state.shape != initial_state.shape:
             warnings.warn(
                 UserWarning(
@@ -54,29 +53,16 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
                     "the same shape before measuring."
                 )
             )
-        self._propagation.set_initial_state(self._initial_state)
-        if self._propagation.is_open:
-            self._overlap = self._overlap_dm
-        else:
-            self._overlap = self._overlap_vec
 
     @staticmethod
     def _fid(overlap: Array) -> float:
         return float(jnp.abs(jnp.average(overlap)) ** 2)
 
-    @staticmethod
-    def _overlap_vec(target_state, final_state):
-        return jnp.vdot(target_state, final_state)
-
-    @staticmethod
-    def _overlap_dm(target_state, final_state):
-        return jnp.linalg.trace(jnp.matmul(target_state, final_state))
-
     def measure(self, times: Array) -> Array | float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> float:
         """Measure overlap between initial and target state. To be used with an optimizer.
 
         Parameters
@@ -90,9 +76,6 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             Overlap between initial and target state in a bare float.
 
         """
-        # TODO: `propagate` needs at least two time points initial and final.
-        # TODO: Does Measurement implement default conversion from times: float -> Array?
-        # TODO: Fix typing
         states = self._propagation.propagate(time=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
@@ -117,6 +100,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
 
+# TODO: Integrate AD version so you don't have to provide a gradient for _overlap
 class StateTransferFidelityAD(StateTransferFidelity):
     """Fidelity measure that compares overlap of the initial and final state.
 
@@ -134,16 +118,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
 
     """
 
-    _gradient_function: Callable | None
-
-    def __init__(
-        self,
-        propagation: DifferentiablePropagation,
-        initial_state: Array,
-        target_state: Array,
-    ):
-        super().__init__(propagation, initial_state, target_state)
-        self._gradient_function = None
+    _gradient_function: Callable | None = None
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
         """Measure with gradient.
@@ -204,8 +179,5 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         states, grads = self._propagation.get_value_and_gradient(times=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
-        if self._propagation.is_open:
-            grads = jnp.real(jnp.linalg.trace(grads)).flatten()
-        else:
-            grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
+        grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
         return StateTransferFidelity._fid(f), grads  # shape scalar, (n_parameters,)

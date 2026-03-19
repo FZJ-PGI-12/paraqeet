@@ -6,11 +6,11 @@ import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.drive import Drive
-from paraqeet.model.solvable import Solvable
+from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
 
-class System(Solvable):
+class System(Optimizable):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines

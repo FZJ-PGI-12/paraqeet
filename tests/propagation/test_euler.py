@@ -6,7 +6,7 @@ import pytest
 from paraqeet.propagation.euler import Euler
 from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
-from tests.propagation.test_common_propagation import needs_initial_state
+from tests.propagation.test_common_propagation import check_propagation
 
 
 @pytest.fixture
@@ -55,4 +55,4 @@ def test_state_dimension_matrix(random_matrix, euler, ts):
 def test_needs_initial_state(random_state, euler):
     for dim in range(2, 10):
         propagation = euler(dim)
-        needs_initial_state(propagation, dim)
+        check_propagation(propagation, dim)

@@ -4,7 +4,7 @@ from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array
 
 
-class Solvable(Optimizable):
+class System(Optimizable):
     def __init__(self):
         pass
 

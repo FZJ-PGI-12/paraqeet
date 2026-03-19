@@ -48,7 +48,7 @@ class NormalizableMeasurement(Measurement):
     """
 
     @abstractmethod
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> float:
         """Measure the normalized observable.
 
         Returns a single scalar value between 0 and 1.

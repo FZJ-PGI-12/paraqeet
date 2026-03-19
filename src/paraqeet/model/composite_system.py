@@ -6,12 +6,11 @@ import numpy as np
 
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.solvable import Solvable
 from paraqeet.model.system import OpenSystem, System
 from paraqeet.quantity import Array, Quantity
 
 
-class CompositeSystem(Solvable):
+class CompositeSystem(System):
     """A hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.

@@ -61,9 +61,9 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         """
         # Verify if `model.ode_propagation` is set to `False`.
         # ode_propgation returns hamiltonian and collapse operators separately.
-        if self._eom is None:
+        if self._eom_func is None:
             raise ConfigurationException("No equation of motion is configured.")
-        eom = self._eom.get_value(jnp.array([0]))
+        eom = self._eom_func.get_value(jnp.array([0]))
         if len(eom) == 2:
             raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
 
@@ -279,10 +279,10 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         time_grid = time[:-1] + dt / 2
 
-        if self._eom is None:
+        if self._eom_func is None:
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
-        eom_func = self._eom.get_value
+        eom_func = self._eom_func.get_value
         eom = eom_func(time_grid) * dt
 
         us = vmap(ScipyExpmGRAPE._exponentiate, in_axes=(0,))(eom)
@@ -302,10 +302,10 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
-        if self._eom is None:
+        if self._eom_func is None:
             raise ConfigurationException("No model is configured to provide an equation of motion.")
 
-        grad_func = self._eom.get_value_and_gradient
+        grad_func = self._eom_func.get_value_and_gradient
 
         dt = time[1] - time[0]
 

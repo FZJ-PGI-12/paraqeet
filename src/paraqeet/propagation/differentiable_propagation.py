@@ -20,7 +20,6 @@ class DifferentiablePropagation(Propagation, Differentiable):
     """
 
     _initial_state: Array | None = None
-    _is_open: bool = False
     _resolution: float
 
     def __init__(self, model: EquationOfMotion, resolution: float):

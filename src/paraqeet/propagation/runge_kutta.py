@@ -87,7 +87,7 @@ class RungeKutta(Propagation):
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._eom.get_right_hand_side(np.array([time]), column_state),
+                self._eom_func.get_right_hand_side(np.array([time]), column_state),
                 (-1,),
             )
 

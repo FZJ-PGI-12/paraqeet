@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from paraqeet.model.solvable import Solvable
+from paraqeet.model.solvable import System
 from paraqeet.quantity import Array
 
 
@@ -20,13 +20,13 @@ class EquationOfMotion(ABC):
 
     """
 
-    _solvable: Solvable
+    _system: System
     # TODO: this is the first "public" variable used without the property-decorator.
     # Should we add a property for it?
     ode_propagation: bool = False
 
-    def __init__(self, solvable: Solvable):
-        self._solvable = solvable
+    def __init__(self, system: System):
+        self._system = system
 
     @abstractmethod
     def get_value(self, times: Array) -> Array:

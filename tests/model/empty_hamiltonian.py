@@ -6,7 +6,7 @@ from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array, Quantity
 
 
-class EmptyHamiltonian(OpenSystem):
+class EmptySystem(OpenSystem):
     """A Hamiltonian that is filled with zeros for all time steps.
 
     Parameters
@@ -51,7 +51,7 @@ class EmptyHamiltonian(OpenSystem):
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def get_gradient_at_timestep(self, t: Array) -> Array:
+    def get_hamiltonian_gradient_at_timestep(self, t: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
