@@ -76,7 +76,6 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         interp_times = jnp.append(interp_times, interp_times[-1] + dt)
         return interp_times, dt
 
-
     def measure(self, times: Array) -> Array | float:
         """Sum of plain weighted measurements.
 
@@ -90,8 +89,8 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         for gen in self._gens:
             gen._update_inphase_and_outofphase()
 
-        interp_times = self._construct_interpolated_times(times)
-        
+        interp_times, _ = self._construct_interpolated_times(times)
+
         return grape.measure(times=interp_times)
 
     def calculate_normalized_scalar(self, times: Array | float) -> float:
