@@ -2,7 +2,7 @@
 
 # All signal generators are differentiable?
 # Is a default implementation possible? Not yet
-#  Subclasses of Measurement lacking the impelmentation of the gradient calculation are
+#  Subclasses of Measurement lacking the implementation of the gradient calculation are
 # NOT Differentiables? Yes
 
 from abc import ABC, abstractmethod

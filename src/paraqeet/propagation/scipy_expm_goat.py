@@ -17,7 +17,7 @@ from paraqeet.quantity import Array
 
 
 class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
-    """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
+    """Solve EOMs by piecewise exponentiation via Scipy using GOAT."""
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.

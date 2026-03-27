@@ -475,7 +475,7 @@ class Quantity:
         self._name = name
 
     def get_unit(self) -> str:
-        """Get unit of measurement from paramter."""
+        """Get unit of measurement from parameter."""
         return self._unit
 
     def is_scalar(self) -> bool:
@@ -681,7 +681,7 @@ class Quantity:
         return abs(self.get_value())
 
     def __float__(self):
-        """Magic method for float coversion.
+        """Magic method for float conversion.
 
         Raises
         ------

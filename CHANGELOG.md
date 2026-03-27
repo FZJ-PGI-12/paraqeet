@@ -7,13 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- New documentation theme - pydata sphinx theme - similar to Matplotlib and Numpy
+- Templates for module documentation
+- CI/CD pipeline to test docs compilation
+- Added CONTRIBUTING.md to the documentation
+
+### Changed
+- Streamlined API documentation build using sphinx.autodoc and sphinx.autosummary
+- Fixed spellings using codespell
+
+
 ## [v0.11.0] - 2026-02-11
 
 ### Added
 - Base classes derive from ABC. 
 - Force classes to implement abstractmethods.
 - Base class Differentiable for classes that provide gradients.
-- Mixed derivative evalution in Waveform to fix DRAG gradients.
+- Mixed derivative evaluation in Waveform to fix DRAG gradients.
 - Add a CHANGELOG
 
 ### Changed
@@ -40,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Extends the GOAToverGRAPE method to support mutiple generators
+- Extends the GOAToverGRAPE method to support multiple generators
 
 
 ## [v0.9.1] - 2025-07-03

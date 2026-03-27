@@ -76,7 +76,7 @@ class TwoBodyCoupling(Optimizable):
         Returns
         -------
         list[Hamiltonian]
-            List of subystems.
+            List of subsystems.
 
         """
         return self._subsystem_A
@@ -88,7 +88,7 @@ class TwoBodyCoupling(Optimizable):
         Returns
         -------
         list[Hamiltonian]
-            List of subystems.
+            List of subsystems.
 
         """
         return self._subsystem_B
@@ -139,7 +139,7 @@ class TwoBodyCoupling(Optimizable):
         Returns the operators of the longitudinal or transversal coupling
         without coefficients. A list of terms is returned which have to be
         summed over to produce the coupling Hamiltonian.
-        In case of RWA, right now only 2 subsytems are supported.
+        In case of RWA, right now only 2 subsystems are supported.
 
         Returns
         -------

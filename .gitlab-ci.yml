@@ -98,6 +98,14 @@ build:
     paths:
       - dist/
 
+build-docs:
+  stage: build
+  script:
+    -  pip install -r docs/requirements.txt
+    - sphinx-build -W docs/ docs/_build
+  tags: [docker, light]
+
+
 publish:
   stage: publish
   script:

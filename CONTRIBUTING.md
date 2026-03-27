@@ -2,18 +2,18 @@
 
 Clone the repository and cd into the folder, e.g. `cd paraqeet`
 
-```
+```bash
 pip install virtualenv
 virtualenv venv
 source venv/bin/activate
 pip install -e .[dev]
 ```
 
-# Commiting changes
+# Committing changes
 
 Setup pre-commit hooks
 
-```
+```bash
 pip install pre-commit
 pre-commit install
 ```
@@ -51,11 +51,19 @@ pre-commit install
   ```
 - To test the build locally, use the following commands
     ```bash
-      pip install -r docs/requirements.in
+      pip install -r docs/requirements.txt
     ```
     ```bash
-      sphinx-build docs/ docs/_build
+      sphinx-build docs/ docs/_build -W
     ```
+- To update requirements in docs/
+  ```bash
+    pip install pip-tools
+  ```
+  Update the requirements.in and then 
+  ```bash
+    pip-compile requirements.in > requirements.txt
+  ```
 
 ## Changelog
 
@@ -63,6 +71,6 @@ pre-commit install
 - At the time of release change the `Unrelease` to the version number.
 - Add version number with a v. E.g., v0.1.0 .
 - Avoid dumping git log into the changelog.
-- Add a comparision link at the end of the document.
+- Add a comparison link at the end of the document.
 - Add date in the year-month-day format
 - Follow the https://keepachangelog.com/en/1.1.0/ guide for details about formatting.

@@ -22,8 +22,8 @@ First, we make the necessary imports.
 1. Define the Gaussian Tone and put into the DRAGMixer
 ------------------------------------------------------
 
-The GaussTone explicitely allows for the evaluation of an envelope
-signal and its time derivative which is then used to calculate the DRAG
+The GaussTone explicitly allows for the evaluation of an envelope signal
+and its time derivative which is then used to calculate the DRAG
 corrected signal in the DRAGMixer
 
 .. code:: ipython3
@@ -205,7 +205,7 @@ and the parameters of the cosine tone.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0057610594811500215, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.005761021428613344, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -226,10 +226,10 @@ Print all parameters that were optimized.
 
                Name:                Value                  Min                  Max
     --------------------------------------------------------------------------------
-          Amplitude:         2.446330e+08         0.000000e+00         1.000000e+09
-              Delta:        -2.495996e+09        -3.769911e+09        -1.256637e+08
-            lo_freq:         3.015947e+10         2.412743e+10         3.619115e+10
-              Phase:         1.588719e-03        -3.141593e+00         3.141593e+00
+          Amplitude:         2.446315e+08         0.000000e+00         1.000000e+09
+              Delta:        -2.495595e+09        -3.769911e+09        -1.256637e+08
+            lo_freq:         3.015945e+10         2.412743e+10         3.619115e+10
+              Phase:         1.380402e-03        -3.141593e+00         3.141593e+00
 
 
 Plot final pulse shape and population transfer. Target is the full
@@ -257,6 +257,6 @@ smaller than initially.
 
 .. parsed-literal::
 
-    0.9942389405232975
+    0.9942389785757956
 
 

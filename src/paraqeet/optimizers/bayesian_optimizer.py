@@ -75,7 +75,7 @@ class BayesianOptimizer(Optimizer):
 
         Performs the actual optimization.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
         For an array of times, the first time point is the start time.*
 
         Returns

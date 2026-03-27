@@ -149,8 +149,8 @@ okteto.yml
 
 # Doc build
 _build
-doc/_build
-doc/source/*
+docs/_build
+docs/_autosummary
 
 aux_notebooks/testing_fft.ipynb
 aux_notebooks/testing_fft.py
