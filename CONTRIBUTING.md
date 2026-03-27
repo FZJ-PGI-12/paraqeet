@@ -2,7 +2,7 @@
 
 Clone the repository and cd into the folder, e.g. `cd paraqeet`
 
-```
+```bash
 pip install virtualenv
 virtualenv venv
 source venv/bin/activate
@@ -13,7 +13,7 @@ pip install -e .[dev]
 
 Setup pre-commit hooks
 
-```
+```bash
 pip install pre-commit
 pre-commit install
 ```

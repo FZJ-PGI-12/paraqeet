@@ -32,11 +32,13 @@ Currently implemented optimization methods
 - GOAT: Gradient Optimization of Analytic conTrols
 - dCRAB : (Gradient based) dressed Chopped RAndom Basis
 
-Installation
+Usage
 ============
 .. toctree::
+   :maxdepth: 1
    
-   usage
+   installation
+   contributing
 
 
 Examples
@@ -58,6 +60,7 @@ API Documentation
    :recursive:
 
    paraqeet
+
 
 Indices and tables
 ==================

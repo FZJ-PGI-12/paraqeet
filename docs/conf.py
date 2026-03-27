@@ -12,7 +12,6 @@ config = SphinxConfig("../pyproject.toml", globalns=globals(), config_overrides=
 extensions = [
     "sphinx.ext.napoleon",  # to parse numpy stye python docstrings
     "sphinx.ext.mathjax",  # to include math expressions in the .rst files
-    "recommonmark",  # to include markdown files in sphinx documentation
     "nbsphinx",  # to include jupyter notebooks,
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx.ext.autodoc",  # Core library for html generation from docstrings
