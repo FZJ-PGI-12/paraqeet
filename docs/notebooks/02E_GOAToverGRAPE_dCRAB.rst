@@ -220,12 +220,6 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
     )
     opt_grad.logger = file_logger
 
-
-.. parsed-literal::
-
-    datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-
-
 The ``optmap`` in this case contains the pulse amplitude and the Fourier
 coefficients for the optimization.
 

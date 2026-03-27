@@ -296,7 +296,7 @@ configure CR as a target gate.
 
 .. parsed-literal::
 
-    0.13180213234859084
+    0.13180213234859098
 
 
 
@@ -463,7 +463,7 @@ The only optimizable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.8566635903399564, 'iterations': 4, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.8565727047670664, 'iterations': 4, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
