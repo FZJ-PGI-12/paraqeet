@@ -54,7 +54,7 @@ pre-commit install
       pip install -r docs/requirements.in
     ```
     ```bash
-      sphinx-build docs/ docs/_build
+      sphinx-build docs/ docs/_build -W
     ```
 
 ## Changelog
