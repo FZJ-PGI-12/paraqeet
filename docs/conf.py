@@ -1,3 +1,4 @@
+import os
 from importlib.metadata import version
 
 from sphinx_pyproject import SphinxConfig
@@ -34,13 +35,30 @@ html_theme_options = {
         "image_light": "../logo.png",
         "image_dark": "../logo.png",
     },
-    "gitlab_url": "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet",
+    "icon_links": [
+        {
+            "name": "GitLab",
+            "url": "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet",
+            "icon": "fa-brands fa-gitlab",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/paraqeet/",
+            "icon": "fa-brands fa-python",
+        },
+    ],
+    "switcher": {
+        "json_url": "https://paraqeet.readthedocs.io/en/latest/_static/versions.json",
+        "version_match": os.environ.get("READTHEDOCS_VERSION", "dev"),
+    },
+    "navbar_start": ["navbar-logo", "version-switcher"],
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["search-field.html", "theme-switcher", "navbar-icon-links"],
     "show_nav_level": 1,
     "show_toc_level": 1,
     "show_prev_next": True,  # Enable prev/next buttons
     "collapse_navigation": True,
     "header_links_before_dropdown": 4,
-    "navbar_end": ["search-button", "theme-switcher", "version-switcher", "navbar-icon-links"],
     "navbar_persistent": [],
     "show_version_warning_banner": True,
     "secondary_sidebar_items": ["page-toc"],  # show subheadings in sidebar
