@@ -51,11 +51,19 @@ pre-commit install
   ```
 - To test the build locally, use the following commands
     ```bash
-      pip install -r docs/requirements.in
+      pip install -r docs/requirements.txt
     ```
     ```bash
       sphinx-build docs/ docs/_build -W
     ```
+- To update requirements in docs/
+  ```bash
+    pip install pip-tools
+  ```
+  Update the requirements.in and then 
+  ```bash
+    pip-compile requirements.in > requirements.txt
+  ```
 
 ## Changelog
 

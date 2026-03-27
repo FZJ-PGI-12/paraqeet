@@ -11,3 +11,4 @@ recommonmark==0.7.1
 nbsphinx==0.9.7
 ipython==9.3.0
 pydata-sphinx-theme==0.16.1
+myst-parser==5.0.0

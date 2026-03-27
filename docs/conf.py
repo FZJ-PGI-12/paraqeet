@@ -17,6 +17,7 @@ extensions = [
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx.ext.autodoc",  # Core library for html generation from docstrings
     "sphinx.ext.autosummary",  # Create neat summary tables
+    "myst_parser",  #  Include md in html
 ]
 
 # Automatically extract typehints when specified and place them in
