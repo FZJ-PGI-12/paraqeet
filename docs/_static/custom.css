@@ -75,3 +75,19 @@ html[data-theme="dark"] div.literal-block code {
 html[data-theme="dark"] div.figure img {
     filter: brightness(0.95); /* slightly dim images in dark mode */
 }
+
+/* Increase spacing between header tabs */
+.navbar-nav {
+  gap: 1.5rem; /* modern browsers */
+}
+
+/* Fallback for older layouts */
+.navbar-nav .nav-item {
+  margin-right: 1.5rem;
+}
+
+/* Optional: adjust padding inside each tab */
+.navbar-nav .nav-link {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
