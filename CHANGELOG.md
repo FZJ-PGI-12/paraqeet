@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- New documentation theme - pydata sphinx theme - similar to Matplotlib and Numpy
+- Templates for module documentation
+- CI/CD pipeline to test docs compilation
+- Added CONTRIBUTING.md to the documentation
+
+### Changed
+- Streamlined API documentation build using sphinx.autodoc and sphinx.autosummary
+- Fixed spellings using codespell
+
+
 ## [v0.11.0] - 2026-02-11
 
 ### Added
