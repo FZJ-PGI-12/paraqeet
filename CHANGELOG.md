@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v0.11.1] - 2026-03-27
 
 ### Added
 - New documentation theme - pydata sphinx theme - similar to Matplotlib and Numpy
@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First release.
 
 
+[v0.11.1]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.11.1?ref_type=tags
 [v0.11.0]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.11.0?ref_type=tags
 [v0.10.0]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.10.0?ref_type=tags
 [v0.9.1]: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/v0.9.1?ref_type=tags
