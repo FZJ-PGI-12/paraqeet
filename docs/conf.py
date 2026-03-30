@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.autodoc",  # Core library for html generation from docstrings
     "sphinx.ext.autosummary",  # Create neat summary tables
     "myst_parser",  #  Include md in html
+    "sphinx.ext.linkcode",  # To add a source button to each class
 ]
 
 # Automatically extract typehints when specified and place them in
@@ -79,3 +80,33 @@ html_css_files = ["custom.css"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
+
+
+def linkcode_resolve(domain, info):
+    if domain != "py" or not info["module"]:
+        return None
+
+    import importlib
+    import inspect
+
+    mod = importlib.import_module(info["module"])
+    obj = mod
+    for part in info["fullname"].split("."):
+        try:
+            obj = getattr(obj, part)
+        except AttributeError:
+            return None
+
+    try:
+        filepath = inspect.getfile(obj)
+        source, start_line = inspect.getsourcelines(obj)
+    except (TypeError, OSError):
+        return None
+
+    filepath = filepath.split("paraqeet/")[-1]
+    end_line = start_line + len(source) - 1
+
+    return (
+        f"https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/src/"
+        f"paraqeet/{filepath}#L{start_line}-L{end_line}"
+    )
