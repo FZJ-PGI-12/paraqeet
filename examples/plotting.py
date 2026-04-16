@@ -18,7 +18,7 @@ matplotlib_inline.backend_inline.set_matplotlib_formats("png")
 
 # Specifying the custom plotting fonts
 mpl.rcParams["font.family"] = "serif"
-mpl.rcParams["font.serif"] = "Tex Gyre Pagella"
+# mpl.rcParams["font.serif"] = "Tex Gyre Pagella"
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.size"] = " 10.0"
 mpl.rcParams["axes.labelsize"] = " 11.0"
@@ -102,7 +102,7 @@ def plot_signal_and_dynamics(
 
     axes[1].plot(
         times / 1e-9,
-        calculate_populations(states, dm=propagation._is_open),
+        calculate_populations(states),
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
