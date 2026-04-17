@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from scipy.stats import unitary_group
 
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.quantity import Quantity
-from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
 
 LEN_SIG = 20
@@ -36,7 +36,10 @@ def eom():
     """Return a dummy model generation function."""
 
     def _method(dimension):
-        return DummyEquationsOfMotion(EmptySystem(dimension)).get_value
+        sys = EmptySystem(dimension)
+        return SchroedingerEquation(
+            hamiltonian_func=sys.get_hamiltonian, hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient
+        ).get_value
 
     return _method
 

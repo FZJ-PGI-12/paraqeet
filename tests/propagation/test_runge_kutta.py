@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.runge_kutta import RungeKutta
-from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import check_propagation
 
@@ -14,7 +14,7 @@ def rk():
     """Return a Runge-Kutta model generating method."""
 
     def _method(dimension):
-        return RungeKutta(DummyEquationsOfMotion(EmptySystem(dimension)))
+        return RungeKutta(SchroedingerEquation(EmptySystem(dimension)))
 
     return _method
 

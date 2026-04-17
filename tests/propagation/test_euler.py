@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.euler import Euler
-from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import check_propagation
 
@@ -14,7 +14,7 @@ def euler():
     """Return a Euler propagation model generating method."""
 
     def _method(dimension):
-        return Euler(DummyEquationsOfMotion(EmptySystem(dimension)))
+        return Euler(SchroedingerEquation(EmptySystem(dimension)))
 
     return _method
 
