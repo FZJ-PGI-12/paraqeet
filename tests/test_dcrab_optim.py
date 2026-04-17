@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.model.rotating_frame import RotatingFrameDrive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient

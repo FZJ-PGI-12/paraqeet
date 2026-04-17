@@ -8,7 +8,7 @@ from paraqeet.measurement.state_transfer_fidelity import (
 )
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.model.rotating_frame import RotatingFrameDrive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
