@@ -9,7 +9,6 @@ from jax.experimental.sparse import BCOO
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.solvable import System
 from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array
 
@@ -36,15 +35,15 @@ class MasterEquation(EquationOfMotion):
     _ode_propagation: bool
     _sparse_superop: bool
     _get_value_method: Callable
-    _solvable: System
+    _system: OpenSystem
 
     def __init__(
         self,
-        solvable: OpenSystem,
+        system: OpenSystem,
         sparse_superop: bool = False,
         ode_propagation: bool = False,
     ):
-        self._solvable = solvable
+        self._system = system
         self._sparse_superop = sparse_superop
         self.ode_propagation = ode_propagation
 
@@ -92,7 +91,7 @@ class MasterEquation(EquationOfMotion):
             list of collapse operators
 
         """
-        sol = self._solvable
+        sol = self._system
         if isinstance(sol, OpenSystem):
             coll_ops = sol.get_collapseops()
         else:
@@ -115,15 +114,15 @@ class MasterEquation(EquationOfMotion):
         tuple[Array, Array]
              Hamiltonian EOM ([t, N, N] matrix) and the `m` collapse operators ([m, N^2, N^2] matrix)
         """
-        ham_eom = self._solvable.get_hamiltonian(times)
+        ham_eom = self._system.get_hamiltonian(times)
         rates_and_cols = self.get_collapseops()
         cols: list[Array] = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
         return -1j * ham_eom, cols
 
     def _create_hamiltonian_superop(self, t) -> Array | BCOO:
         """Create the Hamiltonian superoperator for one time point `t`."""
-        identityop = jnp.eye(self._solvable.dimension())
-        ham = self._solvable.get_value_at_timestep(t)
+        identityop = jnp.eye(self._system.dimension())
+        ham = self._system.get_hamiltonian_at_timestep(t)
         superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
         if self.sparse_superop:
             return BCOO.fromdense(superop)
@@ -131,7 +130,7 @@ class MasterEquation(EquationOfMotion):
 
     def _create_collapse_superop(self) -> Array | BCOO:
         """Create the superoperator due to the collapse part. This is time independent."""
-        dim = self._solvable.dimension()
+        dim = self._system.dimension()
         identityop = jnp.eye(dim)
         superop = jnp.zeros((dim**2, dim**2), dtype=jnp.float64)
         rates_and_cols = self.get_collapseops()
@@ -176,8 +175,8 @@ class MasterEquation(EquationOfMotion):
 
     def _create_hamiltonian_grad_superop(self, timestep: float):
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
-        identityop = jnp.eye(self._solvable.dimension())
-        ham_grad = self._solvable.get_gradient_at_timestep(timestep)
+        identityop = jnp.eye(self._system.dimension())
+        ham_grad = self._system.get_hamiltonian_gradient_at_timestep(timestep)
         term1 = -1j * vmap(MasterEquation._kron, in_axes=(None, 0))(identityop, ham_grad)
         term2 = 1j * vmap(MasterEquation._kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
         superop = term1 + term2
@@ -186,10 +185,10 @@ class MasterEquation(EquationOfMotion):
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute the gradient of get_value."""
         # TODO: What to do if Hamiltonian is not differentiable?
-        if isinstance(self._solvable, Differentiable):
+        if isinstance(self._system, Differentiable):
             if self.ode_propagation:
                 # TODO: Can the eom be obtained without calling the get_value method?
-                _, grads = self._solvable.get_value_and_gradient(times)
+                _, grads = self._system.get_value_and_gradient(times)
                 eom = self._get_value_method(times)
                 grads = -1j * grads
             else:
