@@ -126,7 +126,7 @@ class Resonator(OpenSystem):
         H = self._frequency.get_value() * self._num_op
         return H + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
 
-    def get_gradient_at_timestep(self, time: float) -> Array:
+    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
         """Get the gradient of the drive.
 
         Parameters
