@@ -2,11 +2,11 @@
 
 import jax.numpy as jnp
 
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
+from paraqeet.model.system import System
 from paraqeet.quantity import Array
 
 
-class SpinRWA(DifferentiableHamiltonian):
+class SpinRWA(System):
     """A Single Spin."""
 
     def __init__(self, drives=None):

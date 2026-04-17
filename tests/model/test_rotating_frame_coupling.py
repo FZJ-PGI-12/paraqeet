@@ -1,15 +1,15 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
 from paraqeet.model.resonator import Resonator
 from paraqeet.model.rotating_frame import RotatingFrameCoupling
+from paraqeet.model.system import System
 
 
 @pytest.fixture
 def subsystem(random_quantity):
     @pytest.mark.usefixtures("random_quantity")
-    def _method(dim: int) -> DifferentiableHamiltonian:
+    def _method(dim: int) -> System:
         frequency = random_quantity(1)
         return Resonator(dim, frequency)
 
