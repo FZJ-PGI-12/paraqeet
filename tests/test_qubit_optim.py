@@ -5,6 +5,7 @@ import pytest
 
 from paraqeet.logger import Logger
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.model.drive import DriveOperator
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
@@ -17,8 +18,8 @@ from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import ConstantEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
 
-TONE = ConstantEnvelope()
-GEN = IQMixer(envelopes=[TONE])
+ENVELOPE = ConstantEnvelope()
+GEN = IQMixer(envelopes=[ENVELOPE])
 PARAMS = GEN.get_parameters()
 
 FREQ = 4.8e9 * 2 * np.pi
@@ -27,19 +28,20 @@ T_FINAL = 10e-9
 PARAMS[0].set_value(0.8 * np.pi / T_FINAL)
 PARAMS[2].set_value(1.01 * FREQ)
 
-DRIVE = DriveOperator(GEN, is_longitudinal=False)
-CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[DRIVE])
-MODEL = SchroedingerEquation(CONTROLLED_QUBIT)
-
-PROP = ScipyExpmGOAT(MODEL, resolution=100e9)
-
 INIT = np.array([[1.0], [0]])
 TARGET = np.array([[0.0], [1]])
-ZEROONE = StateTransferFidelity(
-    propagation=PROP,
-    initial_state=INIT,
-    target_state=TARGET,
+
+DRIVE = DriveOperator(GEN, is_longitudinal=False)
+CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[DRIVE])
+MODEL = SchroedingerEquation(
+    hamiltonian_func=CONTROLLED_QUBIT.get_hamiltonian,
+    hamiltonian_and_gradient_func=CONTROLLED_QUBIT.get_hamiltonian_and_gradient,
 )
+
+PROP = ScipyExpmGOAT(eom_func=MODEL.get_value, resolution=100e9, initial_state=INIT)
+
+
+ZEROONE = StateTransferFidelity(propagation=PROP, initial_state=INIT, target_state=TARGET, overlap=overlap_state_vector)
 
 
 @pytest.fixture

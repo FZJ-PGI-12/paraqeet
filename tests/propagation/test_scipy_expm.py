@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.utils import convert_dm_to_vec, convert_vec_to_dm
-from tests.model.dummy_model import DummyEquationsOfMotion
 from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import check_propagation
 
@@ -15,8 +15,12 @@ def expm():
     """Return a Scipy piecewise exponentitation solver generating method."""
 
     def _method(dimension, resolution):
+        system = EmptySystem(dimension)
+        eom = SchroedingerEquation(
+            hamiltonian_func=system.get_hamiltonian, hamiltonian_and_gradient_func=system.get_hamiltonian_and_gradient
+        )
         return ScipyExpm(
-            eom_func=DummyEquationsOfMotion(EmptySystem(dimension)).get_value,
+            eom_func=eom.get_value,
             resolution=resolution,
             initial_state=np.eye(dimension, dtype=np.complex128),
         )
