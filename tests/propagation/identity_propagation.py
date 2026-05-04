@@ -2,7 +2,7 @@
 
 import jax.numpy as jnp
 
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array, Quantity
 
 

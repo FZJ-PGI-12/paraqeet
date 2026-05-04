@@ -9,7 +9,7 @@ from jax.lax import dynamic_slice_in_dim, scan
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Array
 

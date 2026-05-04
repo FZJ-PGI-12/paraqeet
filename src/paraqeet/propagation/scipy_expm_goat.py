@@ -5,19 +5,27 @@ Uses the GOAT optimization method.
 """
 
 from functools import partial
+from typing import Callable
 
 import jax.numpy as jnp
 from jax import jit, vmap
 from jax.lax import scan
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.quantity import Array
 
 
 class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
+
+    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+
+    def __init__(self, eom_func, eom_and_grad_func, resolution, initial_state):
+        ScipyExpm.__init__(eom_func, resolution, initial_state)
+        DifferentiablePropagation.__init__(eom_func, resolution)
+        self._eom_and_gradient_func = eom_and_grad_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
@@ -102,18 +110,18 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
             raise ConfigurationException("Initial state is not set")
         if self._eom_func is None:
             raise ConfigurationException("No equation of motion is configured.")
-        n_params = self._eom_func.get_value_and_gradient(jnp.array([0.0]))[1].shape[1]
+
+        _, eom_grads = self._eom_and_gradient_func(jnp.array([0.0]))
+        n_params = eom_grads.shape[1]
         dim = self._initial_state.shape[0]
         psis = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
-
-        grad_func = self._eom_func.get_value_and_gradient
 
         for ti in range(1, len(times)):
             times, dt = self._construct_times(times, ti)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
-            eom, grads = grad_func(times + dt / 2)
+            eom, grads = self._eom_and_gradient_func(times + dt / 2)
             eom = eom * dt
             grads = jnp.array(grads) * dt
 

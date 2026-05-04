@@ -16,7 +16,7 @@ from jax.scipy.linalg import expm, expm_frechet
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.quantity import Array
 

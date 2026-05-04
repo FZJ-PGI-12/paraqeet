@@ -8,7 +8,7 @@ from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array
 from paraqeet.signal.pwc_generator import PWCGenerator
 

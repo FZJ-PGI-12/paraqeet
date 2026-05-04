@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
@@ -52,7 +52,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         self._basis_states = basis_states
         self.set_ideal_gate(gate)
 
-    # TODO: since this method is declared as static, it belongs to the class, not to the instance. 
+    # TODO: since this method is declared as static, it belongs to the class, not to the instance.
     # It should be called accordingly.
     @staticmethod
     def _fid(overlaps: Array) -> float:

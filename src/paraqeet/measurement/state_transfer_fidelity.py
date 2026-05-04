@@ -9,7 +9,7 @@ from jax import grad, jit
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
