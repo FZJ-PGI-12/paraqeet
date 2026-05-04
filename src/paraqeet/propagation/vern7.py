@@ -1,31 +1,31 @@
 """Class definition of the fixed time-step 7th-order Verner ODE solver. Adapted from Julia DiffEq Vern7."""
 
 from functools import partial
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
 from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
-from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.propagation import Propagation
+from paraqeet.propagation.propagation import StatePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7(Propagation):
+class Vern7(StatePropagation):
     """
     Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
     Implements Vern7 ODE Solver algorithm non adaptive (fixed time-step) version.
     """
 
-    _resolution: float
-    _initial_state: Array | None = None
+    _step_function: Callable
 
-    def __init__(self, model: EquationOfMotion, resolution: float):
+    def __init__(
+        self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array, step_function: Callable
+    ):
         """
         Parameters
         ----------
@@ -34,36 +34,18 @@ class Vern7(Propagation):
         res: float
             Resolution at which to sample the EOM
         """
-        super().__init__(model, resolution)
-        self.resolution = resolution
+        super().__init__(eom_func, resolution, initial_state)
+        self._step_function = step_function
 
-        if self.is_open:
-            self.step_function = self._lindblad_step
-        else:
-            self.step_function = self._schrodinger_step
+    @property
+    def step_function(self):
+        """Return the step function for solving the EOM."""
+        return self._step_function
 
-    def set_initial_state(self, state):
-        """Set initial state."""
-        # For open system check if initial state is a density matrixs.
-        if self.is_open:
-            if state.shape[-1] != state.shape[-2]:
-                raise ConfigurationException(
-                    f"Obtained a state vector of shape {state.shape} as initial state. "
-                    + "For open system propagation expected a density matrix as the initial state."
-                )
-        self._initial_state = jnp.array(state, dtype=jnp.complex128)
-
-    @staticmethod
-    def _commutator(A: Array, B: Array):
-        return jnp.matmul(A, B) - jnp.matmul(B, A)
-
-    @staticmethod
-    def _anti_commutator(A: Array, B: Array):
-        return jnp.matmul(A, B) + jnp.matmul(B, A)
-
-    @staticmethod
-    def _dagger(op: Array):
-        return op.conj().T
+    @step_function.setter
+    def step_function(self, step_func: Callable):
+        """Set the step function for solving the EOM."""
+        self._step_function = step_func
 
     @staticmethod
     def _interpolate_time(times, dt):
@@ -83,32 +65,22 @@ class Vern7(Propagation):
         )
         return jnp.sort(times_interp)
 
-    def _lindblad_step(self, state: Array, h: Array, cols: list[Array]):
-        del_rho = Vern7._commutator(h, state)
-        for col in cols:
-            del_rho += jnp.matmul(jnp.matmul(col, state), Vern7._dagger(col))
-            del_rho -= 0.5 * Vern7._anti_commutator(jnp.matmul(Vern7._dagger(col), col), state)
-        return del_rho
-
-    def _schrodinger_step(self, state: Array, h: Array, cols: list[Array]):
-        return jnp.matmul(h, state)
-
     @partial(jit, static_argnums=(0,))
     def _vern7_one_step(self, state, h, col):
-        k1 = self.step_function(state, h[0], col)
-        k2 = self.step_function(state + (1 / 200) * k1, h[1], col)
-        k3 = self.step_function(state + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
-        k4 = self.step_function(
+        k1 = self._step_function(state, h[0], col)
+        k2 = self._step_function(state + (1 / 200) * k1, h[1], col)
+        k3 = self._step_function(state + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
+        k4 = self._step_function(
             state + (49 / 1200) * k1 + (49 / 400) * k3,
             h[3],
             col,
         )
-        k5 = self.step_function(
+        k5 = self._step_function(
             state + (2454451729 / 3841600000) * k1 + (-9433712007 / 3841600000) * k3 + (4364554539 / 1920800000) * k4,
             h[4],
             col,
         )
-        k6 = self.step_function(
+        k6 = self._step_function(
             state
             + (-6187101755456742839167388910402379177523537620 / 2324599620333464857202963610201679332423082271) * k1
             + (27569888999279458303270493567994248533230000 / 2551701010245296220859455115479340650299761) * k3
@@ -117,7 +89,7 @@ class Vern7(Propagation):
             h[5],
             col,
         )
-        k7 = self.step_function(
+        k7 = self._step_function(
             state
             + (11272026205260557297236918526339 / 1857697188743815510261537500000) * k1
             + (-48265918242888069 / 1953194276993750) * k3
@@ -128,7 +100,7 @@ class Vern7(Propagation):
             h[6],
             col,
         )
-        k10 = self.step_function(
+        k10 = self._step_function(
             state
             + (-511858190895337044664743508805671 / 11367030248263048398341724647960) * k1
             + (2822037469238841750 / 15064746656776439) * k3
@@ -200,30 +172,15 @@ class Vern7(Propagation):
         if len(time) < 2:
             raise ValueError("Vern7.propagate needs at least two time points.")
 
-        if self._initial_state is None:
-            raise ConfigurationException("Initial state is not set")
-
-        if len(time) < 2:
-            raise ValueError("Propagation needs at least two time steps")
-
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
-        if self._eom_func is None:
-            raise ConfigurationException("No equation of motion is configured.")
-        eom_func = self._eom_func.get_value
-
-        # Verify if `model.ode_propagation` is set to `True`.
-        # ode_propgation returns hamiltonian and collapse operators separately.
-        eom_parts = eom_func(jnp.array([0]))
-        if len(eom_parts) != 2:
-            raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
         states = [init_state]
-
         for ti in range(1, len(time)):
             state_t = states[ti - 1]
             times, dt = self._construct_times(time, ti)
             times_interp = Vern7._interpolate_time(times, dt)
-            eom, cols = eom_func(times_interp + dt / 2)
+            # TODO: Seperate collapse operators from EOM.
+            eom, cols = self._eom_func(times_interp + dt / 2)
             state_t = self._propagate_in_time(
                 state_t,
                 eom * dt,

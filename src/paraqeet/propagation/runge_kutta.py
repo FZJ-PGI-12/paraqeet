@@ -5,11 +5,11 @@ from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.propagation import Propagation
+from paraqeet.propagation.propagation import StatePropagation
 from paraqeet.quantity import Array, Quantity
 
 
-class RungeKutta(Propagation):
+class RungeKutta(StatePropagation):
     """Propagation via the Runge-Kutta Scipy implementation.
 
     Uses scipy's Runge-Kutta implementation for propagating
@@ -24,14 +24,11 @@ class RungeKutta(Propagation):
 
     """
 
-    _initial_time_step: float | None
+    _initial_time_step: float
 
-    def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
-        # TODO: settting a default value for resolution
-        initial_time_step = 0.1e-9 if initial_time_step is None else initial_time_step
-        super().__init__(model, resolution=1 / initial_time_step)
-        self._initial_state: Array
-        self._initial_time_step = initial_time_step
+    def __init__(self, eom_func, resolution, initial_state):
+        super().__init__(eom_func, resolution, initial_state)
+        self._initial_time_step = 1 / resolution
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -87,7 +84,7 @@ class RungeKutta(Propagation):
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._eom_func.get_right_hand_side(np.array([time]), column_state),
+                self._eom_func(np.array([time]), column_state),
                 (-1,),
             )
 

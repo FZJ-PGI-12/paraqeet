@@ -8,7 +8,7 @@ from functools import partial
 from typing import Callable
 
 import jax.numpy as jnp
-from jax import jit, vmap
+from jax import jit
 from jax.lax import scan
 
 from paraqeet.exceptions import ConfigurationException
@@ -22,9 +22,15 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
 
     _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
 
-    def __init__(self, eom_func, eom_and_grad_func, resolution, initial_state):
-        ScipyExpm.__init__(eom_func, resolution, initial_state)
-        DifferentiablePropagation.__init__(eom_func, resolution)
+    def __init__(
+        self,
+        eom_func: Callable[[Array], Array],
+        eom_and_grad_func: Callable[[Array], tuple[Array, Array]],
+        resolution: float,
+        initial_state: Array,
+    ):
+        ScipyExpm.__init__(self, eom_func, resolution, initial_state)
+        DifferentiablePropagation.__init__(self, eom_func, resolution)
         self._eom_and_gradient_func = eom_and_grad_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
@@ -131,9 +137,4 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
 
         psis_arr = jnp.array(psis)
         dpsis_arr = jnp.array(dpsis)
-
-        if self.is_open:
-            dim = int(jnp.sqrt(eom.shape[-1]))
-            psis_arr = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
-            dpsis_arr = vmap(vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None)), in_axes=(0, None))(dpsis_arr, dim)
         return psis_arr, dpsis_arr

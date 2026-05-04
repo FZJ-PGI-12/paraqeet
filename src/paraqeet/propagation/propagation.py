@@ -102,7 +102,7 @@ class StatePropagation(Propagation):
 
     _initial_state: Array
 
-    def __init__(self, eom_func, resolution, initial_state):
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array):
         super().__init__(eom_func, resolution)
         self.initial_state = initial_state
 
