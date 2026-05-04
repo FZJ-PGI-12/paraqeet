@@ -8,6 +8,7 @@ from paraqeet.model.drive import DriveOperator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.resonator import Resonator
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.utils import convert_dm_to_vec, lindblad_step
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
@@ -83,9 +84,9 @@ def expm(open_resonator):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
+    init_dm_vec = convert_dm_to_vec(init_dm, dim=DIMS)
 
-    prop = ScipyExpm(open_resonator, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = ScipyExpm(open_resonator.get_value, resolution=100e9, initial_state=init_dm_vec)
     return prop
 
 
@@ -96,16 +97,15 @@ def ode(open_resonator):
     init_dm = np.matmul(init, init.T)
 
     open_resonator.ode_propagation = True
-    prop = Vern7(open_resonator, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = Vern7(open_resonator.get_value, resolution=100e9, initial_state=init_dm, step_function=lindblad_step)
     return prop
 
 
-def test_get_value(hamiltonian, time_samples):
-    """Test the getMatrix method."""
+def test_get_hamiltonian(hamiltonian, time_samples):
+    """Test the get_hamiltonian method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_value(time_samples)
+        hams = hamil.get_hamiltonian(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 

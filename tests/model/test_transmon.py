@@ -9,6 +9,7 @@ from paraqeet.model.drive import DriveOperator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.utils import convert_dm_to_vec, lindblad_step
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
@@ -65,20 +66,20 @@ def hamiltonian(gen):
 
 @pytest.fixture
 def open_transmon():
-    """Return an open model for the resonator."""
+    """Return an open model for the transmon."""
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
     drive = DriveOperator(generator, is_longitudinal=False)
-    resonator = Transmon(
+    transmon = Transmon(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
         anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
         drives=[drive],
         dimension=DIMS,
     )
-    resonator.t1 = T1
-    resonator.temp = TEMP
-    resonator.t2star = T2STAR
-    model = MasterEquation(resonator)
+    transmon.t1 = T1
+    transmon.temp = TEMP
+    transmon.t2star = T2STAR
+    model = MasterEquation(transmon)
 
     return model
 
@@ -88,9 +89,9 @@ def expm(open_transmon):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
+    init_dm_vec = convert_dm_to_vec(init_dm, dim=DIMS)
 
-    prop = ScipyExpm(open_transmon, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = ScipyExpm(open_transmon.get_value, resolution=100e9, initial_state=init_dm_vec)
     return prop
 
 
@@ -101,16 +102,15 @@ def ode(open_transmon):
     init_dm = np.matmul(init, init.T)
 
     open_transmon.ode_propagation = True
-    prop = Vern7(open_transmon, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = Vern7(open_transmon.get_value, resolution=100e9, initial_state=init_dm, step_function=lindblad_step)
     return prop
 
 
-def test_get_value(hamiltonian, time_samples):
-    """Test the getMatrix method."""
+def test_get_hamiltonian(hamiltonian, time_samples):
+    """Test the get_hamiltonian method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_value(time_samples)
+        hams = hamil.get_hamiltonian(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 

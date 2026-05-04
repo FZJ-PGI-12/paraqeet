@@ -145,7 +145,7 @@ class Transmon(OpenSystem):
         hamil = self._frequency.get_value() * self._num_op + self._anharmonicity.get_value() * self._anharmonic_term
         return hamil + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
 
-    def get_gradient_at_timestep(self, time: float) -> Array:
+    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
         """Get the gradient of the drive.
 
         Parameters
