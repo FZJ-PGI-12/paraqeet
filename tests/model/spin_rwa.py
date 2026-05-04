@@ -22,7 +22,7 @@ class SpinRWA(System):
         """Gradient is just the drive matrix."""
         return self.get_hamiltonian(times), self._drives[0].get_gradient(self.sigma_p, times)
 
-    def get_gradient_at_timestep(self, time):
+    def get_hamiltonian_gradient_at_timestep(self, time):
         return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
 
     # TODO: implement dimension-method from Hamiltonian

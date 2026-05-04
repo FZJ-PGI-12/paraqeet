@@ -5,11 +5,13 @@ import pytest
 
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.model.rotating_frame import RotatingFrameDrive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
@@ -47,19 +49,23 @@ def gen(tone):
 def model(gen):
     drive = RotatingFrameDrive(gen)
     spin = SpinRWA(drives=[drive])
-    model = SchroedingerEquation(spin)
+    model = SchroedingerEquation(spin.get_hamiltonian, spin.get_hamiltonian_and_gradient)
     return model
 
 
 @pytest.fixture
 def prop(model):
-    prop = ScipyExpmGRAPE(model, resolution=1e9)
-
     init = np.array([[1.0], [0]])  # |0>
     target = np.array([[0.0], [1]])  # |1>
 
-    prop.set_initial_state(init)
-    prop.set_target_state(target)
+    prop = ScipyExpmGRAPE(
+        model.get_value,
+        model.get_value_and_gradient,
+        resolution=1e9,
+        initial_state=init,
+        target_state=target,
+        operator_sandwich_function=grape_operator_sandwich_function_closed,
+    )
     return prop
 
 
@@ -69,9 +75,7 @@ def fid(prop):
     target = np.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
-        initial_state=init,
-        target_state=target,
+        propagation=prop, initial_state=init, target_state=target, overlap=overlap_state_vector
     )
     return zeroone
 
