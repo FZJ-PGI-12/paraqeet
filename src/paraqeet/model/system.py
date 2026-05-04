@@ -233,13 +233,13 @@ class OpenSystem(System):
     """System description that adds jump operators for the simulation of dissipation, etc."""
 
     @abstractmethod
-    def get_jump_operators(self) -> list[tuple[Array, Array]]:
+    def get_jump_operators(self) -> list[Array]:
         """
-        Return a list tuples of decay rates and jump operators for each subsystem.
+        Return a list of jump operators for each subsystem (multiplied by the sqrt of their decay rates).
 
         Returns
         -------
-        list[Tuple[Array, Array]]
+        list[Array]
             List of jump operators
         """
         pass

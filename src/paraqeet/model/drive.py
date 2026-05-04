@@ -5,7 +5,6 @@ from abc import abstractmethod
 import jax.numpy as jnp
 from jax import vmap
 
-from paraqeet.model.utils import repeat
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
@@ -223,5 +222,6 @@ class DriveOperator(Drive):
 
         """
         signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape((-1, 1, 1))
-        matrix = repeat(self._compute_matrix(a), signal_grad.shape[0])
+        matrix = self._compute_matrix(a)
+        matrix = matrix.reshape((1,) + matrix.shape).repeat(signal_grad.shape[0], axis=0)
         return signal_grad * matrix
