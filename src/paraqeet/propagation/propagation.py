@@ -6,6 +6,7 @@ from collections.abc import Callable
 import jax.numpy as jnp
 import numpy as np
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.quantity import Array
 
 
@@ -114,3 +115,34 @@ class StatePropagation(Propagation):
         """Set initial state."""
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
+
+
+# TODO: Does a differantiable propagation make sense physically? Should we rather have
+# differantiable models and use composition instead?
+class DifferentiablePropagation(Propagation, Differentiable):
+    """Propagation methods that provide a get_value_and_gradient method.
+
+    Parameters
+    ----------
+    model: Model
+        Represents the equation of motion for a given Hamiltonian.
+    """
+
+    _resolution: float
+
+    @abstractmethod
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
+        """Gradient method to be implemented
+
+        Parameters
+        ----------
+        times: Array
+            Array of timesteps.
+
+        Returns
+        -------
+        tuple[Array, Array]
+            First dimension is time, second dimension is the parameter.
+
+        """
+        pass
