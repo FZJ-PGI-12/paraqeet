@@ -202,10 +202,10 @@ def test_gradient(gen, coupled_transmons, time_samples):
         )
 
 
-def test_collapseops_dimensions(coupled_transmons_chain):
+def test_jump_operators_dimensions(coupled_transmons_chain):
     for _ in np.arange(1, 10):
         dims = [np.random.randint(2, 5) for _ in range(np.random.randint(2, 5))]
         hamil = coupled_transmons_chain(dims, True)
-        ops = hamil.get_collapseops()
+        ops = hamil.get_jump_operators()
         for rate, op in ops:
             assert op.shape[0] == op.shape[1] == hamil.dimension()

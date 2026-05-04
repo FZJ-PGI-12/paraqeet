@@ -6,7 +6,8 @@ import numpy as np
 
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.system import OpenSystem, System
+from paraqeet.model.system import System
+from paraqeet.model.utils import tensor_product_with_identity
 from paraqeet.quantity import Array, Quantity
 
 
@@ -116,7 +117,7 @@ class CompositeSystem(System):
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
             sub_matrix = subsystem.get_hamiltonian_at_timestep(timestep)
-            matrix += self._tensor_product_with_identity([sub_matrix], [n])
+            matrix += tensor_product_with_identity([sub_matrix], [n], self._dimensions)
 
         for coupling in self._couplings:
             # Create a tensor product where all subsystems
@@ -124,7 +125,7 @@ class CompositeSystem(System):
             indices = [self._subsystems.index(s) for s in coupling.subsystems]
             sub_matrices = coupling.get_couplings()
             for term in sub_matrices:
-                matrix += self._tensor_product_with_identity(term, indices)
+                matrix += tensor_product_with_identity(term, indices, self._dimensions)
 
         return matrix
 
@@ -156,7 +157,7 @@ class CompositeSystem(System):
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
-                gradients.append(self._tensor_product_with_identity([g], [one_index]))
+                gradients.append(tensor_product_with_identity([g], [one_index], self._dimensions))
 
         # Do the same for couplings, except that the tensor product
         # has more than one non-identity component.
@@ -165,57 +166,8 @@ class CompositeSystem(System):
             coupling_gradient = coupling.get_coupling_gradients()
             for term in coupling_gradient:
                 for g_list in term:
-                    grad = self._tensor_product_with_identity(g_list, indices)
+                    grad = tensor_product_with_identity(g_list, indices, self._dimensions)
                     if grad.size != 0:
                         gradients.append(grad)
 
         return jnp.array(gradients)
-
-    def _tensor_product_with_identity(self, mat_list: list[Array], n: list[int]) -> Array:
-        r"""Put the matrices mat_list into a tensor product at positions `n`.
-
-        All other positions are identity matrices:
-        .. math::
-            1 \\otimes \\dots \\otimes 1 \\otimes mat_list_1 \\otimes 1
-                \\otimes \\dots \\otimes 1 \\otimes mat_list_2 \\dots
-        The dimensions are assumed to be the same as the subsystems.
-
-        Parameters
-        ----------
-        mat_list : List[Array]
-            List of Matrices for tensor product
-        n : list[int]
-            List of indices for the each mat_list_i
-
-        Returns
-        -------
-        Array
-            Tensor product of mat_list_i's with I's.
-
-        """
-        # Create identity matrices for all subsystems and
-        # fill in mat_list at the corresponding indices
-        sub_matrices = [jnp.eye(s.dimension()) for s in self._subsystems]
-        for i, k in enumerate(n):
-            sub_matrices[k] = jnp.array(mat_list[i])
-
-        # Tensor product everything in sub_matrices
-        product = jnp.eye(1)
-        for m in sub_matrices:
-            product = jnp.kron(product, m)
-
-        return product
-
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
-        """
-        Gather collapse operators from the subsystems and then tensor product them
-        with identity to create the collapse operators of the right dimension.
-        """
-        all_collapse_ops = []
-        for n, subsystem in enumerate(self._subsystems):
-            # TODO Could be solved better.
-            if isinstance(subsystem, OpenSystem):
-                rates_and_cols = subsystem.get_collapseops()
-                for rate, col_op in rates_and_cols:
-                    all_collapse_ops.append((rate, self._tensor_product_with_identity([col_op], [n])))
-        return all_collapse_ops

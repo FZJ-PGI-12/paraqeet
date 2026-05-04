@@ -194,14 +194,14 @@ class Transmon(OpenSystem):
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
+    def get_jump_operators(self) -> list[tuple[Array, Array]]:
         """
-        Return a list tuples of decay rates and collapse operators for each subsystem.
+        Return a list tuples of decay rates and jump operators for each subsystem.
 
         Return
         ------
         list[tuple[Array, Array]]
-            List of collapse operators
+            List of jump operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         col_t1 = self._annihilation_op

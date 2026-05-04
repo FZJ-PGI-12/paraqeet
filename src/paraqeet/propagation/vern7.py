@@ -179,7 +179,7 @@ class Vern7(StatePropagation):
             state_t = states[ti - 1]
             times, dt = self._construct_times(time, ti)
             times_interp = Vern7._interpolate_time(times, dt)
-            # TODO: Seperate collapse operators from EOM.
+            # TODO: Seperate jump operators from EOM.
             eom, cols = self._eom_func(times_interp + dt / 2)
             state_t = self._propagate_in_time(
                 state_t,

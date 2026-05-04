@@ -55,5 +55,5 @@ class EmptySystem(OpenSystem):
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
+    def get_jump_operators(self) -> list[tuple[Array, Array]]:
         raise NotImplementedError("Method not implemented yet.")

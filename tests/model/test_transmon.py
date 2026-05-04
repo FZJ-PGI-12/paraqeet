@@ -208,8 +208,8 @@ def test_needs_parameters_for_decay_rates(hamiltonian):
             hamil.temp = temp
             if t1 is not None and t2star is not None and temp is not None:
                 # Valid parameters should work
-                hamil.get_collapseops()
+                hamil.get_jump_operators()
             else:
                 # Invalid parameters should raise an exception
                 with pytest.raises(ConfigurationException):
-                    hamil.get_collapseops()
+                    hamil.get_jump_operators()

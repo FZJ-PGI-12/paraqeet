@@ -3,106 +3,98 @@
 from collections.abc import Callable
 
 import jax.numpy as jnp
-from jax import jit, vmap
-from jax.experimental.sparse import BCOO
+from jax import vmap
 
-from paraqeet.differentiable import Differentiable
-from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array
 
 
 class MasterEquation(EquationOfMotion):
     """
-    Model of an open quantum system, defined by the Hamiltonian and collapse operators.
+    Model of an open quantum system, defined by the Hamiltonian and jump operators.
     Its dynamics given by the Lindblad master equation.
 
-    Currently the gradients for ODE propagation methods is not supported.
+    Defaults to returning the Lindblad superoperator. For ODE based methods use the
+    `get_eom_ode_propagation` and `get_eom_and_gradient_ode_propagation` methods.
 
     Parameters
     ----------
-    hamiltonian : Hamiltonian
-        Matrix representation of a Hamiltonian.
-    sparse_superop: bool
-        Flag to save superoperator as sparse matrices.
-    ode_propagation: bool
-        Flag to use ODE methods for propgation.
-        If `true` then `get_value` method returns list of Hamiltonian (with time) and collapse operator.
-        Else returns Lindblad superoperator.
+    hamiltonian_func : Callable[[Array], Array]
+        Hamiltonian as a function of time.
+    hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Hamiltonian, Hamiltonian gradients as a function of time.
+    jump_operators: list[Array]
+        Jump operators present in the system (multiplied by the sqrt of corresponding decay rates).
     """
 
-    _ode_propagation: bool
-    _sparse_superop: bool
-    _get_value_method: Callable
-    _system: OpenSystem
+    _jump_operators: list[Array]
+    _total_dimension: int
 
     def __init__(
         self,
-        system: OpenSystem,
-        sparse_superop: bool = False,
-        ode_propagation: bool = False,
+        hamiltonian_func: Callable[[Array], Array],
+        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        jump_operators: list[Array],
     ):
-        self._system = system
-        self._sparse_superop = sparse_superop
-        self.ode_propagation = ode_propagation
+        super().__init__(hamiltonian_func, hamiltonian_and_gradient_func)
+        self._jump_operators = jump_operators
+        self._total_dimension = hamiltonian_func(jnp.array([0.0])).shape[1]
 
     @property
-    def sparse_superop(self) -> bool:
-        """Flag to store superoperators as sparse matrices.
+    def jump_operators(self) -> list[Array]:
+        """Return a list of jump operators (each multiplied by the sqrt of their corresponding decay rates).
 
         Returns
         -------
-        bool
-            Flag to store sparse matrices.
-        """
-        return self._sparse_superop
-
-    @sparse_superop.setter
-    def sparse_superop(self, sparse_superop: bool) -> None:
-        self._sparse_superop = sparse_superop
-
-    @property
-    def ode_propagation(self) -> bool:
-        """Flag to set method of propagation to ODE.
-
-        Returns
-        -------
-        bool
-            Flag to use ODE propagation.
-        """
-        return self._ode_propagation
-
-    @ode_propagation.setter
-    def ode_propagation(self, ode_propagation: bool) -> None:
-        self._ode_propagation = ode_propagation
-
-        if ode_propagation:
-            self._get_value_method = self._get_ode_propagation_eom
-        else:
-            self._get_value_method = vmap(self._create_lindbladian_superop)
-
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
-        """Get a list of tuples of decay rates and collapse operators for each subsystem.
-
-        Returns
-        -------
-        list[tuple[float, Array]]
-            list of collapse operators
+        list[Array]
+            list of jump operators
 
         """
-        sol = self._system
-        if isinstance(sol, OpenSystem):
-            coll_ops = sol.get_collapseops()
-        else:
-            raise ConfigurationException(f"{sol} is not an Open System.")
-        return coll_ops
+        return self._jump_operators
 
-    def _get_ode_propagation_eom(self, times: Array) -> tuple[Array, list[Array]]:
-        """
+    @jump_operators.setter
+    def jump_operators(self, jump_ops: list[Array]):
+        """Set a list of jump operators (each multiplied by the sqrt of their corresponding decay rates)."""
+        self._jump_operators = jump_ops
+
+    def _create_hamiltonian_superop(self, t) -> Array:
+        """Create the Hamiltonian superoperator for one time point `t`."""
+        identityop = jnp.eye(self._total_dimension)
+        ham = self._hamiltonian_func(t)
+        superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
+        return superop
+
+    def _create_jump_superop(self) -> Array:
+        """Create the superoperator due to the jump part. This is time independent."""
+        identityop = jnp.eye(self._total_dimension)
+        superop = jnp.zeros((self._total_dimension**2, self._total_dimension**2), dtype=jnp.float64)
+        for jump_op in self.jump_operators:
+            superop += jnp.kron(jump_op.conj(), jump_op)
+            superop -= jnp.kron(jnp.matmul(jump_op.T, jump_op.conj()), identityop) / 2
+            superop -= jnp.kron(identityop, jnp.matmul(jump_op.conj().T, jump_op)) / 2
+        return superop
+
+    def _create_lindbladian_superop(self, t) -> Array:
+        """Create the Lindbladian superoperator for one time point `t`."""
+        ham_super_op = self._create_hamiltonian_superop(t)
+        col_super_op = self._create_jump_superop()
+        return ham_super_op + col_super_op
+
+    def _create_hamiltonian_grad_superop(self, timestep: float):
+        """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
+        identityop = jnp.eye(self._total_dimension)
+        ham_grad = self._hamiltonian_and_gradient_func(timestep)
+        term1 = -1j * vmap(jnp.kron, in_axes=(None, 0))(identityop, ham_grad)
+        term2 = 1j * vmap(jnp.kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
+        superop = term1 + term2
+        return superop
+
+    def get_eom_ode_propagation(self, times: Array) -> tuple[Array, list[Array]]:
+        """Return EOM for ODE propagation methods.
+
         Return the coherent and incoherent EOM parts seperately.
         Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
-        and the incoherent part is a list of collapse operators
+        and the incoherent part is a list of jump operators
 
         Parameters
         ----------
@@ -112,48 +104,33 @@ class MasterEquation(EquationOfMotion):
         Returns
         -------
         tuple[Array, Array]
-             Hamiltonian EOM ([t, N, N] matrix) and the `m` collapse operators ([m, N^2, N^2] matrix)
+             Hamiltonian EOM ([t, N, N] matrix) and the `m` jump operators ([m, N^2, N^2] matrix)
         """
-        ham_eom = self._system.get_hamiltonian(times)
-        rates_and_cols = self.get_collapseops()
-        cols: list[Array] = [jnp.sqrt(rate) * col for rate, col in rates_and_cols]
-        return -1j * ham_eom, cols
+        ham_eom = self._hamiltonian_func(times)
+        return -1j * ham_eom, self.jump_operators
 
-    def _create_hamiltonian_superop(self, t) -> Array | BCOO:
-        """Create the Hamiltonian superoperator for one time point `t`."""
-        identityop = jnp.eye(self._system.dimension())
-        ham = self._system.get_hamiltonian_at_timestep(t)
-        superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
-        if self.sparse_superop:
-            return BCOO.fromdense(superop)
-        return superop
+    def get_eom_and_gradient_ode_propagation(self, times: Array) -> tuple[Array, Array]:
+        """Return EOM for ODE propagation methods.
 
-    def _create_collapse_superop(self) -> Array | BCOO:
-        """Create the superoperator due to the collapse part. This is time independent."""
-        dim = self._system.dimension()
-        identityop = jnp.eye(dim)
-        superop = jnp.zeros((dim**2, dim**2), dtype=jnp.float64)
-        rates_and_cols = self.get_collapseops()
-        for rate, col in rates_and_cols:
-            superop += rate * jnp.kron(col.conj(), col)
-            superop -= rate * jnp.kron(jnp.matmul(col.T, col.conj()), identityop) / 2
-            superop -= rate * jnp.kron(identityop, jnp.matmul(col.conj().T, col)) / 2
+        Return the coherent and incoherent EOM parts seperately.
+        Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
+        and the incoherent part is a list of jump operators
 
-        if self.sparse_superop:
-            return BCOO.fromdense(superop)
-        return superop
+        Parameters
+        ----------
+        times: Array
+            Vector of time samples
 
-    def _create_lindbladian_superop(self, t) -> Array | BCOO:
-        """Create the Lindbladian superoperator for one time point `t`."""
-        ham_super_op = self._create_hamiltonian_superop(t)
-        col_super_op = self._create_collapse_superop()
-        return ham_super_op + col_super_op
+        Returns
+        -------
+        tuple[Array, Array]
+             Hamiltonian EOM ([t, N, N] matrix) and the `m` jump operators ([m, N^2, N^2] matrix)
+        """
+        ham_eom, grads = self._hamiltonian_and_gradient_func(times)
+        return -1j * ham_eom, -1j * grads
 
-    # TODO: check the times-Array: internally a method might be called which expects only one timestep
     def get_value(self, times: Array):
-        """
-        Computes the right hand side of the Schrödinger equation without multiplying the state.
-        Used for unitary solvers.
+        """Return the Lindblad superoperator.
 
         Parameters
         ----------
@@ -163,37 +140,24 @@ class MasterEquation(EquationOfMotion):
         Returns
         -------
         Array
-            RHS with dimension [t, n, n]  with t: time, n: hilbert space
+            RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
         """
-        # TODO: in case the matrix_method is _create_lindbladian_superop, only one timestep is expected!
-        return self._get_value_method(times)
-
-    @staticmethod
-    @jit
-    def _kron(A, B):
-        return jnp.kron(A, B)
-
-    def _create_hamiltonian_grad_superop(self, timestep: float):
-        """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
-        identityop = jnp.eye(self._system.dimension())
-        ham_grad = self._system.get_hamiltonian_gradient_at_timestep(timestep)
-        term1 = -1j * vmap(MasterEquation._kron, in_axes=(None, 0))(identityop, ham_grad)
-        term2 = 1j * vmap(MasterEquation._kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
-        superop = term1 + term2
-        return superop
+        return vmap(self._create_lindbladian_superop)(times)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Compute the gradient of get_value."""
-        # TODO: What to do if Hamiltonian is not differentiable?
-        if isinstance(self._system, Differentiable):
-            if self.ode_propagation:
-                # TODO: Can the eom be obtained without calling the get_value method?
-                _, grads = self._system.get_value_and_gradient(times)
-                eom = self._get_value_method(times)
-                grads = -1j * grads
-            else:
-                eom = vmap(self._create_lindbladian_superop)(times)
-                # TODO: times is an Array but float is expected
-                # ignoring mypy due to vmap
-                grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
+        """Return the Lindblad superoperator and its gradient.
+
+        Parameters
+        ----------
+        times: Array
+            Vector of time samples
+
+        Returns
+        -------
+        Array
+            RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
+        """
+        eom = vmap(self._create_lindbladian_superop)(times)
+        # ignoring mypy due to vmap
+        grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
         return eom, grads

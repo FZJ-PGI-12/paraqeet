@@ -171,8 +171,8 @@ class Qubit(OpenSystem):
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
-        """Return a list tuples of decay rates and collapse operators for each subsystem."""
+    def get_jump_operators(self) -> list[tuple[Array, Array]]:
+        """Return a list tuples of decay rates and jump operators for each subsystem."""
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         col_t1 = self._annihilation_op
         col_temp = self._annihilation_op.T

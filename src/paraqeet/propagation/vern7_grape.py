@@ -186,7 +186,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             # TODO: currently seperate time grids are required for the EOM and the gradients.
             # TODO: Can we use one so that the value and gradients are computed simultaneously?
 
-            # TODO: Seperate collapse operators from eom function
+            # TODO: Seperate jump operators from eom function
             eom, cols = self._eom_func(times_interp)
 
             psi_t, lamda_t = self._forward_and_backward_propagation(

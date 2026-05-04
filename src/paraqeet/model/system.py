@@ -15,8 +15,7 @@ class System(Optimizable):
 
     Implementations can contain subsystems, couplings, and drive lines
     and have to take care of frame transformations. Derived classes need to
-    implement the functions get_matrix, gradient, dimension, get_collapse_ops,
-    get_value_at_timestep
+    implement the functions get_hamiltonian, get_hamiltonian_and_gradient, dimension, get_value_at_timestep
 
     Parameters
     ----------
@@ -231,16 +230,16 @@ class System(Optimizable):
 
 
 class OpenSystem(System):
-    """System description that adds collapse operators for the simulation of dissipation, etc."""
+    """System description that adds jump operators for the simulation of dissipation, etc."""
 
     @abstractmethod
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
+    def get_jump_operators(self) -> list[tuple[Array, Array]]:
         """
-        Return a list tuples of decay rates and collapse operators for each subsystem.
+        Return a list tuples of decay rates and jump operators for each subsystem.
 
         Returns
         -------
         list[Tuple[Array, Array]]
-            List of collapse operators
+            List of jump operators
         """
         pass

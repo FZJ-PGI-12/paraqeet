@@ -29,8 +29,8 @@ class SpinRWA(System):
     def dimension(self) -> int:
         raise NotImplementedError()
 
-    #  TODO: implement get_collapseops method from Hamiltonian
-    def get_collapseops(self) -> list[tuple[Array, Array]]:
+    #  TODO: implement get_jump_operators method from Hamiltonian
+    def get_jump_operators(self) -> list[tuple[Array, Array]]:
         raise NotImplementedError()
 
     #  TODO: implement get_parameters method from Optimizable

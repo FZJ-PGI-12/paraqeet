@@ -88,8 +88,8 @@ def test_needs_parameters_for_decay_rates(ham):
         ham.temp = temp
         if t1 is not None and t2star is not None and temp is not None:
             # Valid parameters should work
-            ham.get_collapseops()
+            ham.get_jump_operators()
         else:
             # Invalid parameters should raise an exception
             with pytest.raises(ConfigurationException):
-                ham.get_collapseops()
+                ham.get_jump_operators()

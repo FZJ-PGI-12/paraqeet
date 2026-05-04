@@ -5,6 +5,7 @@ from abc import abstractmethod
 import jax.numpy as jnp
 from jax import vmap
 
+from paraqeet.model.utils import repeat
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
@@ -115,28 +116,6 @@ class Drive(Optimizable):
         """
         pass
 
-    @staticmethod
-    def _repeat(mat: Array, num: int) -> Array:
-        """Repeats the matrix mat for each timestep in the times array.
-
-        Returns an array with shape [t, n, m] where 't' is the
-        number of time steps and 'mat' is an 'n' times 'm' matrix.
-
-        Parameters
-        ----------
-        mat: Array
-            Input matrix for repetition.
-        num : int
-            Number of times of repetition.
-
-        Returns
-        -------
-        Array
-            Repeated matrix for further computation.
-
-        """
-        return mat.reshape((1,) + mat.shape).repeat(num, axis=0)
-
 
 class DriveOperator(Drive):
     r"""Create a generator drive model.
@@ -244,5 +223,5 @@ class DriveOperator(Drive):
 
         """
         signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape((-1, 1, 1))
-        matrix = Drive._repeat(self._compute_matrix(a), signal_grad.shape[0])
+        matrix = repeat(self._compute_matrix(a), signal_grad.shape[0])
         return signal_grad * matrix
