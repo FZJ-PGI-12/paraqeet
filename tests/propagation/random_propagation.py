@@ -41,29 +41,13 @@ class RandomPropagation(Propagation, Differentiable):
         generate_matrices: bool = False,
         auto_update: bool = True,
     ):
-        super().__init__(SchroedingerEquation(EmptySystem(0)), 1e9)
+        sys = EmptySystem(0)
+        eom = SchroedingerEquation(sys.get_hamiltonian, sys.get_hamiltonian_and_gradient)
+        super().__init__(eom.get_value, 1e9)
         self._dimension = dimension
         self._create_matrices = generate_matrices
         self._auto_update = auto_update
         self.update()
-        self.is_open = False
-
-    def get_parameters(self) -> list[Quantity]:
-        """Returns an empty list."""
-        return []
-
-    def set_initial_state(self, state: Array):
-        """Set the initial state of the system.
-
-        Set it to the given state.
-
-        Parameters
-        ----------
-        state: Array
-            Given state to set as the initial state.
-
-        """
-        pass
 
     def propagate(self, time: Array) -> Array:
         """Propagate the system through time.

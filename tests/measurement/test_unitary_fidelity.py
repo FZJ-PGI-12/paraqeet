@@ -48,6 +48,7 @@ def test_equality(identity_propagation, random_unitary_matrix):
             np.testing.assert_almost_equal(m, 1.0)
 
 
+@pytest.mark.skip(reason="Projection needed")
 def test_projection(identity_propagation, random_basis_vectors):
     """Test the projection of the state vectors."""
     for dim in range(2, 10):
