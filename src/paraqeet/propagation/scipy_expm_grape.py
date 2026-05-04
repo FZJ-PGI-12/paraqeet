@@ -61,6 +61,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         DifferentiablePropagation.__init__(self, eom_func, resolution)
         self._eom_and_gradient_func = eom_and_grad_func
         self.target_state = target_state
+        self._operator_sandwich_function = operator_sandwich_function
 
     @property
     def target_state(self):

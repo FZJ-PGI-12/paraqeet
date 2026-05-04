@@ -5,7 +5,7 @@ from typing import Callable
 
 import jax
 import jax.numpy as jnp
-from jax import jit, vmap
+from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
 from paraqeet.exceptions import ConfigurationException
