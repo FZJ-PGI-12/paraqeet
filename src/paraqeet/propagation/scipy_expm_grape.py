@@ -326,7 +326,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         grads = []
         for i in range(n_params):
-            grad = self._operator_sandwich_function(dh_dps[:, i, ...], psis[:-1], lamdas[1:])
+            grad = self._operator_sandwich_function(u_grads[:, i, ...], psis[:-1], lamdas[1:])
             grad = jnp.squeeze(grad)
             grads.append(grad)
 

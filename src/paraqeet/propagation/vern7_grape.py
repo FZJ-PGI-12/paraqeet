@@ -206,7 +206,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         grads = []
         n_params = dh_dps.shape[1]
         for i in range(n_params):
-            grad = self._operator_sandwich_function(dh_dps[:, i, ...], psis[:-1], lamdas[1:])
+            grad = self._operator_sandwich_function(dh_dps[:, i, ...], psis[1:], lamdas[1:])
             grad = jnp.squeeze(grad)
             grads.append(grad)
         return psis, jnp.array(grads)
