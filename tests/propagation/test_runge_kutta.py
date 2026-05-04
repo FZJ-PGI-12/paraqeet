@@ -14,14 +14,14 @@ def rk():
     """Return a Runge-Kutta model generating method."""
 
     def _method(dimension):
-        return RungeKutta(SchroedingerEquation(EmptySystem(dimension)))
+        sys = EmptySystem(dimension)
+        eom = SchroedingerEquation(
+            hamiltonian_func=sys.get_hamiltonian,
+            hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient,
+        )
+        return RungeKutta(eom_func=eom.get_value, resolution=1e9, initial_state=np.array([[1.0], [0.0j]]))
 
     return _method
-
-
-def test_parameters(rk):
-    """Test parameters of the model."""
-    assert rk(2).get_parameters() == []
 
 
 def test_state_dimension(rk, ts, random_state):
@@ -32,7 +32,7 @@ def test_state_dimension(rk, ts, random_state):
     dim = np.random.randint(1, 100)
     state = random_state(dim)
     runge_kutta = rk(dim)
-    runge_kutta.set_initial_state(state)
+    runge_kutta.initial_state = state
     propagated_states = runge_kutta.propagate(ts)
     assert len(propagated_states) == len(ts)
     assert propagated_states[-1].shape == state.shape
@@ -65,7 +65,7 @@ def test_time_steps(rk, random_state):
     dim = np.random.randint(1, 100)
     state = random_state(dim)
     runge_kutta = rk(dim)
-    runge_kutta.set_initial_state(state)
+    runge_kutta.initial_state = state
     with pytest.raises(
         ValueError,
         match="RungeKutta.propagate needs at least two time steps",

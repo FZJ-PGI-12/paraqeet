@@ -14,14 +14,14 @@ def euler():
     """Return a Euler propagation model generating method."""
 
     def _method(dimension):
-        return Euler(SchroedingerEquation(EmptySystem(dimension)))
+        sys = EmptySystem(dimension)
+        eom = SchroedingerEquation(
+            hamiltonian_func=sys.get_hamiltonian,
+            hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient,
+        )
+        return Euler(eom_func=eom.get_value, resolution=1e9, initial_state=np.array([[1.0], [0.0j]]))
 
     return _method
-
-
-def test_parameters(euler):
-    """Test parameters of the model."""
-    assert euler(2).get_parameters() == []
 
 
 def test_state_dimension_vector(random_state, euler, ts):
@@ -34,7 +34,7 @@ def test_state_dimension_vector(random_state, euler, ts):
         dim = np.random.randint(2, 30)
         state = random_state(dim)
         propagation = euler(dim)
-        propagation.set_initial_state(state)
+        propagation.initial_state = state
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape
@@ -46,7 +46,7 @@ def test_state_dimension_matrix(random_matrix, euler, ts):
         dim = np.random.randint(2, 30)
         state = random_matrix(dim, dim)
         propagation = euler(dim)
-        propagation.set_initial_state(state)
+        propagation.initial_state = state
         propagatedStates = propagation.propagate(ts)
         assert propagatedStates.shape[0] == len(ts)
         assert propagatedStates.shape[1:] == state.shape

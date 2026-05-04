@@ -6,7 +6,6 @@ import pytest
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 from tests.model.empty_hamiltonian import EmptySystem
-from tests.propagation.test_common_propagation import check_propagation
 
 
 @pytest.fixture
@@ -18,7 +17,12 @@ def expm():
         schreq = SchroedingerEquation(
             hamiltonian_func=sys.get_hamiltonian, hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient
         )
-        return ScipyExpmGOAT(eom_func=schreq.get_value, resolution=resolution, initial_state=initial_state)
+        return ScipyExpmGOAT(
+            eom_func=schreq.get_value,
+            eom_and_grad_func=schreq.get_value_and_gradient,
+            resolution=resolution,
+            initial_state=initial_state,
+        )
 
     return _method
 

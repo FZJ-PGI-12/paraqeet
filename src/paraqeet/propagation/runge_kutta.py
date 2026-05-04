@@ -29,17 +29,6 @@ class RungeKutta(StatePropagation):
         super().__init__(eom_func, resolution, initial_state)
         self._initial_time_step = 1 / resolution
 
-    def get_parameters(self) -> list[Quantity]:
-        """Get a list of parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            List of optimizable parameters of the system.
-
-        """
-        return []
-
     def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
 
@@ -83,8 +72,8 @@ class RungeKutta(StatePropagation):
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._eom_func(np.array([time]), column_state),
-                (-1,),
+                self._eom_func(np.array([time])) @ column_state,
+                (-1),
             )
 
         # Since RK45 uses adaptive time steps and does not guarantee
@@ -108,5 +97,5 @@ class RungeKutta(StatePropagation):
 
             while integrator.status == "running":
                 integrator.step()
-            states.append(integrator.y)
+            states.append(np.reshape(integrator.y, (-1, 1)))
         return np.array(states)

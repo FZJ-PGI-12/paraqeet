@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.propagation import DifferentiablePropagation, StatePropagation
+from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
