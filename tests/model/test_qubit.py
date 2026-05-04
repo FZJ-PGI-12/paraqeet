@@ -45,9 +45,9 @@ def ham(gen):
     return Qubit(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 
 
-def test_get_value(ham, time_samples):
-    """Test the getMatrix method."""
-    hams = ham.get_value(time_samples)
+def test_get_hamiltonian(ham, time_samples):
+    """Test the get_hamiltonian method."""
+    hams = ham.get_hamiltonian(time_samples)
     assert hams.shape == time_samples.shape + (2, 2)
 
 

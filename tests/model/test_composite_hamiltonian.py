@@ -151,33 +151,33 @@ def test_dimension(coupled_transmons):
         assert hamil.dimension() == dim1 * dim2
 
 
-def test_get_value_one_time(uncoupled_transmons):
-    """Test shape of Matrix produced by compositeHamiltonian."""
+def test_hamiltonian_at_timestep(uncoupled_transmons):
+    """Test shape of matrix produced by compositeHamiltonian at each timestep."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = uncoupled_transmons(dim1, dim2)
-        hams = hamil.get_value_at_timestep(0)
+        hams = hamil.get_hamiltonian_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_get_value_one_time_rwa(coupled_transmons):
-    """Test shape of Matrix produced by compositeHamiltonian."""
+def test_hamiltonian_at_timestep_rwa(coupled_transmons):
+    """Test shape of matrix produced by compositeHamiltonian at each timestep under RWA."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2, use_rwa=True)
-        hams = hamil.get_value_at_timestep(0)
+        hams = hamil.get_hamiltonian_at_timestep(0)
         assert hams.shape == (dim1 * dim2, dim1 * dim2)
 
 
-def test_get_value(coupled_transmons, time_samples):
-    """Test shape of Matrix produced by compositeHamiltonian."""
+def test_get_hamiltonian(coupled_transmons, time_samples):
+    """Test shape of matrix produced by compositeHamiltonian for an array of timesteps."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
         hamil = coupled_transmons(dim1, dim2)
-        hams = hamil.get_value(time_samples)
+        hams = hamil.get_hamiltonian(time_samples)
         assert hams.shape == time_samples.shape + (dim1 * dim2, dim1 * dim2)
 
 
@@ -193,7 +193,7 @@ def test_gradient(gen, coupled_transmons, time_samples):
         hamil = coupled_transmons(dim1, dim2)
         hamil.set_optimizable_parameters(hamil.get_parameters())
         _, grads = gen.get_value_and_gradient(time_samples)
-        _, ham_grads = hamil.get_value_and_gradient(time_samples)
+        _, ham_grads = hamil.get_hamiltonian_and_gradient(time_samples)
         assert ham_grads.shape == (
             grads.shape[0],
             grads.shape[1] * 2 + 5,

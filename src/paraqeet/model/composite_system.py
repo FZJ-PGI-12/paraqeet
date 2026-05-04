@@ -128,7 +128,7 @@ class CompositeSystem(System):
 
         return matrix
 
-    def get_gradient_at_timestep(self, time: float) -> Array:
+    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
         """Return the gradient of each parameter as an array for one timestamp.
 
         Collects the gradients from every subsytem and coupling and constructs
@@ -152,7 +152,7 @@ class CompositeSystem(System):
         for one_index, subsystem in enumerate(self._subsystems):
             # TODO: Fix typing
             # ignoring mypy due to vmap
-            sub_gradients = subsystem.get_gradient_at_timestep(jnp.array(time, ndmin=1))  # type: ignore
+            sub_gradients = subsystem.get_hamiltonian_gradient_at_timestep(jnp.array(time, ndmin=1))  # type: ignore
             for g in sub_gradients:
                 if not isinstance(g, np.ndarray | jax.Array):
                     raise IncompatibleLayersException(f"Expected 'Array' got {type(g)} as gradient.")
