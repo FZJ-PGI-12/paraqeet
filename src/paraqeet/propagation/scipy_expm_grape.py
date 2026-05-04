@@ -6,8 +6,8 @@ Hamiltonian is defined in the rotating frame of drive.
 
 """
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 import jax
 import jax.numpy as jnp
@@ -82,7 +82,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
     @property
     def operator_sandwich_function(self):
-        """Return the operator sandwich function for computing the gradients.
+        r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
         .. math::
@@ -283,7 +283,6 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         This propagation method assumes a PWC pulse as input.
         """
-
         # TODO: Test if this get_value_and_gradient method also works for open systems.
 
         if len(times) < 2:

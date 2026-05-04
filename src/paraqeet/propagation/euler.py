@@ -3,9 +3,8 @@
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.propagation.propagation import StatePropagation
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array
 
 
 class Euler(StatePropagation):

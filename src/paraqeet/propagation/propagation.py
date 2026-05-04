@@ -108,6 +108,7 @@ class StatePropagation(Propagation):
 
     @property
     def initial_state(self):
+        """Return initial state."""
         return self._initial_state
 
     @initial_state.setter

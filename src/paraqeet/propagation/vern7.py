@@ -1,7 +1,7 @@
 """Class definition of the fixed time-step 7th-order Verner ODE solver. Adapted from Julia DiffEq Vern7."""
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 import jax
 import jax.numpy as jnp

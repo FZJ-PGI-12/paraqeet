@@ -4,8 +4,8 @@ Uses the GOAT optimization method.
 
 """
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 import jax.numpy as jnp
 from jax import jit

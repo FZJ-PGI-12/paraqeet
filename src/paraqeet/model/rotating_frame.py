@@ -58,7 +58,7 @@ class RotatingFrameCoupling(TwoBodyCoupling):
         """
         return [self._coefficient, self._diff_freq]
 
-    def _coupling_operators(self) -> list[list[Array]]:
+    def _coupling_operators(self) -> list[Array]:
         """Return the annhilation operator. Special implementation for two subsystems."""
         if len(self.subsystems) > 2:
             raise NotImplementedError("No implementation for more than 2 subsystems.")

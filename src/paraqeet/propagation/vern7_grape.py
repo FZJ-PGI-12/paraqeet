@@ -1,7 +1,7 @@
 """Class definition of the 7th-order Verner ODE solver for GRAPE."""
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 import jax
 import jax.numpy as jnp
@@ -84,7 +84,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
     @property
     def operator_sandwich_function(self):
-        """Return the operator sandwich function for computing the gradients.
+        r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
         .. math::

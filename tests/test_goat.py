@@ -5,6 +5,7 @@ import pytest
 
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
 from paraqeet.model.drive import DriveOperator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
@@ -13,6 +14,7 @@ from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.utils import convert_dm_to_vec
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -43,46 +45,68 @@ def gen(tone):
     return gen
 
 
-@pytest.fixture(scope="function", params=["openSystem", "closedSystem"])
-def prop(gen, request):
+@pytest.fixture(params=["OpenSystem", "ClosedSystem"])
+def mode(request):
+    return request.param
+
+
+@pytest.fixture
+def prop(gen, mode):
     """Solve the equation of motion.
 
     By piecewise exponentation with the scipy package.
 
     """
+    init = np.array([[1.0], [0.0]])
+    if mode == "OpenSystem":
+        init = np.matmul(init, init.T)
+        init = convert_dm_to_vec(init, dim=2)
+
     drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
-    if request.param == "openSystem":
+    if mode == "OpenSystem":
         model = MasterEquation(controlled_qubit)
-    elif request.param == "closedSystem":
-        model = SchroedingerEquation(controlled_qubit)
-    return ScipyExpmGOAT(model=model, resolution=RES)
+    elif mode == "ClosedSystem":
+        model = SchroedingerEquation(
+            hamiltonian_func=controlled_qubit.get_hamiltonian,
+            hamiltonian_and_gradient_func=controlled_qubit.get_hamiltonian_and_gradient,
+        )
+    return ScipyExpmGOAT(
+        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=RES, initial_state=init
+    )
 
 
 @pytest.fixture
-def states(prop):
+def states(prop, mode):
     """Compare the overlap of the initial and final state."""
     init = np.array([[1.0], [0.0]])
     target = np.array([[0.0], [1]])
+    overlap_func = overlap_state_vector
 
-    if prop.is_open:
+    if mode == "OpenSystem":
         init = np.matmul(init, init.T)
         target = np.matmul(target, target.T)
+
+        init = convert_dm_to_vec(init, dim=2)
+        target = convert_dm_to_vec(target, dim=2)
+
+        overlap_func = overlap_vectorized_density_matrix
 
     return StateTransferFidelity(
         propagation=prop,
         initial_state=init,
         target_state=target,
+        overlap=overlap_func,
     )
 
 
 @pytest.fixture
-def gates(prop):
+def gates(prop, mode):
     """Compare the propagator with a gate via the L2 norm."""
-    if prop.is_open:
+    if mode == "OpenSystem":
         pytest.skip("Gate optimization is only implemented for closed system.")
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
-    prop.set_initial_state(np.identity(2))
+    prop.initial_state = np.identity(2)
     return UnitaryFidelity(
         propagation=prop,
         gate=pauli_x,

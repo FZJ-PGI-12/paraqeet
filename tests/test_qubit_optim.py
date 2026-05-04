@@ -38,7 +38,9 @@ MODEL = SchroedingerEquation(
     hamiltonian_and_gradient_func=CONTROLLED_QUBIT.get_hamiltonian_and_gradient,
 )
 
-PROP = ScipyExpmGOAT(eom_func=MODEL.get_value, resolution=100e9, initial_state=INIT)
+PROP = ScipyExpmGOAT(
+    eom_func=MODEL.get_value, eom_and_grad_func=MODEL.get_value_and_gradient, resolution=100e9, initial_state=INIT
+)
 
 
 ZEROONE = StateTransferFidelity(propagation=PROP, initial_state=INIT, target_state=TARGET, overlap=overlap_state_vector)

@@ -1,7 +1,7 @@
 """Class definition of the optimizable model."""
 
 from abc import ABC, abstractmethod
-from typing import Callable
+from collections.abc import Callable
 
 from paraqeet.quantity import Array
 

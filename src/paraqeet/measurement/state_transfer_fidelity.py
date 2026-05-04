@@ -32,6 +32,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     """
 
+    # TODO: initial state is not used anywhere. Shall we remove it?
+
     _initial_state: Array
     _target_state: Array
     _overlap: Callable
