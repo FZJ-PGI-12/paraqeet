@@ -196,15 +196,15 @@ class Transmon(OpenSystem):
 
     def get_jump_operators(self) -> list[tuple[Array, Array]]:
         """
-        Return a list tuples of decay rates and jump operators for each subsystem.
+        Return a list of jump operators for the transmon.
 
         Return
         ------
-        list[tuple[Array, Array]]
+        list[Array]
             List of jump operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-        col_t1 = self._annihilation_op
-        col_temp = self._annihilation_op.T
-        col_t2star = 2 * self._num_op
-        return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]
+        col_t1 = jnp.sqrt(gamma_t1) * self._annihilation_op
+        col_temp = jnp.sqrt(gamma_temp) * self._annihilation_op.T
+        col_t2star = jnp.sqrt(gamma_t2star) * 2 * jnp.matmul(self._annihilation_op.T, self._annihilation_op)
+        return [col_t1, col_temp, col_t2star]

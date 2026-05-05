@@ -74,7 +74,11 @@ def open_resonator():
     resonator.t1 = T1
     resonator.temp = TEMP
     resonator.t2star = T2STAR
-    model = MasterEquation(resonator)
+    model = MasterEquation(
+        hamiltonian_func=resonator.get_hamiltonian,
+        hamiltonian_and_gradient_func=resonator.get_hamiltonian_and_gradient,
+        jump_operators=resonator.get_jump_operators(),
+    )
 
     return model
 
@@ -96,8 +100,13 @@ def ode(open_resonator):
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    open_resonator.ode_propagation = True
-    prop = Vern7(open_resonator.get_value, resolution=100e9, initial_state=init_dm, step_function=lindblad_step)
+    prop = Vern7(
+        open_resonator.get_eom_ode_propagation,
+        resolution=100e9,
+        initial_state=init_dm,
+        step_function=lindblad_step,
+        jump_operators=open_resonator.jump_operators,
+    )
     return prop
 
 

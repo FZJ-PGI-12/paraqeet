@@ -60,7 +60,7 @@ class MasterEquation(EquationOfMotion):
     def _create_hamiltonian_superop(self, t) -> Array:
         """Create the Hamiltonian superoperator for one time point `t`."""
         identityop = jnp.eye(self._total_dimension)
-        ham = self._hamiltonian_func(t)
+        ham = self._hamiltonian_func(jnp.array(t, ndmin=1)).squeeze(axis=0)
         superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
         return superop
 
@@ -76,25 +76,27 @@ class MasterEquation(EquationOfMotion):
 
     def _create_lindbladian_superop(self, t) -> Array:
         """Create the Lindbladian superoperator for one time point `t`."""
-        ham_super_op = self._create_hamiltonian_superop(t)
+        ham_super_op = vmap(self._create_hamiltonian_superop)(t)
         col_super_op = self._create_jump_superop()
         return ham_super_op + col_super_op
 
     def _create_hamiltonian_grad_superop(self, timestep: float):
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
         identityop = jnp.eye(self._total_dimension)
-        ham_grad = self._hamiltonian_and_gradient_func(timestep)
+        _, ham_grad = self._hamiltonian_and_gradient_func(jnp.array(timestep, ndmin=1))
+        ham_grad = ham_grad.squeeze(axis=0)
         term1 = -1j * vmap(jnp.kron, in_axes=(None, 0))(identityop, ham_grad)
         term2 = 1j * vmap(jnp.kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
         superop = term1 + term2
         return superop
 
-    def get_eom_ode_propagation(self, times: Array) -> tuple[Array, list[Array]]:
+    def get_eom_ode_propagation(self, times: Array) -> Array:
         """Return EOM for ODE propagation methods.
 
-        Return the coherent and incoherent EOM parts seperately.
+        Return the coherent part of the EOM.
         Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
-        and the incoherent part is a list of jump operators
+        The incoherent part is a list of jump operators and can be obtained by the `jump_operators`
+        attribute.
 
         Parameters
         ----------
@@ -107,14 +109,14 @@ class MasterEquation(EquationOfMotion):
              Hamiltonian EOM ([t, N, N] matrix) and the `m` jump operators ([m, N^2, N^2] matrix)
         """
         ham_eom = self._hamiltonian_func(times)
-        return -1j * ham_eom, self.jump_operators
+        return -1j * ham_eom
 
     def get_eom_and_gradient_ode_propagation(self, times: Array) -> tuple[Array, Array]:
-        """Return EOM for ODE propagation methods.
+        """Return EOM for ODE propagation methods, and its gradient.
 
-        Return the coherent and incoherent EOM parts seperately.
-        Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
-        and the incoherent part is a list of jump operators
+        Return the coherent part of the EOM, i.e., the Hamiltonian and its gradient.
+        The incoherent part is a list of jump operators and can be obtained by the `jump_operators`
+        attribute.
 
         Parameters
         ----------
@@ -123,8 +125,8 @@ class MasterEquation(EquationOfMotion):
 
         Returns
         -------
-        tuple[Array, Array]
-             Hamiltonian EOM ([t, N, N] matrix) and the `m` jump operators ([m, N^2, N^2] matrix)
+        Array
+             Hamiltonian EOM ([t, N, N] matrix)
         """
         ham_eom, grads = self._hamiltonian_and_gradient_func(times)
         return -1j * ham_eom, -1j * grads
@@ -142,7 +144,7 @@ class MasterEquation(EquationOfMotion):
         Array
             RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
         """
-        return vmap(self._create_lindbladian_superop)(times)
+        return self._create_lindbladian_superop(times)
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Return the Lindblad superoperator and its gradient.
@@ -157,7 +159,7 @@ class MasterEquation(EquationOfMotion):
         Array
             RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
         """
-        eom = vmap(self._create_lindbladian_superop)(times)
+        eom = self._create_lindbladian_superop(times)
         # ignoring mypy due to vmap
         grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
         return eom, grads

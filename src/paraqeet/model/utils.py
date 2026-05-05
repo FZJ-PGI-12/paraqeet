@@ -58,5 +58,5 @@ def construct_jump_operators_from_subsystems(subsystems: list[OpenSystem], dimen
     for n, subsystem in enumerate(subsystems):
         jump_ops = subsystem.get_jump_operators()
         for jump_op in jump_ops:
-            all_collapse_ops.append((tensor_product_with_identity([jump_op], [n], dimensions)))
+            all_collapse_ops.append(tensor_product_with_identity([jump_op], [n], dimensions))
     return all_collapse_ops

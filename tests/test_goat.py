@@ -65,7 +65,11 @@ def prop(gen, mode):
     drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
     if mode == "OpenSystem":
-        model = MasterEquation(controlled_qubit)
+        model = MasterEquation(
+            hamiltonian_func=controlled_qubit.get_hamiltonian,
+            hamiltonian_and_gradient_func=controlled_qubit.get_hamiltonian_and_gradient,
+            jump_operators=controlled_qubit.get_jump_operators(),
+        )
     elif mode == "ClosedSystem":
         model = SchroedingerEquation(
             hamiltonian_func=controlled_qubit.get_hamiltonian,

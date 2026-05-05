@@ -17,8 +17,8 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Vern7GRAPE(Vern7, DifferentiablePropagation):
-    """
-    Solve EOMs by 7th order ODE method to compute gradients using GRAPE.
+    r"""
+    Solve EOMs by 7th order ODE method and compute gradients using GRAPE.
 
     Compute the gradients of a quantum system for PWC pulses by using GRAPE.
     Here, we use forward propagation of the initial state and backward
@@ -26,12 +26,21 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
     The state propagations are done by the `Vern7 ODE` method.
 
-    _resolution: float
-        Simulation resolution.
-    _initial_state: Array = None
-        Initial state for forward propagation.
-    _target_state: Array = None
-        Target state for backward propagation.
+    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Function that returns EOM and its gradient for an array of times.
+    _target_state: Array
+        Target state for backwards/reverse propagation for GRAPE.
+    _reverse_step_function: Callable
+        Reverse step function for the backwards propagation.
+    _operator_sandwich_function: Callable
+        Operator sandwich function to compute GRAPE gradients. It evaluates
+        1. For closed system
+            .. math::
+                \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+
+        2. For open system
+            .. math::
+                \\text{Tr}(\\sigma(t) [H, \\rho(t)])
     """
 
     _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
@@ -42,15 +51,18 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
     def __init__(
         self,
         eom_func: Callable[[Array], Array],
+        eom_and_gradient_func: Callable[[Array], tuple[Array, Array]],
         resolution: float,
         initial_state: Array,
         target_state: Array,
         step_function: Callable,
         reverse_step_function: Callable,
         operator_sandwich_function: Callable,
+        jump_operators: list[Array] | None = None,
     ):
-        Vern7.__init__(self, eom_func, resolution, initial_state, step_function)
+        Vern7.__init__(self, eom_func, resolution, initial_state, step_function, jump_operators)
         DifferentiablePropagation.__init__(self, eom_func, resolution)
+        self._eom_and_gradient_func = eom_and_gradient_func
         self._reverse_step_function = reverse_step_function
         self._target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
@@ -186,11 +198,14 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             # TODO: currently seperate time grids are required for the EOM and the gradients.
             # TODO: Can we use one so that the value and gradients are computed simultaneously?
 
-            # TODO: Seperate jump operators from eom function
-            eom, cols = self._eom_func(times_interp)
+            eom = self._eom_func(times_interp)
 
             psi_t, lamda_t = self._forward_and_backward_propagation(
-                psi_t, lamda_t, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time_grid), 1)
+                psi_t,
+                lamda_t,
+                eom * dt,
+                jnp.array(self._jump_operators) * jnp.sqrt(dt),
+                jnp.arange(0, len(time_grid), 1),
             )
 
             psis_list.append(psi_t)

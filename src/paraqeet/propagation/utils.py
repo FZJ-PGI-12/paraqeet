@@ -38,7 +38,7 @@ def dagger(op: Array):
     return op.conj().T
 
 
-def lindblad_step(state: Array, h: Array, cols: list[Array], **kwargs):
+def lindblad_step(state: Array, h: Array, cols: list[Array], *args, **kwargs):
     """Step function for ODE propagation methods, such as Vern7, for the Lindblad master equation."""
     del_rho = commutator(h, state)
     for col in cols:
@@ -47,17 +47,17 @@ def lindblad_step(state: Array, h: Array, cols: list[Array], **kwargs):
     return del_rho
 
 
-def schrodinger_step(state: Array, h: Array, **kwargs):
+def schrodinger_step(state: Array, h: Array, *args, **kwargs):
     """Step function for ODE propagation methods, such as Vern7, for the Schrödinger equation."""
     return jnp.matmul(h, state)
 
 
-def reverse_schrodinger_step(state: Array, h: Array, **kwargs):
+def reverse_schrodinger_step(state: Array, h: Array, *args, **kwargs):
     """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Schrödinger equation."""
     return jnp.matmul(state, h)
 
 
-def reverse_lindblad_step(state: Array, h: Array, cols: list[Array], **kwargs):
+def reverse_lindblad_step(state: Array, h: Array, cols: list[Array], *args, **kwargs):
     """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Lindblad master equation."""
     del_rho = commutator(h, state)
     for col in cols:
@@ -85,4 +85,4 @@ def grape_operator_sandwich_function_open(ham_grads, fwd_prop_states, rev_prop_s
     """
     fwd_multiply = vmap(commutator, in_axes=(0, 0))(ham_grads, fwd_prop_states)
     grad = vmap(jnp.matmul, in_axes=(0, 0))(rev_prop_states, fwd_multiply)
-    return grad
+    return jnp.linalg.trace(grad)

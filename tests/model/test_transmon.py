@@ -79,7 +79,11 @@ def open_transmon():
     transmon.t1 = T1
     transmon.temp = TEMP
     transmon.t2star = T2STAR
-    model = MasterEquation(transmon)
+    model = MasterEquation(
+        hamiltonian_func=transmon.get_hamiltonian,
+        hamiltonian_and_gradient_func=transmon.get_hamiltonian_and_gradient,
+        jump_operators=transmon.get_jump_operators(),
+    )
 
     return model
 
@@ -101,8 +105,13 @@ def ode(open_transmon):
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    open_transmon.ode_propagation = True
-    prop = Vern7(open_transmon.get_value, resolution=100e9, initial_state=init_dm, step_function=lindblad_step)
+    prop = Vern7(
+        open_transmon.get_eom_ode_propagation,
+        resolution=100e9,
+        initial_state=init_dm,
+        step_function=lindblad_step,
+        jump_operators=open_transmon.jump_operators,
+    )
     return prop
 
 

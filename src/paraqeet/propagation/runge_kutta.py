@@ -5,7 +5,7 @@ from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.propagation import StatePropagation
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array
 
 
 class RungeKutta(StatePropagation):

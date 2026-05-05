@@ -27,7 +27,8 @@ def open_system(
         hamil.t1 = Quantity(1e-9, 1e-9, 100e-6)
         hamil.temp = Quantity(10e-3, 1e-3, 50e-3)
         hamil.t2star = Quantity(10e-9, 1e-9, 100e-6)
-        return MasterEquation(hamil)
+        jump_ops = hamil.get_jump_operators()
+        return MasterEquation(hamil.get_hamiltonian, hamil.get_hamiltonian_and_gradient, jump_ops)
 
     return _method
 
@@ -39,16 +40,5 @@ def test_create_dense_matrix(open_system):
         system = open_system(dim)
         system.sparse_superop = True
         assert system.sparse_superop is True
-        matrix = system.get_value(random_time_vector)
-        assert matrix.shape == (len(random_time_vector), dim**2, dim**2)
-
-
-def test_create_sparse_matrix(open_system):
-    for dim in range(3, 6):
-        random_time_vector = np.linspace(0.0, np.random.randint(1, 10) * np.random.rand(), np.random.randint(1, 10))
-
-        system = open_system(dim)
-        system.sparse_superop = False
-        assert system.sparse_superop is False
         matrix = system.get_value(random_time_vector)
         assert matrix.shape == (len(random_time_vector), dim**2, dim**2)

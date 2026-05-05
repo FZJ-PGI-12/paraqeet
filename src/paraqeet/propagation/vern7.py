@@ -22,20 +22,34 @@ class Vern7(StatePropagation):
     """
 
     _step_function: Callable
+    _jump_operators: list[Array]
 
     def __init__(
-        self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array, step_function: Callable
+        self,
+        eom_func: Callable[[Array], Array],
+        resolution: float,
+        initial_state: Array,
+        step_function: Callable,
+        jump_operators: list[Array] | None = None,
     ):
         """
         Parameters
         ----------
-        model: Model
-            Model
-        res: float
-            Resolution at which to sample the EOM
+        eom_func: Callable[[Array], Array]
+            Equation of motion (EOM) as a function of time.
+        resolution: float
+            Resolution at which to sample the EOM.
+        initial_state: Array
+            Initial state.
+        step_function: Callable
+            Step function used to that implements the right hand side of the EOM.
+        jump_operators: list[Array] | None
+            A list of jump operators (each multiplied by the sqrt of the correspoding decay rate).
+            Defaults to None for closed system.
         """
         super().__init__(eom_func, resolution, initial_state)
         self._step_function = step_function
+        self.jump_operators = jump_operators
 
     @property
     def step_function(self):
@@ -46,6 +60,19 @@ class Vern7(StatePropagation):
     def step_function(self, step_func: Callable):
         """Set the step function for solving the EOM."""
         self._step_function = step_func
+
+    @property
+    def jump_operators(self):
+        """Return the jump operators used for solving the EOM."""
+        return self._jump_operators
+
+    @jump_operators.setter
+    def jump_operators(self, jump_ops: list[Array] | None):
+        """Set the jump operators added to the EOM."""
+        if jump_ops is not None:
+            self._jump_operators = jump_ops
+        else:
+            self._jump_operators = jnp.empty((0,) + self._eom_func(jnp.array([0.0])).shape)
 
     @staticmethod
     def _interpolate_time(times, dt):
@@ -180,11 +207,11 @@ class Vern7(StatePropagation):
             times, dt = self._construct_times(time, ti)
             times_interp = Vern7._interpolate_time(times, dt)
             # TODO: Seperate jump operators from EOM.
-            eom, cols = self._eom_func(times_interp + dt / 2)
+            eom = self._eom_func(times_interp + dt / 2)
             state_t = self._propagate_in_time(
                 state_t,
                 eom * dt,
-                jnp.array(cols) * jnp.sqrt(dt),
+                jnp.array(self._jump_operators) * jnp.sqrt(dt),
                 jnp.arange(0, len(times), 1),
             )
             states.append(state_t)

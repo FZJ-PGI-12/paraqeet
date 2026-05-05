@@ -171,10 +171,10 @@ class Qubit(OpenSystem):
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_jump_operators(self) -> list[tuple[Array, Array]]:
-        """Return a list tuples of decay rates and jump operators for each subsystem."""
+    def get_jump_operators(self) -> list[Array]:
+        """Return a list of jump operators for the qubit."""
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-        col_t1 = self._annihilation_op
-        col_temp = self._annihilation_op.T
-        col_t2star = 2 * jnp.matmul(self._annihilation_op.T, self._annihilation_op)
-        return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]
+        col_t1 = jnp.sqrt(gamma_t1) * self._annihilation_op
+        col_temp = jnp.sqrt(gamma_temp) * self._annihilation_op.T
+        col_t2star = jnp.sqrt(gamma_t2star) * 2 * jnp.matmul(self._annihilation_op.T, self._annihilation_op)
+        return [col_t1, col_temp, col_t2star]

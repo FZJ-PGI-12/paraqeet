@@ -37,6 +37,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     _initial_state: Array
     _target_state: Array
     _overlap: Callable
+    _fid_grad_func: Callable
     _propagation: DifferentiablePropagation
 
     def __init__(
