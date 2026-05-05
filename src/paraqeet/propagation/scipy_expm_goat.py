@@ -124,14 +124,14 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
         for ti in range(1, len(times)):
-            times, dt = self._construct_times(times, ti)
+            interp_times, dt = self._construct_times(times, ti)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
-            eom, grads = self._eom_and_gradient_func(times + dt / 2)
+            eom, grads = self._eom_and_gradient_func(interp_times + dt / 2)
             eom = eom * dt
             grads = jnp.array(grads) * dt
 
-            psi_t = self._propagate_gradient(n_params, psi_t, eom, grads, jnp.arange(0, len(times), 1))
+            psi_t = self._propagate_gradient(n_params, psi_t, eom, grads, jnp.arange(0, len(interp_times), 1))
             psis.append(jnp.array(psi_t[0:dim]))
             dpsis.append(jnp.array([psi_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]))
 
