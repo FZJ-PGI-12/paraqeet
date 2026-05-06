@@ -10,6 +10,7 @@ import numpy as np
 from jax import vmap
 
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.propagation.utils import convert_vec_to_dm
 from paraqeet.quantity import Array
 from paraqeet.signal.generator import Generator
 from paraqeet.signal.waveform import Waveform
@@ -61,6 +62,8 @@ def plot_signal_and_dynamics(
     alpha: float = 1.0,
     linewidth: float = 1.5,
     marker: str = "",
+    open_system: bool = False,
+    vectorized_dm: bool = False,
 ):
     """Plot the signal and the correspoding dynamics.
 
@@ -68,16 +71,18 @@ def plot_signal_and_dynamics(
     This can be used to plot multiple signals and dyanmics on the same plot.
     """
 
-    def calculate_populations(states, dm=False):
+    def calculate_populations(states, open_system, vectorized_dm):
         """Calculate state populations from density matrices and vectorized dm."""
+        if vectorized_dm:
+            states = vmap(convert_vec_to_dm, in_axes=(0, None))(states, int(jnp.sqrt(states.shape[1])))
         if len(states.shape) > 2:
-            if dm:
+            if open_system:
                 pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))
             else:
                 pops = jnp.abs(states[:, :, 0]) ** 2
                 pops = jnp.reshape(pops, [pops.shape[0], pops.shape[1]])
         else:
-            if dm:
+            if open_system:
                 pops = jnp.diag(states)
             else:
                 pops = jnp.abs(states) ** 2
@@ -101,7 +106,7 @@ def plot_signal_and_dynamics(
 
     axes[1].plot(
         times / 1e-9,
-        calculate_populations(states),
+        calculate_populations(states, open_system, vectorized_dm),
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
