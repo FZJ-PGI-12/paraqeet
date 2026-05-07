@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array, Float, Quantity
 
 
 class RabiExperiment(NormalizableMeasurement, Optimizable):
@@ -37,11 +37,11 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """
         return [self._amp, self._freq]
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,

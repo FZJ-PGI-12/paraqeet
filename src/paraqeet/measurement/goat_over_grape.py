@@ -9,7 +9,7 @@ from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
 from paraqeet.propagation.propagation import DifferentiablePropagation
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 
@@ -66,7 +66,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
                 padded_grad = np.append(padded_grad, np.zeros((num_pixels, num_params)), axis=0)
         return jnp.array(padded_grad)
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Sum of plain weighted measurements.
 
         Returns
@@ -80,7 +80,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
             gen._update_inphase_and_outofphase()
         return grape.measure(times=times)
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Passthrough the measurement.
 
         Returns
@@ -94,7 +94,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
             gen._update_inphase_and_outofphase()
         return grape.calculate_normalized_scalar(times=times)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 

@@ -6,7 +6,7 @@ import jax.scipy.linalg as sclin
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class MixedStateTransferFidelity(Measurement):
@@ -43,7 +43,7 @@ class MixedStateTransferFidelity(Measurement):
         # store the sqrt of the density matrix to simplify the measurement
         self._target_state_sqrt = sclin.sqrtm(self._target_state)
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Measure overlap between initial and final state of density matrices.
 
         Returns

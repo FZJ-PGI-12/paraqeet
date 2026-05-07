@@ -19,7 +19,7 @@ class Measurement(ABC):
     """
 
     @abstractmethod
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Measure the observable and returns the value.
 
         Parameters
@@ -31,8 +31,8 @@ class Measurement(ABC):
 
         Returns
         -------
-        Array or float
-            This abstract method must return an Array or a float when
+        Array or Float
+            This abstract method must return an Array or a Float when
             implemented by subclasses. Might return multiple values.
 
 
@@ -63,8 +63,8 @@ class NormalizableMeasurement(Measurement):
 
         Returns
         -------
-        float
-            Returns a float if implemented by a subclass.
+        Float
+            Returns a Float if implemented by a subclass.
 
         """
         pass

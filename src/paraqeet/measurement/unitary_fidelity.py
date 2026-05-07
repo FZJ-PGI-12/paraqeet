@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.propagation.propagation import DifferentiablePropagation
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
@@ -49,7 +49,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         self.set_ideal_gate(gate)
 
     @staticmethod
-    def _fid(overlaps: Array) -> float:
+    def _fid(overlaps: Array) -> Float:
         """Gate fidelity from state overlaps.
 
         Parameters
@@ -65,11 +65,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         """
         return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -78,14 +78,13 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             L2 norm of the last time step compared to the ideal gate.
 
         """
-        # TODO: Fix typing
         states = self._propagation.propagate(time=times)
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return UnitaryFidelity._fid(jnp.asarray(overlaps))
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
         """Get the L2 norm and the analytic expression for the gradient.
 
         Returns
@@ -94,7 +93,6 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        # TODO: Fix typing
         states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):

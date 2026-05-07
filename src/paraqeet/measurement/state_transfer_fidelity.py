@@ -63,7 +63,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     def _fid(overlap: Array) -> Float:
         return (jnp.abs(jnp.average(overlap)) ** 2).astype(float)
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
@@ -77,8 +77,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
         Returns
         -------
-        float
-            Overlap between initial and target state in a bare float.
+        Float
+            Overlap between initial and target state in a bare Float.
 
         """
         states = self._propagation_func(times)

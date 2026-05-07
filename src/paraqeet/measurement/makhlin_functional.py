@@ -8,7 +8,7 @@ from paraqeet.exceptions import (
 )
 from paraqeet.measurement.measurement import Measurement
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class MakhlinFunctional(Measurement):
@@ -44,7 +44,7 @@ class MakhlinFunctional(Measurement):
         self._propagation = propagation
         self._ideal_invariants = ideal_invariants
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Measure distance of the propagator to a perfect entangler.
 
         Parameters

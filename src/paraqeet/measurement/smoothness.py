@@ -10,7 +10,7 @@ import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 jax.config.update("jax_enable_x64", True)
@@ -35,13 +35,13 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         # super().__init__(pwc_generator.tlist)
         self._pwc_generator = pwc_generator
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
     # TODO: This should depend on the internal time grid and not on the input time value.
     # This means that the `times` should just be a float.
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
         """Returns the normalized sum of consecutive square differences of the pulse.
         As the maximums difference is twice the maximum amplitude, the normalization
         factor is the number of piecewise constants minus 1 time sthe maximum
@@ -71,7 +71,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
         return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
         """Measure with gradient.
 
         Compute the measurement value as in measure_normalized_scalar()
