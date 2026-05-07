@@ -31,7 +31,8 @@ dependencies = [
   "jax>=0.6.1",
   "jaxlib>=0.6.1",
   "bayesian-optimization>=2.0.4",
-  "cma>=4.2.0"
+  "cma>=4.2.0",
+  "jaxtyping>=0.3.7"
 ]
 
 [tool.sphinx-pyproject]
