@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.scipy_expm import ScipyExpm
-from paraqeet.propagation.utils import convert_dm_to_vec, convert_vec_to_dm
+from paraqeet.propagation.utils import construct_times, convert_dm_to_vec, convert_vec_to_dm
 from tests.model.empty_hamiltonian import EmptySystem
 from tests.propagation.test_common_propagation import check_propagation
 
@@ -122,7 +122,7 @@ def test_construct_times(eom):
     time = np.array([t_start, t_final])
     steps = int(np.ceil((t_final - t_start) * res))
     full_times = np.linspace(t_start, t_final, steps, endpoint=False)
-    times, dt = propagation._construct_times(time, 1)
+    times, dt = construct_times(time, 1, res)
 
     assert np.allclose(times, full_times)
     assert np.isclose(dt, 1 / res)
@@ -134,7 +134,7 @@ def test_construct_times(eom):
     time = np.array([t_start, t_final])
     steps = int(np.ceil((t_final - t_start) * res))
     full_times = np.linspace(t_start, t_final, steps, endpoint=False)
-    times, dt = propagation._construct_times(time, 1)
+    times, dt = construct_times(time, 1, res)
 
     assert np.allclose(time, full_times)
     assert np.isclose(dt, 1 / res)

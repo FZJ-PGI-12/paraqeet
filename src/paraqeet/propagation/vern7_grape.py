@@ -10,6 +10,7 @@ from jax.lax import dynamic_slice_in_dim, scan
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.propagation import DifferentiablePropagation
+from paraqeet.propagation.utils import construct_times
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Array
 
@@ -186,7 +187,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             lamda_t = lamdas_list[ti - 1]
 
             # Interpolate times
-            time_grid, dt = self._construct_times(times, ti)
+            time_grid, dt = construct_times(times, ti, self._resolution)
             times_interp = Vern7._interpolate_time(time_grid, dt)
             times_interp = times_interp + dt / 2
 

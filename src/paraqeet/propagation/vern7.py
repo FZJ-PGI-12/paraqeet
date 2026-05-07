@@ -9,6 +9,7 @@ from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
 from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
@@ -204,7 +205,7 @@ class Vern7(StatePropagation):
         states = [init_state]
         for ti in range(1, len(time)):
             state_t = states[ti - 1]
-            times, dt = self._construct_times(time, ti)
+            times, dt = construct_times(time, ti, self._resolution)
             times_interp = Vern7._interpolate_time(times, dt)
             # TODO: Seperate jump operators from EOM.
             eom = self._eom_func(times_interp + dt / 2)

@@ -9,6 +9,7 @@ from jax.lax import scan
 from jax.scipy.linalg import expm
 
 from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
@@ -110,7 +111,7 @@ class ScipyExpm(StatePropagation):
         psis = [self._initial_state]
 
         for ti in range(1, len(time)):
-            times, dt = self._construct_times(time, ti)
+            times, dt = construct_times(time, ti, self._resolution)
             psis_t = psis[ti - 1]
             eom = self._eom_func(times + dt / 2) * dt
             psis_t = self._propagate_in_time(psis_t, eom, jnp.arange(0, len(times), 1))

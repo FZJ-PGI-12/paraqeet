@@ -14,6 +14,7 @@ from jax.lax import scan
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array
 
 
@@ -124,7 +125,7 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
         for ti in range(1, len(times)):
-            interp_times, dt = self._construct_times(times, ti)
+            interp_times, dt = construct_times(times, ti, self._resolution)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
             eom, grads = self._eom_and_gradient_func(interp_times + dt / 2)

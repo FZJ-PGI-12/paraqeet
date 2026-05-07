@@ -46,34 +46,3 @@ def vjp_jacobian(f):
         return jac_flat.reshape(y.shape + x.shape)
 
     return jac_fn
-
-
-def construct_times(time, ti, resolution):
-    """Construct one-dimensional vector of time.
-
-    Interpolate the user-specified times to match the propagation resolution.
-
-    Parameters
-    ----------
-    time: Array
-        Array of timesteps.
-    ti: int
-        Snapshot of the time at a current step
-
-    Returns
-    -------
-    Array
-        Array of timestamps in specified resolution.
-    int
-        Difference in time step.
-
-    """
-    t0 = time[ti - 1]
-    t1 = time[ti]
-    steps = int(np.ceil((t1 - t0) * resolution))
-    times = jnp.linspace(t0, t1, steps, endpoint=False)
-    if steps < 2:
-        dt = t1 - t0
-    else:
-        dt = times[1] - times[0]
-    return times, dt
