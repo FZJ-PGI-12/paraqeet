@@ -33,10 +33,17 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     _target_state: Array
     _overlap: Callable
     _fid_grad_func: Callable
-    _propagation: DifferentiablePropagation
+    _propagation_func: Callable
 
-    def __init__(self, propagation: DifferentiablePropagation, target_state: Array, overlap: Callable):
-        self._propagation = propagation
+    def __init__(
+        self,
+        propagation_func: Callable,
+        propagation_and_gradient_func: Callable,
+        target_state: Array,
+        overlap: Callable,
+    ):
+        self._propagation_func = propagation_func
+        self._propagation_and_gradient_func = propagation_and_gradient_func
         self._target_state = target_state
         self._overlap = overlap
 
@@ -62,7 +69,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             Overlap between initial and target state in a bare float.
 
         """
-        states = self._propagation.propagate(time=times)
+        states = self._propagation_func(times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
         return StateTransferFidelity._fid(f)
@@ -76,7 +83,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
+        states, dg_dp_list = self._propagation_and_gradient_func(times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(self._target_state, final_state)
@@ -119,7 +126,7 @@ class StateTransferFidelityAD(StateTransferFidelity):
         if self._gradient_function is None:
             self._gradient_function = jit(grad(self._fid, argnums=0))
 
-        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
+        states, dg_dp_list = self._propagation_and_gradient_func(times=times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(self._target_state, final_state)
@@ -158,7 +165,7 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, grads = self._propagation.get_value_and_gradient(times=times)
+        states, grads = self._propagation_and_gradient_func(times=times)
         final_state = states[-1]
         f = self._overlap(self._target_state, final_state)
         grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
