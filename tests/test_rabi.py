@@ -20,7 +20,7 @@ def opt(rabi):
     """Create optimization map with Rabi model."""
     optmap = OptimizationMap()
     optmap.add(rabi, rabi.get_parameters())
-    return ScipyOptimizer(rabi, optmap)
+    return ScipyOptimizer(rabi.calculate_normalized_scalar, optmap)
 
 
 @pytest.fixture

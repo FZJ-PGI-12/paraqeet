@@ -1,32 +1,42 @@
 """Class definition for the Scipy optimizer gradient model."""
 
+from typing import Callable
+
 import jax.numpy as jnp
 import numpy as np
 from scipy.optimize import minimize
 
-from paraqeet.differentiable import Differentiable
-from paraqeet.exceptions import (
-    IncompatibleOptimizationMap,
-    IncompatibleQuantityException,
-)
-from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.exceptions import IncompatibleOptimizationMap
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class ScipyOptimizerGradient(ScipyOptimizer):
     """The Scipy Optimizer gradient model.
 
-    Minimize the outcome of a measurement with the Scipy optimization package.
+    Minimize the outcome of a measurement with the Scipy optimization package by providing gradient values.
+
+    Parameters
+    ----------
+    measure_and_gradient_func: Callable[[Array], tuple[Float, Array]]
+        Function implementing measurement of observables to be minimized.
+    optimization_map: OptimizationMap
+        An optimization map containing all parameters that can be optimized.
+
     """
 
     _grad_cache: Array  # of shape (n_parameters,)
     _scales: Array
+    _measure_and_gradient_func: Callable[[Array], tuple[Float, Array]]
 
-    def __init__(self, measure: NormalizableMeasurement, optimization_map: OptimizationMap) -> None:
-        super().__init__(measure, optimization_map)
+    def __init__(
+        self, measure_and_gradient_func: Callable[[Array], tuple[Float, Array]], optimization_map: OptimizationMap
+    ) -> None:
+        self._measure_and_gradient_func = measure_and_gradient_func
+        self._measure_func = lambda times: self._measure_and_gradient_func(times)[0]
+        super().__init__(self._measure_func, optimization_map)
         params = self._optimization_map.get_all_parameters()
         self._scales = jnp.array([p.get_scale() for p in params]).flatten()
 
@@ -110,20 +120,14 @@ class ScipyOptimizerGradient(ScipyOptimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):  # TODO: Convert to jax
             params[index].set_reduced_value(val)
             log.append(params[index])
-        # TODO: what if the self._measure is not Differentiable? -- then this optimizer should not be used.
-        if isinstance(self._measure, Differentiable):
-            fun, grad = self._measure.get_value_and_gradient(self._times)
-            self._grad_cache = grad
 
-            infid = 1.0 - fun
-            if self._logger:
-                self._logger.log(log, float(infid))
-            return float(1 - fun)
-        # TODO: which fallback value can be returned here?
-        raise IncompatibleQuantityException(
-            "Gradient-based optimizer requires a Differentiable measurement; "
-            "provided measurement does not implement Differentiable."
-        )
+        fun, grad = self._measure_and_gradient_func(self._times)
+        self._grad_cache = grad
+
+        infid = 1.0 - fun
+        if self._logger:
+            self._logger.log(log, float(infid))
+        return float(1 - fun)
 
     def _lookup_jac(self, values) -> Array:
         """Update the parameter values.

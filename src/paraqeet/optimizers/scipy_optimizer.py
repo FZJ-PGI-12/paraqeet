@@ -6,33 +6,31 @@ import jax.numpy as jnp
 import numpy as np
 from scipy.optimize import minimize
 
-from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class ScipyOptimizer(Optimizer):
-    """Minimize the outcome of a measuremnt with the scipy optimization package.
+    """Minimize the outcome of a measurement with the scipy optimization package.
 
     Parameters
     ----------
-    measure: Measurement
-        Implementation of the Measurement class that measures the observable
-        to be maximised.
+    measure_func: Callable[[Array], Float]
+        Function implementing measurement of observables to be minimized.
     optimization_map: OptimizationMap
         An optimization map containing all parameters that can be optimized.
 
     """
 
-    _measure: NormalizableMeasurement
+    _measure_func: Callable[[Array], Float]
     _opt_idxs: list[int]
     _options: dict
     _method: str
     _callback: Callable | None
 
-    def __init__(self, measure: NormalizableMeasurement, optimization_map: OptimizationMap) -> None:
-        super().__init__(measure, optimization_map)
+    def __init__(self, measure_func: Callable[[Array], Float], optimization_map: OptimizationMap) -> None:
+        super().__init__(measure_func, optimization_map)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
         self._callback = None
@@ -133,7 +131,7 @@ class ScipyOptimizer(Optimizer):
             raw_result=opt_res,
         )
 
-    def _set_parameters_and_measure(self, values) -> float:
+    def _set_parameters_and_measure(self, values) -> Float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
@@ -154,8 +152,8 @@ class ScipyOptimizer(Optimizer):
         for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
             params[index].set_reduced_value(val)
             log.append(params[index])
-        infid = 1 - self._measure.calculate_normalized_scalar(self._times)
+        infid = 1 - self._measure_func(self._times)
 
         if self._logger:
-            self._logger.log(log, infid)
+            self._logger.log(log, float(infid))
         return infid
