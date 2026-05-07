@@ -8,7 +8,7 @@ import numpy as np
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class WeightedSumGoal(NormalizableMeasurement, Differentiable):
@@ -138,7 +138,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             values_in_sum_of_squares = [
                 val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
             ]
-            sum_square_diff = 0.0
+            sum_square_diff: Float = 0.0
             for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
                 sum_square_diff += (meas_a - meas_b) ** 2
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff

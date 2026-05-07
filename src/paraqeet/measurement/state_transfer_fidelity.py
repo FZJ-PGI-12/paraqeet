@@ -32,6 +32,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         Function that evaluates the propagation of some initial state.
         Expected to be of the form `func(t: Array) -> states: Array`.
     propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Function returning the propagated states and their gradients.
     target_state : Array
         Target state.
     times : Array
@@ -47,8 +48,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     def __init__(
         self,
-        propagation_func: Callable,
-        propagation_and_gradient_func: Callable,
+        propagation_func: Callable[[Array], Array],
+        propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]],
         target_state: Array,
         overlap: Callable[[Array, Array], Array],
     ):
@@ -67,7 +68,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array) -> Float:
+    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
         """Measure overlap between initial and target state. To be used with an optimizer.
 
         Parameters
@@ -81,7 +82,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             Overlap between initial and target state in a bare Float.
 
         """
-        states = self._propagation_func(times)
+        states = self._propagation_func(jnp.array(times))
         final_state = states[-1]
         f = self._overlap(final_state, self._target_state)
         return StateTransferFidelity._fid(f)

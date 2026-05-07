@@ -1,11 +1,12 @@
 """Class definition of the unitary fidelity model."""
 
+from collections.abc import Callable
+
 import jax
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
@@ -19,8 +20,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
     Parameters
     ----------
-    propagation : Propagation
-        Implementation of EOM solver.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
+    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Function returning the propagated states and their gradients.
     gate : Array
         Matrix representation of target gate.
     times : Array
@@ -36,15 +40,18 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
     _basis_states: Array | None
     _target_costates: Array
-    _propagation: DifferentiablePropagation
+    _propagation_func: Callable[[Array], Array]
+    _propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
 
     def __init__(
         self,
-        propagation: DifferentiablePropagation,
+        propagation_func: Callable[[Array], Array],
+        propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]],
         gate: Array,
         basis_states: Array | None = None,
     ):
-        self._propagation = propagation
+        self._propagation_func = propagation_func
+        self._propagation_and_gradient_func = propagation_and_gradient_func
         self._basis_states = basis_states if basis_states is not None else jnp.eye(gate.shape[0])
         self.set_ideal_gate(gate)
 
@@ -69,7 +76,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array) -> Float:
+    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
         Returns
@@ -78,7 +85,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             L2 norm of the last time step compared to the ideal gate.
 
         """
-        states = self._propagation.propagate(time=times)
+        states = self._propagation_func(jnp.array(times))
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
@@ -93,7 +100,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)  # gradient of states wrt parameters
+        states, dg_dp_list = self._propagation_and_gradient_func(times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))

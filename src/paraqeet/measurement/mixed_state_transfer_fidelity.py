@@ -1,11 +1,12 @@
 """Class definition for a mixed state transfer fidelity model."""
 
+from collections.abc import Callable
+
 import jax.numpy as jnp
 import jax.scipy.linalg as sclin
 
 from paraqeet.exceptions import IncompatibleLayersException
 from paraqeet.measurement.measurement import Measurement
-from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array, Float
 
 
@@ -18,9 +19,9 @@ class MixedStateTransferFidelity(Measurement):
 
     Parameters
     ----------
-    propagation : Propagation
-        Abstract base class for any implementation that can solve
-        the equation of motion.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
     targetState : Array
         Final state of the density matrices.
     times : Array
@@ -30,14 +31,14 @@ class MixedStateTransferFidelity(Measurement):
 
     _target_state: Array
     _target_state_sqrt: Array
-    _propagation: Propagation
+    _propagation_func: Callable[[Array], Array]
 
     def __init__(
         self,
-        propagation: Propagation,
+        propagation_func: Callable[[Array], Array],
         targetState: Array,
     ):
-        self._propagation = propagation
+        self._propagation_func = propagation_func
         self._target_state = targetState
 
         # store the sqrt of the density matrix to simplify the measurement
@@ -57,7 +58,7 @@ class MixedStateTransferFidelity(Measurement):
             Raises an exception if required vector shape is not received.
 
         """
-        state = self._propagation.propagate(times)[-1]
+        state = self._propagation_func(times)[-1]
         if state.shape != self._target_state.shape:
             raise IncompatibleLayersException(
                 f"Need a state vector of size {self._target_state.shape}"
