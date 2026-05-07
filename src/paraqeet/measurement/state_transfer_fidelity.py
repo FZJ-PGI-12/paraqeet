@@ -146,5 +146,5 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         states, grads = self._propagation_and_gradient_func(times)
         final_state = states[-1]
         f = self._overlap(final_state, self._target_state)
-        grads = self._fid_grad(f) * grads
+        grads = jnp.real(self._fid_grad(f) * grads)
         return StateTransferFidelity._fid(f), grads.flatten()  # shape scalar, (n_parameters,)
