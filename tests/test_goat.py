@@ -112,7 +112,8 @@ def gates(prop, mode):
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
     prop.initial_state = np.identity(2)
     return UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=pauli_x,
     )
 

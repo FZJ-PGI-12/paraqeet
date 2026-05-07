@@ -131,7 +131,7 @@ def coupled_transmons(tone):
     cr_gate = pauli_zx @ cr_gate
     prop.set_initial_state(np.identity(9))
     gate_fid = UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop,
         gate=cr_gate,
     )
 

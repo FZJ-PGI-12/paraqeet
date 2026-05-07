@@ -25,7 +25,7 @@ def random_meas(random_unitary_matrix):
         propagation.set_initial_state(gate)
         cz = np.identity(4)
         cz[-1, -1] = -1.0
-        meas_list.append(UnitaryFidelity(propagation, cz))
+        meas_list.append(UnitaryFidelity(propagation.propagate, propagation.get_value_and_gradient, cz))
     return meas_list
 
 
