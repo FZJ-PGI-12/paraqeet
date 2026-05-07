@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class Measurement(ABC):
@@ -48,7 +48,7 @@ class NormalizableMeasurement(Measurement):
     """
 
     @abstractmethod
-    def calculate_normalized_scalar(self, times: Array) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure the normalized observable.
 
         Returns a single scalar value between 0 and 1.

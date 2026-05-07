@@ -9,11 +9,13 @@ from typing import Self
 
 import jax
 import jax.numpy as jnp
+import jaxtyping
 import numpy as np
 
 from paraqeet.exceptions import IncompatibleQuantityException
 
 type Array = np.typing.NDArray[np.float64] | np.typing.NDArray[np.complexfloating] | jax.Array
+type Float = float | jaxtyping.Float[jaxtyping.Array, ""]
 jax.config.update("jax_enable_x64", True)
 
 
