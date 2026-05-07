@@ -108,18 +108,27 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 class StateTransferFidelityGRAPE(StateTransferFidelity):
     """Fidelity measure that compares overlap of the initial and final state.
 
-    For GRAPE the optimizable parameters are vector quantities.
+    For GRAPE the optimizable parameters are vector quantities given by the PWC bins of the pulse.
+
+    This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
+    The overlap function is assumed to be a JAX grad compatible functionally pure function.
+
+    The fidelity function has a default implementation of `abs(overlap)^2`.
+    The user can replace the fidelity function with a JAX grad compatible function
+    of the form `fid(overlap: Array, *args, **kwargs) -> float`.
+
+    The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
 
     Parameters
     ----------
-    propagation : DifferentiablePropagation
-        Abstract base class for any implementation that can solve
-        the equation of motion.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
+    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
     target_state : Array
         Target state.
     times : Array
         One-dimensional vector of timestamps.
-
     """
 
     _propagation: DifferentiablePropagation
