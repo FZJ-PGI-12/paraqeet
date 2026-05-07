@@ -23,8 +23,6 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     propagation : DifferentiablePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : Array
-        Initial state.
     target_state : Array
         Target state.
     times : Array
@@ -32,30 +30,15 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     """
 
-    # TODO: initial state is not used anywhere. Shall we remove it?
-
-    _initial_state: Array
     _target_state: Array
     _overlap: Callable
     _fid_grad_func: Callable
     _propagation: DifferentiablePropagation
 
-    def __init__(
-        self, propagation: DifferentiablePropagation, initial_state: Array, target_state: Array, overlap: Callable
-    ):
+    def __init__(self, propagation: DifferentiablePropagation, target_state: Array, overlap: Callable):
         self._propagation = propagation
-        self._initial_state = initial_state
         self._target_state = target_state
         self._overlap = overlap
-        if target_state.shape != initial_state.shape:
-            warnings.warn(
-                UserWarning(
-                    f"Different shapes for target_state({target_state.shape})"
-                    f"and initial_state({initial_state.shape}) detected."
-                    " Use restrict_subsystems to project states to "
-                    "the same shape before measuring."
-                )
-            )
 
     @staticmethod
     def _fid(overlap: Array) -> float:
@@ -112,8 +95,6 @@ class StateTransferFidelityAD(StateTransferFidelity):
     propagation : Propagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : Array
-        Initial state.
     target_state : Array
         Target state.
     times : Array
@@ -159,8 +140,6 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     propagation : DifferentiablePropagation
         Abstract base class for any implementation that can solve
         the equation of motion.
-    initial_state : Array
-        Initial state.
     target_state : Array
         Target state.
     times : Array
