@@ -97,8 +97,8 @@ def states(prop, mode):
         overlap_func = overlap_vectorized_density_matrix
 
     return StateTransferFidelity(
-        propagation=prop,
-        initial_state=init,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         target_state=target,
         overlap=overlap_func,
     )

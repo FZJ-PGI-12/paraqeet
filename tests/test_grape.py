@@ -148,8 +148,8 @@ def states(model, mode, solver):
     prop_method.target_state = target
 
     return StateTransferFidelityGRAPE(
-        propagation=prop_method,
-        initial_state=init,
+        propagation_func=prop_method.propagate,
+        propagation_and_gradient_func=prop_method.get_value_and_gradient,
         target_state=target,
         overlap=overlap_func,
     )

@@ -120,8 +120,8 @@ def fid(prop):
     target = jnp.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
-        initial_state=init,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )

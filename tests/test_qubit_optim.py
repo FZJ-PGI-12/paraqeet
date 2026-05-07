@@ -43,7 +43,12 @@ PROP = ScipyExpmGOAT(
 )
 
 
-ZEROONE = StateTransferFidelity(propagation=PROP, initial_state=INIT, target_state=TARGET, overlap=overlap_state_vector)
+ZEROONE = StateTransferFidelity(
+    propagation_func=PROP.propagate,
+    propagation_and_gradient_func=PROP.get_value_and_gradient,
+    target_state=TARGET,
+    overlap=overlap_state_vector,
+)
 
 
 @pytest.fixture
