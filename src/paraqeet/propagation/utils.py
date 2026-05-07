@@ -1,5 +1,7 @@
 import jax.numpy as jnp
 from jax import jit, vmap
+from jaxtyping import Array as jaxArray
+from jaxtyping import Int
 
 from paraqeet.quantity import Array
 
@@ -12,7 +14,7 @@ def convert_dm_to_vec(state_dm: Array, dim: int) -> jnp.ndarray:
     return vec
 
 
-def convert_vec_to_dm(state_vec: Array, dim: int) -> jnp.ndarray:
+def convert_vec_to_dm(state_vec: Array, dim: int | Int[jaxArray, ""]) -> jnp.ndarray:
     """Helper function to convert a Vectorized density matrix to matrix form."""
     dm = jnp.reshape(state_vec, (-1, dim, dim))
     if dm.shape[0] == 1:
