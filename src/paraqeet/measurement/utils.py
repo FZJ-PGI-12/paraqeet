@@ -1,5 +1,4 @@
 import jax.numpy as jnp
-import numpy as np
 from jax import jit, vjp, vmap
 
 from paraqeet.propagation.utils import convert_vec_to_dm

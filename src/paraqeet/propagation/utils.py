@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import numpy as np
 from jax import jit, vmap
 from jaxtyping import Array as jaxArray
 from jaxtyping import Int
