@@ -67,7 +67,7 @@ def model(pwc_gen, mode):
     init = np.array([[1.0], [0.0]])
     if mode == "OpenSystem":
         init = np.matmul(init, init.T)
-        init = convert_dm_to_vec(init, dim=2)
+        init = convert_dm_to_vec(init)
 
     drive = RotatingFrameDrive(pwc_gen)
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
@@ -98,8 +98,8 @@ def states(model, mode, solver):
     if mode == "OpenSystem" and solver == "expm":
         init = np.matmul(init, init.T)
         target = np.matmul(target, target.T)
-        init = convert_dm_to_vec(init, dim=2)
-        target = convert_dm_to_vec(target, dim=2)
+        init = convert_dm_to_vec(init)
+        target = convert_dm_to_vec(target)
         overlap_func = overlap_vectorized_density_matrix
     elif mode == "OpenSystem" and solver == "ode":
         init = np.matmul(init, init.T)

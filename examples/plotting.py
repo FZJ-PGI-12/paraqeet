@@ -74,7 +74,7 @@ def plot_signal_and_dynamics(
     def calculate_populations(states, open_system, vectorized_dm):
         """Calculate state populations from density matrices and vectorized dm."""
         if vectorized_dm:
-            states = vmap(convert_vec_to_dm, in_axes=(0, None))(states, int(jnp.sqrt(states.shape[1])))
+            states = vmap(convert_vec_to_dm, in_axes=(0))(states)
         if len(states.shape) > 2:
             if open_system:
                 pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))

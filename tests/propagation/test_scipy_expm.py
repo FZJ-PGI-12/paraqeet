@@ -86,11 +86,11 @@ def test_state_dimension_matrix_open(random_matrix, expm, ts):
         dim = np.random.randint(2, 10)
         state = random_matrix(dim, dim)
         propagation = expm(dim**2, resolution=3)
-        propagation.initial_state = convert_dm_to_vec(state, dim)
+        propagation.initial_state = convert_dm_to_vec(state)
         propagated_states = propagation.propagate(ts)
         assert propagated_states.shape[0] == len(ts)
-        assert propagated_states.shape[1:] == convert_dm_to_vec(state, dim).shape
-        assert convert_vec_to_dm(propagated_states[-1], dim).shape == state.shape
+        assert propagated_states.shape[1:] == convert_dm_to_vec(state).shape
+        assert convert_vec_to_dm(propagated_states[-1]).shape == state.shape
 
 
 def test_initial_state(eom):

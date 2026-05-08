@@ -18,10 +18,10 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     """Fidelity measure that compares overlap of the initial and final state.
 
     This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
-    The overlap function is assumed to be a JAX grad compatible functionally pure function.
+    The overlap function is assumed to be a JAX jit compatible functionally pure function.
 
     The fidelity function has a default implementation of `abs(overlap)^2`.
-    The user can replace the fidelity function with a JAX grad compatible function
+    The user can replace the fidelity function with a JAX jit compatible function
     of the form `fid(overlap: Array, *args, **kwargs) -> float`.
 
     The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
@@ -112,10 +112,10 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     For GRAPE the optimizable parameters are vector quantities given by the PWC bins of the pulse.
 
     This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
-    The overlap function is assumed to be a JAX grad compatible functionally pure function.
+    The overlap function is assumed to be a JAX jit compatible functionally pure function.
 
     The fidelity function has a default implementation of `abs(overlap)^2`.
-    The user can replace the fidelity function with a JAX grad compatible function
+    The user can replace the fidelity function with a JAX jit compatible function
     of the form `fid(overlap: Array, *args, **kwargs) -> float`.
 
     The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.

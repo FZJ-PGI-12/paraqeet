@@ -18,18 +18,19 @@ def overlap_density_matrix(final_state: Array, target_state: Array, *args, **kwa
     return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
 
+@jit
 def overlap_vectorized_density_matrix(final_state: Array, target_state: Array, *args, **kwargs) -> Array:
     """Compute the overlap of density matrices."""
     # TODO: Make sure this works for mixed states: implement fidelity using sqrt(rho)
-    dim = jnp.sqrt(target_state.shape[0]).astype(int)
-    target_state = convert_vec_to_dm(target_state, dim)
-    final_state = convert_vec_to_dm(final_state, dim)
+    target_state = convert_vec_to_dm(target_state)
+    final_state = convert_vec_to_dm(final_state)
     return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
 
 def vjp_jacobian(f):
     """Returns a function that computes the Jacobian of f w.r.t. its first arg via vjp."""
 
+    @jit
     def jac_fn(x, *args, **kwargs):
         # Fix all the values except the first
         f_first = lambda x_: f(x_, *args, **kwargs)
