@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 from jax import jit, vjp, vmap
 
+from paraqeet.model.utils import matrix_sqrt_psd
 from paraqeet.propagation.utils import convert_vec_to_dm
 from paraqeet.quantity import Array
 
@@ -13,18 +14,30 @@ def overlap_state_vector(final_state: Array, target_state: Array, *args, **kwarg
 
 @jit
 def overlap_density_matrix(final_state: Array, target_state: Array, *args, **kwargs) -> Array:
-    """Compute the overlap of density matrices."""
-    # TODO: Make sure this works for mixed states: implement fidelity using sqrt(rho)
+    """Compute the overlap of density matrices for a pure target_state."""
     return jnp.linalg.trace(jnp.matmul(target_state, final_state))
 
 
 @jit
 def overlap_vectorized_density_matrix(final_state: Array, target_state: Array, *args, **kwargs) -> Array:
-    """Compute the overlap of density matrices."""
-    # TODO: Make sure this works for mixed states: implement fidelity using sqrt(rho)
+    """Compute the overlap of density matrices for a pure target_state."""
     target_state = convert_vec_to_dm(target_state)
     final_state = convert_vec_to_dm(final_state)
     return jnp.linalg.trace(jnp.matmul(target_state, final_state))
+
+
+@jit
+def overlap_density_matrix_mixed_states(final_state: Array, target_state: Array, *args, **kwargs) -> Array:
+    """Compute the overlap of density matrices."""
+    return jnp.linalg.trace(matrix_sqrt_psd(jnp.matmul(target_state, final_state))) ** 2
+
+
+@jit
+def overlap_vectorized_density_matrix_mixed_states(final_state: Array, target_state: Array, *args, **kwargs) -> Array:
+    """Compute the overlap of density matrices."""
+    target_state = convert_vec_to_dm(target_state)
+    final_state = convert_vec_to_dm(final_state)
+    return jnp.linalg.trace(matrix_sqrt_psd(jnp.matmul(target_state, final_state))) ** 2
 
 
 def vjp_jacobian(f):

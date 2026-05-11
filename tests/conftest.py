@@ -77,6 +77,24 @@ def random_matrix():
 
 
 @pytest.fixture
+def random_density_matrix():
+    """Return a random density matrix generating method.
+
+    Generates random density matrix for given dimension n.
+    The matrix is Hermitian and positive semi-definite and
+    normalized to have trace 1.
+
+    """
+
+    def _method(n):
+        state = np.random.random(size=(n, n)) + 1j * np.random.random(size=(n, n))
+        dm = state @ state.conj().T
+        return dm / np.trace(dm)
+
+    return _method
+
+
+@pytest.fixture
 def random_unitary_matrix():
     """Return a random unitary matrix generating method.
 

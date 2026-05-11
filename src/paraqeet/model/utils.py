@@ -44,13 +44,23 @@ def dagger(Op: Array):
     return Op.T.conj()
 
 
+@jit
 def matrix_sqrt(Op: Array):
     """Returns matrix square root using jax based implementation.
+    This works for any general matrix with positive eigenvalues.
 
     Uses jax.scipy.lingalg.sqrtm for the implementation.
     *NOTE - This function does not support automatic-differentiation.*
     """
     return sqrtm(Op)
+
+
+@jit
+def matrix_sqrt_psd(A):
+    """Matrix square root of a Hermitian positive semi-definite matrix like a density matrix."""
+    w, V = jnp.linalg.eigh(A)
+    w_sqrt = jnp.sqrt(jnp.clip(w, min=0.0))  # clip tiny negatives from roundoff
+    return (V * w_sqrt) @ dagger(V)
 
 
 def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]):
