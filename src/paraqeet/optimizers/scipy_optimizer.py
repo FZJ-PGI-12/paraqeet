@@ -28,12 +28,13 @@ class ScipyOptimizer(Optimizer):
     _options: dict
     _method: str
     _callback: Callable | None
+    _num_iterations: int = 0
 
     def __init__(self, measure_func: Callable[[Array], Float], optimization_map: OptimizationMap) -> None:
         super().__init__(measure_func, optimization_map)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
-        self._callback = None
+        self._callback = self._default_callback
 
     @property
     def method(self) -> str:
@@ -80,6 +81,11 @@ class ScipyOptimizer(Optimizer):
 
         """
         self._callback = cbfun
+
+    def _default_callback(self, intermediate_result):
+        self._num_iterations += 1
+        fun = intermediate_result.fun if hasattr(intermediate_result, "fun") else None
+        print(f"Iteration {self._num_iterations:4d} | Infid = {fun:.6e}")
 
     def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Scipy optimizer.
