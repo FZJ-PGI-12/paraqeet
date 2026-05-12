@@ -1,8 +1,10 @@
 """Utilies for model construction."""
 
+from typing import Callable
+
 import jax.numpy as jnp
 import numpy as np
-from jax import jit
+from jax import jit, vmap
 from jax.scipy.linalg import sqrtm
 
 from paraqeet.model.system import OpenSystem
@@ -237,3 +239,56 @@ def construct_jump_operators_from_subsystems(subsystems: list[OpenSystem], dimen
         for jump_op in jump_ops:
             all_collapse_ops.append(tensor_product_with_identity([jump_op], [n], dimensions))
     return all_collapse_ops
+
+
+## Helper functions for cross-package support
+
+# Numpy
+
+
+def np_func_to_jax_func(ham_func: Callable):
+    """Convert a Numpy Hamiltonian function to JAX compatible function.
+
+    Adds `vmap` capabilities to vectorize the computation over a batch of times (first variable).
+
+    Parameters
+    ----------
+    ham_func : Callable
+        Numpy based Hamiltonian function to convert to JAX and vmap compatible function.
+    """
+
+    def _jax_wrapper(times: Array, *args, **kwargs):
+        one_time_func = lambda t: jnp.array(ham_func(t, *args, **kwargs))
+        return vmap(one_time_func)(times)
+
+    return _jax_wrapper
+
+
+# QuTiP
+def qobj_to_array(qobj):
+    """Convert a QuTiP-JAX object to a JAX array.
+
+    Parameters
+    ----------
+    qobj : Qobj
+        QuTiP object.
+    """
+    return qobj.data._jxa
+
+
+def qt_func_to_jax_func(ham_func: Callable):
+    """Convert a QuTiP-JAX Hamiltonian function to JAX compatible function.
+
+    Adds `vmap` capabilities to vectorize the computation over a batch of times (first variable).
+
+    Parameters
+    ----------
+    ham_func : Callable
+        QuTiP based Hamiltonian function to convert to JAX and vmap compatible function.
+    """
+
+    def _jax_wrapper(times: Array, *args, **kwargs):
+        one_time_func = lambda t: ham_func(t, *args, **kwargs).data._jxa
+        return vmap(one_time_func)(times)
+
+    return _jax_wrapper
