@@ -54,7 +54,7 @@ def vjp_jacobian(f):
             return vjp_fn(jnp.ones_like(y))[0]
 
         # For Array outputs
-        I = jnp.eye(y.size).reshape((y.size,) + y.shape)
+        I = jnp.eye(y.size, dtype=y.dtype).reshape((y.size,) + y.shape)
         jac_flat = vmap(vjp_fn)(I)[0]
         return jac_flat.reshape(y.shape + x.shape)
 
