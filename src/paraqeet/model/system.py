@@ -24,10 +24,10 @@ class System(Optimizable):
 
     """
 
-    _drives: list[Drive]
+    drives: list[Drive]
 
     def __init__(self, drives: list[Drive] | None = None):
-        self._drives = [d for d in drives if d is not None] if drives else []
+        self.drives = [d for d in drives if d is not None] if drives else []
 
     @abstractmethod
     def dimension(self) -> int:
@@ -51,7 +51,7 @@ class System(Optimizable):
         Parameters
         ----------
         times: Array
-            Vector of time samples.
+            Array of time samples.
 
         Returns
         -------
@@ -64,13 +64,13 @@ class System(Optimizable):
         return jnp.array(vmap(self.get_hamiltonian_at_timestep)(times))  # type: ignore
 
     @abstractmethod
-    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
+    def get_hamiltonian_at_timestep(self, t: float) -> Array:
         """Return the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        timestep: float
-            One time point.
+        t: float
+            Time.
 
         Returns
         -------
@@ -82,38 +82,51 @@ class System(Optimizable):
         pass
 
     @abstractmethod
-    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
-        """Compute the gradient of this Hamiltonian wrt to parameters for a single timestep."""
-        pass
+    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
+        """Get the one-time gradient of the Hamiltonain.
 
-    def get_hamiltonian_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Compute value and gradient for given timesteps. The gradient call uses vmap over at_timestep methods."""
-        # ignoring mypy due to vmap
-        return self.get_hamiltonian(times), vmap(self.get_hamiltonian_gradient_at_timestep)(times)  # type: ignore
-
-    @property
-    def drives(self) -> list[Drive]:
-        """Return the list of Drives of the system.
-
-        Returns
-        -------
-        list[Drive]
-            Returns a list of time-dependent drives of the system.
-        """
-        return self._drives
-
-    @drives.setter
-    def drives(self, drives: list[Drive]) -> None:
-        """Set the drives
+        Returns the gradient of the matrix representation of the
+        Hamiltonian with respect to each parameter as a list.
 
         Parameters
         ----------
-        drives: list[Drive]
-            List of drives to set.
-        """
-        self._drives = drives
+        t: float
+            Time.
 
-    def _get_drive_parameters(self) -> list[Quantity]:
+        Returns
+        -------
+        Array
+            Gradient as an array of shape [p, n, n] with 'p' as the number
+            of parameters and 'n' as the  Hilbert space dimension.
+
+        """
+        pass
+
+    def get_hamiltonian_and_gradient(self, times: Array) -> tuple[Array, Array]:
+        """Get the matrix representation and one-time gradient of the Hamiltonain.
+
+        Returns the gradient of the matrix representation of the
+        Hamiltonian with respect to each parameter as a list.
+
+        Parameters
+        ----------
+        t: float
+            Time.
+
+        Returns
+        -------
+        tuple[Array, Array]
+            A tuple with Hamiltonian of shape [n, n]  with `n` as the Hilbert
+            space dimension and gradient as and array of shape [p, n, n]
+            with 'p' as the number of parameters and 'n' as the
+            Hilbert space dimension.
+
+        """
+        # ignoring mypy due to vmap
+        hamil_and_grad = (self.get_hamiltonian(times), vmap(self.get_hamiltonian_gradient_at_timestep)(times))  # type: ignore
+        return hamil_and_grad
+
+    def get_drive_parameters(self) -> list[Quantity]:
         """Return the combined list of parameters from all drives.
 
         Returns
@@ -123,11 +136,11 @@ class System(Optimizable):
 
         """
         params = []
-        for d in self._drives:
+        for d in self.drives:
             params += d.get_parameters()
         return params
 
-    def _get_drive_matrix(self, annihilation_operator: Array, times: Array) -> Array:
+    def get_drive_matrix(self, times: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations for
@@ -137,10 +150,8 @@ class System(Optimizable):
 
         Parameters
         ----------
-        annihilation_operator : Array
-            The annihilation operator.
-        times : Array
-            Vector of time samples.
+        times: Array
+            Array of time samples.
 
         Returns
         -------
@@ -149,9 +160,9 @@ class System(Optimizable):
 
         """
         # ignoring mypy due to vmap
-        return vmap(self._get_drive_matrix_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  # type: ignore
+        return vmap(self.get_drive_matrix_at_timestep, in_axes=(None, 0))(times)  # type: ignore
 
-    def _get_drive_matrix_at_timestep(self, annihilation_operator: Array, times: float) -> Array:
+    def get_drive_matrix_at_timestep(self, t: float) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -159,10 +170,8 @@ class System(Optimizable):
 
         Parameters
         ----------
-        annihilation_operator : Array
-            The annihilation operator.
-        times: Array
-            Vector of time samples.
+        t: float
+            Time.
 
         Returns
         -------
@@ -172,11 +181,11 @@ class System(Optimizable):
         """
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
-        for drive in self._drives:
-            mat += drive.get_value_at_timestep(times)
+        for drive in self.drives:
+            mat += drive.get_value_at_timestep(t)
         return mat
 
-    def _get_drive_gradients(self, annihilation_operator: Array, times: Array) -> Array:
+    def get_drive_gradients(self, times: Array) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -184,8 +193,6 @@ class System(Optimizable):
 
         Parameters
         ----------
-        annihilation_operator : Array
-            The annihilation operator.
         times: Array
             Vector of time samples.
 
@@ -197,12 +204,12 @@ class System(Optimizable):
         """
         dim = self.dimension()
         all_grads = jnp.zeros((times.shape[0], 0, dim, dim))
-        for drive in self._drives:
+        for drive in self.drives:
             grads = drive.get_gradient(times)
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
 
-    def _get_drive_gradients_at_timestep(self, annihilation_operator: Array, time: float) -> Array:
+    def get_drive_gradients_at_timestep(self, time: float) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -210,10 +217,8 @@ class System(Optimizable):
 
         Parameters
         ----------
-        annihilation_operator : Array
-            The annihilation operator.
         times: Array
-            One time stamp.
+            Time.
 
         Returns
         -------
@@ -223,14 +228,16 @@ class System(Optimizable):
         """
         dim = self.dimension()
         all_grads = jnp.zeros((0, dim, dim))
-        for drive in self._drives:
+        for drive in self.drives:
             grads = drive.get_gradient_at_timestep(time)
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 
 
 class OpenSystem(System):
-    """System description that adds jump operators for the simulation of dissipation, etc."""
+    """System description that adds jump operators for
+    the simulation of dissipation, etc.
+    """
 
     @abstractmethod
     def get_jump_operators(self) -> list[Array]:
