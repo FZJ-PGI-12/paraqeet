@@ -2,7 +2,6 @@
 
 from abc import abstractmethod
 
-import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.optimizable import Optimizable
@@ -15,24 +14,46 @@ from paraqeet.signal.generator import Generator
 # implementation of the abstract Differentiable method get_value_and_gradient?
 # If not, we should rename the methods to e.g. get_hamiltonian_gradient to avoid confusion.
 class Drive(Optimizable):
-    """Represents a time-dependent drive on a subsystem.
+    """Represents a time-dependent drive on a system.
 
     This can for example be a microwave or flux drive.
 
+    Parameters
+    ----------
+    drive_op: Array
+        The drive operator. It needs to match the dimension of the system
+        it is associated with.
+
     """
 
-    def get_value(self, annihilation_operator: Array, times: Array) -> Array:
+    def __init__(self, drive_op: Array) -> None:
+        self.drive_op = drive_op
+
+    @abstractmethod
+    def get_value_at_timestep(self, t: float) -> Array:
         """Return the matrix representation of the drive.
 
         The dimension is given by the Hamiltonian to which this drive is
-        attached. The default implementation calls getMatrixOneTime for each
-        time step. Subclasses can override this function for a more efficient
-        implementation.
+        attached.
 
         Parameters
         ----------
-        annihilation_operator : Array
-            Operator of the subsystem to which this drive is attached
+        t: float
+            Time.
+
+        Returns
+        -------
+        Array
+            Matrix of shape [n, n]  with `n` as the Hilbert space dimension.
+
+        """
+        pass
+
+    def get_value(self, times: Array) -> Array:
+        """Return the matrix representation of the drive.
+
+        Parameters
+        ----------
         times: Array
             Vector of time samples.
 
@@ -44,40 +65,38 @@ class Drive(Optimizable):
 
         """
         # vmap iterates over the times array and returns float. Not caught by mypy.
-        return vmap(self.get_value_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  # type: ignore
+        drive_value = vmap(self.get_value_at_timestep, in_axes=(None, 0))(self.drive_op, times)  # type: ignore
+        return drive_value
 
     @abstractmethod
-    def get_value_at_timestep(self, annihilation_operator: Array, t: float) -> Array:
-        """Return the matrix representation of the drive.
+    def get_gradient_at_timestep(self, t: float) -> Array:
+        """Get the one-time gradient of the system.
 
-        The dimension is given by the Hamiltonian to which this drive is
-        attached.
+        Returns the gradient of the matrix representation of the
+        Hamiltonian with respect to each parameter as a list.
 
         Parameters
         ----------
-        annihilation_operator
-            Operator of the subsystem to which this drive is attached.
         t: float
-            One time point.
+            Time.
 
         Returns
         -------
         Array
-            Matrix of shape [n, n]  with `n` as the Hilbert space dimension.
+            Array of shape [p, n, n] with 'p' as the number
+            of parameters and 'n' as the  Hilbert space dimension.
 
         """
         pass
 
-    def get_gradient(self, annihilation_operator: Array, times: Array) -> Array:
+    def get_gradient(self, times: Array) -> Array:
         """Return the gradient of the system.
 
-        Returns the gradient of the matrix representation of the Hamiltonian
+        Returns the gradient of the matrix representation of the drive Hamiltonian
         with respect to each parameter as a list.
 
         Parameters
         ----------
-        annihilation_operator : Array
-            Operator of the subsystem to which this drive is attached.
         times: Array
             Vector of time samples.
 
@@ -90,65 +109,33 @@ class Drive(Optimizable):
 
         """
         # Ignoring mypy here as vmap makes the array to float
-        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  #  type: ignore
+        gradient_value = vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(times)  #  type: ignore
 
-    @abstractmethod
-    def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
-        """Get the one-time gradient of the system.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
-
-        Parameters
-        ----------
-        annihilation_operator : Array
-            Operator of the subsystem to which this drive is attached.
-        timestep: float
-            One time step.
-
-        Returns
-        -------
-        Array
-            Array of shape [p, n, n] with 'p' as the number
-            of parameters and 'n' as the  Hilbert space dimension.
-
-        """
-        pass
+        return gradient_value
 
 
 class DriveOperator(Drive):
-    r"""Create a generator drive model.
+    """Create a generator drive model.
 
-    Transversal (a^\\dagger + a or \\sigma_x type) or longitudinal (a^\\dagger a or \\sigma_z type) drive with a
-    time-dependent scalar coefficient that is generated by a Generator object.
+    Drive with a time-dependent scalar coefficient that is generated
+    by a Generator object.
 
     Parameters
     ----------
+    drive_op: Array
+        The drive operator. It needs to match the dimension of the system
+        it is associated with.
     generator : Generator
         Signal generator stack.
-    is_longitudinal : bool
-        Generator is longitudinal or transversal depending on this boolean.
 
     """
 
-    _generator: Generator
-    _is_longitudinal: bool
+    drive_op: Array
+    generator: Generator
 
-    def __init__(self, generator: Generator, is_longitudinal: bool):
-        self._generator = generator
-        self._is_longitudinal = is_longitudinal
-
-    @property
-    def generator(self) -> Generator:
-        """Get the signal generator from the system.
-
-        Returns
-        -------
-        paraqeet.signal.generator.Generator
-            Returns the signal generator object from the system.
-
-        """
-        return self._generator
+    def __init__(self, drive_op: Array, generator: Generator):
+        super().__init__(drive_op)
+        self.generator = generator
 
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
@@ -159,25 +146,9 @@ class DriveOperator(Drive):
             List of optimizable parameters of the system.
 
         """
-        return self._generator.get_parameters()
+        return self.generator.get_parameters()
 
-    def _compute_matrix(self, a: Array) -> Array:
-        """Return the operator for the longitudinal or transverse drive.
-
-        Parameters
-        ----------
-        a: Array
-            Operator for computation.
-
-        Returns
-        -------
-        Array
-            Returns the operator for the longitudinal or transverse drive.
-
-        """
-        return (jnp.conjugate(a.T) @ a) if self._is_longitudinal else (jnp.conjugate(a.T) + a)
-
-    def get_value_at_timestep(self, a: Array, t: float) -> Array:
+    def get_value_at_timestep(self, t: float) -> Array:
         """Get the one-time matrix of the system.
 
         Fetches the coefficient from the drive and transforms it
@@ -185,10 +156,8 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a: Array
-            Operator for longitudinal or transverse drive.
-        t: Array
-            One-dimensional vector of timestamps.
+        t: float
+            Time.
 
         Returns
         -------
@@ -198,11 +167,10 @@ class DriveOperator(Drive):
         """
         # TODO: generator.get_value expects an array, even for one time point.
         # Is the naming of the method correct then?
-        signal = self._generator.get_value(t)
-        matrix = self._compute_matrix(a)
-        return signal * matrix
+        signal = self.generator.get_value(t)
+        return signal * self.drive_op
 
-    def get_gradient_at_timestep(self, a: Array, timestep: float) -> Array:
+    def get_gradient_at_timestep(self, t: float) -> Array:
         """Get the one-time gradient of the system.
 
         Fetches the gradient from the drive and transforms it into the
@@ -210,10 +178,8 @@ class DriveOperator(Drive):
 
         Parameters
         ----------
-        a: Array
-            Operator for longitudinal or transverse drive.
-        timestep: Array
-            One-dimensional vector of timestamps.
+        t: Array
+            Time.
 
         Returns
         -------
@@ -221,7 +187,7 @@ class DriveOperator(Drive):
             Returns the shape-shifted gradient from the drive.
 
         """
-        signal_grad = self._generator.get_gradient_at_timestep(timestep).reshape((-1, 1, 1))
-        matrix = self._compute_matrix(a)
+        signal_grad = self.generator.get_gradient_at_timestep(t).reshape((-1, 1, 1))
+        matrix = self.drive_op
         matrix = matrix.reshape((1,) + matrix.shape).repeat(signal_grad.shape[0], axis=0)
         return signal_grad * matrix

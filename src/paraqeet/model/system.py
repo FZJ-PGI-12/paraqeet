@@ -173,7 +173,7 @@ class System(Optimizable):
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
         for drive in self._drives:
-            mat += drive.get_value_at_timestep(annihilation_operator, times)
+            mat += drive.get_value_at_timestep(times)
         return mat
 
     def _get_drive_gradients(self, annihilation_operator: Array, times: Array) -> Array:
@@ -198,7 +198,7 @@ class System(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((times.shape[0], 0, dim, dim))
         for drive in self._drives:
-            grads = drive.get_gradient(annihilation_operator, times)
+            grads = drive.get_gradient(times)
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
 
@@ -224,7 +224,7 @@ class System(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((0, dim, dim))
         for drive in self._drives:
-            grads = drive.get_gradient_at_timestep(annihilation_operator, time)
+            grads = drive.get_gradient_at_timestep(time)
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 
