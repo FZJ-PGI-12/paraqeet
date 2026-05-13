@@ -1,7 +1,5 @@
 """Class definition of the Scipy piecewise exponential propagation model."""
 
-from functools import partial
-
 import jax
 import jax.numpy as jnp
 from jax import jit
