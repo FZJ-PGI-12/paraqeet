@@ -30,8 +30,9 @@ class ScipyExpm(StatePropagation):
 
     """
 
-    @partial(jit, static_argnums=(0,))
-    def _propagate_in_time(self, psis_t, eom, steps_arr):
+    @staticmethod
+    @jit
+    def _propagate_in_time(psis_t, eom, steps_arr):
         """Propagate the system in time.
 
         Iteratively propagate state/states (psis_t) according
@@ -114,7 +115,7 @@ class ScipyExpm(StatePropagation):
             times, dt = construct_times(time, ti, self._resolution)
             psis_t = psis[ti - 1]
             eom = self._eom_func(times + dt / 2) * dt
-            psis_t = self._propagate_in_time(psis_t, eom, jnp.arange(0, len(times), 1))
+            psis_t = ScipyExpm._propagate_in_time(psis_t, eom, jnp.arange(0, len(times), 1))
             psis.append(psis_t)
 
         psis_arr = jnp.array(psis)

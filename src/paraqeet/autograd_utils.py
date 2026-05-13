@@ -1,6 +1,6 @@
 """Helper functions for automatic differentation."""
 
-from typing import Callable, Sequence
+from typing import Callable
 
 import jax.numpy as jnp
 from jax import jit, vjp, vmap
