@@ -26,22 +26,17 @@ class Transmon(OpenSystem):
         Anharmonicity of the oscillator.
     drives: list[Drive]
         List of time-dependent drives of the subsystem.
-
+    t1: Quantity | None
+        Energy relaxation time.
+    temp: Quantity | None
+        Temperature of the qubit.
+    t2star: Quantity | None
+        Dephasing time.
     """
-
-    _dimension: int
-    _frequency: Quantity
-    _anharmonicity: Quantity
-    _annihilation_op: Array
-    _num_op: Array
-    _anharmonic_term: Array
-    _t1: Quantity | None
-    _temp: Quantity | None
-    _t2star: Quantity | None
 
     def __init__(
         self,
-        dimension: int,
+        num_levels: int,
         frequency: Quantity,
         anharmonicity: Quantity,
         drives: list[Drive] | None = None,
@@ -50,69 +45,41 @@ class Transmon(OpenSystem):
         t2star: Quantity | None = None,
     ):
         super().__init__(drives=drives)
-        self._dimension = dimension
-        self._frequency = frequency
-        self._anharmonicity = anharmonicity
-        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
+        self._num_levels = num_levels
+        self.frequency = frequency
+        self.anharmonicity = anharmonicity
+        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, num_levels, dtype=jnp.float64), k=1))
         self._num_op = self._annihilation_op.T @ self._annihilation_op
-        self._anharmonic_term = 0.5 * self._num_op @ (self._num_op - jnp.eye(self._dimension))
+        self._anharmonic_term = 0.5 * self._num_op @ (self._num_op - jnp.eye(num_levels))
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
 
     def dimension(self) -> int:
-        """Get the dimension of the Transmon system."""
-        return self._dimension
+        """Return the dimension of the Hilbert space of the system.
+
+        Returns
+        -------
+        int
+            Hilbert space dimension.
+
+        """
+        return self._num_levels
 
     @property
-    def frequency(self) -> Quantity:
-        """Get the frequency of the Transmon system."""
-        return self._frequency
-
-    @frequency.setter
-    def frequency(self, frequency: Quantity) -> None:
-        """Set the frequency of the Transmon system."""
-        self._frequency = frequency
+    def annihilation_op(self) -> Array:
+        """Return the annihilation operator"""
+        return self._annihilation_op
 
     @property
-    def anharmonicity(self) -> Quantity:
-        """Get the anharmonicity of the Transmon system."""
-        return self._anharmonicity
-
-    @anharmonicity.setter
-    def anharmonicity(self, anharmonicity: Quantity) -> None:
-        """Set the anharmonicity of the Transmon system."""
-        self._anharmonicity = anharmonicity
+    def num_op(self) -> Array:
+        """Return the Fock number operator"""
+        return self._num_op
 
     @property
-    def t1(self) -> Quantity | None:
-        """Get the t1 of the resonator."""
-        return self._t1
-
-    @t1.setter
-    def t1(self, t1: Quantity | None) -> None:
-        """Set the t1 of the resonator."""
-        self._t1 = t1
-
-    @property
-    def temp(self) -> Quantity | None:
-        """Get the temp of the resonator."""
-        return self._temp
-
-    @temp.setter
-    def temp(self, temp: Quantity | None) -> None:
-        """Set the temp of the resonator."""
-        self._temp = temp
-
-    @property
-    def t2star(self) -> Quantity | None:
-        """Get the t2star of the resonator."""
-        return self._t2star
-
-    @t2star.setter
-    def t2star(self, t2star: Quantity | None) -> None:
-        """Set the t2star of the resonator."""
-        self._t2star = t2star
+    def anharmonic_term(self) -> Array:
+        """Return the anharmonic_term"""
+        return self._anharmonic_term
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
@@ -123,50 +90,56 @@ class Transmon(OpenSystem):
             Returns the list of parameters of the system.
 
         """
-        return self._get_drive_parameters() + [
-            self._frequency,
-            self._anharmonicity,
+        return self.get_drive_parameters() + [
+            self.frequency,
+            self.anharmonicity,
         ]
 
-    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
-        """Get the drive matrix.
+    def get_hamiltonian_at_timestep(self, t: float) -> Array:
+        """Return the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        timestep : Array
-            Vector of time samples.
+        t: float
+            Time.
 
         Returns
         -------
         Array
-            The repeated drive matrix.
+            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
+            dimension.
 
         """
-        hamil = self._frequency.get_value() * self._num_op + self._anharmonicity.get_value() * self._anharmonic_term
-        return hamil + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
+        hamil_0 = self.frequency.get_value() * self._num_op + self.anharmonicity.get_value() * self._anharmonic_term
+        hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
+        return hamil
 
-    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
-        """Get the gradient of the drive.
+    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
+        """Get the one-time gradient of the Hamiltonain.
+
+        Returns the gradient of the matrix representation of the
+        Hamiltonian with respect to each parameter as a list.
 
         Parameters
         ----------
-        t: Array
-            Single time stamp.
+        t: float
+            Time.
 
         Returns
         -------
         Array
-            Returns the gradients of the drive.
+            Gradient as an array of shape [p, n, n] with 'p' as the number
+            of parameters and 'n' as the  Hilbert space dimension.
 
         """
         # Fetch the gradient of the drive
-        gradients = self._get_drive_gradients_at_timestep(self._annihilation_op, time)
+        gradients = self.get_drive_gradients_at_timestep(t)
 
         # Combine with the derivatives wrt the frequency and anharmonicity
         grads_list = []
-        if self._is_optimized(self._frequency):
+        if self._is_optimized(self.frequency):
             grads_list.append(self._num_op)
-        if self._is_optimized(self._anharmonicity):
+        if self._is_optimized(self.anharmonicity):
             grads_list.append(self._anharmonic_term)
         grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self._num_op.shape)
         gradients = jnp.append(gradients, grads, axis=0)
@@ -194,7 +167,7 @@ class Transmon(OpenSystem):
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_jump_operators(self) -> list[tuple[Array, Array]]:
+    def get_jump_operators(self) -> list[Array]:
         """
         Return a list of jump operators for the transmon.
 

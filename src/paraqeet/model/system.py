@@ -31,12 +31,12 @@ class System(Optimizable):
 
     @abstractmethod
     def dimension(self) -> int:
-        """Return the dimension of the Hilbert space of this Hamiltonian.
+        """Return the dimension of the Hilbert space of the system.
 
         Returns
         -------
         int
-            Returns the dimension of the Hilbert space of this Hamiltonian.
+            Hilbert space dimension.
 
         """
         pass
@@ -110,8 +110,8 @@ class System(Optimizable):
 
         Parameters
         ----------
-        t: float
-            Time.
+        times: Array
+            Array of time samples.
 
         Returns
         -------
@@ -194,7 +194,7 @@ class System(Optimizable):
         Parameters
         ----------
         times: Array
-            Vector of time samples.
+            Array of time samples.
 
         Returns
         -------
@@ -209,7 +209,7 @@ class System(Optimizable):
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
 
-    def get_drive_gradients_at_timestep(self, time: float) -> Array:
+    def get_drive_gradients_at_timestep(self, t: float) -> Array:
         """Return the gradients of all drives.
 
         This function can be used by Hamiltonian implementations
@@ -217,7 +217,7 @@ class System(Optimizable):
 
         Parameters
         ----------
-        times: Array
+        t: float
             Time.
 
         Returns
@@ -229,7 +229,7 @@ class System(Optimizable):
         dim = self.dimension()
         all_grads = jnp.zeros((0, dim, dim))
         for drive in self.drives:
-            grads = drive.get_gradient_at_timestep(time)
+            grads = drive.get_gradient_at_timestep(t)
             all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 

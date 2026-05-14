@@ -26,6 +26,8 @@ class Drive(Optimizable):
 
     """
 
+    drive_op: Array
+
     def __init__(self, drive_op: Array) -> None:
         self.drive_op = drive_op
 
@@ -70,9 +72,9 @@ class Drive(Optimizable):
 
     @abstractmethod
     def get_gradient_at_timestep(self, t: float) -> Array:
-        """Get the one-time gradient of the system.
+        """Get the one-time gradient of the drive.
 
-        Returns the gradient of the matrix representation of the
+        Returns the gradient of the matrix representation of the drive
         Hamiltonian with respect to each parameter as a list.
 
         Parameters

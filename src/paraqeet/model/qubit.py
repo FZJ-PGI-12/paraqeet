@@ -9,7 +9,7 @@ from paraqeet.quantity import Array, Quantity
 
 
 class Qubit(OpenSystem):
-    """Hamiltonian of a single qubit frequency/2 * sigma_z.
+    """Hamiltonian of a single qubit frequency/2 * pauli_z.
 
     The implementation uses the convention of having the excited state
     of the qubit as the first entry in the state. If you need a two-level
@@ -19,19 +19,18 @@ class Qubit(OpenSystem):
 
     Parameters
     ----------
-    frequency : Quantity
+    frequency: Quantity
         Frequency for characterizing the qubit.
-    drives : list[Drive] | None
+    drives: list[Drive] | None
         List of time-dependent drives.
+    t1: Quantity | None
+        Energy relaxation time.
+    temp: Quantity | None
+        Temperature of the qubit.
+    t2star: Quantity | None
+        Dephasing time.
 
     """
-
-    _frequency: Quantity
-    _annihilation_op: Array
-    _drift: Array
-    _t1: Quantity | None
-    _temp: Quantity | None
-    _t2star: Quantity | None
 
     def __init__(
         self,
@@ -42,57 +41,38 @@ class Qubit(OpenSystem):
         t2star: Quantity | None = None,
     ):
         super().__init__(drives)
-        self._frequency = frequency
+        self.frequency = frequency
         self._annihilation_op = jnp.array(
             [
                 [0.0, 0.0],
                 [1.0, 0.0],
             ]
         )
-        self._drift = 0.5 * jnp.diag(jnp.array([1.0, -1.0]))
+        self._pauli_z = jnp.diag(jnp.array([1.0, -1.0]))
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
 
-    @property
-    def frequency(self) -> Quantity:
-        """Get the frequency of the qubit."""
-        return self._frequency
+    def dimension(self) -> int:
+        """Return the dimension of the Hilbert space of the system.
 
-    @frequency.setter
-    def frequency(self, frequency: Quantity) -> None:
-        """Set the frequency of the qubit."""
-        self._frequency = frequency
+        Returns
+        -------
+        int
+            Hilbert space dimension.
 
-    @property
-    def t1(self) -> Quantity | None:
-        """Get the t1 of the resonator."""
-        return self._t1
-
-    @t1.setter
-    def t1(self, t1: Quantity | None) -> None:
-        """Set the t1 of the resonator."""
-        self._t1 = t1
+        """
+        return 2
 
     @property
-    def temp(self) -> Quantity | None:
-        """Get the temp of the resonator."""
-        return self._temp
-
-    @temp.setter
-    def temp(self, temp: Quantity | None) -> None:
-        """Set the temp of the resonator."""
-        self._temp = temp
+    def annihilation_op(self) -> Array:
+        """Return the annihilation operator"""
+        return self._annihilation_op
 
     @property
-    def t2star(self) -> Quantity | None:
-        """Get the t2star of the resonator."""
-        return self._t2star
-
-    @t2star.setter
-    def t2star(self, t2star: Quantity | None) -> None:
-        """Set the t2star of the resonator."""
-        self._t2star = t2star
+    def pauli_z(self) -> Array:
+        """Return the Pauli Z operator"""
+        return self._pauli_z
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
@@ -103,56 +83,51 @@ class Qubit(OpenSystem):
             Returns the list of parameters of the system.
 
         """
-        return self._get_drive_parameters() + [self._frequency]
+        return self.get_drive_parameters() + [self.frequency]
 
-    def dimension(self) -> int:
-        """Dimension of the qubit.
-
-        Returns
-        -------
-        int
-            Returns 2 as the dimension.
-
-        """
-        return 2
-
-    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
-        """Get the drive matrix.
+    def get_hamiltonian_at_timestep(self, t: float) -> Array:
+        """Return the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        timestep: Array
-            One time stamp.
+        t: float
+            Time.
 
         Returns
         -------
         Array
-            The repeated drive matrix.
+            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
+            dimension.
 
         """
-        hamil = self._frequency.get_value() * self._drift
-        return hamil + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
+        hamil_0 = self.frequency.get_value() * self._pauli_z / 2
+        hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
+        return hamil
 
     def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
-        """Get the matrix representations of value and gradient of the drive as a tuple.
+        """Get the one-time gradient of the Hamiltonain.
+
+        Returns the gradient of the matrix representation of the
+        Hamiltonian with respect to each parameter as a list.
 
         Parameters
         ----------
-        times: Array
-            Array of timestamps of interest.
+        t: float
+            Time.
 
         Returns
         -------
-        tuple[Array, Array]
-            Returns the value und gradients of the drive.
+        Array
+            Gradient as an array of shape [p, n, n] with 'p' as the number
+            of parameters and 'n' as the  Hilbert space dimension.
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_at_timestep(self._annihilation_op, time)
+        derivatives = self.get_drive_gradients_at_timestep(time)
 
         # Combine with the derivative wrt the frequency
-        if self._is_optimized(self._frequency):
-            hamil = self._drift.reshape((1, 2, 2))
+        if self._is_optimized(self.frequency):
+            hamil = (self._pauli_z / 2).reshape((1, 2, 2))
             derivatives = jnp.append(derivatives, hamil, axis=0)
         return derivatives
 
