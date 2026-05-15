@@ -124,24 +124,10 @@ class IQMixer(Generator):
         .. math::
             signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
 
-        Derivative of the signal wrt optimizable parameter of envelope would be
+        The derivative of the signal with respect to a real parameter p is
 
         .. math::
-            0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
-
-        (TODO - Check the envelope derivatives)
-
-        And derivative of signal wrt parameter of LO would be
-
-        .. math::
-            0.5 i t \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
-
-        And derivative of signal wrt phase would be
-
-        .. math::
-            -0.5 i \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
-
-        The 0.5 are due to the Wirtinger derivatives due to Re part.
+            \\frac{\\partial}{\\partial p} \\Re(z) = \\Re\\left(\\frac{\\partial z}{\\partial p}\\right)
 
         Parameters
         ----------
@@ -160,27 +146,30 @@ class IQMixer(Generator):
         gradients = jnp.zeros(shape=(times.shape[0], 0))
 
         # Collect gradients for envelopes
+        # d(Re(sig))/dp = Re(d(env.conj())/dp * lo_out * phase_fac)
         for dev in self._envs:
             _, grad = dev.get_value_and_gradient(times)
             grad = grad.conj()
             if grad.size != 0:
                 grad *= jnp.expand_dims(lo_out * phase_fac, axis=1)
-            gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=1)
+            gradients = jnp.append(gradients, jnp.real(grad), axis=1)
 
         # Collect LO gradients
+        # d(Re(sig))/d(lo) = Re(1j * t * sig)
         lo_freq = self._lo.get_parameters()[0]
         if self._is_optimized(lo_freq):
             gradients = jnp.append(
                 gradients,
-                jnp.expand_dims(0.5j * times * sig, 1),
+                jnp.expand_dims(jnp.real(1j * times * sig), 1),
                 axis=1,
             )
 
         # Collect gradient of Phase
+        # d(Re(sig))/d(phase) = Re(-1j * sig)
         if self._is_optimized(self._phase):
             gradients = jnp.append(
                 gradients,
-                jnp.expand_dims(-0.5j * sig, 1),
+                jnp.expand_dims(jnp.real(-1j * sig), 1),
                 axis=1,
             )
         return jnp.real(sig), gradients
@@ -193,24 +182,10 @@ class IQMixer(Generator):
         .. math::
             signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
 
-        Derivative of the signal wrt optimizable parameter of envelope would be
+        The derivative of the signal with respect to a real parameter p is
 
         .. math::
-            0.5 * \\Re(\\partial \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
-
-        (TODO - Check the envelope derivatives)
-
-        And derivative of signal wrt parameter of LO would be
-
-        .. math::
-            0.5 i t \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
-
-        And derivative of signal wrt phase would be
-
-        .. math::
-            -0.5 i \\epsilon(t)^* \\exp(i \\omega t)  \\exp(-i \\phi))
-
-        The 0.5 are due to the Wirtinger derivatives due to Re part.
+            \\frac{\\partial}{\\partial p} \\Re(z) = \\Re\\left(\\frac{\\partial z}{\\partial p}\\right)
 
         Parameters
         ----------
@@ -234,18 +209,20 @@ class IQMixer(Generator):
             grad = jnp.squeeze(grad.conj(), axis=0)
             if grad.size != 0:
                 grad *= lo_out * phase_fac
-            gradients = jnp.append(gradients, 0.5 * jnp.real(grad), axis=0)
+            gradients = jnp.append(gradients, jnp.real(grad), axis=0)
 
         # Collect LO gradients
+        # d(Re(sig))/d(lo) = Re(1j * t * sig)
         lo_freq = self._lo.get_parameters()[0]
         if self._is_optimized(lo_freq):
-            gradients = jnp.append(gradients, 0.5j * time * sig, axis=0)
+            gradients = jnp.append(gradients, jnp.real(1j * time * sig), axis=0)
 
         # Collect gradient of Phase
+        # d(Re(sig))/d(phase) = Re(-1j * sig)
         if self._is_optimized(self._phase):
             gradients = jnp.append(
                 gradients,
-                -0.5j * sig,
+                jnp.real(-1j * sig),
                 axis=0,
             )
         return gradients

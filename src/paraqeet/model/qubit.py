@@ -9,13 +9,12 @@ from paraqeet.quantity import Array, Quantity
 
 
 class Qubit(OpenSystem):
-    """Hamiltonian of a single qubit frequency/2 * pauli_z.
+    """Hamiltonian of a single qubit -frequency / 2 * pauli_z.
 
-    The implementation uses the convention of having the excited state
-    of the qubit as the first entry in the state. If you need a two-level
+    The implementation uses the quantum information convention of having |0> = [1 0]^T
     system that is compatible with the projection of a higher-dimensional
-    system (ground state as first entry), use a resonator and restrict its
-    dimension to 2.
+    as ground state and |1> = [0 1]^T as excited state. Hence, the Hamiltonian
+    should be taken with a minus sign.
 
     Parameters
     ----------
@@ -42,10 +41,10 @@ class Qubit(OpenSystem):
     ):
         super().__init__(drives)
         self.frequency = frequency
-        self._annihilation_op = jnp.array(
+        self._sigma_minus = jnp.array(
             [
+                [0.0, 1.0],
                 [0.0, 0.0],
-                [1.0, 0.0],
             ]
         )
         self._pauli_z = jnp.diag(jnp.array([1.0, -1.0]))
@@ -65,9 +64,14 @@ class Qubit(OpenSystem):
         return 2
 
     @property
-    def annihilation_op(self) -> Array:
-        """Return the annihilation operator"""
-        return self._annihilation_op
+    def sigma_minus(self) -> Array:
+        """Return the sigma minus operator"""
+        return self._sigma_minus
+
+    @property
+    def sigma_plus(self) -> Array:
+        """Return the sigme plus operator"""
+        return self._sigma_minus.T
 
     @property
     def pauli_z(self) -> Array:
@@ -100,11 +104,11 @@ class Qubit(OpenSystem):
             dimension.
 
         """
-        hamil_0 = self.frequency.get_value() * self._pauli_z / 2
+        hamil_0 = -self.frequency.get_value() * self._pauli_z / 2
         hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
         return hamil
 
-    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
+    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
         """Get the one-time gradient of the Hamiltonain.
 
         Returns the gradient of the matrix representation of the
@@ -123,11 +127,11 @@ class Qubit(OpenSystem):
 
         """
         # Fetch the gradient of the drive
-        derivatives = self.get_drive_gradients_at_timestep(time)
+        derivatives = self.get_drive_gradients_at_timestep(t)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.frequency):
-            hamil = (self._pauli_z / 2).reshape((1, 2, 2))
+            hamil = (-self._pauli_z / 2).reshape((1, 2, 2))
             derivatives = jnp.append(derivatives, hamil, axis=0)
         return derivatives
 
@@ -149,7 +153,7 @@ class Qubit(OpenSystem):
     def get_jump_operators(self) -> list[Array]:
         """Return a list of jump operators for the qubit."""
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-        col_t1 = jnp.sqrt(gamma_t1) * self._annihilation_op
-        col_temp = jnp.sqrt(gamma_temp) * self._annihilation_op.T
-        col_t2star = jnp.sqrt(gamma_t2star) * 2 * jnp.matmul(self._annihilation_op.T, self._annihilation_op)
+        col_t1 = jnp.sqrt(gamma_t1) * self._sigma_minus
+        col_temp = jnp.sqrt(gamma_temp) * self._sigma_minus.T
+        col_t2star = jnp.sqrt(gamma_t2star) * 2 * jnp.matmul(self._sigma_minus.T, self._sigma_minus)
         return [col_t1, col_temp, col_t2star]
