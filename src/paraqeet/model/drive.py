@@ -2,6 +2,7 @@
 
 from abc import abstractmethod
 
+import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.optimizable import Optimizable
@@ -116,7 +117,7 @@ class Drive(Optimizable):
         return gradient_value
 
 
-class DriveOperator(Drive):
+class DriveGenerator(Drive):
     """Create a generator drive model.
 
     Drive with a time-dependent scalar coefficient that is generated
@@ -131,9 +132,6 @@ class DriveOperator(Drive):
         Signal generator stack.
 
     """
-
-    drive_op: Array
-    generator: Generator
 
     def __init__(self, drive_op: Array, generator: Generator):
         super().__init__(drive_op)
@@ -193,3 +191,76 @@ class DriveOperator(Drive):
         matrix = self.drive_op
         matrix = matrix.reshape((1,) + matrix.shape).repeat(signal_grad.shape[0], axis=0)
         return signal_grad * matrix
+
+
+class HermitianDriveGenerator(Drive):
+    """Drive Hamiltonian made Hermitian.
+
+    Drive made Hermitian with a time-dependent scalar coefficient that is generated
+    by a Generator object. It is useful when working in rotating frames for instance.
+
+    Parameters
+    ----------
+    drive_op: Array
+        The drive operator. It needs to match the dimension of the system
+        it is associated with.
+    generator : Generator
+        Signal generator stack.
+
+    """
+
+    def __init__(self, drive_op: Array, generator: Generator):
+        super().__init__(drive_op)
+        self.generator = generator
+
+    def get_parameters(self) -> list[Quantity]:
+        """Get a list of parameters of the system.
+
+        Returns
+        -------
+        list[Quantity]
+            List of optimizable parameters of the system.
+
+        """
+        return self.generator.get_parameters()
+
+    def get_value_at_timestep(self, t: float) -> Array:
+        """Get the one-time matrix of the system made Hermitian
+
+        Fetches the coefficient from the drive and transforms it
+        into the correct shape for the Hamiltonian and sums the Hermitian conjugate.
+
+        Parameters
+        ----------
+        t: float
+            Time.
+
+        Returns
+        -------
+        Array
+            Returns the shape-shifted coefficient from the drive.
+
+        """
+        signal = self.generator.get_value(jnp.array([t]))
+        return signal * self.drive_op + jnp.conjugate(signal) * self.drive_op.conj().T
+
+    def get_gradient_at_timestep(self, t: float) -> Array:
+        """Get the one-time gradient of the system.
+
+        Fetches the gradient from the drive and transforms it into the
+        correct shape for the Hamiltonian.
+
+        Parameters
+        ----------
+        t: float
+            Time.
+
+        Returns
+        -------
+        Array
+            Returns the shape-shifted gradient from the drive.
+
+        """
+        _, signal_grad = self.generator.get_value_and_gradient(jnp.array([t]))
+        signal_grad = signal_grad.reshape((-1, 1, 1))
+        return signal_grad * self.drive_op + jnp.conjugate(signal_grad) * self.drive_op.conj().T
