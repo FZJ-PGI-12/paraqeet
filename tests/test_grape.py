@@ -7,9 +7,9 @@ from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
 from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
+from paraqeet.model.drive import HermitianDriveGenerator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
-from paraqeet.model.rotating_frame import RotatingFrameDrive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -69,8 +69,9 @@ def model(pwc_gen, mode):
         init = np.matmul(init, init.T)
         init = convert_dm_to_vec(init)
 
-    drive = RotatingFrameDrive(pwc_gen)
-    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
+    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
+    drive = HermitianDriveGenerator(controlled_qubit.sigma_minus, pwc_gen)
+    controlled_qubit.drives = [drive]
     if mode == "OpenSystem":
         model = MasterEquation(
             hamiltonian_func=controlled_qubit.get_hamiltonian,

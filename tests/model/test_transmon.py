@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import DriveOperator
+from paraqeet.model.drive import DriveGenerator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.propagation.scipy_expm import ScipyExpm
@@ -51,15 +51,18 @@ def gen(tone):
 def hamiltonian(gen):
     """Return a transmon object."""
 
-    def _method(dimension):
-        drive = DriveOperator(gen, is_longitudinal=False)
-        drive.set_optimizable_parameters(drive.get_parameters())
-        return Transmon(
-            dimension=dimension,
+    def _method(num_levels):
+        transmon = Transmon(
+            num_levels=num_levels,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
             anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
-            drives=[drive],
+            drives=[],
         )
+        drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
+        drive = DriveGenerator(drive_op, gen)
+        drive.set_optimizable_parameters(drive.get_parameters())
+        transmon.drives = [drive]
+        return transmon
 
     return _method
 
@@ -69,13 +72,16 @@ def open_transmon():
     """Return an open model for the transmon."""
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
-    drive = DriveOperator(generator, is_longitudinal=False)
     transmon = Transmon(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
         anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
-        drives=[drive],
-        dimension=DIMS,
+        drives=[],
+        num_levels=DIMS,
     )
+    drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
+    drive = DriveGenerator(drive_op, generator)
+    transmon.drives = [drive]
+
     transmon.t1 = T1
     transmon.temp = TEMP
     transmon.t2star = T2STAR
@@ -141,21 +147,19 @@ def test_gradient(gen, hamiltonian, time_samples):
 
 
 def test_get_drive_matrix(hamiltonian, time_samples):
-    """Test the getDriveMatrix method of the Hamiltonian."""
+    """Test the get_drive_matrix method of the Hamiltonian."""
     dim = np.random.randint(2, 10)
-    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
     hamil = hamiltonian(dim)
-    drive_matrix = hamil._get_drive_matrix(annihilation_op, time_samples)
+    drive_matrix = hamil.get_drive_matrix(time_samples)
     assert drive_matrix.shape == time_samples.shape + (dim, dim)
 
 
 def test_get_drive_gradients(gen, hamiltonian, time_samples):
     """Test the drive gradients of the Hamiltonian."""
     dim = np.random.randint(2, 10)
-    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
     hamil = hamiltonian(dim)
     _, grads = gen.get_value_and_gradient(time_samples)
-    drive_gradients = hamil._get_drive_gradients(annihilation_op, time_samples)
+    drive_gradients = hamil.get_drive_gradients(time_samples)
     assert drive_gradients.shape == (grads.shape[0], grads.shape[1], dim, dim)
 
 

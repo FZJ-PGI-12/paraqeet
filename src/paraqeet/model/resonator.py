@@ -18,27 +18,25 @@ class Resonator(OpenSystem):
 
     Parameters
     ----------
-    dimension : int
-        Dimension of the harmonic oscillator.
+    _num_fock : int
+        Number of Fock states included in the numerical representation of
+        the operators.
     frequency : Quantity
         Frequency of the harmonic oscillator.
     drives : list[Drive], optional
         List of time-dependent drives of the subsystem.
-
+    t1: Quantity | None
+        Energy relaxation time.
+    temp: Quantity | None
+        Temperature of the qubit.
+    t2star: Quantity | None
+        Dephasing time.
     """
-
-    _dimension: int
-    _frequency: Quantity
-    _annihilation_op: Array
-    _num_op: Array
-    _t1: Quantity | None
-    _temp: Quantity | None
-    _t2star: Quantity | None
 
     # TODO: we should think about the composition here instead of inheritance from DifferentiableHamiltonian.
     def __init__(
         self,
-        dimension: int,
+        num_fock: int,
         frequency: Quantity,
         drives: list[Drive] | None = None,
         t1: Quantity | None = None,
@@ -46,57 +44,34 @@ class Resonator(OpenSystem):
         t2star: Quantity | None = None,
     ):
         super().__init__(drives=drives)
-        self._dimension = dimension
-        self._frequency = frequency
-        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, dimension, dtype=jnp.float64), k=1))
+        self._num_fock = num_fock
+        self.frequency = frequency
+        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, num_fock, dtype=jnp.float64), k=1))
         self._num_op = self._annihilation_op.T @ self._annihilation_op
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
 
-    def dimension(self):
-        """Get the dimension of the resonator."""
-        return self._dimension
+    def dimension(self) -> int:
+        """Return the dimension of the Hilbert space of the system.
+
+        Returns
+        -------
+        int
+            Hilbert space dimension.
+
+        """
+        return self._num_fock
 
     @property
-    def frequency(self) -> Quantity:
-        """Get the frequency of the resonator."""
-        return self._frequency
-
-    @frequency.setter
-    def frequency(self, frequency: Quantity) -> None:
-        """Set the frequency of the resonator."""
-        self._frequency = frequency
+    def annihilation_op(self) -> Array:
+        """Return the annihilation operator"""
+        return self._annihilation_op
 
     @property
-    def t1(self) -> Quantity | None:
-        """Get the t1 of the resonator."""
-        return self._t1
-
-    @t1.setter
-    def t1(self, t1: Quantity | None) -> None:
-        """Set the t1 of the resonator."""
-        self._t1 = t1
-
-    @property
-    def temp(self) -> Quantity | None:
-        """Get the temp of the resonator."""
-        return self._temp
-
-    @temp.setter
-    def temp(self, temp: Quantity | None) -> None:
-        """Set the temp of the resonator."""
-        self._temp = temp
-
-    @property
-    def t2star(self) -> Quantity | None:
-        """Get the t2star of the resonator."""
-        return self._t2star
-
-    @t2star.setter
-    def t2star(self, t2star: Quantity | None) -> None:
-        """Set the t2star of the resonator."""
-        self._t2star = t2star
+    def num_op(self) -> Array:
+        """Return the Fock number operator"""
+        return self._num_op
 
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
@@ -107,44 +82,50 @@ class Resonator(OpenSystem):
             Returns the list of parameters of the system.
 
         """
-        return self._get_drive_parameters() + [self._frequency]
+        return self.get_drive_parameters() + [self.frequency]
 
-    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
-        """Get the drive matrix.
+    def get_hamiltonian_at_timestep(self, t: float) -> Array:
+        """Return the matrix representation of the Hamiltonian.
 
         Parameters
         ----------
-        timestep : float
-            One time stamp.
+        t: float
+            Time.
 
         Returns
         -------
         Array
-            The drive matrix at a single timestamp.
+            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
+            dimension.
 
         """
-        H = self._frequency.get_value() * self._num_op
-        return H + self._get_drive_matrix_at_timestep(self._annihilation_op, timestep)
+        hamil_0 = self.frequency.get_value() * self._num_op
+        hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
+        return hamil
 
-    def get_hamiltonian_gradient_at_timestep(self, time: float) -> Array:
-        """Get the gradient of the drive.
+    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
+        """Get the one-time gradient of the Hamiltonain.
+
+        Returns the gradient of the matrix representation of the
+        Hamiltonian with respect to each parameter as a list.
 
         Parameters
         ----------
-        times : float
-            One time stamp.
+        t: float
+            Time.
 
         Returns
         -------
         Array
-            Returns the gradients of the drive.
+            Gradient as an array of shape [p, n, n] with 'p' as the number
+            of parameters and 'n' as the  Hilbert space dimension.
 
         """
         # Fetch the gradient of the drive
-        derivatives = self._get_drive_gradients_at_timestep(self._annihilation_op, time)
+        derivatives = self.get_drive_gradients_at_timestep(t)
 
         # Combine with the derivative wrt the frequency
-        if self._is_optimized(self._frequency):
+        if self._is_optimized(self.frequency):
             grad = self._num_op.reshape((1,) + self._num_op.shape)
             derivatives = jnp.append(derivatives, grad, axis=0)
         return derivatives
@@ -164,7 +145,7 @@ class Resonator(OpenSystem):
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
-    def get_jump_operators(self) -> list[tuple[Array, Array]]:
+    def get_jump_operators(self) -> list[Array]:
         """
         Return a list of jump operators for the resonator.
 

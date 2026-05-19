@@ -6,7 +6,7 @@ import pytest
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.composite_system import CompositeSystem
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive import DriveOperator
+from paraqeet.model.drive import DriveGenerator
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.optimization_map import OptimizationMap
@@ -77,7 +77,6 @@ def coupled_transmons(tone):
             unit="rad",
         ),
     )
-    drive1 = DriveOperator(generator1, is_longitudinal=False)
 
     generator2 = IQMixer(
         envelopes=[tone2],
@@ -97,17 +96,27 @@ def coupled_transmons(tone):
     drive2 = DriveOperator(generator2, is_longitudinal=False)
 
     transmon1 = Transmon(
-        dimension=3,
+        num_levels=3,
         frequency=Quantity(FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"),
         anharmonicity=Quantity(ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"),
-        drives=[drive1],
+        drives=[],
     )
+
+    drive_op1 = transmon1.annihilation_op + (transmon1.annihilation_op).conj().T
+    drive1 = DriveGenerator(drive_op1, generator1)
+    transmon1.drives = [drive1]
+
     transmon2 = Transmon(
-        dimension=3,
+        num_levels=3,
         frequency=Quantity(FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"),
         anharmonicity=Quantity(ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"),
-        drives=[drive2],
+        drives=[],
     )
+
+    drive_op2 = transmon2.annihilation_op + (transmon2.annihilation_op).conj().T
+    drive2 = DriveGenerator(drive_op2, generator2)
+    transmon2.drives = [drive2]
+
     coupling = TwoBodyCoupling(
         transmon1,
         transmon2,

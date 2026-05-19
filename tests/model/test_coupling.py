@@ -28,10 +28,10 @@ def transmon(transmon_parameters):
     """Return a transmon created from the given parameters."""
 
     class CreateTransmon:
-        def get(self, dimension):
+        def get(self, num_levels):
             freq, anharm = transmon_parameters.get()
             transmon = Transmon(
-                dimension=dimension,
+                num_levels=num_levels,
                 frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
                 anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
             )

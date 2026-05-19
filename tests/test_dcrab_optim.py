@@ -6,7 +6,8 @@ import pytest
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.measurement.utils import overlap_state_vector
-from paraqeet.model.rotating_frame import RotatingFrameDrive
+from paraqeet.model.drive import HermitianDriveGenerator
+from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
@@ -16,7 +17,6 @@ from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
 from paraqeet.signal.waveform import FlatTopGaussianFilter
-from tests.model.spin_rwa import SpinRWA
 
 T_FINAL = 20e-9
 TLIST = np.linspace(0, T_FINAL, 40)
@@ -47,9 +47,13 @@ def gen(tone):
 
 @pytest.fixture
 def model(gen):
-    drive = RotatingFrameDrive(gen)
-    spin = SpinRWA(drives=[drive])
-    model = SchroedingerEquation(spin.get_hamiltonian, spin.get_hamiltonian_and_gradient)
+    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = HermitianDriveGenerator(controlled_qubit.sigma_minus, gen)
+    controlled_qubit.drives = [drive]
+    model = SchroedingerEquation(
+        hamiltonian_func=controlled_qubit.get_hamiltonian,
+        hamiltonian_and_gradient_func=controlled_qubit.get_hamiltonian_and_gradient,
+    )
     return model
 
 
