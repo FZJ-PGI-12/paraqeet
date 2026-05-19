@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import DriveOperator
+from paraqeet.model.drive import DriveGenerator
 from paraqeet.model.qubit import Qubit
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -41,7 +41,8 @@ def gen(tone):
 @pytest.fixture
 def ham(gen):
     """Return a qubit."""
-    drive = DriveOperator(gen, is_longitudinal=False)
+    pauli_x = np.array([[0.0, 1.0], [0.0, 1.0]])
+    drive = DriveGenerator(pauli_x, gen)
     return Qubit(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 
 

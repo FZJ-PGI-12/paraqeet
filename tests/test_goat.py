@@ -6,7 +6,7 @@ import pytest
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
-from paraqeet.model.drive import DriveOperator
+from paraqeet.model.drive import DriveGenerator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
@@ -62,8 +62,10 @@ def prop(gen, mode):
         init = np.matmul(init, init.T)
         init = convert_dm_to_vec(init)
 
-    drive = DriveOperator(gen, is_longitudinal=False)
-    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
+    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    drive = DriveGenerator(pauli_x, gen)
+    controlled_qubit.drives = [drive]
     if mode == "OpenSystem":
         model = MasterEquation(
             hamiltonian_func=controlled_qubit.get_hamiltonian,
@@ -84,7 +86,7 @@ def prop(gen, mode):
 def states(prop, mode):
     """Compare the overlap of the initial and final state."""
     init = np.array([[1.0], [0.0]])
-    target = np.array([[0.0], [1]])
+    target = np.array([[0.0], [1.0]])
     overlap_func = overlap_state_vector
 
     if mode == "OpenSystem":
@@ -109,7 +111,7 @@ def gates(prop, mode):
     """Compare the propagator with a gate via the L2 norm."""
     if mode == "OpenSystem":
         pytest.skip("Gate optimization is only implemented for closed system.")
-    pauli_x = np.array([[0.0, 1], [1, 0.0]])
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
     prop.initial_state = np.identity(2)
     return UnitaryFidelity(
         propagation_func=prop.propagate,

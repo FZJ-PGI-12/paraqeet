@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.model.composite_system import CompositeSystem
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive import DriveOperator
+from paraqeet.model.drive import DriveGenerator
 from paraqeet.model.transmon import Transmon
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -40,13 +40,6 @@ def gen(tone):
 
 
 @pytest.fixture
-def drive(gen):
-    """Return a generator drive object."""
-    drive = DriveOperator(gen, is_longitudinal=False)
-    return drive
-
-
-@pytest.fixture
 def transmon_parameters():
     """Return a random parameter generating function for transmons."""
 
@@ -60,17 +53,20 @@ def transmon_parameters():
 
 
 @pytest.fixture
-def transmon(transmon_parameters, drive):
+def transmon(transmon_parameters, gen):
     """Return a transmon generating function."""
 
-    def get(dimension):
+    def get(num_levels):
         freq, anharm = transmon_parameters.get()
         transmon = Transmon(
-            dimension=dimension,
+            num_levels=num_levels,
             frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
             anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
-            drives=[drive],
+            drives=[],
         )
+        drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
+        drive = DriveGenerator(drive_op, gen)
+        transmon.drives = [drive]
         return transmon
 
     return get
@@ -78,13 +74,13 @@ def transmon(transmon_parameters, drive):
 
 @pytest.fixture
 def uncoupled_transmons(transmon):
-    """Return a composite Hamiltonian generating function."""
+    """Return a CompositeSystem generating function."""
 
     def _method(dim1, dim2):
         transmon1 = transmon(dim1)
         transmon2 = transmon(dim2)
-        compositeHams = CompositeSystem([transmon1, transmon2])
-        return compositeHams
+        composite_sys = CompositeSystem([transmon1, transmon2])
+        return composite_sys
 
     return _method
 
@@ -97,17 +93,17 @@ def coupled_transmons(transmon):
         transmon1 = transmon(dim1)
         transmon2 = transmon(dim2)
 
-        couplingStr = np.abs(transmon1.frequency.get_value() - transmon2.frequency.get_value()) * 0.05
+        coupling_str = np.abs(transmon1.frequency.get_value() - transmon2.frequency.get_value()) * 0.05
         coupling = TwoBodyCoupling(
             transmon1,
             transmon2,
             is_longitudinal=False,
-            coefficient=Quantity(couplingStr, 0.8 * couplingStr, 1.2 * couplingStr, "Hz"),
+            coefficient=Quantity(coupling_str, 0.8 * coupling_str, 1.2 * coupling_str, "Hz"),
             use_rwa=use_rwa,
         )
 
-        compositeHams = CompositeSystem([transmon1, transmon2], [coupling])
-        return compositeHams
+        composite_sys = CompositeSystem([transmon1, transmon2], [coupling])
+        return composite_sys
 
     return _method
 
@@ -143,7 +139,7 @@ def coupled_transmons_chain(transmon, random_quantity):
 
 
 def test_dimension(coupled_transmons):
-    """Test dimension of matrix produced by compositeHamiltonian."""
+    """Test dimension of matrix produced by CompositeSystem."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -152,7 +148,7 @@ def test_dimension(coupled_transmons):
 
 
 def test_hamiltonian_at_timestep(uncoupled_transmons):
-    """Test shape of matrix produced by compositeHamiltonian at each timestep."""
+    """Test shape of matrix produced by CompositeSystem at each timestep."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -162,7 +158,7 @@ def test_hamiltonian_at_timestep(uncoupled_transmons):
 
 
 def test_hamiltonian_at_timestep_rwa(coupled_transmons):
-    """Test shape of matrix produced by compositeHamiltonian at each timestep under RWA."""
+    """Test shape of matrix produced by CompositeSystem at each timestep under RWA."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -172,7 +168,7 @@ def test_hamiltonian_at_timestep_rwa(coupled_transmons):
 
 
 def test_get_hamiltonian(coupled_transmons, time_samples):
-    """Test shape of matrix produced by compositeHamiltonian for an array of timesteps."""
+    """Test shape of matrix produced by CompositeSystem for an array of timesteps."""
     for _ in np.arange(1, 10):
         dim1 = np.random.randint(2, 6)
         dim2 = np.random.randint(2, 7)
@@ -182,7 +178,7 @@ def test_get_hamiltonian(coupled_transmons, time_samples):
 
 
 def test_gradient(gen, coupled_transmons, time_samples):
-    """Test shape of gradients by compositeHamiltonian.
+    """Test shape of gradients by CompositeSystem.
 
     Number of gradient parameters include gradients from both the drives, and
     both the transmon frequency, anharmonicity and the coupling.

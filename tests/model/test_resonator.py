@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.model.drive import DriveOperator
+from paraqeet.model.drive import DriveGenerator
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.resonator import Resonator
 from paraqeet.propagation.scipy_expm import ScipyExpm
@@ -49,13 +49,16 @@ def gen(tone):
 def hamiltonian(gen):
     """Return a resonator object."""
 
-    def _method(dimension):
-        drive = DriveOperator(gen, is_longitudinal=False)
-        return Resonator(
-            dimension=dimension,
+    def _method(num_fock):
+        res = Resonator(
+            num_fock=num_fock,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-            drives=[drive],
+            drives=[],
         )
+        drive_op = res.annihilation_op + (res.annihilation_op).conj().T
+        drive = DriveGenerator(drive_op, gen)
+        res.drives = [drive]
+        return res
 
     return _method
 
@@ -65,19 +68,22 @@ def open_resonator():
     """Return an open model for the resonator."""
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
-    drive = DriveOperator(generator, is_longitudinal=False)
-    resonator = Resonator(
+    res = Resonator(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-        drives=[drive],
-        dimension=DIMS,
+        drives=[],
+        num_fock=DIMS,
     )
-    resonator.t1 = T1
-    resonator.temp = TEMP
-    resonator.t2star = T2STAR
+    drive_op = res.annihilation_op + (res.annihilation_op).conj().T
+    drive = DriveGenerator(drive_op, generator)
+    res.drives = [drive]
+
+    res.t1 = T1
+    res.temp = TEMP
+    res.t2star = T2STAR
     model = MasterEquation(
-        hamiltonian_func=resonator.get_hamiltonian,
-        hamiltonian_and_gradient_func=resonator.get_hamiltonian_and_gradient,
-        jump_operators=resonator.get_jump_operators(),
+        hamiltonian_func=res.get_hamiltonian,
+        hamiltonian_and_gradient_func=res.get_hamiltonian_and_gradient,
+        jump_operators=res.get_jump_operators(),
     )
 
     return model

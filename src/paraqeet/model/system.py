@@ -160,7 +160,7 @@ class System(Optimizable):
 
         """
         # ignoring mypy due to vmap
-        return vmap(self.get_drive_matrix_at_timestep, in_axes=(None, 0))(times)  # type: ignore
+        return vmap(self.get_drive_matrix_at_timestep)(times)  # type: ignore
 
     def get_drive_matrix_at_timestep(self, t: float) -> Array:
         """Return the sum of all drives in matrix form.

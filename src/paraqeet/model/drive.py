@@ -27,8 +27,6 @@ class Drive(Optimizable):
 
     """
 
-    drive_op: Array
-
     def __init__(self, drive_op: Array) -> None:
         self.drive_op = drive_op
 
@@ -68,7 +66,7 @@ class Drive(Optimizable):
 
         """
         # vmap iterates over the times array and returns float. Not caught by mypy.
-        drive_value = vmap(self.get_value_at_timestep, in_axes=(None, 0))(self.drive_op, times)  # type: ignore
+        drive_value = vmap(self.get_value_at_timestep)(times)  # type: ignore
         return drive_value
 
     @abstractmethod
@@ -112,7 +110,7 @@ class Drive(Optimizable):
 
         """
         # Ignoring mypy here as vmap makes the array to float
-        gradient_value = vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(times)  #  type: ignore
+        gradient_value = vmap(self.get_gradient_at_timestep)(times)  #  type: ignore
 
         return gradient_value
 

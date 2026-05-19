@@ -8,11 +8,11 @@ from paraqeet.quantity import Quantity
 
 @pytest.fixture
 def hamiltonian():
-    def _method(dimension):
+    def _method(num_fock):
         FREQ = 4.8e9 * 2 * np.pi
         return Resonator(
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-            dimension=dimension,
+            num_fock=num_fock,
         )
 
     return _method
