@@ -6,7 +6,7 @@ import pytest
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.composite_system import CompositeSystem
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.optimization_map import OptimizationMap
@@ -93,7 +93,6 @@ def coupled_transmons(tone):
             unit="rad",
         ),
     )
-    drive2 = DriveOperator(generator2, is_longitudinal=False)
 
     transmon1 = Transmon(
         num_levels=3,
@@ -103,7 +102,7 @@ def coupled_transmons(tone):
     )
 
     drive_op1 = transmon1.annihilation_op + (transmon1.annihilation_op).conj().T
-    drive1 = DriveGenerator(drive_op1, generator1)
+    drive1 = Drive(drive_op1, generator1)
     transmon1.drives = [drive1]
 
     transmon2 = Transmon(
@@ -114,7 +113,7 @@ def coupled_transmons(tone):
     )
 
     drive_op2 = transmon2.annihilation_op + (transmon2.annihilation_op).conj().T
-    drive2 = DriveGenerator(drive_op2, generator2)
+    drive2 = Drive(drive_op2, generator2)
     transmon2.drives = [drive2]
 
     coupling = TwoBodyCoupling(

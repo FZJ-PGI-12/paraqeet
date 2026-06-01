@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.resonator import Resonator
 from paraqeet.propagation.scipy_expm import ScipyExpm
@@ -56,7 +56,7 @@ def hamiltonian(gen):
             drives=[],
         )
         drive_op = res.annihilation_op + (res.annihilation_op).conj().T
-        drive = DriveGenerator(drive_op, gen)
+        drive = Drive(drive_op, gen)
         res.drives = [drive]
         return res
 
@@ -74,7 +74,7 @@ def open_resonator():
         num_fock=DIMS,
     )
     drive_op = res.annihilation_op + (res.annihilation_op).conj().T
-    drive = DriveGenerator(drive_op, generator)
+    drive = Drive(drive_op, generator)
     res.drives = [drive]
 
     res.t1 = T1

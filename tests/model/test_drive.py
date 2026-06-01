@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
 
@@ -41,7 +41,7 @@ def drive(gen):
     dim = np.random.randint(2, 10)
     annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
     drive_op = annihilation_op + annihilation_op.conj().T
-    drive = DriveGenerator(drive_op, gen)
+    drive = Drive(drive_op, gen)
     return drive
 
 

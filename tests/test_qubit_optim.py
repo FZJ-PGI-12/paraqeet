@@ -6,7 +6,7 @@ import pytest
 from paraqeet.logger import Logger
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.utils import overlap_state_vector
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
@@ -33,7 +33,7 @@ TARGET = np.array([[0.0], [1]])
 
 CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[])
 pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-DRIVE = DriveGenerator(pauli_x, GEN)
+DRIVE = Drive(pauli_x, GEN)
 CONTROLLED_QUBIT.drives = [DRIVE]
 MODEL = SchroedingerEquation(
     hamiltonian_func=CONTROLLED_QUBIT.get_hamiltonian,

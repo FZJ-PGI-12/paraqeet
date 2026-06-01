@@ -6,7 +6,7 @@ import pytest
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
@@ -64,7 +64,7 @@ def prop(gen, mode):
 
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
     pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-    drive = DriveGenerator(pauli_x, gen)
+    drive = Drive(pauli_x, gen)
     controlled_qubit.drives = [drive]
     if mode == "OpenSystem":
         model = MasterEquation(

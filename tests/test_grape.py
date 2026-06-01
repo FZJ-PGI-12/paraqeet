@@ -7,7 +7,7 @@ from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
 from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
-from paraqeet.model.drive import HermitianDriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
@@ -70,7 +70,7 @@ def model(pwc_gen, mode):
         init = convert_dm_to_vec(init)
 
     controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
-    drive = HermitianDriveGenerator(controlled_qubit.sigma_minus, pwc_gen)
+    drive = Drive(controlled_qubit.sigma_minus, pwc_gen, add_hermitian=True)
     controlled_qubit.drives = [drive]
     if mode == "OpenSystem":
         model = MasterEquation(

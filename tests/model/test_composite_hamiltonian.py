@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.model.composite_system import CompositeSystem
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.transmon import Transmon
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -65,7 +65,7 @@ def transmon(transmon_parameters, gen):
             drives=[],
         )
         drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
-        drive = DriveGenerator(drive_op, gen)
+        drive = Drive(drive_op, gen)
         transmon.drives = [drive]
         return transmon
 

@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import DriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.propagation.scipy_expm import ScipyExpm
@@ -59,7 +59,7 @@ def hamiltonian(gen):
             drives=[],
         )
         drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
-        drive = DriveGenerator(drive_op, gen)
+        drive = Drive(drive_op, gen)
         drive.set_optimizable_parameters(drive.get_parameters())
         transmon.drives = [drive]
         return transmon
@@ -79,7 +79,7 @@ def open_transmon():
         num_levels=DIMS,
     )
     drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
-    drive = DriveGenerator(drive_op, generator)
+    drive = Drive(drive_op, generator)
     transmon.drives = [drive]
 
     transmon.t1 = T1

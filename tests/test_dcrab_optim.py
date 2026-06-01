@@ -6,7 +6,7 @@ import pytest
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.measurement.utils import overlap_state_vector
-from paraqeet.model.drive import HermitianDriveGenerator
+from paraqeet.model.drive import Drive
 from paraqeet.model.qubit import Qubit
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
@@ -48,7 +48,7 @@ def gen(tone):
 @pytest.fixture
 def model(gen):
     controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
-    drive = HermitianDriveGenerator(controlled_qubit.sigma_minus, gen)
+    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
     controlled_qubit.drives = [drive]
     model = SchroedingerEquation(
         hamiltonian_func=controlled_qubit.get_hamiltonian,
