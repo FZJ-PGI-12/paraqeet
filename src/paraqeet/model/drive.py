@@ -70,12 +70,8 @@ class Drive(Optimizable, Differentiable):
         # TODO: generator.get_value expects an array, even for one time point.
         # Is the naming of the method correct then?
         signal = self.generator.get_value(t)
-        drive = (
-            signal * self.drive_op
-            + jax.lax.cond(self.add_hermitian, lambda: 1.0, lambda: 0.0)
-            * jnp.conjugate(signal)
-            * self.drive_op.conj().T
-        )
+        drive = signal * self.drive_op
+        drive += jnp.where(self.add_hermitian, jnp.conjugate(signal) * self.drive_op.conj().T, 0.0)
         return drive
 
     def get_value(self, times: Array) -> Array:
@@ -114,13 +110,9 @@ class Drive(Optimizable, Differentiable):
             Returns the shape-shifted gradient from the drive.
 
         """
-        _, signal_grad = self.generator.get_value_and_gradient(jnp.array([t]))
-        signal_grad = signal_grad.reshape((-1, 1, 1))
-        drive_grad = (
-            signal_grad * self.drive_op
-            + jax.lax.cond(self.add_hermitian, lambda: 1.0, lambda: 0.0)
-            + jnp.conjugate(signal_grad) * self.drive_op.conj().T
-        )
+        signal_grad = self.generator.get_gradient_at_timestep(t).reshape((-1, 1, 1))
+        drive_grad = signal_grad * self.drive_op
+        drive_grad += jnp.where(self.add_hermitian, jnp.conjugate(signal_grad) * self.drive_op.conj().T, 0.0)
         return drive_grad
 
     def get_gradient(self, times: Array) -> Array:
