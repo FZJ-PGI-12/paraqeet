@@ -6,19 +6,20 @@ Uses the GOAT optimization method.
 
 from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax.numpy as jnp
 from jax import jit
 from jax.lax import scan
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.utils import construct_times
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
-class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
+class ScipyExpmGOAT(ScipyExpm, Differentiable):
     """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
 
     _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
@@ -31,7 +32,6 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
         initial_state: Array,
     ):
         ScipyExpm.__init__(self, eom_func, resolution, initial_state)
-        DifferentiablePropagation.__init__(self, eom_func, resolution)
         self._eom_and_gradient_func = eom_and_grad_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
@@ -96,6 +96,16 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
 
+    @override
+    def get_value(self, times: Array) -> Array | Float:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
+
+    @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 

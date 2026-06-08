@@ -176,7 +176,7 @@ class Vern7(StatePropagation):
         state_t, _ = scan(propagate_body, state_t, steps_arr)
         return state_t
 
-    def propagate(self, time: Array) -> Array:
+    def propagate(self, times: Array) -> Array:
         """Return the solution of the equation of motion for open/closed system using vern7 ODE solver.
 
         Loop over all desired times in time at set resolution.
@@ -197,15 +197,15 @@ class Vern7(StatePropagation):
             If the initial state is not set.
 
         """
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("Vern7.propagate needs at least two time points.")
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
 
         states = [init_state]
-        for ti in range(1, len(time)):
+        for ti in range(1, len(times)):
             state_t = states[ti - 1]
-            times, dt = construct_times(time, ti, self._resolution)
+            times, dt = construct_times(times, ti, self._resolution)
             times_interp = Vern7._interpolate_time(times, dt)
             # TODO: Seperate jump operators from EOM.
             eom = self._eom_func(times_interp + dt / 2)

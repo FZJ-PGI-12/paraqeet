@@ -2,22 +2,23 @@
 
 from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax
 import jax.numpy as jnp
 from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.utils import construct_times
 from paraqeet.propagation.vern7 import Vern7
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7GRAPE(Vern7, DifferentiablePropagation):
+class Vern7GRAPE(Vern7, Differentiable):
     r"""
     Solve EOMs by 7th order ODE method and compute gradients using GRAPE.
 
@@ -62,7 +63,6 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         jump_operators: list[Array] | None = None,
     ):
         Vern7.__init__(self, eom_func, resolution, initial_state, step_function, jump_operators)
-        DifferentiablePropagation.__init__(self, eom_func, resolution)
         self._eom_and_gradient_func = eom_and_gradient_func
         self._reverse_step_function = reverse_step_function
         self._target_state = target_state
@@ -159,6 +159,16 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
         return psis_t, lamdas_t
 
+    @override
+    def get_value(self, times) -> Float | Array:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
+
+    @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 

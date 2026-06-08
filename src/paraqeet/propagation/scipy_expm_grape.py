@@ -8,6 +8,7 @@ Hamiltonian is defined in the rotating frame of drive.
 
 from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax
 import jax.numpy as jnp
@@ -15,15 +16,15 @@ from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm, expm_frechet
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
+class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     """Solve EOMs by piecewise exponentation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
@@ -58,7 +59,6 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         operator_sandwich_function: Callable,
     ):
         ScipyExpm.__init__(self, eom_func, resolution, initial_state)
-        DifferentiablePropagation.__init__(self, eom_func, resolution)
         self._eom_and_gradient_func = eom_and_grad_func
         self.target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
@@ -251,6 +251,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
         return psis_list
 
+    @override
     def propagate(self, time: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
         if len(time) < 2:
@@ -272,7 +273,17 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         return jnp.array(psis)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
+    @override
+    def get_value(self, times: Array) -> Float | Array:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
+
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and

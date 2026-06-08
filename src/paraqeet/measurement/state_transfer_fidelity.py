@@ -8,7 +8,6 @@ import jax.numpy as jnp
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.measurement.utils import vjp_jacobian
-from paraqeet.propagation.propagation import DifferentiablePropagation
 from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
@@ -131,8 +130,6 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     times : Array
         One-dimensional vector of timestamps.
     """
-
-    _propagation: DifferentiablePropagation
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
         """Compute function value and corresponding gradient.

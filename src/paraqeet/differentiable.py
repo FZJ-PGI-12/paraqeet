@@ -13,18 +13,48 @@ from paraqeet.quantity import Array, Float
 class Differentiable(ABC):
     """An abstract class for differentiable models.
 
-    Subclasses must implement the value_and_gradient() method which would
-    return the gradient of the model.
+    Subclasses must implement the get_value, get_gradient and get_value_and_gradient
+    methods. Note that in some cases the gradient gets computed together with the
+    value and thus it is more natural to instantiate a get_gradient method
+    using the result of get_value_and_gradient. This is the reason why all
+    three methods are taken as abstract classes, so that one always thinks
+    about the right implementation.
     """
 
     @abstractmethod
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
-        """Calculate the value and the gradient of the model.
+    def get_value(self, times: Array) -> Float | Array:
+        """Calculate the value of the object at different times.
 
-        Returns
-        -------
-        tuple[Array, Array] | tuple[Float, Array]
-            The value and the gradient of the model.
+        Parameters
+        ----------
+            times: Array of times.
 
+        Returns:
+        ----------
+            The value of the object.
+        """
+        pass
+
+    @abstractmethod
+    def get_gradient(self, times: Array) -> Array:
+        """Calculate the gradient of the object at different times.
+
+        Parameters
+        ----------
+            times: Array of times.
+
+        Returns:
+        ----------
+            The gradient of the object.
+        """
+        pass
+
+    @abstractmethod
+    def get_value_and_gradient(self, times: Array) -> tuple:
+        """Calculate the value and the gradient of the object at different times.
+
+        Returns:
+        ----------
+            The value and the gradient of the object.
         """
         pass

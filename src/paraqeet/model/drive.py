@@ -11,10 +11,6 @@ from paraqeet.quantity import Array, Float, Quantity
 from paraqeet.signal.generator import Generator
 
 
-# TODO: Is Drive a Differentiable object? If so, it should inherit from Differentiable at least
-# for the purpose of clarity and consistency. Would it make sense to add a default
-# implementation of the abstract Differentiable method get_value_and_gradient?
-# If not, we should rename the methods to e.g. get_hamiltonian_gradient to avoid confusion.
 class Drive(Optimizable, Differentiable):
     """Represents a time-dependent drive on a system.
 
@@ -73,6 +69,7 @@ class Drive(Optimizable, Differentiable):
         drive += jnp.where(self.add_hermitian, jnp.conjugate(signal) * self.drive_op.conj().T, 0.0)
         return drive
 
+    @override
     def get_value(self, times: Array) -> Array:
         """Return the matrix representation of the drive.
 
@@ -86,7 +83,6 @@ class Drive(Optimizable, Differentiable):
         Array
             Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
             space dimension.
-
         """
         # vmap iterates over the times array and returns float. Not caught by mypy.
         drive_value = vmap(self.get_value_at_timestep)(times)  # type: ignore
@@ -114,6 +110,7 @@ class Drive(Optimizable, Differentiable):
         drive_grad += jnp.where(self.add_hermitian, jnp.conjugate(signal_grad) * self.drive_op.conj().T, 0.0)
         return drive_grad
 
+    @override
     def get_gradient(self, times: Array) -> Array:
         """Return the gradient of the system.
 
@@ -135,9 +132,8 @@ class Drive(Optimizable, Differentiable):
         """
         # Ignoring mypy here as vmap makes the array to float
         gradient_value = vmap(self.get_gradient_at_timestep)(times)  #  type: ignore
-
         return gradient_value
 
     @override
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple:
         return self.get_value(times), self.get_gradient(times)

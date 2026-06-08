@@ -83,14 +83,14 @@ class ScipyExpm(StatePropagation):
         """
         return expm(eom_matrix) @ psis_t
 
-    def propagate(self, time: Array) -> Array:
+    def propagate(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
         Loop over all desired times in time at set resolution.
 
         Parameters
         ----------
-        time: Array
+        times: Array
             Any one-dimensional vector of timestamps.
 
         Returns
@@ -104,13 +104,13 @@ class ScipyExpm(StatePropagation):
             If the initial state is not set.
 
         """
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("ScipyExpm.propagate needs at least two time points.")
 
         psis = [self._initial_state]
 
-        for ti in range(1, len(time)):
-            times, dt = construct_times(time, ti, self._resolution)
+        for ti in range(1, len(times)):
+            times, dt = construct_times(times, ti, self._resolution)
             psis_t = psis[ti - 1]
             eom = self._eom_func(times + dt / 2) * dt
             psis_t = ScipyExpm._propagate_in_time(psis_t, eom, jnp.arange(0, len(times), 1))
