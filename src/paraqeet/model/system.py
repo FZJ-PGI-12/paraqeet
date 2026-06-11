@@ -1,21 +1,21 @@
 """Class definition for a matrix representation of a Hamiltonian."""
 
 from abc import abstractmethod
+from typing import override
 
 import jax.numpy as jnp
-from jax import vmap
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.model.drive import Drive
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
 
-class System(Optimizable):
+class System(Optimizable, Differentiable):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines
-    and have to take care of frame transformations. Derived classes need to
-    implement the functions get_hamiltonian, get_hamiltonian_and_gradient, dimension, get_value_at_timestep
+    and have to take care of frame transformations.
 
     Parameters
     ----------
@@ -41,90 +41,38 @@ class System(Optimizable):
         """
         pass
 
-    def get_hamiltonian(self, times: Array) -> Array:
-        """Return the matrix representation of the Hamiltonian.
-
-        The default implementation calls get_value_at_timestep for each time step.
-        Subclasses can override this function for a more efficient
-        implementation.
+    @override
+    @abstractmethod
+    def get_value(self, times: Array) -> Array:
+        """Calculate the Hamiltonian at different times.
 
         Parameters
         ----------
         times: Array
-            Array of time samples.
+            Array of times.
 
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [t, n, n]  with 't' as time and 'n' as the
-            Hilbert space dimension.
-
-        """
-        # Ignoring mypy due to vmap
-        return jnp.array(vmap(self.get_hamiltonian_at_timestep)(times))  # type: ignore
-
-    @abstractmethod
-    def get_hamiltonian_at_timestep(self, t: float) -> Array:
-        """Return the matrix representation of the Hamiltonian.
-
-        Parameters
+        Returns:
         ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
-            dimension.
-
+            The value of the Hamiltonian matrix at different times. The dimension should be
+            (n_times, dimension, dimension).
         """
         pass
 
+    @override
     @abstractmethod
-    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
-        """Get the one-time gradient of the Hamiltonain.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
+    def get_gradient(self, times: Array) -> Array:
+        """Calculate the gradient of the Hamiltonian at different times.
 
         Parameters
         ----------
-        t: float
-            Time.
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Gradient as an array of shape [p, n, n] with 'p' as the number
-            of parameters and 'n' as the  Hilbert space dimension.
-
+        Returns:
+        ----------
+            The gradient of the Hamiltonian. The dimension should be
+            (n_times, n_params, dimension, dimension).
         """
         pass
-
-    def get_hamiltonian_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Get the matrix representation and one-time gradient of the Hamiltonain.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
-
-        Parameters
-        ----------
-        times: Array
-            Array of time samples.
-
-        Returns
-        -------
-        tuple[Array, Array]
-            A tuple with Hamiltonian of shape [n, n]  with `n` as the Hilbert
-            space dimension and gradient as and array of shape [p, n, n]
-            with 'p' as the number of parameters and 'n' as the
-            Hilbert space dimension.
-
-        """
-        # ignoring mypy due to vmap
-        hamil_and_grad = (self.get_hamiltonian(times), vmap(self.get_hamiltonian_gradient_at_timestep)(times))  # type: ignore
-        return hamil_and_grad
 
     def get_drive_parameters(self) -> list[Quantity]:
         """Return the combined list of parameters from all drives.
@@ -141,28 +89,6 @@ class System(Optimizable):
         return params
 
     def get_drive_matrix(self, times: Array) -> Array:
-        """Return the sum of all drives in matrix form.
-
-        This function can be used be Hamiltonian implementations for
-        including the drive. The default implementation calls
-        _get_drive_matrix_one_time for each time step. Subclasses can override this
-        function for a more efficient implementation.
-
-        Parameters
-        ----------
-        times: Array
-            Array of time samples.
-
-        Returns
-        -------
-        Array
-            Returns the sum of all drives in matrix form.
-
-        """
-        # ignoring mypy due to vmap
-        return vmap(self.get_drive_matrix_at_timestep)(times)  # type: ignore
-
-    def get_drive_matrix_at_timestep(self, t: float) -> Array:
         """Return the sum of all drives in matrix form.
 
         This function can be used be Hamiltonian implementations
@@ -182,7 +108,7 @@ class System(Optimizable):
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
         for drive in self.drives:
-            mat += drive.get_value_at_timestep(t)
+            mat += drive.get_value(times)
         return mat
 
     def get_drive_gradients(self, times: Array) -> Array:
@@ -207,30 +133,6 @@ class System(Optimizable):
         for drive in self.drives:
             grads = drive.get_gradient(times)
             all_grads = jnp.append(all_grads, grads, axis=1)
-        return all_grads
-
-    def get_drive_gradients_at_timestep(self, t: float) -> Array:
-        """Return the gradients of all drives.
-
-        This function can be used by Hamiltonian implementations
-        for including the drive gradients.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Returns the gradients of all drives.
-
-        """
-        dim = self.dimension()
-        all_grads = jnp.zeros((0, dim, dim))
-        for drive in self.drives:
-            grads = drive.get_gradient_at_timestep(t)
-            all_grads = jnp.append(all_grads, grads, axis=0)
         return all_grads
 
 

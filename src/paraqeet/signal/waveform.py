@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from collections.abc import Callable
 from functools import partial
-from typing import Any
+from typing import Any, override
 
 import jax
 import jax.numpy as jnp
@@ -12,7 +12,7 @@ from jax.scipy.special import erf
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array, Float, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
@@ -20,6 +20,7 @@ jax.config.update("jax_enable_x64", True)
 class Waveform(Optimizable, Differentiable):
     """Classical electronics."""
 
+    # AC: the following annotation does not seem neded / correct.
     _partial_grads_function: Callable | None = None
     _gradient_function: Callable | None = None
     _grad_arg_nums: tuple[int, ...] = ()
@@ -44,6 +45,7 @@ class Waveform(Optimizable, Differentiable):
         partial_grads = vmap(grads, vmap_axes)
         self._gradient_function = jit(partial_grads)
 
+    @override
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set optimizable parameters for optimization.
 
@@ -89,24 +91,16 @@ class Waveform(Optimizable, Differentiable):
         """
         pass
 
-    @abstractmethod
-    def get_value(self, times: Array | float) -> Array:
-        """Compute the output.
+    @override
+    def get_value(self, times) -> Float | Array:
+        params = self.get_parameters()
+        param_values = [param.get_value() for param in params]
+        t_arr = jnp.array(times, ndmin=1)
+        value = jit(self._evaluate)(*param_values, t_arr)
+        return value
 
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps or a single value.
-
-        Returns
-        -------
-        Array
-            Output of the computation.
-
-        """
-        pass
-
-    def get_value_and_gradient(self, times: Array | float) -> tuple[Array, Array]:
+    @override
+    def get_gradient(self, times: Array | float) -> Array:
         """Compute the gradient of the `_evaluate` method.
 
         Uses Automatic differentiation as a fallback.
@@ -132,14 +126,16 @@ class Waveform(Optimizable, Differentiable):
         params = self.get_parameters()
         param_values = [param.get_value() for param in params]
         t_arr = jnp.array(times, ndmin=1)
-        value = jnp.empty(t_arr.shape[0])
         grads = jnp.empty((t_arr.shape[0], 0))
         if self._gradient_function is not None:
-            value = jit(self._evaluate)(*param_values, t_arr)
             grad = self._gradient_function(*param_values, t_arr)
             grads = jnp.stack(grad, axis=1)
             grads = jnp.squeeze(grads, -1)
-        return value, grads
+        return grads
+
+    @override
+    def get_value_and_gradient(self, times) -> tuple:
+        return self.get_value(times), self.get_gradient(times)
 
     def get_time_gradient(self, times: Array | float) -> Array:
         """Compute a signal envelopes time derivative.
@@ -210,6 +206,7 @@ class LocalOscillator(Waveform):
             two_pi=True,
         )
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Return device parameters.
 
@@ -262,7 +259,8 @@ class LocalOscillator(Waveform):
         """
         return jnp.exp(1j * freq * times)
 
-    def get_value(self, times: Array | float) -> Array:
+    @override
+    def get_value(self, times: Array) -> Array:
         """Evaluate a carrier signal from an input time vector.
 
         Parameters
@@ -278,7 +276,8 @@ class LocalOscillator(Waveform):
         # returns JitWrapped
         return self._evaluate(self._lo_freq.get_value(), times)  # type: ignore
 
-    def get_value_and_gradient(self, times: Array | float) -> tuple[Array, Array]:
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Return the gradient wrt to frequency of carrier signal.
 
         Parameters
@@ -301,7 +300,7 @@ class LocalOscillator(Waveform):
         value = self._evaluate(self._lo_freq.get_value(), times)
         return value, grads
 
-    def get_time_gradient(self, times: Array | float) -> Array:
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a signals time derivative.
 
         Parameters
@@ -341,6 +340,7 @@ class DRAGMixer(Waveform):
         self._envs = envelopes if isinstance(envelopes, list) else [envelopes]
         DRAGMixer._add_deltas(self._envs, deltas)
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
 

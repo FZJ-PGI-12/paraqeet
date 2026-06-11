@@ -4,10 +4,8 @@ import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive import Drive
 from paraqeet.model.system import System
 from paraqeet.quantity import Array, Quantity
-from paraqeet.signal.generator import Generator
 
 
 class RotatingFrameCoupling(TwoBodyCoupling):

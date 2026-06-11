@@ -3,11 +3,10 @@
 from typing import override
 
 import jax.numpy as jnp
-from jax import vmap
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Array, Float, Quantity
+from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
 
 
@@ -34,6 +33,7 @@ class Drive(Optimizable, Differentiable):
         self.generator = generator
         self.add_hermitian = add_hermitian
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Get a list of parameters of the system.
 
@@ -44,30 +44,6 @@ class Drive(Optimizable, Differentiable):
 
         """
         return self.generator.get_parameters()
-
-    def get_value_at_timestep(self, t: float) -> Array:
-        """Get the one-time matrix of the system.
-
-        Fetches the coefficient from the drive and transforms it
-        into the correct shape for the Hamiltonian.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Returns the shape-shifted coefficient from the drive.
-
-        """
-        # TODO: generator.get_value expects an array, even for one time point.
-        # Is the naming of the method correct then?
-        signal = self.generator.get_value(t)
-        drive = signal * self.drive_op
-        drive += jnp.where(self.add_hermitian, jnp.conjugate(signal) * self.drive_op.conj().T, 0.0)
-        return drive
 
     @override
     def get_value(self, times: Array) -> Array:
@@ -81,34 +57,14 @@ class Drive(Optimizable, Differentiable):
         Returns
         -------
         Array
-            Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
-            space dimension.
+            Matrix of shape [n_times, n, n]  with n_times as the number of times
+            and 'n' as the Hilbert space dimension.
         """
-        # vmap iterates over the times array and returns float. Not caught by mypy.
-        drive_value = vmap(self.get_value_at_timestep)(times)  # type: ignore
+        signal = self.generator.get_value(times)
+        signal = signal.reshape(*signal.shape, 1, 1)
+        drive_value = signal * self.drive_op
+        drive_value += jnp.where(self.add_hermitian, jnp.conjugate(signal) * self.drive_op.conj().T, 0.0)
         return drive_value
-
-    def get_gradient_at_timestep(self, t: float) -> Array:
-        """Get the one-time gradient of the system.
-
-        Fetches the gradient from the drive and transforms it into the
-        correct shape for the Hamiltonian.
-
-        Parameters
-        ----------
-        t: Array
-            Time.
-
-        Returns
-        -------
-        Array
-            Returns the shape-shifted gradient from the drive.
-
-        """
-        signal_grad = self.generator.get_gradient_at_timestep(t).reshape((-1, 1, 1))
-        drive_grad = signal_grad * self.drive_op
-        drive_grad += jnp.where(self.add_hermitian, jnp.conjugate(signal_grad) * self.drive_op.conj().T, 0.0)
-        return drive_grad
 
     @override
     def get_gradient(self, times: Array) -> Array:
@@ -125,15 +81,11 @@ class Drive(Optimizable, Differentiable):
         Returns
         -------
         Array
-            Array of shape [t, p, n, n] with 't' as time, 'p' as number of
-            parameters and 'n' as the Hilbert space dimension.
-
-
+            Array of shape [n_times, n_params, n, n] with n_times as the number of times,
+            n_params as number of parameters and 'n' as the Hilbert space dimension.
         """
-        # Ignoring mypy here as vmap makes the array to float
-        gradient_value = vmap(self.get_gradient_at_timestep)(times)  #  type: ignore
-        return gradient_value
-
-    @override
-    def get_value_and_gradient(self, times: Array) -> tuple:
-        return self.get_value(times), self.get_gradient(times)
+        signal_grad = self.generator.get_gradient(times)
+        signal_grad = signal_grad.reshape(*signal_grad.shape, 1, 1)
+        drive_grad = self.drive_op * signal_grad
+        drive_grad += jnp.where(self.add_hermitian, jnp.conjugate(signal_grad) * self.drive_op.conj().T, 0.0)
+        return drive_grad

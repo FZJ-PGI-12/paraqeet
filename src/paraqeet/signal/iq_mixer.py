@@ -1,5 +1,7 @@
 """Class definition for the Sinusoidal generator model."""
 
+from typing import override
+
 import jax.numpy as jnp
 
 from paraqeet.quantity import Array, Quantity
@@ -7,11 +9,11 @@ from paraqeet.signal.generator import Generator
 from paraqeet.signal.waveform import LocalOscillator, Waveform
 
 
-class IQMixer(Generator):
+class ComplexIQMixer(Generator):
     """Control signal generation.
 
     Waveforms of envelopes (low bandwith) are mixed with a local oscillator
-    (high bandwidth) to apply a desired control field to the system.
+    (high bandwidth) to apply a desired complex control field to the system.
 
     Parameters
     ----------
@@ -45,6 +47,7 @@ class IQMixer(Generator):
             name="Phase",
         )
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters.
 
@@ -63,6 +66,7 @@ class IQMixer(Generator):
         pars += [self._phase]
         return pars
 
+    @override
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimized.
 
@@ -77,7 +81,7 @@ class IQMixer(Generator):
 
         self._lo.set_optimizable_parameters(params)
 
-    def _complex_signal(self, times: Array | float) -> Array:
+    def _complex_signal(self, times: Array) -> Array:
         """Generate a signal for time(s).
 
         Doesnt take real value now for ease of gradient computation.
@@ -100,7 +104,8 @@ class IQMixer(Generator):
         sig = sig * jnp.exp(-1j * self._phase.get_value())
         return sig
 
-    def get_value(self, times: Array | float) -> Array:
+    @override
+    def get_value(self, times: Array) -> Array:
         """Generate a signal for time(s).
 
         Parameters
@@ -114,20 +119,20 @@ class IQMixer(Generator):
             Returns the signal vector.
 
         """
-        return jnp.real(self._complex_signal(times))
+        return self._complex_signal(times)
 
-    def get_value_and_gradient(self, times) -> tuple[Array, Array]:
+    def _complex_signal_and_gradient(self, times: Array) -> tuple[Array, Array]:
         r"""Collect and returns the gradients from all devices.
 
         Since the
 
         .. math::
-            signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
+            signal = \\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi)
 
         The derivative of the signal with respect to a real parameter p is
 
         .. math::
-            \\frac{\\partial}{\\partial p} \\Re(z) = \\Re\\left(\\frac{\\partial z}{\\partial p}\\right)
+            \\frac{\\partial}{\\partial p} z = \\frac{\\partial z}{\\partial p}
 
         Parameters
         ----------
@@ -137,13 +142,12 @@ class IQMixer(Generator):
         Returns
         -------
         Array
-            Returns the signal gradient vector.
-
+            The signal gradient vector as a (n_times, n_params) array.
         """
         phase_fac = jnp.exp(-1j * self._phase.get_value())
         lo_out = self._lo.get_value(times)
         sig = self._complex_signal(times)
-        gradients = jnp.zeros(shape=(times.shape[0], 0))
+        gradient = jnp.zeros(shape=(times.shape[0], 0))
 
         # Collect gradients for envelopes
         # d(Re(sig))/dp = Re(d(env.conj())/dp * lo_out * phase_fac)
@@ -152,77 +156,59 @@ class IQMixer(Generator):
             grad = grad.conj()
             if grad.size != 0:
                 grad *= jnp.expand_dims(lo_out * phase_fac, axis=1)
-            gradients = jnp.append(gradients, jnp.real(grad), axis=1)
+            gradient = jnp.append(gradient, grad, axis=1)
 
         # Collect LO gradients
         # d(Re(sig))/d(lo) = Re(1j * t * sig)
         lo_freq = self._lo.get_parameters()[0]
         if self._is_optimized(lo_freq):
-            gradients = jnp.append(
-                gradients,
-                jnp.expand_dims(jnp.real(1j * times * sig), 1),
+            gradient = jnp.append(
+                gradient,
+                jnp.expand_dims(1j * times * sig, 1),
                 axis=1,
             )
 
         # Collect gradient of Phase
         # d(Re(sig))/d(phase) = Re(-1j * sig)
         if self._is_optimized(self._phase):
-            gradients = jnp.append(
-                gradients,
-                jnp.expand_dims(jnp.real(-1j * sig), 1),
+            gradient = jnp.append(
+                gradient,
+                jnp.expand_dims(-1j * sig, 1),
                 axis=1,
             )
-        return jnp.real(sig), gradients
+        return sig, gradient
 
-    def get_gradient_at_timestep(self, time: float) -> Array:
-        r"""Return the gradients from all devices at the given time.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
 
-        Since the
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
+        return self._complex_signal_and_gradient(times)
 
-        .. math::
-            signal = \\Re(\\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi))
 
-        The derivative of the signal with respect to a real parameter p is
+class IQMixer(ComplexIQMixer):
+    """Control signal generation.
 
-        .. math::
-            \\frac{\\partial}{\\partial p} \\Re(z) = \\Re\\left(\\frac{\\partial z}{\\partial p}\\right)
+    Waveforms of envelopes (low bandwith) are mixed with a local oscillator
+    (high bandwidth) to apply a desired real control field to the system.
 
-        Parameters
-        ----------
-        time: Array
-            Single timestamp.
+    Parameters
+    ----------
+    envelopes : List[Waveform]
+        List of input devices.
+    frequency : Quantity | None
+        Frequency of local oscillator.
+    phase : Quantity | None
+        Phase of local oscillator.
+    """
 
-        Returns
-        -------
-        Array
-            Return the gradients from all devices at one time.
+    @override
+    def get_value(self, times: Array) -> Array:
+        return jnp.real(self._complex_signal(times))
 
-        """
-        phase_fac = jnp.exp(-1j * self._phase.get_value())
-        lo_out = jnp.squeeze(self._lo.get_value(time), axis=0)
-        sig = self._complex_signal(time)
-        gradients = jnp.zeros(shape=(0,))
-
-        # Collect gradients for envelopes
-        for dev in self._envs:
-            _, grad = dev.get_value_and_gradient(time)
-            grad = jnp.squeeze(grad.conj(), axis=0)
-            if grad.size != 0:
-                grad *= lo_out * phase_fac
-            gradients = jnp.append(gradients, jnp.real(grad), axis=0)
-
-        # Collect LO gradients
-        # d(Re(sig))/d(lo) = Re(1j * t * sig)
-        lo_freq = self._lo.get_parameters()[0]
-        if self._is_optimized(lo_freq):
-            gradients = jnp.append(gradients, jnp.real(1j * time * sig), axis=0)
-
-        # Collect gradient of Phase
-        # d(Re(sig))/d(phase) = Re(-1j * sig)
-        if self._is_optimized(self._phase):
-            gradients = jnp.append(
-                gradients,
-                jnp.real(-1j * sig),
-                axis=0,
-            )
-        return gradients
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
+        sig, gradient = self._complex_signal_and_gradient(times)
+        return jnp.real(sig), jnp.real(gradient)

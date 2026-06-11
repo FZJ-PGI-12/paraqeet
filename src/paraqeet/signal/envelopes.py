@@ -1,9 +1,9 @@
 """Class definition for the Evelopes."""
 
 import time
-from abc import abstractmethod
 from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax
 import jax.numpy as jnp
@@ -60,6 +60,7 @@ class Envelope(Waveform):
         self._gradient_function: Callable | None = None
         self._grad_arg_nums: tuple[int, ...] = ()
 
+    @override
     def get_parameters(self):
         """Get a list of parameters of the envelope.
 
@@ -119,42 +120,6 @@ class Envelope(Waveform):
         """
         self._t_final = t_final
 
-    @abstractmethod
-    def _evaluate(self, *args, **kwargs):
-        """Evaluate the output of the envelope.
-
-        Abstract method.
-
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def get_value(self, times: Array | float) -> Array:
-        """Compute the output.
-
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            Output of the computation.
-
-        Raises
-        ------
-        NotImplementedError
-            Subclasses derived from this class must implement this method.
-
-        """
-        raise NotImplementedError()
-
 
 class ConstantEnvelope(Envelope):
     """A constant envelope tone with a fixed length.
@@ -191,7 +156,8 @@ class ConstantEnvelope(Envelope):
         """
         return jnp.squeeze(jnp.where(t <= t_final, amp, 0.0))
 
-    def get_value(self, times: Array | float) -> Array:
+    @override
+    def get_value(self, times: Array) -> Array:
         """Compute the constant signal envelope at different times.
 
         Parameters
@@ -214,7 +180,8 @@ class ConstantEnvelope(Envelope):
         t_final = self.t_final.get_value()
         return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def get_time_gradient(self, times: Array | float) -> Array:
+    @override
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
@@ -331,10 +298,12 @@ class FlatTopGaussianEnvelope(Envelope):
         self._gradient_function: Callable | None = None
         self._grad_arg_nums: tuple[int, ...] = ()
 
+    @override
     def get_parameters(self):
         """Get all parameters of the system."""
         return [self._amplitude, self._t_up, self._t_down, self._ramp_time]
 
+    @override
     @partial(jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, t: Array):
         """Compute the output of the device.
@@ -508,7 +477,8 @@ class FlatTopGaussianEnvelope(Envelope):
 
         return amp * prod_dir / 4
 
-    def get_value(self, times: Array | float) -> Array:
+    @override
+    def get_value(self, times: Array) -> Array:
         """Get the output of the device on time stamps.
 
         Parameters
@@ -529,7 +499,8 @@ class FlatTopGaussianEnvelope(Envelope):
         # returns JitWrapped
         return self._evaluate(amp, t_up, t_down, ramp_time, times)  # type: ignore
 
-    def get_value_and_gradient(self, times: Array | float) -> tuple[Array, Array]:
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Return the gradient wrt dimensionless parameters.
 
         Parameters
@@ -562,7 +533,8 @@ class FlatTopGaussianEnvelope(Envelope):
         gradient = jnp.stack(grads, axis=1) if len(grads) > 0 else jnp.empty((t_arr.shape[0], 0))
         return self._evaluate(amp, t_up, t_down, ramp_time, times), gradient
 
-    def get_time_gradient(self, times: Array | float) -> Array:
+    @override
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Parameters
@@ -598,6 +570,7 @@ class GaussEnvelope(Envelope):
 
     """
 
+    @override
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_final: Array, t: Array) -> Array:  # type: ignore
         """Calculate the unscaled gaussian signal.
@@ -639,7 +612,8 @@ class GaussEnvelope(Envelope):
         # returns JitWrapped
         return time_grad  # type: ignore
 
-    def get_value(self, times: Array | float) -> Array:
+    @override
+    def get_value(self, times: Array) -> Array:
         """Compute a Gaussian signal.
 
         Parameters
@@ -657,7 +631,8 @@ class GaussEnvelope(Envelope):
         # returns JitWrapped
         return self._evaluate(amp, t_final, times)  # type: ignore
 
-    def get_time_gradient(self, times: Array | float) -> Array:
+    @override
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a Gaussian signals time derivative.
 
         Parameters
@@ -857,6 +832,7 @@ class DCRABEnvelope(Envelope):
         self._gradient_function: Callable | None = None
         self._grad_arg_nums: tuple[int, ...] = ()
 
+    @override
     def get_parameters(self):
         """Return the parameters of the CRAB signal.
         The parameters are arranged as follows,
@@ -1013,6 +989,7 @@ class DCRABEnvelope(Envelope):
 
         self._total_num_components = len(self._real_coefficients)
 
+    @override
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, *params: Array) -> Array:  # type: ignore
         """Compute the CRAB pulse.
@@ -1045,6 +1022,7 @@ class DCRABEnvelope(Envelope):
         env = env_real + 1j * env_imag
         return jnp.squeeze(amp * env)
 
+    @override
     def get_value(self, t: Array) -> Array:
         """Compute the CRAB signal.
 

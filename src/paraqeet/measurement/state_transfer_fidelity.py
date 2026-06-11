@@ -1,6 +1,7 @@
 """The class definition of state transfer fidelity model."""
 
 from collections.abc import Callable
+from typing import override
 
 import jax
 import jax.numpy as jnp
@@ -63,12 +64,21 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     def _fid(overlap: Array) -> Float:
         return (jnp.abs(jnp.average(overlap)) ** 2).astype(float)
 
-    def measure(self, times: Array) -> Array | Float:
-        """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar(times=times)
+    @override
+    def get_value(self, times: Array) -> Float:
+        states = self._propagation_func(jnp.array(times))
+        final_state = states[-1]
+        return self._fid(self._overlap(final_state, self._target_state))
 
-    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
+    @override
+    def measure(self, times: Array) -> Array | Float:
+        return self.get_value(times=times)
+
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure overlap between initial and target state. To be used with an optimizer.
+        For NormalizableMeasurement objects that are also Differentiable this coincide
+        with the get_value method.
 
         Parameters
         ----------
@@ -81,18 +91,22 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             Overlap between initial and target state in a bare Float.
 
         """
-        states = self._propagation_func(jnp.array(times))
-        final_state = states[-1]
-        f = self._overlap(final_state, self._target_state)
-        return StateTransferFidelity._fid(f)
+        return self.get_value(times)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
-        """Compute function value and corresponding gradient.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Compute the gradient.
+
+        Parameters
+        ----------
+        times : Array
+            One-dimensional vector of timestamps.
+
 
         Returns
         -------
-        Tuple[Array, Array]
-            Tuple of function value and gradient of shape (n_parameters,).
+        Array
+            The gradient of shape (n_params,).
 
         """
         states, dg_dp_list = self._propagation_and_gradient_func(times)
@@ -102,7 +116,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         for dg_dp in dg_dp_list[-1]:
             dfdp = self._fid_grad(f) * (self._overlap_grad(dg_dp, self._target_state).T @ dg_dp)
             df_dp_list.append(jnp.real(jnp.squeeze(dfdp)))
-        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return jnp.array(df_dp_list)  # (n_parameters,)
 
 
 class StateTransferFidelityGRAPE(StateTransferFidelity):

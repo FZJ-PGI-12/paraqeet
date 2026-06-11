@@ -1,5 +1,7 @@
 """Class definition of the Transmon Hamiltonian model."""
 
+from typing import override
+
 import jax
 import jax.numpy as jnp
 
@@ -55,6 +57,7 @@ class Transmon(OpenSystem):
         self.temp = temp
         self.t2star = t2star
 
+    @override
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of the system.
 
@@ -81,6 +84,7 @@ class Transmon(OpenSystem):
         """Return the anharmonic_term"""
         return self._anharmonic_term
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
@@ -95,55 +99,24 @@ class Transmon(OpenSystem):
             self.anharmonicity,
         ]
 
-    def get_hamiltonian_at_timestep(self, t: float) -> Array:
-        """Return the matrix representation of the Hamiltonian.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
-            dimension.
-
-        """
+    @override
+    def get_value(self, times: Array) -> Array:
         hamil_0 = self.frequency.get_value() * self._num_op + self.anharmonicity.get_value() * self._anharmonic_term
-        hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
+        hamil = hamil_0 + self.get_drive_matrix(times)
         return hamil
 
-    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
-        """Get the one-time gradient of the Hamiltonain.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Gradient as an array of shape [p, n, n] with 'p' as the number
-            of parameters and 'n' as the  Hilbert space dimension.
-
-        """
+    @override
+    def get_gradient(self, times: Array) -> Array:
         # Fetch the gradient of the drive
-        gradients = self.get_drive_gradients_at_timestep(t)
+        derivatives = self.get_drive_gradients(times)
 
-        # Combine with the derivatives wrt the frequency and anharmonicity
-        grads_list = []
         if self._is_optimized(self.frequency):
-            grads_list.append(self._num_op)
+            hamil = (self._num_op).reshape((1, 1, self._num_levels, self._num_levels))
+            derivatives = jnp.append(derivatives, hamil, axis=1)
         if self._is_optimized(self.anharmonicity):
-            grads_list.append(self._anharmonic_term)
-        grads = jnp.stack(grads_list, axis=0) if len(grads_list) > 0 else jnp.empty((0,) + self._num_op.shape)
-        gradients = jnp.append(gradients, grads, axis=0)
-        return gradients
+            hamil = self._anharmonic_term
+            derivatives = jnp.append(derivatives, hamil, axis=1)
+        return derivatives
 
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""

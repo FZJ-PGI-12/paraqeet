@@ -160,11 +160,11 @@ class Vern7GRAPE(Vern7, Differentiable):
         return psis_t, lamdas_t
 
     @override
-    def get_value(self, times) -> Float | Array:
+    def get_value(self, times: Array) -> Array:
         return self.propagate(times)
 
     @override
-    def get_gradient(self, times) -> Array:
+    def get_gradient(self, times: Array) -> Array:
         _, gradient = self.get_value_and_gradient(times)
         return gradient
 

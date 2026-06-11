@@ -13,48 +13,58 @@ from paraqeet.quantity import Array, Float
 class Differentiable(ABC):
     """An abstract class for differentiable models.
 
-    Subclasses must implement the get_value, get_gradient and get_value_and_gradient
-    methods. Note that in some cases the gradient gets computed together with the
+    Subclasses must implement the get_value, get_gradient.
+    Note that in some cases the gradient gets computed together with the
     value and thus it is more natural to instantiate a get_gradient method
-    using the result of get_value_and_gradient. This is the reason why all
-    three methods are taken as abstract classes, so that one always thinks
-    about the right implementation.
+    using the result of get_value_and_gradient. In these cases, it makes sense
+    to override the get_value_and_gradient method.
     """
 
     @abstractmethod
-    def get_value(self, times: Array) -> Float | Array:
-        """Calculate the value of the object at different times.
+    def get_value(self, times: Array) -> Array | Float:
+        """Calculate the value of the object.
 
         Parameters
         ----------
-            times: Array of times.
+        times: Array
+            Array of times.
 
         Returns:
         ----------
             The value of the object.
+            If it returns an Array then the value is calculated at the n_times and the dimension should be
+            (n_times, (dimensions_of_object)). If the object is a scalar (1x1 Array)
+            the dimension of is just n_times.
+            If it returns a Float for instance it means that the object depends on the whole
+            array of times. This is for instance the case of fidelities
+            that are a function of an array of times.
         """
         pass
 
     @abstractmethod
     def get_gradient(self, times: Array) -> Array:
-        """Calculate the gradient of the object at different times.
+        """Calculate the gradient of the object.
 
         Parameters
         ----------
-            times: Array of times.
+        times: Array
+            Array of times.
 
         Returns:
         ----------
-            The gradient of the object.
+            The gradient of the object. There are two main cases.
+            1) The array has dimensions (n_times, n_params, (dimensions_of_object)).
+            If the object is a scalar (1x1 Array) the dimension of is just (n_times, n_params).
+            2) The array has dimension (n_params, (dimensions_of_object)). This is the case for instance of fidelities
+            that are a function of an array of times.
         """
         pass
 
-    @abstractmethod
-    def get_value_and_gradient(self, times: Array) -> tuple:
-        """Calculate the value and the gradient of the object at different times.
+    def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
+        """Calculate the value and the gradient of the object.
 
         Returns:
         ----------
             The value and the gradient of the object.
         """
-        pass
+        return self.get_value(times), self.get_gradient(times)

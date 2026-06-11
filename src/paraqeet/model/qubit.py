@@ -1,5 +1,7 @@
 """Class definition of a qubit model."""
 
+from typing import override
+
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
@@ -28,7 +30,6 @@ class Qubit(OpenSystem):
         Temperature of the qubit.
     t2star: Quantity | None
         Dephasing time.
-
     """
 
     def __init__(
@@ -52,6 +53,7 @@ class Qubit(OpenSystem):
         self.temp = temp
         self.t2star = t2star
 
+    @override
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of the system.
 
@@ -78,6 +80,7 @@ class Qubit(OpenSystem):
         """Return the Pauli Z operator"""
         return self._pauli_z
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
@@ -89,50 +92,21 @@ class Qubit(OpenSystem):
         """
         return self.get_drive_parameters() + [self.frequency]
 
-    def get_hamiltonian_at_timestep(self, t: float) -> Array:
-        """Return the matrix representation of the Hamiltonian.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
-            dimension.
-
-        """
+    @override
+    def get_value(self, times: Array) -> Array:
         hamil_0 = -self.frequency.get_value() * self._pauli_z / 2
-        hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
+        hamil = hamil_0 + self.get_drive_matrix(times)
         return hamil
 
-    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
-        """Get the one-time gradient of the Hamiltonain.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Gradient as an array of shape [p, n, n] with 'p' as the number
-            of parameters and 'n' as the  Hilbert space dimension.
-
-        """
+    @override
+    def get_gradient(self, times: Array) -> Array:
         # Fetch the gradient of the drive
-        derivatives = self.get_drive_gradients_at_timestep(t)
+        derivatives = self.get_drive_gradients(times)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.frequency):
-            hamil = (-self._pauli_z / 2).reshape((1, 2, 2))
-            derivatives = jnp.append(derivatives, hamil, axis=0)
+            hamil = (-self._pauli_z / 2).reshape(1, 1, 2, 2)
+            derivatives = jnp.append(derivatives, hamil, axis=1)
         return derivatives
 
     def get_decay_rates(self) -> list[Array]:

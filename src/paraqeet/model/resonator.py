@@ -1,5 +1,7 @@
 """Class definition of the Resonator Hamiltonian model."""
 
+from typing import override
+
 import jax
 import jax.numpy as jnp
 
@@ -52,6 +54,7 @@ class Resonator(OpenSystem):
         self.temp = temp
         self.t2star = t2star
 
+    @override
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of the system.
 
@@ -73,6 +76,7 @@ class Resonator(OpenSystem):
         """Return the Fock number operator"""
         return self._num_op
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
@@ -84,50 +88,21 @@ class Resonator(OpenSystem):
         """
         return self.get_drive_parameters() + [self.frequency]
 
-    def get_hamiltonian_at_timestep(self, t: float) -> Array:
-        """Return the matrix representation of the Hamiltonian.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [n, n]  with `n` as the Hilbert space
-            dimension.
-
-        """
+    @override
+    def get_value(self, times: Array) -> Array:
         hamil_0 = self.frequency.get_value() * self._num_op
-        hamil = hamil_0 + self.get_drive_matrix_at_timestep(t)
+        hamil = hamil_0 + self.get_drive_matrix(times)
         return hamil
 
-    def get_hamiltonian_gradient_at_timestep(self, t: float) -> Array:
-        """Get the one-time gradient of the Hamiltonain.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
-
-        Parameters
-        ----------
-        t: float
-            Time.
-
-        Returns
-        -------
-        Array
-            Gradient as an array of shape [p, n, n] with 'p' as the number
-            of parameters and 'n' as the  Hilbert space dimension.
-
-        """
+    @override
+    def get_gradient(self, times: Array) -> Array:
         # Fetch the gradient of the drive
-        derivatives = self.get_drive_gradients_at_timestep(t)
+        derivatives = self.get_drive_gradients(times)
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.frequency):
-            grad = self._num_op.reshape((1,) + self._num_op.shape)
-            derivatives = jnp.append(derivatives, grad, axis=0)
+            grad = self._num_op.reshape(1, 1, self._num_fock, self._num_fock)
+            derivatives = jnp.append(derivatives, grad, axis=1)
         return derivatives
 
     def get_decay_rates(self) -> list[Array]:

@@ -1,7 +1,9 @@
 """Class definition of the Measurement model."""
 
 from abc import ABC, abstractmethod
+from typing import Protocol
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.quantity import Array, Float
 
 
@@ -68,3 +70,27 @@ class NormalizableMeasurement(Measurement):
 
         """
         pass
+
+
+class DifferentiableNormalizableMeasurement(Protocol):
+    """Protocol for a class that is both NormalizableMeasurement and Differentiable"""
+
+    def get_value(self, times: Array) -> Array | Float:
+        """Returns the value of the measurement"""
+        ...
+
+    def get_gradient(self, times: Array) -> Array:
+        """Returns the gradient of the measurement"""
+        ...
+
+    def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
+        """Returns the value and the gradient of the measurement"""
+        ...
+
+    def measure(self, times: Array) -> Array | Float:
+        """Usually the same as get_value"""
+        ...
+
+    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
+        """Usually the same as get_value"""
+        ...
