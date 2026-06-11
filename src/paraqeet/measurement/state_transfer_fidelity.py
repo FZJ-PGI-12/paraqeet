@@ -71,7 +71,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         return self._fid(self._overlap(final_state, self._target_state))
 
     @override
-    def measure(self, times: Array) -> Array | Float:
+    def measure(self, times: Array) -> Float:
         return self.get_value(times=times)
 
     @override
@@ -145,7 +145,8 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         One-dimensional vector of timestamps.
     """
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -158,4 +159,9 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
         final_state = states[-1]
         f = self._overlap(final_state, self._target_state)
         grads = jnp.real(self._fid_grad(f) * grads)
-        return StateTransferFidelity._fid(f), grads.flatten()  # shape scalar, (n_parameters,)
+        return self._fid(f), grads.flatten()  # shape scalar, (n_parameters,)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient

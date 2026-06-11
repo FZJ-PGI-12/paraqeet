@@ -205,15 +205,15 @@ class Vern7(StatePropagation):
         states = [init_state]
         for ti in range(1, len(times)):
             state_t = states[ti - 1]
-            times, dt = construct_times(times, ti, self._resolution)
-            times_interp = Vern7._interpolate_time(times, dt)
+            step_times, dt = construct_times(times, ti, self._resolution)
+            times_interp = Vern7._interpolate_time(step_times, dt)
             # TODO: Seperate jump operators from EOM.
             eom = self._eom_func(times_interp + dt / 2)
             state_t = self._propagate_in_time(
                 state_t,
                 eom * dt,
                 jnp.array(self._jump_operators) * jnp.sqrt(dt),
-                jnp.arange(0, len(times), 1),
+                jnp.arange(0, len(step_times), 1),
             )
             states.append(state_t)
 

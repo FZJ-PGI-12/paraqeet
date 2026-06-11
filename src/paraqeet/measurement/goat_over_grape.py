@@ -1,5 +1,7 @@
 """Class definition of the Weighted Sum Goal model."""
 
+from typing import override
+
 import jax.numpy as jnp
 import numpy as np
 
@@ -64,8 +66,14 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
                 padded_grad = np.append(padded_grad, np.zeros((num_pixels, num_params)), axis=0)
         return jnp.array(padded_grad)
 
-    def measure(self, times: Array) -> Array | Float:
+    @override
+    def get_value(self, times: Array) -> Float:
         """Sum of plain weighted measurements.
+
+        Parameters
+        ----------
+        times: Array
+            Array of times
 
         Returns
         -------
@@ -76,23 +84,23 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         grape = self._measurement
         for gen in self._gens:
             gen._update_inphase_and_outofphase()
-        return grape.measure(times=times)
+        return jnp.array(grape.get_value(times=times))
 
-    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
-        """Passthrough the measurement.
+    @override
+    def measure(self, times: Array) -> Float:
+        return self.get_value(times=times)
 
-        Returns
-        -------
-        Array
-            Returns the normalized weighted sum.
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
+        return self.get_value(times=times)
 
-        """
-        grape = self._measurement
-        for gen in self._gens:
-            gen._update_inphase_and_outofphase()
-        return grape.calculate_normalized_scalar(times=times)
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 

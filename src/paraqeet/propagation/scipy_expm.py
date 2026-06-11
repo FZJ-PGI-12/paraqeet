@@ -110,10 +110,10 @@ class ScipyExpm(StatePropagation):
         psis = [self._initial_state]
 
         for ti in range(1, len(times)):
-            new_times, dt = construct_times(times, ti, self._resolution)
+            step_times, dt = construct_times(times, ti, self._resolution)
             psis_t = psis[ti - 1]
-            eom = self._eom_func(new_times + dt / 2) * dt
-            psis_t = ScipyExpm._propagate_in_time(psis_t, eom, jnp.arange(0, len(new_times), 1))
+            eom = self._eom_func(step_times + dt / 2) * dt
+            psis_t = self._propagate_in_time(psis_t, eom, jnp.arange(0, len(step_times), 1))
             psis.append(psis_t)
 
         psis_arr = jnp.array(psis)

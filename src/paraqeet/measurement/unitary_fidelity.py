@@ -1,6 +1,7 @@
 """Class definition of the unitary fidelity model."""
 
 from collections.abc import Callable
+from typing import override
 
 import jax
 import jax.numpy as jnp
@@ -61,43 +62,60 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
         Parameters
         ----------
-        overlaps : List
+        Overlaps: Array
             State overlap as a one-dimensional array.
 
         Returns
         -------
-        float
+        Float
             Gate fidelity as a single float.
 
         """
         return float(jnp.abs(jnp.average(overlaps)) ** 2)
 
-    def measure(self, times: Array) -> Array | Float:
+    @override
+    def get_value(self, times: Array) -> Float:
+        states = self._propagation_func(jnp.array(times))
+        overlaps = []
+        for ii, s in enumerate(self._target_costates.T):
+            overlaps.append(jnp.vdot(s, states[-1][:, ii]))
+        return self._fid(jnp.asarray(overlaps))
+
+    @override
+    def measure(self, times: Array) -> Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Return the L2 norm of the last time step compared to the ideal gate.
+
+        Parameters
+        ----------
+        times : Array
+            Array of times.
+
 
         Returns
         -------
         Array
             L2 norm of the last time step compared to the ideal gate.
-
         """
-        states = self._propagation_func(jnp.array(times))
-        overlaps = []
-        for ii, s in enumerate(self._target_costates.T):
-            overlaps.append(jnp.vdot(s, states[-1][:, ii]))
-        return UnitaryFidelity._fid(jnp.asarray(overlaps))
+        return self.get_value(times)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[Float, Array]:
-        """Get the L2 norm and the analytic expression for the gradient.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Get the analytic expression for the gradient.
+
+        Parameters
+        ----------
+        times : Array
+            Array of times.
 
         Returns
         -------
-        Tuple[Array Array]
-            Tuple of function value and gradient of shape (n_parameters,).
+        Array
+            Tuple of function value and gradient of shape (n_params,).
 
         """
         states, dg_dp_list = self._propagation_and_gradient_func(times)  # gradient of states wrt parameters
@@ -114,8 +132,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             g = jnp.average(jnp.asarray(gs))
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
-        fid = UnitaryFidelity._fid(jnp.asarray(overlaps))
-        return fid, jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def set_ideal_gate(self, gate: Array):
         """Compute target states for the L2 norm.

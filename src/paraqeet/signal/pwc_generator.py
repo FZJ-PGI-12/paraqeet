@@ -350,7 +350,7 @@ class PWCGenerator(Generator):
             grads.append(1j * env)
 
         if len(grads) > 0:
-            grads_stack = jnp.stack(grads)
+            grads_stack = jnp.stack(grads, axis=1)
         else:
             grads_stack = jnp.empty((times.shape[0], 0))
         return grads_stack
