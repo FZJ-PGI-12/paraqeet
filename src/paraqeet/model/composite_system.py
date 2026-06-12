@@ -1,5 +1,7 @@
 """Class definition of the composite Hamiltonian model."""
 
+from typing import override
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -44,10 +46,11 @@ class CompositeSystem(System):
         self._dimensions = [s.dimension() for s in subsystems]
         self._total_dimension = int(np.prod(self._dimensions))
 
+    @override
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
 
-        Parameters
+        Returns
         ----------
         list[Quantity]
             Returns the list of parameters of the system.
@@ -60,6 +63,7 @@ class CompositeSystem(System):
             params += coupling.get_parameters()
         return params
 
+    @override
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set optimizable parameters for the system.
 
@@ -77,6 +81,7 @@ class CompositeSystem(System):
         for coupling in self._couplings:
             coupling.set_optimizable_parameters(params)
 
+    @override
     def dimension(self) -> int:
         """Return the dimension of the system.
 
@@ -98,25 +103,12 @@ class CompositeSystem(System):
         """
         return self._dimensions
 
-    def get_hamiltonian_at_timestep(self, timestep: float) -> Array:
-        """Get matrix representation of the Hamiltonian for a single time point.
-
-        Parameters
-        ----------
-        timestep: float
-            One time step.
-
-        Returns
-        -------
-        Array
-            Hamiltonian of shape [n, n] with 'n' as the Hilbert space
-            dimension.
-
-        """
+    @override
+    def get_value(self, times: Array) -> Array:
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
         for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.get_hamiltonian_at_timestep(timestep)
+            sub_matrix = subsystem.get_value(times)
             matrix += tensor_product_with_identity([sub_matrix], [n], self._dimensions)
 
         for coupling in self._couplings:

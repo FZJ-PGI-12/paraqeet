@@ -111,10 +111,10 @@ class Transmon(OpenSystem):
         derivatives = self.get_drive_gradients(times)
 
         if self._is_optimized(self.frequency):
-            hamil = (self._num_op).reshape((1, 1, self._num_levels, self._num_levels))
+            hamil = self._num_op * jnp.ones([*times.shape, 1, 1, 1])
             derivatives = jnp.append(derivatives, hamil, axis=1)
         if self._is_optimized(self.anharmonicity):
-            hamil = self._anharmonic_term
+            hamil = self._anharmonic_term * jnp.ones([*times.shape, 1, 1, 1])
             derivatives = jnp.append(derivatives, hamil, axis=1)
         return derivatives
 

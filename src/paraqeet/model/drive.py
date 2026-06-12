@@ -24,7 +24,7 @@ class Drive(Optimizable, Differentiable):
         Signal generator.
     add_hermitian: bool=False
         A boolean that determines whether the Hermitian conjugate of the drive
-        if added or not
+        is added or not
 
     """
 
@@ -52,7 +52,7 @@ class Drive(Optimizable, Differentiable):
         Parameters
         ----------
         times: Array
-            Vector of time samples.
+            Array of times.
 
         Returns
         -------
@@ -76,7 +76,7 @@ class Drive(Optimizable, Differentiable):
         Parameters
         ----------
         times: Array
-            Vector of time samples.
+            Array of times.
 
         Returns
         -------

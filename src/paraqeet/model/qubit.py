@@ -105,7 +105,7 @@ class Qubit(OpenSystem):
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.frequency):
-            hamil = (-self._pauli_z / 2).reshape(1, 1, 2, 2)
+            hamil = (-self._pauli_z / 2) * jnp.ones([*times.shape, 1, 1, 1])
             derivatives = jnp.append(derivatives, hamil, axis=1)
         return derivatives
 

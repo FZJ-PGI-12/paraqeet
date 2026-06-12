@@ -101,7 +101,7 @@ class Resonator(OpenSystem):
 
         # Combine with the derivative wrt the frequency
         if self._is_optimized(self.frequency):
-            grad = self._num_op.reshape(1, 1, self._num_fock, self._num_fock)
+            grad = self._num_op * jnp.ones([*times.shape, 1, 1, 1])
             derivatives = jnp.append(derivatives, grad, axis=1)
         return derivatives
 

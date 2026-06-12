@@ -4,8 +4,7 @@ from sphinx_pyproject import SphinxConfig
 
 __version__ = version("paraqeet")
 release = __version__
-config = SphinxConfig("../pyproject.toml", globalns=globals(), config_overrides = {"version": __version__})
-
+config = SphinxConfig("../pyproject.toml", globalns=globals(), config_overrides={"version": __version__})
 
 
 extensions = [

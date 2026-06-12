@@ -3,7 +3,6 @@
 import numpy as np
 import pytest
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
 from paraqeet.model.qubit import Qubit
@@ -48,7 +47,7 @@ def ham(gen):
 
 def test_get_hamiltonian(ham, time_samples):
     """Test the get_hamiltonian method."""
-    hams = ham.get_hamiltonian(time_samples)
+    hams = ham.get_value(time_samples)
     assert hams.shape == time_samples.shape + (2, 2)
 
 
@@ -57,20 +56,21 @@ def test_gradient(gen, ham, time_samples):
 
     The Hamiltonian should have all derivatives of the drive
     plus the derivative w.r.t. the qubit frequency.
-
     """
-    if not isinstance(ham, Differentiable):
-        return
 
     _, grads = gen.get_value_and_gradient(time_samples)
     ham.set_optimizable_parameters(ham.get_parameters())
-    # TODO: fix error related to the length of time_samples-array
     _, ham_grads = ham.get_value_and_gradient(time_samples)
-    assert ham_grads.shape == (len(time_samples), grads.shape[1] + 1, 2, 2)
+    assert ham_grads.shape == (
+        len(time_samples),
+        grads.shape[1] + 1,
+        2,
+        2,
+    ), "The gradient shape should be (n_times, num_params_gen + 1, 2, 2)"
 
     ham.set_optimizable_parameters([ham.frequency])
     _, ham_grads = ham.get_value_and_gradient(time_samples)
-    assert ham_grads.shape == (len(time_samples), 1, 2, 2)
+    assert ham_grads.shape == (len(time_samples), 1, 2, 2), "The gradient shape should be (n_times, 1, 2, 2)"
 
 
 def test_setters_and_getters(ham, random_quantity):
