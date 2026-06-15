@@ -109,7 +109,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
         return self._measurements_in_sum_of_squares
 
     @override
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Sum of plain weighted measurements.
 
         Returns
@@ -132,8 +132,18 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
         return sum_meas
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
+        return self.get_value(times)
+
+    @override
+    def get_value(self, times: Array) -> Float:
         """Sum of weighted measurements from normalized measurements.
+
+        Parameters
+        ----------
+        times: Array
+            Array of times.
 
         Returns
         -------
@@ -155,8 +165,14 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
         return float(sum_meas)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    @override
+    def get_gradient(self, times: Array) -> Array:
         """Sum of weighted measurements from gradient-ized measurements.
+
+        Parameters
+        ----------
+        times: Array:
+            Array of times
 
         Returns
         -------
@@ -166,7 +182,6 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             Returns the sum of gradients.
 
         """
-        # TODO: Remove the check by moving the check to init
         values_and_gradients = [m.get_value_and_gradient(times=times) for m in self._measurements]
         sum_meas = jnp.array(0)
         sum_grads = jnp.zeros_like(values_and_gradients[0][1])
@@ -187,4 +202,4 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
                 grads_diff += 2 * (meas_a[0] - meas_b[0]) * (meas_a[1] - meas_b[1])
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
             sum_grads += self._sum_of_squares_options["weight"] * grads_diff
-        return float(sum_meas), sum_grads
+        return sum_grads
