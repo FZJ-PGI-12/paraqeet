@@ -15,7 +15,7 @@ def expm():
     def _method(dimension, resolution, initial_state):
         sys = EmptySystem(dimension)
         schreq = SchroedingerEquation(
-            hamiltonian_func=sys.get_hamiltonian, hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient
+            hamiltonian_func=sys.get_value, hamiltonian_and_gradient_func=sys.get_value_and_gradient
         )
         return ScipyExpmGOAT(
             eom_func=schreq.get_value,

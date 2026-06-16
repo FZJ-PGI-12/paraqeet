@@ -16,8 +16,8 @@ def euler():
     def _method(dimension):
         sys = EmptySystem(dimension)
         eom = SchroedingerEquation(
-            hamiltonian_func=sys.get_hamiltonian,
-            hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient,
+            hamiltonian_func=sys.get_value,
+            hamiltonian_and_gradient_func=sys.get_value_and_gradient,
         )
         return Euler(eom_func=eom.get_value, resolution=1e9, initial_state=np.array([[1.0], [0.0j]]))
 

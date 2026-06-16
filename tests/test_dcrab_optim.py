@@ -51,8 +51,8 @@ def model(gen):
     drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
     controlled_qubit.drives = [drive]
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_hamiltonian,
-        hamiltonian_and_gradient_func=controlled_qubit.get_hamiltonian_and_gradient,
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
     )
     return model
 

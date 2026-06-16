@@ -1,5 +1,7 @@
 """Class definition for the Runge-Kutta Scipy propagation model."""
 
+from typing import override
+
 import numpy as np  # Using regular numpy for scipy interface
 from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
@@ -42,6 +44,7 @@ class RungeKutta(StatePropagation):
         """
         self._initial_state = np.reshape(state, (-1,))
 
+    @override
     def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
 

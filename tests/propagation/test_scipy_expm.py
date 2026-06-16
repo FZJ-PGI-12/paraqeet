@@ -17,7 +17,7 @@ def expm():
     def _method(dimension, resolution):
         system = EmptySystem(dimension)
         eom = SchroedingerEquation(
-            hamiltonian_func=system.get_hamiltonian, hamiltonian_and_gradient_func=system.get_hamiltonian_and_gradient
+            hamiltonian_func=system.get_value, hamiltonian_and_gradient_func=system.get_value_and_gradient
         )
         return ScipyExpm(
             eom_func=eom.get_value,
@@ -112,9 +112,6 @@ def test_initial_state(eom):
 def test_construct_times(eom):
     """Test the construction times for the model."""
     res = 100e9
-
-    propagation = ScipyExpm(eom_func=eom, resolution=res, initial_state=np.eye(10, dtype=np.complex128))
-
     # Test if times array is constructed correctly for a 1ns list
     t_start = 1e-9
     t_final = 2e-9

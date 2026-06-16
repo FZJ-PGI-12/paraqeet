@@ -38,7 +38,7 @@ def eom():
     def _method(dimension):
         sys = EmptySystem(dimension)
         return SchroedingerEquation(
-            hamiltonian_func=sys.get_hamiltonian, hamiltonian_and_gradient_func=sys.get_hamiltonian_and_gradient
+            hamiltonian_func=sys.get_value, hamiltonian_and_gradient_func=sys.get_value_and_gradient
         ).get_value
 
     return _method

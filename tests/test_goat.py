@@ -68,14 +68,14 @@ def prop(gen, mode):
     controlled_qubit.drives = [drive]
     if mode == "OpenSystem":
         model = MasterEquation(
-            hamiltonian_func=controlled_qubit.get_hamiltonian,
-            hamiltonian_and_gradient_func=controlled_qubit.get_hamiltonian_and_gradient,
+            hamiltonian_func=controlled_qubit.get_value,
+            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
             jump_operators=controlled_qubit.get_jump_operators(),
         )
     elif mode == "ClosedSystem":
         model = SchroedingerEquation(
-            hamiltonian_func=controlled_qubit.get_hamiltonian,
-            hamiltonian_and_gradient_func=controlled_qubit.get_hamiltonian_and_gradient,
+            hamiltonian_func=controlled_qubit.get_value,
+            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
         )
     return ScipyExpmGOAT(
         eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=RES, initial_state=init

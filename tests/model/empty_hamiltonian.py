@@ -1,5 +1,7 @@
 """Class definition of the empty Hamiltonian for testing."""
 
+from typing import override
+
 import numpy as np
 
 from paraqeet.model.system import OpenSystem
@@ -22,36 +24,21 @@ class EmptySystem(OpenSystem):
 
         self._dimension = dimension
 
-    def get_hamiltonian(self, times: Array) -> Array:
-        """Get the matrix representation of the Hamiltonian.
-
-        Parameters
-        ----------
-        t: Array
-            One-dimensional vector of timestamps.
-
-        Returns
-        -------
-        Array
-            The matrix representation of the Hamiltonian.
-
-        """
+    @override
+    def get_value(self, times: Array) -> Array:
         return np.zeros((len(times), self._dimension, self._dimension))
 
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        return np.zeros((len(times), 0, self._dimension, self._dimension))
+
+    @override
     def get_parameters(self) -> list[Quantity]:
         """ """
         return []
 
     # TODO: implement abstract methods from Hamiltonian
     def dimension(self) -> int:
-        raise NotImplementedError("Method not implemented yet.")
-
-    # TODO: implement abstract methods from Hamiltonian
-    def get_hamiltonian_at_timestep(self, timestep: Array) -> Array:
-        raise NotImplementedError("Method not implemented yet.")
-
-    # TODO: implement abstract methods from Hamiltonian
-    def get_hamiltonian_gradient_at_timestep(self, t: Array) -> Array:
         raise NotImplementedError("Method not implemented yet.")
 
     # TODO: implement abstract methods from Hamiltonian

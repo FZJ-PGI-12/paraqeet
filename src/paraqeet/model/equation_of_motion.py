@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class EquationOfMotion(ABC):
@@ -15,18 +15,19 @@ class EquationOfMotion(ABC):
 
     Parameters
     ----------
-    hamiltonian : Hamiltonian
-        Matrix representation of a Hamiltonian.
-
+    _hamiltonian_func: Callable
+        Function that returns the a Hamiltonian at different times.
+    _hamiltonian_and_gradient_func: Callable
+        Function that returns the Hamiltonian and its gradient at different times
     """
 
     _hamiltonian_func: Callable[[Array], Array]
-    _hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _hamiltonian_and_gradient_func: Callable[[Array], tuple[Array | Float, Array]]
 
     def __init__(
         self,
         hamiltonian_func: Callable[[Array], Array],
-        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array | Float, Array]],
     ):
         self._hamiltonian_func = hamiltonian_func
         self._hamiltonian_and_gradient_func = hamiltonian_and_gradient_func
@@ -38,7 +39,7 @@ class EquationOfMotion(ABC):
         Parameters
         ----------
         times: Array
-            Any one-dimensional vector of timestamps.
+            Array of times.
 
         Returns
         -------
@@ -57,13 +58,13 @@ class EquationOfMotion(ABC):
     # we rename it to get_habiltonian_value_and_gradient or similar? Otherwise it suggests
     # that it returns the gradient of the equation of motion itself.
     @abstractmethod
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Implement the gradient of either getEquationOfMotion or getMatrixEOM.
+    def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
+        """Implement the gradient of the equation of motion.
 
         Parameters
         ----------
         times: Array
-            Any one-dimensional vector of timestamps.
+            Array of times.
 
         Raises
         ------

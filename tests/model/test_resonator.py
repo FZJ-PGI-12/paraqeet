@@ -81,8 +81,8 @@ def open_resonator():
     res.temp = TEMP
     res.t2star = T2STAR
     model = MasterEquation(
-        hamiltonian_func=res.get_hamiltonian,
-        hamiltonian_and_gradient_func=res.get_hamiltonian_and_gradient,
+        hamiltonian_func=res.get_value,
+        hamiltonian_and_gradient_func=res.get_value_and_gradient,
         jump_operators=res.get_jump_operators(),
     )
 
@@ -120,7 +120,7 @@ def test_get_hamiltonian(hamiltonian, time_samples):
     """Test the get_hamiltonian method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_hamiltonian(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 

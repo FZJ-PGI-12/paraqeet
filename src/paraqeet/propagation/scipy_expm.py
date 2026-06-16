@@ -1,5 +1,7 @@
 """Class definition of the Scipy piecewise exponential propagation model."""
 
+from typing import override
+
 import jax
 import jax.numpy as jnp
 from jax import jit
@@ -83,6 +85,7 @@ class ScipyExpm(StatePropagation):
         """
         return expm(eom_matrix) @ psis_t
 
+    @override
     def propagate(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 

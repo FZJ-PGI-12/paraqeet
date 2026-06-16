@@ -1,6 +1,7 @@
 """Test the random propagation model."""
 
 from functools import partial
+from typing import override
 
 import jax.numpy as jnp
 import numpy as np
@@ -42,20 +43,21 @@ class RandomPropagation(Propagation, Differentiable):
         auto_update: bool = True,
     ):
         sys = EmptySystem(0)
-        eom = SchroedingerEquation(sys.get_hamiltonian, sys.get_hamiltonian_and_gradient)
+        eom = SchroedingerEquation(sys.get_value, sys.get_value_and_gradient)
         super().__init__(eom.get_value, 1e9)
         self._dimension = dimension
         self._create_matrices = generate_matrices
         self._auto_update = auto_update
         self.update()
 
-    def propagate(self, time: Array) -> Array:
+    @override
+    def propagate(self, times: Array) -> Array:
         """Propagate the system through time.
 
         Parameters
         ----------
-        time: Array
-            One-dimensional vector of timestamps.
+        times: Array
+            Array of times.
 
         Returns
         -------
@@ -65,12 +67,17 @@ class RandomPropagation(Propagation, Differentiable):
         """
         if self._auto_update:
             self.update()
-        return jnp.array([self._state] * len(time))
+        return jnp.array([self._state] * len(times))
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
+    @override
+    def get_value(self, times: Array) -> Array:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
         # Returns an empty gradient because the class has 0 parameters
         empty_gradient = jnp.zeros(shape=(len(times), 0, len(self._state)))
-        return self.propagate(times), empty_gradient
+        return empty_gradient
 
     @staticmethod
     @partial(jit, static_argnums=(0,))

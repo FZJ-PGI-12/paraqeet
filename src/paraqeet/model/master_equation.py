@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class MasterEquation(EquationOfMotion):
@@ -33,7 +33,7 @@ class MasterEquation(EquationOfMotion):
     def __init__(
         self,
         hamiltonian_func: Callable[[Array], Array],
-        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array | Float, Array]],
         jump_operators: list[Array],
     ):
         super().__init__(hamiltonian_func, hamiltonian_and_gradient_func)

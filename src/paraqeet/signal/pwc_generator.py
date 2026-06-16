@@ -339,8 +339,6 @@ class PWCGenerator(Generator):
             smoothing = self._compute_envelope(time_grid)
             index = jnp.argmin(jnp.abs(jnp.expand_dims(time_grid, axis=1) - times), axis=0)
             env = smoothing[index]
-            inphase *= env
-            outofphase *= env
         else:
             env = jnp.ones_like(times)
 

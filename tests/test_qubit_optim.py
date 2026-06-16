@@ -36,8 +36,8 @@ pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
 DRIVE = Drive(pauli_x, GEN)
 CONTROLLED_QUBIT.drives = [DRIVE]
 MODEL = SchroedingerEquation(
-    hamiltonian_func=CONTROLLED_QUBIT.get_hamiltonian,
-    hamiltonian_and_gradient_func=CONTROLLED_QUBIT.get_hamiltonian_and_gradient,
+    hamiltonian_func=CONTROLLED_QUBIT.get_value,
+    hamiltonian_and_gradient_func=CONTROLLED_QUBIT.get_value_and_gradient,
 )
 
 PROP = ScipyExpmGOAT(

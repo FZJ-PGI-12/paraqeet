@@ -28,7 +28,7 @@ def open_system(
         hamil.temp = Quantity(10e-3, 1e-3, 50e-3)
         hamil.t2star = Quantity(10e-9, 1e-9, 100e-6)
         jump_ops = hamil.get_jump_operators()
-        return MasterEquation(hamil.get_hamiltonian, hamil.get_hamiltonian_and_gradient, jump_ops)
+        return MasterEquation(hamil.get_value, hamil.get_value_and_gradient, jump_ops)
 
     return _method
 

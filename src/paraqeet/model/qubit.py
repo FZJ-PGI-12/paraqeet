@@ -94,7 +94,7 @@ class Qubit(OpenSystem):
 
     @override
     def get_value(self, times: Array) -> Array:
-        hamil_0 = -self.frequency.get_value() * self._pauli_z / 2
+        hamil_0 = (-self.frequency.get_value() * self._pauli_z / 2) * jnp.ones((*times.shape, 1, 1))
         hamil = hamil_0 + self.get_drive_matrix(times)
         return hamil
 

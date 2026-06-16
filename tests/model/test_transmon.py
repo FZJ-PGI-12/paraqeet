@@ -86,8 +86,8 @@ def open_transmon():
     transmon.temp = TEMP
     transmon.t2star = T2STAR
     model = MasterEquation(
-        hamiltonian_func=transmon.get_hamiltonian,
-        hamiltonian_and_gradient_func=transmon.get_hamiltonian_and_gradient,
+        hamiltonian_func=transmon.get_value,
+        hamiltonian_and_gradient_func=transmon.get_value_and_gradient,
         jump_operators=transmon.get_jump_operators(),
     )
 
@@ -125,7 +125,7 @@ def test_get_hamiltonian(hamiltonian, time_samples):
     """Test the get_hamiltonian method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
-        hams = hamil.get_hamiltonian(time_samples)
+        hams = hamil.get_value(time_samples)
         assert hams.shape == time_samples.shape + (dim, dim)
 
 

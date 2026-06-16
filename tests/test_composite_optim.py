@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.composite_system import CompositeSystem
-from paraqeet.model.coupling import TwoBodyCoupling
+from paraqeet.model.coupling import Coupling
 from paraqeet.model.drive import Drive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.model.transmon import Transmon
@@ -116,11 +116,14 @@ def coupled_transmons(tone):
     drive2 = Drive(drive_op2, generator2)
     transmon2.drives = [drive2]
 
-    coupling = TwoBodyCoupling(
-        transmon1,
-        transmon2,
-        is_longitudinal=False,
-        coefficient=Quantity(
+    coupling_op = np.kron(
+        transmon1.annihilation_op + transmon1.annihilation_op.conj().T,
+        transmon2.annihilation_op + transmon2.annihilation_op.conj().T,
+    )
+
+    coupling = Coupling(
+        coupling_op,
+        g_abs=Quantity(
             COUPLINGSTR,
             np.array(0.8 * COUPLINGSTR),
             np.array(1.2 * COUPLINGSTR),
@@ -128,8 +131,15 @@ def coupled_transmons(tone):
         ),
     )
     hamiltonian = CompositeSystem([transmon1, transmon2], [coupling])
-    model = SchroedingerEquation(hamiltonian)
-    prop = ScipyExpmGOAT(model=model, resolution=RES)
+    model = SchroedingerEquation(
+        hamiltonian_func=hamiltonian.get_value, hamiltonian_and_gradient_func=hamiltonian.get_value_and_gradient
+    )
+    prop = ScipyExpmGOAT(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=100e9,
+        initial_state=np.identity(transmon1.dimension() * transmon2.dimension()),
+    )
 
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
     pauli_z = np.array([[1, 0], [0.0, -1]])
@@ -137,12 +147,11 @@ def coupled_transmons(tone):
     cr_gate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 
     cr_gate = pauli_zx @ cr_gate
-    prop.set_initial_state(np.identity(9))
     gate_fid = UnitaryFidelity(
-        propagation_func=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=cr_gate,
     )
-
     tone1_amp = tone1.get_parameters()[0]
 
     optmap = OptimizationMap()
