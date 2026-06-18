@@ -1,6 +1,6 @@
 """Utilies for model construction."""
 
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 import numpy as np
@@ -103,16 +103,12 @@ def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]):
 
 
 def construct_annihilation_op(dim: int):
-    """
-    Create bosonic annihilation operator for a system with dimensions `dim`
-    """
+    """Create bosonic annihilation operator for a system with dimensions `dim`."""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=1)
 
 
 def construct_creation_op(dim: int):
-    """
-    Create bosonic creation operator for a system with dimensions `dim`
-    """
+    """Create bosonic creation operator for a system with dimensions `dim`"""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=-1)
 
 
@@ -150,7 +146,6 @@ def construct_composite_basis_state(dims: tuple[int, ...], index: tuple[int, ...
         index : tuple[int, int]
             Index of the subsystem states as a tuple
     """
-
     if len(dims) != len(index):
         raise Exception("Length of dims and index must be same")
 

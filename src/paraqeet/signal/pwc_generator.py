@@ -2,7 +2,7 @@ from functools import partial
 from typing import override
 
 import jax.numpy as jnp
-from jax import jit, vmap
+from jax import jit
 from jax.scipy.special import erf
 
 from paraqeet.quantity import Array, Quantity
@@ -331,9 +331,6 @@ class PWCGenerator(Generator):
         """
         grads = []
         time_grid = self._time_grid
-
-        inphase = self._inphase.get_value()
-        outofphase = self._outofphase.get_value()
 
         if self._multiply_flat_top:
             smoothing = self._compute_envelope(time_grid)

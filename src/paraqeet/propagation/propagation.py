@@ -5,7 +5,6 @@ from collections.abc import Callable
 
 import jax.numpy as jnp
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.quantity import Array
 
 

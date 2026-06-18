@@ -11,7 +11,7 @@ from scipy.stats import unitary_group
 from paraqeet.differentiable import Differentiable
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array
 from tests.model.empty_hamiltonian import EmptySystem
 
 

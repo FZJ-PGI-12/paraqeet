@@ -6,7 +6,6 @@ import pytest
 
 from paraqeet.model.utils import (
     construct_annihilation_op,
-    construct_basis_state,
     construct_composite_basis_state,
     construct_creation_op,
     convert_state_to_dm,
@@ -66,9 +65,9 @@ def test_identity_operator(dim: int):
 
 # Tests for matrix sqrt for positive semi-definite operators
 def test_identity():
-    """sqrt(I) = I."""
-    I = jnp.eye(5)
-    np.testing.assert_allclose(matrix_sqrt_psd(I), I, atol=1e-6)
+    """sqrt(Identity) = Identity."""
+    Identity = jnp.eye(5)
+    np.testing.assert_allclose(matrix_sqrt_psd(Identity), Identity, atol=1e-6)
 
 
 def test_diagonal():

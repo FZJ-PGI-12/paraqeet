@@ -1,6 +1,6 @@
 """Class definition of the Bayesian Optimizer model."""
 
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 from bayes_opt import BayesianOptimization

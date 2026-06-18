@@ -1,7 +1,7 @@
 """optimize a dCRAB pulse by a Scipy gradient based optimizer."""
 
 import warnings
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 import numpy as np

@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 from typing import Protocol
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.quantity import Array, Float
 
 

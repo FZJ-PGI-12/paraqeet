@@ -13,7 +13,7 @@ from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.utils import construct_times
 from paraqeet.propagation.vern7 import Vern7
-from paraqeet.quantity import Array, Float
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 

@@ -1,6 +1,6 @@
 """Class definition for the Scipy optimizer gradient model."""
 
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 import numpy as np

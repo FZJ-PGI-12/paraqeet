@@ -1,8 +1,9 @@
 """Data class definition for the optimization result object."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from paraqeet.file_logger import Logger
 from paraqeet.optimization_map import OptimizationMap
