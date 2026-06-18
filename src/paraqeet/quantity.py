@@ -15,7 +15,7 @@ import numpy as np
 from paraqeet.exceptions import IncompatibleQuantityException
 
 type Array = np.typing.NDArray[np.float64] | np.typing.NDArray[np.complexfloating] | jax.Array
-type Float = float | jaxtyping.Float[jaxtyping.Array, ""]
+type Float = float | jaxtyping.Float[jaxtyping.Array, ""]  # noqa F722
 jax.config.update("jax_enable_x64", True)
 
 
