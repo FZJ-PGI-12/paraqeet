@@ -50,7 +50,7 @@ class NormalizableMeasurement(Measurement):
     """
 
     @abstractmethod
-    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure the normalized observable.
 
         Returns a single scalar value between 0 and 1.
@@ -58,7 +58,7 @@ class NormalizableMeasurement(Measurement):
 
         Parameters
         ----------
-        times : Array | Float
+        times : Array
             One-dimensional vector of timestamps.
         projection : Array | None
             The projector matrix to restrict the operator.
