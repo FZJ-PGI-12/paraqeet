@@ -70,7 +70,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
         indices = jnp.arange(0, num_pwc - 1)
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
-        return 0.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff
+        return 1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff
 
     @override
     def measure(self, times: Array) -> Float:
