@@ -54,9 +54,6 @@ class EquationOfMotion(ABC):
         """
         pass
 
-    # TODO: Since this method delegates the call to the Hamiltonian-instance, should
-    # we rename it to get_habiltonian_value_and_gradient or similar? Otherwise it suggests
-    # that it returns the gradient of the equation of motion itself.
     @abstractmethod
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Implement the gradient of the equation of motion.

@@ -76,8 +76,6 @@ class Smoothness(NormalizableMeasurement, Differentiable):
     def measure(self, times: Array) -> Float:
         return self.get_value(times)
 
-    # TODO: This should depend on the internal time grid and not on the input time value.
-    # This means that the `times` should just be a float.
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         return self.get_value(times)

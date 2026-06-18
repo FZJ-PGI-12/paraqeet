@@ -140,7 +140,6 @@ class CompositeSystem(System):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for one_index, subsystem in enumerate(self._subsystems):
-            # TODO: Fix typing
             # ignoring mypy due to vmap
             sub_gradient = subsystem.get_gradient(times)  # type: ignore
             sub_gradient = tensor_product_with_identity([sub_gradient], [one_index], self._dimensions)

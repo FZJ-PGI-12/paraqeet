@@ -1,9 +1,4 @@
-# TODO: implement abstract class providing a method get_gradient
-
-# All signal generators are differentiable?
-# Is a default implementation possible? Not yet
-#  Subclasses of Measurement lacking the impelmentation of the gradient calculation are
-# NOT Differentiables? Yes
+# TODO - Is a default implementation possible? Not yet
 
 from abc import ABC, abstractmethod
 

@@ -35,7 +35,6 @@ class Resonator(OpenSystem):
         Dephasing time.
     """
 
-    # TODO: we should think about the composition here instead of inheritance from DifferentiableHamiltonian.
     def __init__(
         self,
         num_fock: int,
