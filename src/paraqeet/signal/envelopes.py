@@ -832,9 +832,8 @@ class DCRABEnvelope(Envelope):
                 phases[i],
                 min_value=jnp.array(-jnp.pi),
                 max_value=jnp.array(jnp.pi),
-                unit="Hz",
+                unit="rad",
                 name=f"CRAB Re Phase {i}",
-                two_pi=True,
             )
             for i in range(self._num_components)
         ]
@@ -847,9 +846,8 @@ class DCRABEnvelope(Envelope):
                 phases[i],
                 min_value=jnp.array(-jnp.pi),
                 max_value=jnp.array(jnp.pi),
-                unit="Hz",
+                unit="rad",
                 name=f"CRAB Im Phase {i}",
-                two_pi=True,
             )
             for i in range(self._num_components)
         ]
@@ -936,9 +934,8 @@ class DCRABEnvelope(Envelope):
                     phases[i],
                     min_value=jnp.array(-jnp.pi),
                     max_value=jnp.array(jnp.pi),
-                    unit="Hz",
+                    unit="rad",
                     name=f"CRAB Re Phase {i + self._total_num_components}",
-                    two_pi=True,
                 )
                 for i in range(self._num_components)
             ]
@@ -988,9 +985,8 @@ class DCRABEnvelope(Envelope):
                     phases[i],
                     min_value=jnp.array(-jnp.pi),
                     max_value=jnp.array(jnp.pi),
-                    unit="Hz",
+                    unit="rad",
                     name=f"CRAB Im phase {i + self._total_num_components}",
-                    two_pi=True,
                 )
                 for i in range(self._num_components)
             ]

@@ -77,7 +77,9 @@ class Propagation(ABC):
         """
         t0 = time[ti - 1]
         t1 = time[ti]
-        steps = int(np.ceil((t1 - t0) * self.resolution))
+        steps = int(np.floor((t1 - t0) * self.resolution + 0.5))
+        if steps == 0:
+            steps = 1
         times = jnp.linspace(t0, t1, steps, endpoint=False)
         if steps < 2:
             dt = t1 - t0
