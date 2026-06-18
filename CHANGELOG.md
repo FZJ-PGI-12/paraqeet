@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Functional interfaces in class constructor, enabling flexibility in model design and optimization.
+- Utility functions in each module (instead of static class methods)
+- Pedagogical example notebook for gradient evaluation 
+- Default callback method to `ScipyOptimizer` for printing optimization progress
+- A `Float` type that handles python floats and `jax` Float (Array of float). This can be used for `vmap` purposes.
+- Aliases for commonly used classes for easier imports 
+- Working example for optimization with QuTiP based objects (with a few wrappers)
+- `get_gradient` method to Differentiable classes
+- Type Hinting for measurement, Generator classes
+
+
+### Changed
+- Constructor of model, propagation, measurement, and optimizer classes
+- Combined `StateTransferFidelity` with `StateTransferFidelityAD` classes, such that gradient of fidelity and overlap functions are automatically computed.
+- Coupling and Drive classes take operators from the user
+
+### Removed
+- `Tex-Gyre-Pagella` font from plotting
+- `get_value_at_timestep` and `get_value_and_gradient_at_timestep` methods. Replaced with vectorized code
+- `DifferentiablePropagation` class in favor of explicitly inheriting from `Differentiable`  
+
+
+
 ## [v0.11.0] - 2026-02-11
 
 ### Added
