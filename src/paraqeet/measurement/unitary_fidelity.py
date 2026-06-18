@@ -71,7 +71,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Gate fidelity as a single float.
 
         """
-        return float(jnp.abs(jnp.average(overlaps)) ** 2)
+        return (jnp.abs(jnp.average(overlaps)) ** 2).astype(float)
 
     @override
     def get_value(self, times: Array) -> Float:

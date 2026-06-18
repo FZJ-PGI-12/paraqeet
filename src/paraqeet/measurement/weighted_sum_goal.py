@@ -163,7 +163,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
                 sum_square_diff += (meas_a - meas_b) ** 2
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
-        return float(sum_meas)
+        return sum_meas
 
     @override
     def get_gradient(self, times: Array) -> Array:

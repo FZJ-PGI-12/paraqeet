@@ -50,7 +50,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
         Returns
         -------
-        float
+        Float
             The normalized sum of consecutive square differences in the pulse.
         """
         pulse = self._pwc_generator.get_value(times)
@@ -70,7 +70,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
         indices = jnp.arange(0, num_pwc - 1)
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
-        return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
+        return 0.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff
 
     @override
     def measure(self, times: Array) -> Float:
@@ -98,8 +98,8 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
         Returns
         -------
-        Tuple[float, Array]
-            Tuple of function value as bare float and gradient of shape (n_parameters,)
+        Tuple[Float, Array]
+            Tuple of function value as Float and gradient of shape (n_parameters,)
 
         """
         opt_pwc_params = self._pwc_generator.optimizable_parameters
