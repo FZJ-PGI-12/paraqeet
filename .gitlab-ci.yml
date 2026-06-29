@@ -81,7 +81,7 @@ codespell:
   stage: codestyle
   script:
     - pip install "codespell[toml]"
-    - codespell . 2>&1 | tee codespell-report.txt
+    - codespell --toml ./pyproject.toml 2>&1 | tee codespell-report.txt
   artifacts:
     when: always
     paths:
