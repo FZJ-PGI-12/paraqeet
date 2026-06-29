@@ -6,6 +6,10 @@ Single qubit gate optimization using GOAT over GRAPE
     import matplotlib.pyplot as plt
     import numpy as np
     
+    from paraqeet.model.drive import Drive
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
+    from paraqeet.model.transmon import Transmon
+    from paraqeet.quantity import Quantity
     from paraqeet.signal.pwc_generator import PWCGenerator
     from paraqeet.signal.waveform import DRAGMixer, FlatTopGaussianFilter
 
@@ -23,13 +27,8 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-    from paraqeet.model.transmon import Transmon
-    from paraqeet.quantity import Quantity
-    
     freq = 4e9 * 2 * np.pi
-    dims = 3
+    num_levels = 3
     anharm = -200e6 * 2 * np.pi
     offset = 2e6 * 2 * np.pi
     
@@ -102,7 +101,6 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    Drive = RotatingFrameDrive(gen)
     transmon = Transmon(
         frequency=Quantity(
             qubit_freq,
@@ -112,32 +110,44 @@ The Hamiltonain in the rotating frame of the drive is given by -
             name="Frequency",
         ),
         anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm, unit="Hz", name="Anharmonicity"),
-        drives=[Drive],
-        dimension=dims,
+        drives=[],
+        num_levels=num_levels,
     )
     
-    model = ClosedSystem(transmon)
+    drive = Drive(transmon.annihilation_op, gen, add_hermitian=True)
+    transmon.drives = [drive]
+    
+    model = SchroedingerEquation(
+        hamiltonian_func=transmon.get_value, hamiltonian_and_gradient_func=transmon.get_value_and_gradient
+    )
 
 .. code:: ipython3
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+    from paraqeet.measurement.utils import overlap_state_vector
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-    
-    prop = ScipyExpmGRAPE(model, resolution=1e9)
+    from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0], [0]])  # |0>
     target = np.array([[0.0], [1.0], [0]])  # |1>
     
-    prop.set_initial_state(init)
-    prop.set_target_state(target)
     times = np.array([0.0, t_final])
     
+    prop = ScipyExpmGRAPE(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=1e9,
+        initial_state=init,
+        target_state=target,
+        operator_sandwich_function=grape_operator_sandwich_function_closed,
+    )
     prop.use_schirmer_derivative = True
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
-        initial_state=init,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         target_state=target,
+        overlap=overlap_state_vector,
     )
 
 .. code:: ipython3
@@ -145,11 +155,20 @@ The Hamiltonain in the rotating frame of the drive is given by -
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_10_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_10_1.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -163,7 +182,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    0.7434255669360508
+    Array(0.74342557, dtype=float64)
 
 
 
@@ -195,17 +214,15 @@ Optimization
 
     from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
     from paraqeet.optimization_map import OptimizationMap
-    from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     
     optmap = OptimizationMap()
     optmap.add(filtered_tone)
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, propagation=prop, generators=[gen])
+    goat = GOATOverGRAPE(zeroone, propagation_resolution=prop.resolution, generators=[gen])
     
-    opt = ScipyOptimizer(goat, optimization_map=optmap)
-    optgrad = ScipyOptimizerGradient(goat, optimization_map=optmap)
+    optgrad = ScipyOptimizerGradient(measure_and_gradient_func=goat.get_value_and_gradient, optimization_map=optmap)
 
 .. code:: ipython3
 
@@ -227,19 +244,67 @@ Optimization
     optgrad.optimize(np.array([0.0, t_final]))
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 3.691359e-03
+    Iteration    2 | Infid = 3.425165e-03
+    Iteration    3 | Infid = 3.343533e-03
+    Iteration    4 | Infid = 3.274070e-03
+    Iteration    5 | Infid = 3.099736e-03
+    Iteration    6 | Infid = 2.971867e-03
+    Iteration    7 | Infid = 2.930071e-03
+    Iteration    8 | Infid = 2.920853e-03
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0026361558796704765, 'iterations': 46, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    Iteration    9 | Infid = 2.913038e-03
+    Iteration   10 | Infid = 2.888190e-03
+    Iteration   11 | Infid = 2.716150e-03
+    Iteration   12 | Infid = 2.688922e-03
+
+
+.. parsed-literal::
+
+    Iteration   13 | Infid = 2.667013e-03
+    Iteration   14 | Infid = 2.649782e-03
+    Iteration   15 | Infid = 2.647345e-03
+    Iteration   16 | Infid = 2.646974e-03
+    Iteration   17 | Infid = 2.646913e-03
+
+
+.. parsed-literal::
+
+    Iteration   18 | Infid = 2.646869e-03
+
+
+.. parsed-literal::
+
+    Iteration   19 | Infid = 2.646869e-03
+
+
+
+
+.. parsed-literal::
+
+    {'status': 1, 'value': 0.0026468690799831274, 'iterations': 46, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_19_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_19_1.png
 

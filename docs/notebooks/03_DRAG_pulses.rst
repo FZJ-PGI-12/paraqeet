@@ -8,8 +8,8 @@ First, we make the necessary imports.
     import numpy as np
     
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.drive_operator import DriveOperator
+    from paraqeet.model.drive import Drive
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.model.transmon import Transmon
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
@@ -55,9 +55,7 @@ corrected signal in the DRAGMixer
     freq = 4.8e9 * 2 * np.pi
     anhar = -200e6 * 2 * np.pi
     
-    qubit_levels = 3
-    
-    drive = DriveOperator(gen, is_longitudinal=False)
+    num_levels = 3
     controlled_transmon = Transmon(
         frequency=Quantity(
             freq,
@@ -73,16 +71,27 @@ corrected signal in the DRAGMixer
             unit="Hz",
             name="Qubit anharmonicity",
         ),
-        dimension=qubit_levels,
-        drives=[drive],
+        num_levels=num_levels,
+        drives=[],
     )
     
-    model = ClosedSystem(controlled_transmon)
+    drive_op = controlled_transmon.annihilation_op + (controlled_transmon.annihilation_op).conj().T
+    drive = Drive(drive_op, gen)
+    controlled_transmon.drives = [drive]
+    
+    model = SchroedingerEquation(
+        hamiltonian_func=controlled_transmon.get_value,
+        hamiltonian_and_gradient_func=controlled_transmon.get_value_and_gradient,
+    )
     
     params = gen.get_parameters()
     
-    prop = ScipyExpmGOAT(model, resolution=500e9)
-    prop.set_initial_state(np.eye(qubit_levels))
+    prop = ScipyExpmGOAT(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=100e9,
+        initial_state=np.eye(num_levels),
+    )
 
 .. code:: ipython3
 
@@ -146,7 +155,8 @@ reference defined above is used.
 .. code:: ipython3
 
     gate_fid = UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=rx(np.pi / 2),
     )
 
@@ -158,11 +168,20 @@ population transfer,i.e., an X-gate.
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 1001)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_15_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_15_1.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -177,7 +196,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    0.9729714831357765
+    Array(0.97379736, dtype=float64)
 
 
 
@@ -194,18 +213,47 @@ and the parameters of the cosine tone.
     for i in [0, 2, 3, 4]:
         selected_params.append(params[i])
     optmap.add(gen, selected_params)
-    opt = ScipyOptimizer(gate_fid, optimization_map=optmap)
+    opt = ScipyOptimizer(measure_func=gate_fid.measure, optimization_map=optmap)
 
 .. code:: ipython3
 
     opt.optimize(times)
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 2.608488e-02
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.005761021428613344, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    Iteration    2 | Infid = 2.024433e-02
+    Iteration    3 | Infid = 5.765745e-03
+
+
+.. parsed-literal::
+
+    Iteration    4 | Infid = 5.762506e-03
+
+
+.. parsed-literal::
+
+    Iteration    5 | Infid = 5.762154e-03
+    Iteration    6 | Infid = 5.760993e-03
+    Iteration    7 | Infid = 5.760922e-03
+
+
+.. parsed-literal::
+
+    Iteration    8 | Infid = 5.760912e-03
+    Iteration    9 | Infid = 5.760910e-03
+
+
+
+
+.. parsed-literal::
+
+    {'status': 1, 'value': 0.005760910023328569, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -226,10 +274,10 @@ Print all parameters that were optimized.
 
                Name:                Value                  Min                  Max
     --------------------------------------------------------------------------------
-          Amplitude:         2.446315e+08         0.000000e+00         1.000000e+09
-              Delta:        -2.495595e+09        -3.769911e+09        -1.256637e+08
-            lo_freq:         3.015945e+10         2.412743e+10         3.619115e+10
-              Phase:         1.380402e-03        -3.141593e+00         3.141593e+00
+          Amplitude:         2.455094e+08         0.000000e+00         1.000000e+09
+              Delta:        -2.493769e+09        -3.769911e+09        -1.256637e+08
+            lo_freq:         3.015935e+10         2.412743e+10         3.619115e+10
+              Phase:         3.539781e-04        -3.141593e+00         3.141593e+00
 
 
 Plot final pulse shape and population transfer. Target is the full
@@ -237,11 +285,20 @@ population transfer,i.e., an X-gate.
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_24_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 03_DRAG_pulses_files/03_DRAG_pulses_24_1.png
 
 
 We can see from the plot and optimizer output that we have found better
@@ -257,6 +314,6 @@ smaller than initially.
 
 .. parsed-literal::
 
-    0.9942389785757956
+    Array(0.99423909, dtype=float64)
 
 

@@ -71,13 +71,34 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    opt = ScipyOptimizerGradient(smoothness, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=smoothness.get_value_and_gradient, optimization_map=optmap)
     max_iter = 200
     opt.set_options({"maxiter": max_iter})
 
 .. code:: ipython3
 
     opt.optimize(ts)
+
+
+.. parsed-literal::
+
+    Iteration    1 | Infid = 3.521878e-06
+    Iteration    2 | Infid = 8.218050e-07
+    Iteration    3 | Infid = 7.482841e-07
+    Iteration    4 | Infid = 7.037571e-07
+    Iteration    5 | Infid = 5.844981e-07
+
+
+.. parsed-literal::
+
+    Iteration    6 | Infid = 4.565950e-07
+    Iteration    7 | Infid = 2.771197e-07
+    Iteration    8 | Infid = 2.486787e-07
+    Iteration    9 | Infid = 8.115540e-08
+    Iteration   10 | Infid = 3.831392e-08
+    Iteration   11 | Infid = 1.038865e-08
+    Iteration   12 | Infid = 6.700992e-09
+    Iteration   13 | Infid = 1.164915e-09
 
 
 
@@ -97,7 +118,7 @@ We can check that the gradient has the correct shape
 
 .. parsed-literal::
 
-    0.9999999988350848
+    Array(1., dtype=float64)
 
 
 
@@ -110,7 +131,7 @@ We can check that the gradient has the correct shape
 
 .. parsed-literal::
 
-    (0.9999999988350848,
+    (Array(1., dtype=float64),
      Array([-1.00058440e-14,  2.15090019e-13, -1.21393925e-13, -3.56757831e-14,
              4.32685927e-14, -9.68587243e-14, -4.40413453e-14, -1.06365887e-14,
              1.05700111e-13, -1.52029507e-13,  4.58424060e-14, -7.35246762e-14,
@@ -136,11 +157,19 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    plot_signal(gen_qubit, ts, linestyle="--", label="PWC");
+    plot_signal(gen_qubit, ts, linestyle="--", label="PWC")
 
 
 
-.. image:: 08A_Smoothness_measure_files/08A_Smoothness_measure_12_0.png
+
+.. parsed-literal::
+
+    <Axes: xlabel='Time [ns]', ylabel='Amplitude [MHz / $2\\pi$]'>
+
+
+
+
+.. image:: 08A_Smoothness_measure_files/08A_Smoothness_measure_12_1.png
 
 
 As expected obtain a flat pulse.

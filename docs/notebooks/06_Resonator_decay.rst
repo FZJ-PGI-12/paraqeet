@@ -12,8 +12,8 @@ example.
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive_operator import DriveOperator
-    from paraqeet.model.open_system import OpenSystem
+    from paraqeet.model.drive import Drive
+    from paraqeet.model.master_equation import MasterEquation
     from paraqeet.model.resonator import Resonator
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ZeroEnvelope
@@ -32,18 +32,26 @@ Exponentiating the full Lindbladian super-operator
 .. code:: ipython3
 
     freq = 6.02e9 * 2 * np.pi
-    dims = 5
+    num_fock = 5
     
-    drive = DriveOperator(gen, is_longitudinal=False)
     resonator = Resonator(
         frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
-        drives=[drive],
-        dimension=dims,
+        drives=[],
+        num_fock=num_fock,
         t1=Quantity(value=10e-9, min_value=10e-9, max_value=1000e-9, unit="s"),
         t2star=Quantity(value=50e-7, min_value=10e-9, max_value=100e-6, unit="s"),
         temp=Quantity(value=50e-3, min_value=10e-3, max_value=10e-2, unit="K"),
     )
-    model = OpenSystem(resonator)
+    
+    drive_op = resonator.annihilation_op + (resonator.annihilation_op).conj().T
+    drive = Drive(drive_op, gen)
+    resonator.drives = [drive]
+    
+    model = MasterEquation(
+        hamiltonian_func=resonator.get_value,
+        hamiltonian_and_gradient_func=resonator.get_value_and_gradient,
+        jump_operators=resonator.get_jump_operators(),
+    )
 
 1. Fock state decay -
 ~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +73,7 @@ Exponentiating the full Lindbladian super-operator
         return state
     
     
-    init_dm = generate_basis_state(dims, 4, dm=True)
+    init_dm = generate_basis_state(num_fock, 4, dm=True)
     init_dm
 
 
@@ -84,23 +92,34 @@ Exponentiating the full Lindbladian super-operator
 .. code:: ipython3
 
     from paraqeet.propagation.scipy_expm import ScipyExpm
+    from paraqeet.propagation.utils import convert_dm_to_vec
     
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = ScipyExpm(model, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = ScipyExpm(eom_func=model.get_value, resolution=100e9, initial_state=convert_dm_to_vec(init_dm))
 
 .. code:: ipython3
 
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
+    plot_signal_and_dynamics(
+        gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True, vectorized_dm=True
+    )
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_9_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_9_1.png
 
 
 2. Coherent state decay -
@@ -141,7 +160,7 @@ Exponentiating the full Lindbladian super-operator
         return state
     
     
-    coherent_state = generate_coherent_state(dims, 1.5, dm=True)
+    coherent_state = generate_coherent_state(num_fock, 1.5, dm=True)
 
 plot coherent state populations
 
@@ -208,11 +227,11 @@ plot coherent state populations
 
 .. code:: ipython3
 
-    state_labels = [(i,) for i in range(dims)]
+    state_labels = [(i,) for i in range(num_fock)]
     
     plot_population_distribution(
         states=[coherent_state],
-        dims=(dims,),
+        dims=(num_fock,),
         state_labels=state_labels,
         dm=True,
         labels=[r"$|\alpha\rangle$"],
@@ -233,14 +252,23 @@ plot coherent state populations
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = ScipyExpm(model, resolution=100e9)
-    prop.set_initial_state(coherent_state)
-    
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
+    prop = ScipyExpm(eom_func=model.get_value, resolution=100e9, initial_state=convert_dm_to_vec(coherent_state))
+    plot_signal_and_dynamics(
+        gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True, vectorized_dm=True
+    )
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_15_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_15_1.png
 
 
 2. Using ``Vern7``
@@ -248,31 +276,40 @@ plot coherent state populations
 
 Using ODE solver to compute the state
 
-Set ``model.ode_propagation = True``
-
-.. code:: ipython3
-
-    model.ode_propagation = True
-
 1. Fock state decay -
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
+    from paraqeet.propagation.utils import lindblad_step
     from paraqeet.propagation.vern7 import Vern7
     
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
-    init_dm = generate_basis_state(dims, 4, dm=True)
+    init_dm = generate_basis_state(num_fock, 4, dm=True)
     
-    prop = Vern7(model, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = Vern7(
+        eom_func=model.get_eom_ode_propagation,
+        resolution=100e9,
+        initial_state=init_dm,
+        step_function=lindblad_step,
+        jump_operators=resonator.get_jump_operators(),
+    )
     
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True)
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_20_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_18_1.png
 
 
 2. Coherent state decay
@@ -280,13 +317,13 @@ Set ``model.ode_propagation = True``
 
 .. code:: ipython3
 
-    coherent_state = generate_coherent_state(dims, 1.5, dm=True)
+    coherent_state = generate_coherent_state(num_fock, 1.5, dm=True)
     
-    state_labels = [(i,) for i in range(dims)]
+    state_labels = [(i,) for i in range(num_fock)]
     
     plot_population_distribution(
         states=[coherent_state],
-        dims=(dims,),
+        dims=(num_fock,),
         state_labels=state_labels,
         dm=True,
         labels=[r"$|\alpha\rangle$"],
@@ -299,7 +336,7 @@ Set ``model.ode_propagation = True``
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_22_0.png
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_20_0.png
 
 
 .. code:: ipython3
@@ -307,12 +344,26 @@ Set ``model.ode_propagation = True``
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = Vern7(model, resolution=100e9)
-    prop.set_initial_state(coherent_state)
+    prop = Vern7(
+        eom_func=model.get_eom_ode_propagation,
+        resolution=100e9,
+        initial_state=coherent_state,
+        step_function=lindblad_step,
+        jump_operators=resonator.get_jump_operators(),
+    )
     
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(dims)]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True)
 
 
 
-.. image:: 06_Resonator_decay_files/06_Resonator_decay_23_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 06_Resonator_decay_files/06_Resonator_decay_21_1.png
 
