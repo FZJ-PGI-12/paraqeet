@@ -154,7 +154,7 @@ of the time grid used for discretization. In this case
 .. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_12_0.png
 
 
-3. Optimisation
+3. Optimization
 ---------------
 
 Finally, we define the ``DCRABOptimizerGradient`` that takes the

@@ -20,7 +20,7 @@ jax.config.update("jax_enable_x64", True)
 class Waveform(Optimizable, Differentiable):
     """Classical electronics."""
 
-    # AC: the following annotation does not seem neded / correct.
+    # AC: the following annotation does not seem needed / correct.
     _partial_grads_function: Callable | None = None
     _gradient_function: Callable | None = None
     _grad_arg_nums: tuple[int, ...] = ()

@@ -123,7 +123,7 @@ def test_access_to_all_optimizables_parameters(optmap, dummy_optimizable) -> Non
 def test_no_initial_parameters() -> None:
     """Test for initial parameters for a map.
 
-    After initialisation, the map should not contain any
+    After initialization, the map should not contain any
     optimizables or parameters.
 
     """

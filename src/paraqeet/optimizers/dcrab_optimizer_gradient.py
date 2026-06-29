@@ -44,7 +44,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     _num_print_every: int
         Print every this many iterations the current optimization value. Defaults to 5.
     _old_parameters_dict : dict[int, list[Quantity]]
-        Store the parameters of the previous super-iteration in a dictionary labelled by the number of parameters.
+        Store the parameters of the previous super-iteration in a dictionary labeled by the number of parameters.
 
     Parameters
     ----------

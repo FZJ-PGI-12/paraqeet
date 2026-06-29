@@ -191,7 +191,7 @@ class ComplexIQMixer(Generator):
 class IQMixer(ComplexIQMixer):
     """Control signal generation.
 
-    Waveforms of envelopes (low bandwith) are mixed with a local oscillator
+    Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired real control field to the system.
 
     Parameters

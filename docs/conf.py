@@ -11,7 +11,7 @@ config = SphinxConfig("../pyproject.toml", globalns=globals(), config_overrides=
 # Install package in editable mode so autodoc can import modules
 
 extensions = [
-    "sphinx.ext.napoleon",  # to parse numpy stye python docstrings
+    "sphinx.ext.napoleon",  # to parse numpy style python docstrings
     "sphinx.ext.mathjax",  # to include math expressions in the .rst files
     "nbsphinx",  # to include jupyter notebooks,
     "IPython.sphinxext.ipython_console_highlighting",
@@ -83,6 +83,7 @@ templates_path = ["_templates"]
 
 
 def linkcode_resolve(domain, info):
+    """Resolve link for source code"""
     if domain != "py" or not info["module"]:
         return None
 

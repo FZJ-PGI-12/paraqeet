@@ -1,4 +1,4 @@
-"""Utilies for model construction."""
+"""Utilities for model construction."""
 
 from collections.abc import Callable
 
