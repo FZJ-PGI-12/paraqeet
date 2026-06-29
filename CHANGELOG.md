@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Templates for module documentation
 - CI/CD pipeline to test docs compilation
 - Added CONTRIBUTING.md to the documentation
+- Added codespell to pre-commit and CI
 
 ### Changed
 - Streamlined API documentation build using sphinx.autodoc and sphinx.autosummary

@@ -77,6 +77,17 @@ formatting-and-linting:
   allow_failure: true
   tags: [docker, light]
 
+codespell:
+  stage: codestyle
+  script:
+    - codespell . 2>&1 | tee codespell-report.txt
+  artifacts:
+    when: always
+    paths:
+      - codespell-report.txt
+  allow_failure: true
+  tags: [docker, light]
+
 
 examples:
   stage: tests
