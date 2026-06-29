@@ -5,19 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.11.1] - 2026-03-27
-
-### Added
-- New documentation theme - pydata sphinx theme - similar to Matplotlib and Numpy
-- Templates for module documentation
-- CI/CD pipeline to test docs compilation
-- Added CONTRIBUTING.md to the documentation
-- Added codespell to pre-commit and CI
-
-### Changed
-- Streamlined API documentation build using sphinx.autodoc and sphinx.autosummary
-- Fixed spellings using codespell
-
+## Unreleased
 
 ### Added
 - Functional interfaces in class constructor, enabling flexibility in model design and optimization.
@@ -29,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Working example for optimization with QuTiP based objects (with a few wrappers)
 - `get_gradient` method to Differentiable classes
 - Type Hinting for measurement, Generator classes
+- Spellchecking to pre-commit and CI/CD
 
 
 ### Changed
@@ -41,6 +30,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_value_at_timestep` and `get_value_and_gradient_at_timestep` methods. Replaced with vectorized code
 - `DifferentiablePropagation` class in favor of explicitly inheriting from `Differentiable`  
 
+
+## [v0.11.1] - 2026-03-27
+
+### Added
+- New documentation theme - pydata sphinx theme - similar to Matplotlib and Numpy
+- Templates for module documentation
+- CI/CD pipeline to test docs compilation
+- Added CONTRIBUTING.md to the documentation
+
+### Changed
+- Streamlined API documentation build using sphinx.autodoc and sphinx.autosummary
+- Fixed spellings using codespell
 
 
 ## [v0.11.0] - 2026-02-11
