@@ -41,7 +41,7 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
-    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,
