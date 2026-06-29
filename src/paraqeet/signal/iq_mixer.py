@@ -127,12 +127,12 @@ class ComplexIQMixer(Generator):
         Since the
 
         .. math::
-            signal = \\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi)
+            signal = \epsilon(t)^*  \exp(i \omega t)  \exp(-i \phi)
 
         The derivative of the signal with respect to a real parameter p is
 
         .. math::
-            \\frac{\\partial}{\\partial p} z = \\frac{\\partial z}{\\partial p}
+            \frac{\partial}{\partial p} z = \frac{\partial z}{\partial p}
 
         Parameters
         ----------

@@ -44,7 +44,8 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         factor is the number of piecewise constants minus 1 time sthe maximum
         difference squared.
 
-        Parameters:
+        Parameters
+        ----------
         times: Array
             Array of times
 
@@ -82,17 +83,17 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
     @override
     def get_gradient(self, times: Array) -> Array:
-        """Compute the gradient
+        """Compute the gradient.
 
         Compute with respect to all parameters in the optimization map.
         For parameters that are not in the passed PWCGenerator the partial derivative
         is simply zero.
 
-        Parameters:
+        Parameters
+        ----------
         times: Array
             Array of times. Not accessed, but we leave it for consistency with
             the abstract get_gradient method.
-
 
         Returns
         -------

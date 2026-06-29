@@ -88,12 +88,12 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
-        .. math::
-            \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
         and open system involves
-        .. math::
-            \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
         """
         return self._operator_sandwich_function
 
@@ -195,7 +195,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         ham: Array
             -iHdt
         dh_dp: Array
-            -i\\frac{\\partial H}{\\partial u} dt
+            -i\frac{\partial H}{\partial u} dt
         """
         return expm_frechet(ham, dh_dp)
 
@@ -209,7 +209,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         ham : Array
             -iHdt
         dh_dp : Array
-            -i\\frac{\\partial H}{\\partial u} dt
+            -i\frac{\partial H}{\partial u} dt
         """
         zeros = jnp.zeros_like(ham)
         h_extended = jnp.block([[ham, dh_dp], [zeros, ham]])

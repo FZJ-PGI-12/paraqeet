@@ -113,14 +113,14 @@ def construct_creation_op(dim: int):
 
 
 def construct_basis_state(dim: int, index: int) -> Array:
-    """Generate pure basis state for a single system.
+    r"""Generate pure basis state for a single system.
 
     Parameters
     ----------
     dim : int
         Dimension of the system.
     index : int
-        Index of the state, for e.g., for fock state |0>, index = 0.
+        Index of the state, for e.g., for fock state :math:`|0\rangle`, index = 0.
         Max index = dim - 1.
 
     Returns
@@ -171,8 +171,8 @@ def ntensor(Ops: list[Array]) -> Array:
     r"""Tensor product of a list of operators in the left to right order.
 
     Returns the operator:
-    .. math::
-        ntensor[A1, A2, ..., AN] = A1 \\otimes A2 \\otimes ... \\otimes AN.""
+        .. math::
+            \text{ntensor}[A_1, A_2, ..., A_N] = A_1 \otimes A_2 \otimes ... \otimes A_N.
     """
     full_op = Ops[0]
     for op in Ops[1:]:
@@ -184,9 +184,10 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
     r"""Put the matrices mat_list into a tensor product at positions `n`.
 
     All other positions are identity matrices:
-    .. math::
-        1 \otimes \dots \otimes 1 \otimes mat_list_1 \otimes 1
-            \otimes \dots \otimes 1 \otimes mat_list_2 \dots
+        .. math::
+            1 \otimes \dots \otimes 1 \otimes \text{mat_list}_1 \otimes 1 \otimes
+            \dots \otimes 1 \otimes \text{mat_list}_2 \dots
+
     The dimensions are assumed to be the same as the subsystems.
 
     Parameters

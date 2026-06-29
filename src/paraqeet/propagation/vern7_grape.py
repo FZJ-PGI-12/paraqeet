@@ -35,17 +35,19 @@ class Vern7GRAPE(Vern7, Differentiable):
         Function that returns EOM and its gradient for an array of times.
     _target_state: Array
         Target state for backwards/reverse propagation for GRAPE.
-    _reverse_step_function: Callable
-        Reverse step function for the backwards propagation.
     _operator_sandwich_function: Callable
         Operator sandwich function to compute GRAPE gradients. It evaluates
+
         1. For closed system
             .. math::
-                \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
         2. For open system
             .. math::
-                \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+                \text{Tr}(\sigma(t) [H, \rho(t)])
+
+    _reverse_step_function: Callable
+        Reverse step function for the backwards propagation.
     """
 
     _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
@@ -103,12 +105,12 @@ class Vern7GRAPE(Vern7, Differentiable):
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
-        .. math::
-            \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
         and open system involves
-        .. math::
-            \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
         """
         return self._operator_sandwich_function
 

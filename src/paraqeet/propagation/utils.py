@@ -1,3 +1,5 @@
+"""Utility functions for propagation module."""
+
 import math
 
 import jax.numpy as jnp
@@ -75,9 +77,10 @@ def reverse_lindblad_step(state: Array, h: Array, cols: list[Array], *args, **kw
 
 @jit
 def grape_operator_sandwich_function_closed(ham_grads, fwd_prop_states, rev_prop_states):
-    r"""Operator sandwich function for GRAPE for closed system implementing
-    .. math::
-            \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+    r"""
+    Operator sandwich function for GRAPE for closed system implementing
+        .. math::
+            \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
     """
     fwd_multiply = vmap(jnp.matmul, in_axes=(0, 0))(ham_grads, fwd_prop_states)
     grad = vmap(jnp.matmul, in_axes=(0, 0))(rev_prop_states, fwd_multiply)
@@ -86,9 +89,10 @@ def grape_operator_sandwich_function_closed(ham_grads, fwd_prop_states, rev_prop
 
 @jit
 def grape_operator_sandwich_function_open(ham_grads, fwd_prop_states, rev_prop_states):
-    r"""Operator sandwich function for GRAPE for open system implementing
-    .. math::
-            \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+    r"""
+    Operator sandwich function for GRAPE for open system implementing
+        .. math::
+            \text{Tr}(\sigma(t) [H, \rho(t)])
     """
     fwd_multiply = vmap(commutator, in_axes=(0, 0))(ham_grads, fwd_prop_states)
     grad = vmap(jnp.matmul, in_axes=(0, 0))(rev_prop_states, fwd_multiply)
