@@ -133,3 +133,20 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+# Codespell for spell checking
+[tool.codespell]
+# Use US english convention
+builtin = "clear,rare,en-GB_to_en-US"
+
+# Words to allow even though they're in codespell's misspelling dictionary.
+# Comma-separated, lowercase, no spaces around commas.
+ignore-words-list = "fo,nd,wrd,thru,iam,te,ket,lamdas"
+
+# Files / directories / globs to skip.
+skip = "*.lock,*.csv,*.svg,,./.git,./build,./dist,./.venv,./docs/requirements.txt"
+
+# Optional quality-of-life settings
+check-filenames = true
+count = true
+quiet-level = 3
