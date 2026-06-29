@@ -12,7 +12,7 @@ from paraqeet.quantity import Array, Float
 
 @dataclass(repr=False)
 class OptimizationResult:
-    """Data class for respresenting optimization results.
+    """Data class for representing optimization results.
 
     Attributes
     ----------

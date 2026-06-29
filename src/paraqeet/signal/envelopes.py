@@ -1,4 +1,4 @@
-"""Class definition for the Evelopes."""
+"""Class definition for the Envelopes."""
 
 import time
 from collections.abc import Callable
@@ -198,7 +198,7 @@ class ConstantEnvelope(Envelope):
 
 
 class ZeroEnvelope(ConstantEnvelope):
-    """Shorthand implentation of a zero signal envelope.
+    """Shorthand implementation of a zero signal envelope.
 
     _amplitude: Quantity
         The amplitude of the envelope.
@@ -656,10 +656,12 @@ class DCRABEnvelope(Envelope):
     r"""Create a dCRAB pulse envelope.
 
     The dCRAB pulse is given as a sum of sinusoidal components as [Müller2022]
-    $$f(t) = g(t)\Big( 1 + \sum_{i=1}^{N_c / 2} c_{2i} \frac{\cos(\omega_{2i} t)}{\Lambda(t)}
-        + \sum_{i = 1} ^ {N_c/2} c_{2i + 1} \frac{sin(\omega_{2i + 1} t)}{\Lambda(t)} \Big)$$
 
-    Here we consider $g(t) = \Lambda(t) = 1$ for simplicity.
+    .. math::
+        f(t) = g(t)( 1 + \sum_{i=1}^{N_c / 2} c_{2i} \frac{\cos(\omega_{2i} t)}{\Lambda(t)}
+        + \sum_{i = 1} ^ {N_c/2} c_{2i + 1} \frac{\sin(\omega_{2i + 1} t)}{\Lambda(t)} )
+
+    Here we consider :math:`g(t) = \Lambda(t) = 1` for simplicity.
     Further, even components are for cosine and odd components are for sine.
     *Note - The function is designed to work well for even total number of components.
     For odd total number it may not work as expected.*
@@ -671,7 +673,7 @@ class DCRABEnvelope(Envelope):
     _t_final: Quantity
         The length in time of the envelope.
     _num_components: int
-        Number of components added each iteration to the dCRAB basis. Defaults to 2. Adviced to be an even number.
+        Number of components added each iteration to the dCRAB basis. Defaults to 2. Advised to be an even number.
     _total_num_components: int
         Total number of components in the current dCRAB basis. This is the number of coefficients
         or the number of frequencies present. NOT the sum of them.
@@ -805,9 +807,8 @@ class DCRABEnvelope(Envelope):
                 phases[i],
                 min_value=jnp.array(-jnp.pi),
                 max_value=jnp.array(jnp.pi),
-                unit="Hz",
+                unit="rad",
                 name=f"CRAB Re Phase {i}",
-                two_pi=True,
             )
             for i in range(self._num_components)
         ]
@@ -820,9 +821,8 @@ class DCRABEnvelope(Envelope):
                 phases[i],
                 min_value=jnp.array(-jnp.pi),
                 max_value=jnp.array(jnp.pi),
-                unit="Hz",
+                unit="rad",
                 name=f"CRAB Im Phase {i}",
-                two_pi=True,
             )
             for i in range(self._num_components)
         ]
@@ -835,8 +835,10 @@ class DCRABEnvelope(Envelope):
     @override
     def get_parameters(self):
         """Return the parameters of the CRAB signal.
+
         The parameters are arranged as follows,
-            [amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]
+        `[amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]`
+
         """
         params = [self.amplitude, self._t_final]
         params.extend(self._real_coefficients)
@@ -908,9 +910,8 @@ class DCRABEnvelope(Envelope):
                     phases[i],
                     min_value=jnp.array(-jnp.pi),
                     max_value=jnp.array(jnp.pi),
-                    unit="Hz",
+                    unit="rad",
                     name=f"CRAB Re Phase {i + self._total_num_components}",
-                    two_pi=True,
                 )
                 for i in range(self._num_components)
             ]
@@ -960,9 +961,8 @@ class DCRABEnvelope(Envelope):
                     phases[i],
                     min_value=jnp.array(-jnp.pi),
                     max_value=jnp.array(jnp.pi),
-                    unit="Hz",
+                    unit="rad",
                     name=f"CRAB Im phase {i + self._total_num_components}",
-                    two_pi=True,
                 )
                 for i in range(self._num_components)
             ]

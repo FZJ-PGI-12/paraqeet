@@ -137,8 +137,8 @@ As expected, we get a partial transfer and a low fidelity.
 
 
 
-3. Opimisation
---------------
+3. Optimization
+---------------
 
 We define an optimizer and link our fidelity measure as a goal function
 and the parameters of the cosine tone and optimize just amplitude and

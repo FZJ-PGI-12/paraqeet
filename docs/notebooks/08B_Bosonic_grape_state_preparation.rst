@@ -76,7 +76,7 @@ that the system starts in the initial state
 
 Let :math:`\varepsilon(t) = (\varepsilon_{r}(t), \varepsilon_{q}(t))`.
 For a fixed time :math:`T`, the system evolves to a state
-:math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t))  | \Psi_{\mathrm{initial}} \rangle`.
+:math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t)) | \Psi_{\mathrm{initial}} \rangle`.
 We thus want to maximize the state fidelity, i.e., the overlap between
 :math:`| \Psi_{\mathrm{target}} \rangle` and :math:`| \Psi(t) \rangle`:
 
@@ -205,7 +205,7 @@ numbers.
 
     def create_experiment(n_fock_truncation_list, fock_target):
         """
-        Create the inital and target states, for the given Fock numbers.
+        Create the initial and target states, for the given Fock numbers.
         Also create the propagations and measurements for the given truncation numbers and target Fock states.
         """
         resonator_list = []
@@ -447,8 +447,8 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    CPU times: user 2min 25s, sys: 941 ms, total: 2min 26s
-    Wall time: 40.4 s
+    CPU times: user 2min 57s, sys: 1.67 s, total: 2min 59s
+    Wall time: 47.7 s
 
 
 
@@ -617,8 +617,8 @@ truncation numbers
 
 .. parsed-literal::
 
-    CPU times: user 10h 17min 31s, sys: 30min 39s, total: 10h 48min 11s
-    Wall time: 15min 5s
+    CPU times: user 17h 36min 39s, sys: 31min 32s, total: 18h 8min 11s
+    Wall time: 23min 8s
 
 
 

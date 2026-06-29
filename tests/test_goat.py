@@ -54,7 +54,7 @@ def mode(request):
 def prop(gen, mode):
     """Solve the equation of motion.
 
-    By piecewise exponentation with the scipy package.
+    By piecewise exponentiation with the scipy package.
 
     """
     init = np.array([[1.0], [0.0]])

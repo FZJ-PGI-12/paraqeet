@@ -66,10 +66,10 @@ def plot_signal_and_dynamics(
     vectorized_dm: bool = False,
     tol: float | None = None,
 ):
-    """Plot the signal and the correspoding dynamics.
+    """Plot the signal and the corresponding dynamics.
 
     If fig or ax is provided then ax[0] is used to plot the signal and ax[1] for dynamics.
-    This can be used to plot multiple signals and dyanmics on the same plot.
+    This can be used to plot multiple signals and dynamics on the same plot.
     """
 
     def calculate_populations(states, open_system, vectorized_dm):

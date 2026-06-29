@@ -96,23 +96,23 @@ class PWCGenerator(Generator):
 
     @property
     def tlist(self) -> Array:
-        """Get time grid discritization for generating PWC pulse.
+        """Get time grid discretization for generating PWC pulse.
 
         Returns
         -------
         Array
-            Array of time points at which envelope is discritized.
+            Array of time points at which envelope is discretized.
         """
         return self._tlist
 
     @tlist.setter
     def tlist(self, tlist: Array) -> None:
-        """Set time grid discritization for generating PWC pulse.
+        """Set time grid discretization for generating PWC pulse.
 
         Parameters
         ----------
         tlist : Array
-            Array of time points at which envelope is discritized.
+            Array of time points at which envelope is discretized.
         """
         self._tlist = tlist
 
@@ -245,7 +245,7 @@ class PWCGenerator(Generator):
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimized.
 
-        Optimizable paramters can be inphase and out-of-phase.
+        Optimizable parameters can be inphase and out-of-phase.
 
         Parameters
         ----------

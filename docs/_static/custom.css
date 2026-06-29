@@ -4,3 +4,90 @@ div.nboutput img, div.nbinput img, .output_area img, .nboutput img, img {
     margin-left: auto;
     margin-right: auto;
 }
+/* ----------------------------- */
+/* Notebook-style output cells   */
+/* All outputs (code, literal, images) */
+/* ----------------------------- */
+
+/* Code outputs and literal-blocks */
+div.highlight-default,
+div.literal-block,
+div.figure {
+    background-color: #f6f8fa;           /* light neutral background */
+    border-left: 4px solid #0d6efd;      /* notebook accent border */
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    font-family: var(--font-monospace);
+    line-height: 1.4;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    position: relative;                  /* needed for label pseudo-element */
+}
+
+
+/* Text inside divs */
+div.highlight-default code,
+div.literal-block code {
+    background: none !important;
+    border: none !important;
+    color: #212529;
+    opacity: 0.95;
+    font-family: inherit;
+}
+
+/* Image outputs inside figure blocks */
+div.figure img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0.5rem auto;
+    border-radius: 6px;                 /* rounded corners to match panel */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* subtle shadow for depth */
+}
+
+/* Add a small "Output" label above all outputs */
+div.highlight-default::before,
+div.literal-block::before,
+div.figure::before {
+    content: "Output";
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #0d6efd;
+    margin-bottom: 0.25rem;
+}
+
+/* Dark mode support */
+html[data-theme="dark"] div.highlight-default,
+html[data-theme="dark"] div.literal-block,
+html[data-theme="dark"] div.figure {
+    background-color: #1e1e1e;
+    border-left-color: #4dabf7;
+    color: #ddd;
+}
+
+html[data-theme="dark"] div.highlight-default code,
+html[data-theme="dark"] div.literal-block code {
+    color: #ddd;
+}
+
+html[data-theme="dark"] div.figure img {
+    filter: brightness(0.95); /* slightly dim images in dark mode */
+}
+
+/* Increase spacing between header tabs */
+.navbar-nav {
+  gap: 1.5rem; /* modern browsers */
+}
+
+/* Fallback for older layouts */
+.navbar-nav .nav-item {
+  margin-right: 1.5rem;
+}
+
+/* Optional: adjust padding inside each tab */
+.navbar-nav .nav-link {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}

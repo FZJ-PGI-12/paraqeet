@@ -1,5 +1,7 @@
 """paraqeet: A quantum optimal control toolkit with simple parameter management."""
 
+import jax
+
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity, StateTransferFidelityGRAPE
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.model.master_equation import MasterEquation
@@ -11,6 +13,8 @@ from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
 from paraqeet.quantity import Array, Quantity
+
+jax.config.update("jax_enable_x64", True)
 
 # aliases
 OptMap = OptimizationMap

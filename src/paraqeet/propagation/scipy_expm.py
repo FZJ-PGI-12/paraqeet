@@ -18,7 +18,7 @@ jax.config.update("jax_enable_x64", True)
 class ScipyExpm(StatePropagation):
     """Piecewise matrix exponential propagation system.
 
-    Solve the equation of motion by piecewise exponentation with the
+    Solve the equation of motion by piecewise exponentiation with the
     Scipy package.
 
     Parameters

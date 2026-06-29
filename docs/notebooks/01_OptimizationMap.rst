@@ -90,7 +90,7 @@ The Optimization Map
 --------------------
 
 To handle the parameters of both tones, we make an
-``OptimizationMap``\ and add the parameters of the ``gen`` explcitely.
+``OptimizationMap``\ and add the parameters of the ``gen`` explicitly.
 
 .. code:: ipython3
 

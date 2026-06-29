@@ -24,17 +24,17 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
     sum_of_squares_options : dict | None
         A dictionary that contains information about how to include the
         sum of square differences in the cost function. If not None
-        the it must contain the following keys:
-        weight : float
+        then it must contain the following keys:
+
+        - weight : float
             The weight of the sum of square differences
-        meas_bool : list[bool]
+        - meas_bool : list[bool]
             A list of boolean of the same length as measurements. If
             an element is True then the corresponding measurement is included
             in the sum of square difference the goal function.
     measurement_in_sum_of_squares : list[Measurement] | None
         The list of measurements included in the sum of square difference cost
         function. It is None if sum_of_squares_options is None
-
 
     Raises
     ------

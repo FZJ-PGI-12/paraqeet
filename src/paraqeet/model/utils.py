@@ -185,8 +185,8 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
 
     All other positions are identity matrices:
     .. math::
-        1 \\otimes \\dots \\otimes 1 \\otimes mat_list_1 \\otimes 1
-            \\otimes \\dots \\otimes 1 \\otimes mat_list_2 \\dots
+        1 \otimes \dots \otimes 1 \otimes mat_list_1 \otimes 1
+            \otimes \dots \otimes 1 \otimes mat_list_2 \dots
     The dimensions are assumed to be the same as the subsystems.
 
     Parameters

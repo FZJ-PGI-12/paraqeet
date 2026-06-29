@@ -25,7 +25,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 class ScipyExpmGRAPE(ScipyExpm, Differentiable):
-    """Solve EOMs by piecewise exponentation via Scipy using GRAPE.
+    """Solve EOMs by piecewise exponentiation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
     GRAPE. Here, we use forward propagation of the initial state and backward
@@ -43,7 +43,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     _target_state: Array = None
         Target state for backward propagation.
     _schirmer_derivative: bool = False
-        If true, compute the gradient by Schirmer Derivative/Method of auxillary
+        If true, compute the gradient by Schirmer Derivative/Method of auxiliary
         matrix exponential. If false, use frechet derivative.
     """
 
@@ -126,7 +126,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         lamdas_t,
         steps_arr,
     ):
-        """Forward propagate inital state and backward propagate target state.
+        """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
@@ -160,7 +160,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         lamdas_t,
         steps_arr,
     ):
-        """Forward propagate inital state and backward propagate target state.
+        """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
@@ -202,7 +202,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     @staticmethod
     @partial(jit, static_argnums=(0,))
     def _exponentiate_schirmer(dim, ham, dh_dp):
-        r"""Exponentiate an auxilliary matrix to compute U and dU.
+        r"""Exponentiate an auxiliary matrix to compute U and dU.
 
         Parameters
         ----------
