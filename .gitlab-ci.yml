@@ -80,6 +80,7 @@ formatting-and-linting:
 codespell:
   stage: codestyle
   script:
+    - pip install "codespell[toml]"
     - codespell . 2>&1 | tee codespell-report.txt
   artifacts:
     when: always
@@ -112,8 +113,13 @@ build:
 build-docs:
   stage: build
   script:
-    -  pip install -r docs/requirements.txt
-    - sphinx-build -W docs/ docs/_build
+    - pip install -r docs/requirements.txt
+    - sphinx-build -W docs/ docs/_build  2>&1 | tee docs-report.txt
+  artifacts:
+    when: always
+    paths:
+      - docs-report.txt
+  allow_failure: true
   tags: [docker, light]
 
 

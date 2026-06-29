@@ -45,7 +45,6 @@ dev = [
   "pytest>=7.2.0",
   "pre-commit>=4.2.0",
   "ruff>=0.11.13",
-  "codespell>=2.4.1",
 ]
 test = [
   "pytest>=7.2.0",
@@ -145,7 +144,7 @@ builtin = "clear,rare,en-GB_to_en-US"
 ignore-words-list = "fo,nd,wrd,thru,iam,te,ket,lamdas"
 
 # Files / directories / globs to skip.
-skip = "*.lock,*.csv,*.svg,,./.git,./build,./dist,./.venv,./docs/requirements.txt"
+skip = "*.lock,*.csv,*.svg,./.git/*,./build/*,./dist/*,./.venv/*,./docs/requirements.txt"
 
 # Optional quality-of-life settings
 check-filenames = true
