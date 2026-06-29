@@ -31,6 +31,9 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     GRAPE. Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+
     The state propagations are done by the `ScipyExpm` method.
 
     _resolution: float
