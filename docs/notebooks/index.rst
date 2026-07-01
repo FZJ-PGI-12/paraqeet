@@ -6,7 +6,8 @@ We introduce the usage of the package with some examples. These are also availab
 .. toctree::
    :maxdepth: 1
 
-   01_OptimizationMap
+   01A_OptimizationMap
+   01B_Gradient_evaluation
    02A_Single_qubit_state_preparation
    02B_Single_qubit_gate
    02C_Qubit-bayesian-optimization
@@ -18,7 +19,8 @@ We introduce the usage of the package with some examples. These are also availab
    04C_Single_qubit_gate_GOAToverGRAPE
    05_Two-qubit-cross-resonance
    06_Resonator_decay
-   07_Custom_Hamiltonian
+   07A_Custom_Hamiltonian
+   07B_Modeling_using_QuTiP
    08A_Smoothness_measure
    08B_Bosonic_grape_state_preparation
    08C_Bosonic_grape_with_smooth_pulses
