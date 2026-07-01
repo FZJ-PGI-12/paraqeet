@@ -31,8 +31,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     propagation_func: Callable[[Array], Array]
         Function that evaluates the propagation of some initial state.
         Expected to be of the form `func(t: Array) -> states: Array`.
-    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
-        Function returning the propagated states and their gradients.
+    propagation_and_gradient_func: Callable[[Array], Array]
+        Function returning the gradient of the propagated states.
     target_state : Array
         Target state.
     times : Array
@@ -42,19 +42,19 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     _target_state: Array
     _overlap: Callable[[Array, Array], Array]
     _propagation_func: Callable[[Array], Array]
-    _propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _propagation_gradient_func: Callable[[Array], Array]
     _overlap_grad: Callable
     _fid_grad: Callable
 
     def __init__(
         self,
         propagation_func: Callable[[Array], Array],
-        propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        propagation_gradient_func: Callable[[Array], Array],
         target_state: Array,
         overlap: Callable[[Array, Array], Array],
     ):
         self._propagation_func = propagation_func
-        self._propagation_and_gradient_func = propagation_and_gradient_func
+        self._propagation_gradient_func = propagation_gradient_func
         self._target_state = jnp.array(target_state, dtype=jnp.complex128)
         self._overlap = overlap
         self._overlap_grad = vjp_jacobian(self._overlap)
@@ -109,7 +109,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             The gradient of shape (n_params,).
 
         """
-        states, dg_dp_list = self._propagation_and_gradient_func(times)
+        states = self._propagation_func(times)
+        dg_dp_list = self._propagation_gradient_func(times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(final_state, self._target_state)
@@ -138,8 +139,8 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     propagation_func: Callable[[Array], Array]
         Function that evaluates the propagation of some initial state.
         Expected to be of the form `func(t: Array) -> states: Array`.
-    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
-    target_state : Array
+    propagation_gradient_func: Callable[[Array], Array]
+    target_state: Array
         Target state.
     times : Array
         One-dimensional vector of timestamps.
@@ -155,7 +156,8 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, grads = self._propagation_and_gradient_func(times)
+        states = self._propagation_func(times)
+        grads = self._propagation_gradient_func(times)
         final_state = states[-1]
         f = self._overlap(final_state, self._target_state)
         grads = jnp.real(self._fid_grad(f) * grads)

@@ -11,13 +11,13 @@ from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 
 
-class System(Optimizable, Differentiable):
+class Hamiltonian(Optimizable, Differentiable):
     """Class definition for a matrix representation of a Hamiltonian.
 
     Implementations can contain subsystems, couplings, and drive lines
     and have to take care of frame transformations.
 
-    Parameters
+    Attributes
     ----------
     drives : list[Drive]
         List of time-dependent drives.
@@ -134,21 +134,3 @@ class System(Optimizable, Differentiable):
             grads = drive.get_gradient(times)
             all_grads = jnp.append(all_grads, grads, axis=1)
         return all_grads
-
-
-class OpenSystem(System):
-    """System description that adds jump operators for
-    the simulation of dissipation, etc.
-    """
-
-    @abstractmethod
-    def get_jump_operators(self) -> list[Array]:
-        """
-        Return a list of jump operators for each subsystem (multiplied by the sqrt of their decay rates).
-
-        Returns
-        -------
-        list[Array]
-            List of jump operators
-        """
-        pass

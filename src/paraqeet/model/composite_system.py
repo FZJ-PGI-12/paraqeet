@@ -11,42 +11,42 @@ import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.model.coupling import Coupling
-from paraqeet.model.system import System
+from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.model.utils import tensor_product_with_identity
 from paraqeet.quantity import Array, Quantity
 
 
-class CompositeSystem(System):
+class CompositeHamiltonian(Hamiltonian):
     """A hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.
     The list of parameters will contain the parameters of all subsystems
     and couplings in the order they were added.
 
-    Parameters
+    Attributes
     ----------
-    subsystems : list[System]
-        List of subsystems forming the a composite system.
+    sub_hamiltonians : list[Hamiltonian]
+        List of subsystems' Hamiltonians forming the a composite system.
     couplings: list[Coupling], optional
         List of couplings between the various subsystems
     """
 
-    _subsystems: list[System]
+    _sub_hamiltonians: list[Hamiltonian]
     _couplings: list[Coupling]
     _dimensions: list[int]
     _total_dimension: int
 
     def __init__(
         self,
-        subsystems: list[System],
+        sub_hamiltonians: list[Hamiltonian],
         couplings: list[Coupling] | None = None,
     ):
         super().__init__()
         if couplings is None:
             couplings = []
-        self._subsystems = subsystems
+        self._sub_hamiltonian = sub_hamiltonians
         self._couplings = couplings
-        self._dimensions = [s.dimension() for s in subsystems]
+        self._dimensions = [s.dimension() for s in sub_hamiltonians]
         self._total_dimension = int(np.prod(self._dimensions))
 
     @override
@@ -60,8 +60,8 @@ class CompositeSystem(System):
 
         """
         params = []
-        for subsystem in self._subsystems:
-            params += subsystem.get_parameters()
+        for sub_hamil in self._sub_hamiltonians:
+            params += sub_hamil.get_parameters()
         for coupling in self._couplings:
             params += coupling.get_parameters()
         return params
@@ -79,8 +79,8 @@ class CompositeSystem(System):
             Input list of parameters to be set.
 
         """
-        for subsystem in self._subsystems:
-            subsystem.set_optimizable_parameters(params)
+        for sub_hamil in self._sub_hamiltonians:
+            sub_hamil.set_optimizable_parameters(params)
         for coupling in self._couplings:
             coupling.set_optimizable_parameters(params)
 
@@ -110,8 +110,8 @@ class CompositeSystem(System):
     def get_value(self, times: Array) -> Array:
         # Calculate the tensor product of all subsystem matrices
         matrix = jnp.zeros((self._total_dimension, self._total_dimension))
-        for n, subsystem in enumerate(self._subsystems):
-            sub_matrix = subsystem.get_value(times)
+        for n, sub_hamil in enumerate(self._sub_hamiltonians):
+            sub_matrix = sub_hamil.get_value(times)
             matrix += tensor_product_with_identity([sub_matrix], [n], self._dimensions)
 
         for coupling in self._couplings:
@@ -139,10 +139,10 @@ class CompositeSystem(System):
 
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
-        for one_index, subsystem in enumerate(self._subsystems):
+        for one_index, sub_hamil in enumerate(self._sub_hamiltonians):
             # TODO: Fix typing
             # ignoring mypy due to vmap
-            sub_gradient = subsystem.get_gradient(times)  # type: ignore
+            sub_gradient = sub_hamil.get_gradient(times)  # type: ignore
             sub_gradient = tensor_product_with_identity([sub_gradient], [one_index], self._dimensions)
             gradient = jnp.append(gradient, sub_gradient, axis=1)
         for coupling in self._couplings:

@@ -7,18 +7,18 @@ import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
-from paraqeet.model.system import OpenSystem
+from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Transmon(OpenSystem):
+class TransmonHamiltonian(Hamiltonian):
     """Hamiltonian of an anharmonic oscillator.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
 
-    Parameters
+    Attributes
     ----------
     dimension: int
         Dimension of the anharmonic oscillator.

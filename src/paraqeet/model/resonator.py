@@ -7,18 +7,18 @@ import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
-from paraqeet.model.system import OpenSystem
+from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Resonator(OpenSystem):
+class ResonatorHamiltonian(Hamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
     The only optimizable parameter is the frequency.
 
-    Parameters
+    Attributes
     ----------
     _num_fock : int
         Number of Fock states included in the numerical representation of
@@ -35,7 +35,6 @@ class Resonator(OpenSystem):
         Dephasing time.
     """
 
-    # TODO: we should think about the composition here instead of inheritance from DifferentiableHamiltonian.
     def __init__(
         self,
         num_fock: int,
@@ -49,7 +48,7 @@ class Resonator(OpenSystem):
         self._num_fock = num_fock
         self.frequency = frequency
         self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, num_fock, dtype=jnp.float64), k=1))
-        self._num_op = self._annihilation_op.T @ self._annihilation_op
+        self._num_op = self._annihilation_op.conj().T @ self._annihilation_op
         self.t1 = t1
         self.temp = temp
         self.t2star = t2star
@@ -62,7 +61,6 @@ class Resonator(OpenSystem):
         -------
         int
             Hilbert space dimension.
-
         """
         return self._num_fock
 
