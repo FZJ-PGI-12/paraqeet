@@ -112,7 +112,7 @@ class MasterEquation(EquationOfMotion):
         ham_eom = self._hamiltonian_func(times)
         return -1j * ham_eom
 
-    def get_eom_and_gradient_ode_propagation(self, times: Array) -> tuple[Array, Array]:
+    def get_eom_gradient_ode_propagation(self, times: Array) -> Array:
         """Return EOM for ODE propagation methods, and its gradient.
 
         Return the coherent part of the EOM, i.e., the Hamiltonian and its gradient.
@@ -129,9 +129,8 @@ class MasterEquation(EquationOfMotion):
         Array
              Hamiltonian EOM ([t, N, N] matrix)
         """
-        ham_eom = self._hamiltonian_func(times)
         grads = self._hamiltonian_gradient_func(times)
-        return -1j * ham_eom, -1j * grads
+        return -1j * grads
 
     @override
     def get_value(self, times: Array):

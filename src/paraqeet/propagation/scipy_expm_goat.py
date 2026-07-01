@@ -27,12 +27,12 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
     def __init__(
         self,
         eom_func: Callable[[Array], Array],
-        eom_grad_func: Callable[[Array], Array],
+        eom_gradient_func: Callable[[Array], Array],
         resolution: float,
         initial_state: Array,
     ):
         ScipyExpm.__init__(self, eom_func, resolution, initial_state)
-        self._eom_gradient_func = eom_grad_func
+        self._eom_gradient_func = eom_gradient_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.

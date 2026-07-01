@@ -44,7 +44,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         matrix exponential. If false, use frechet derivative.
     """
 
-    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _eom_gradient_func: Callable[[Array], Array]
     _target_state: Array
     _schirmer_derivative: bool = False
     _operator_sandwich_function: Callable
@@ -52,14 +52,14 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     def __init__(
         self,
         eom_func: Callable[[Array], Array],
-        eom_and_grad_func: Callable[[Array], tuple[Array, Array]],
+        eom_gradient_func: Callable[[Array], Array],
         resolution: float,
         initial_state: Array,
         target_state: Array,
         operator_sandwich_function: Callable,
     ):
         ScipyExpm.__init__(self, eom_func, resolution, initial_state)
-        self._eom_and_gradient_func = eom_and_grad_func
+        self._eom_gradient_func = eom_gradient_func
         self.target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
 
@@ -110,7 +110,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
         Parameters
         ----------
-        schirmerDerivative : bool
+        schirmer_derivative : bool
             If True use Schirmer derivative, if False use Frechet Derivative.
         """
         self._schirmer_derivative = schirmer_derivative
@@ -221,7 +221,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         Parameters
         ----------
             ham : Array
-            -iHdt
+                -iHdt
         """
         return expm(ham)
 
@@ -306,7 +306,8 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         dt = times[1] - times[0]
         time_grid = times[:-1] + dt / 2
 
-        hams, dh_dps = self._eom_and_gradient_func(time_grid)
+        hams = self._eom_func(time_grid)
+        dh_dps = self._eom_gradient_func(time_grid)
         hams = hams * dt
         dh_dps = jnp.array(dh_dps) * dt
 
