@@ -24,8 +24,6 @@ class MasterEquation(EquationOfMotion):
         Hamiltonian as a function of time.
     hamiltonian_gradient_func: Callable[[Array], tuple[Array, Array]]
         Hamiltonian, Hamiltonian gradients as a function of time.
-    jump_operators: list[Array]
-        Jump operators present in the system (multiplied by the sqrt of corresponding decay rates).
     """
 
     _jump_operators: list[Array]
