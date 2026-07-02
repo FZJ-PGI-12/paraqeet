@@ -44,7 +44,7 @@ class CompositeHamiltonian(Hamiltonian):
         super().__init__()
         if couplings is None:
             couplings = []
-        self._sub_hamiltonian = sub_hamiltonians
+        self._sub_hamiltonians = sub_hamiltonians
         self._couplings = couplings
         self._dimensions = [s.dimension() for s in sub_hamiltonians]
         self._total_dimension = int(np.prod(self._dimensions))

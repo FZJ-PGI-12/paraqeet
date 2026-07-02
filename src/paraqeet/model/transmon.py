@@ -20,8 +20,8 @@ class TransmonHamiltonian(Hamiltonian):
 
     Attributes
     ----------
-    dimension: int
-        Dimension of the anharmonic oscillator.
+    num_levels: int
+        Number of levels included in the modelling of the anharmonic oscillator.
     frequency: Quantity
         Frequency of the anharmonic oscillator.
     anharmonicity: Quantity
@@ -47,14 +47,6 @@ class TransmonHamiltonian(Hamiltonian):
 
     @override
     def dimension(self) -> int:
-        """Return the dimension of the Hilbert space of the system.
-
-        Returns
-        -------
-        int
-            Hilbert space dimension.
-
-        """
         return self._num_levels
 
     @property
