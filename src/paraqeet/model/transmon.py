@@ -21,7 +21,7 @@ class TransmonHamiltonian(Hamiltonian):
     Attributes
     ----------
     num_levels: int
-        Number of levels included in the modelling of the anharmonic oscillator.
+        Number of levels included in the modeling of the anharmonic oscillator.
     frequency: Quantity
         Frequency of the anharmonic oscillator.
     anharmonicity: Quantity
