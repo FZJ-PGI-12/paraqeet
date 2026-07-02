@@ -213,7 +213,7 @@ numbers.
             prop = ScipyExpmGRAPE(
                 eom_func=model.get_value,
                 eom_and_grad_func=model.get_value_and_gradient,
-                resolution= 1/(30e-9), 
+                resolution=1 / (30e-9),
                 initial_state=initial_state,
                 target_state=target_state,
                 operator_sandwich_function=grape_operator_sandwich_function_closed,
@@ -387,7 +387,7 @@ we can later use to plot the infidelity vs function evaluation.
 
     import tempfile
     
-    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir = tempfile.TemporaryDirectory(suffix="pq") # Ends in 'pq' to prevent _ at the end
     print(f"Logging directory = {temp_dir.name}")
     
     max_iter = 200  # set to 1000 for a good result; set to 10 for a quick example
@@ -418,7 +418,7 @@ we can later use to plot the infidelity vs function evaluation.
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmp10tjo33i
+    Logging directory = /tmp/tmp6rh4l4fypq
 
 
 .. code:: ipython3
@@ -472,12 +472,12 @@ we can later use to plot the infidelity vs function evaluation.
 
 .. parsed-literal::
 
-    Iteration number = 100 	  Infidelity  = 6.999e-01
+    Iteration number = 100 	  Infidelity  = 5.446e-01
 
 
 .. parsed-literal::
 
-    Iteration number = 150 	  Infidelity  = 1.546e-01
+    Iteration number = 150 	  Infidelity  = 1.220e-01
 
 
 .. parsed-literal::
@@ -486,13 +486,13 @@ we can later use to plot the infidelity vs function evaluation.
     
     ==== Max iteration before a super-iteration reached ====
     ==== Starting super-iteration 2 ====
-    *** Current lowest infidelity =  0.081 ***
+    *** Current lowest infidelity =  0.075 ***
     * Current no. of parameters = 74
 
 
 .. parsed-literal::
 
-    Iteration number = 200 	  Infidelity  = 6.116e-01
+    Iteration number = 200 	  Infidelity  = 4.702e-01
 
 
 .. parsed-literal::
@@ -508,15 +508,15 @@ we can later use to plot the infidelity vs function evaluation.
 .. parsed-literal::
 
     Setting parameters to the best values.
-    CPU times: user 5min 17s, sys: 5.8 s, total: 5min 23s
-    Wall time: 58.5 s
+    CPU times: user 5min 15s, sys: 5.59 s, total: 5min 20s
+    Wall time: 56.9 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.08078278897440028, 'iterations': 126, 'message': '`callback` raised `StopIteration`.'}
+    {'status': 2, 'value': 0.0745272167039045, 'iterations': 126, 'message': '`callback` raised `StopIteration`.'}
 
 
 
@@ -531,78 +531,78 @@ Lets set the optimization to the best parameters obtained during the run
 
 .. parsed-literal::
 
-    [Amplitude CRAB resonator: 2.97e+07,
-     CRAB Re coefficient 0: 0.747,
-     CRAB Re coefficient 1: -0.645,
-     CRAB Re coefficient 2: -0.4,
-     CRAB Re coefficient 3: 0.472,
+    [Amplitude CRAB resonator: -4.52e+07,
+     CRAB Re coefficient 0: -0.371,
+     CRAB Re coefficient 1: -0.918,
+     CRAB Re coefficient 2: -0.956,
+     CRAB Re coefficient 3: -0.999,
      CRAB Re coefficient 4: 0,
      CRAB Re coefficient 5: 0,
-     CRAB Re frequency 0: 1.63 Hz x 2pi,
-     CRAB Re frequency 1: 315 mHz x 2pi,
-     CRAB Re frequency 2: 884 mHz x 2pi,
-     CRAB Re frequency 3: 1.46 Hz x 2pi,
+     CRAB Re frequency 0: 159 mHz x 2pi,
+     CRAB Re frequency 1: 54.3 mHz x 2pi,
+     CRAB Re frequency 2: 813 mHz x 2pi,
+     CRAB Re frequency 3: 2 Hz x 2pi,
      CRAB Re frequency 4: 1 Hz x 2pi,
      CRAB Re frequency 5: 1 Hz x 2pi,
-     CRAB Re Phase 0: 2.95 rad,
-     CRAB Re Phase 1: -2.18 rad,
-     CRAB Re Phase 2: 2.64 rad,
-     CRAB Re Phase 3: -2.03 rad,
+     CRAB Re Phase 0: -2.87 rad,
+     CRAB Re Phase 1: -3.05 rad,
+     CRAB Re Phase 2: -2.69 rad,
+     CRAB Re Phase 3: 1.78 rad,
      CRAB Re Phase 4: 0 rad,
      CRAB Re Phase 5: 0 rad,
-     CRAB Im coefficient 0: -0.945,
-     CRAB Im coefficient 1: 0.591,
-     CRAB Im coefficient 2: -0.396,
-     CRAB Im coefficient 3: 0.0851,
+     CRAB Im coefficient 0: -0.925,
+     CRAB Im coefficient 1: 0.734,
+     CRAB Im coefficient 2: -0.955,
+     CRAB Im coefficient 3: 0.614,
      CRAB Im coefficient 4: 0,
      CRAB Im coefficient 5: 0,
-     CRAB Im frequency 0: 2 Hz x 2pi,
-     CRAB Im frequency 1: 1.82 Hz x 2pi,
-     CRAB Im frequency 2: 857 mHz x 2pi,
-     CRAB Im frequency 3: 956 mHz x 2pi,
+     CRAB Im frequency 0: 15 mHz x 2pi,
+     CRAB Im frequency 1: 2 Hz x 2pi,
+     CRAB Im frequency 2: 1.17 Hz x 2pi,
+     CRAB Im frequency 3: 1.4 Hz x 2pi,
      CRAB Im frequency 4: 1 Hz x 2pi,
      CRAB Im frequency 5: 1 Hz x 2pi,
-     CRAB Im Phase 0: 3.14 rad,
-     CRAB Im Phase 1: 2.51 rad,
-     CRAB Im phase 2: -2.01 rad,
-     CRAB Im phase 3: -2.49 rad,
+     CRAB Im Phase 0: -3.12 rad,
+     CRAB Im Phase 1: 2.34 rad,
+     CRAB Im phase 2: -1.15 rad,
+     CRAB Im phase 3: -403 mrad,
      CRAB Im phase 4: 0 rad,
      CRAB Im phase 5: 0 rad,
-     Amplitude CRAB qubit: 3.67e+04,
-     CRAB Re coefficient 0: 0.269,
-     CRAB Re coefficient 1: -0.951,
-     CRAB Re coefficient 2: 0.00838,
-     CRAB Re coefficient 3: 0.447,
+     Amplitude CRAB qubit: 4.46e+07,
+     CRAB Re coefficient 0: -0.0453,
+     CRAB Re coefficient 1: -0.996,
+     CRAB Re coefficient 2: 0.444,
+     CRAB Re coefficient 3: 0.353,
      CRAB Re coefficient 4: 0,
      CRAB Re coefficient 5: 0,
-     CRAB Re frequency 0: 1.85 Hz x 2pi,
-     CRAB Re frequency 1: 575 mHz x 2pi,
-     CRAB Re frequency 2: 1.37 Hz x 2pi,
-     CRAB Re frequency 3: 875 mHz x 2pi,
+     CRAB Re frequency 0: 2 Hz x 2pi,
+     CRAB Re frequency 1: 701 mHz x 2pi,
+     CRAB Re frequency 2: 701 mHz x 2pi,
+     CRAB Re frequency 3: 2 Hz x 2pi,
      CRAB Re frequency 4: 1 Hz x 2pi,
      CRAB Re frequency 5: 1 Hz x 2pi,
-     CRAB Re Phase 0: 3.02 rad,
-     CRAB Re Phase 1: -187 mrad,
-     CRAB Re Phase 2: -2.02 rad,
-     CRAB Re Phase 3: -1.15 rad,
+     CRAB Re Phase 0: 3.1 rad,
+     CRAB Re Phase 1: -1.1 rad,
+     CRAB Re Phase 2: 2.27 rad,
+     CRAB Re Phase 3: 1.77 rad,
      CRAB Re Phase 4: 0 rad,
      CRAB Re Phase 5: 0 rad,
-     CRAB Im coefficient 0: 0.631,
-     CRAB Im coefficient 1: -0.377,
-     CRAB Im coefficient 2: 0.126,
-     CRAB Im coefficient 3: 0.0534,
+     CRAB Im coefficient 0: 0.98,
+     CRAB Im coefficient 1: 0.112,
+     CRAB Im coefficient 2: 0.361,
+     CRAB Im coefficient 3: 0.475,
      CRAB Im coefficient 4: 0,
      CRAB Im coefficient 5: 0,
-     CRAB Im frequency 0: 1.7 Hz x 2pi,
-     CRAB Im frequency 1: 343 mHz x 2pi,
-     CRAB Im frequency 2: 1.01 Hz x 2pi,
-     CRAB Im frequency 3: 1.43 Hz x 2pi,
+     CRAB Im frequency 0: 691 mHz x 2pi,
+     CRAB Im frequency 1: 423 mHz x 2pi,
+     CRAB Im frequency 2: 169 mHz x 2pi,
+     CRAB Im frequency 3: 1.13 Hz x 2pi,
      CRAB Im frequency 4: 1 Hz x 2pi,
      CRAB Im frequency 5: 1 Hz x 2pi,
-     CRAB Im Phase 0: 1.37 rad,
-     CRAB Im Phase 1: -825 mrad,
-     CRAB Im phase 2: -1.77 rad,
-     CRAB Im phase 3: 93.8 mrad,
+     CRAB Im Phase 0: 192 mrad,
+     CRAB Im Phase 1: -84 mrad,
+     CRAB Im phase 2: -2.21 rad,
+     CRAB Im phase 3: -1.31 rad,
      CRAB Im phase 4: 0 rad,
      CRAB Im phase 5: 0 rad]
 
@@ -646,8 +646,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.8797824683718455
-    Fidelity at N_T=4 = 0.9127454209401749
+    Fidelity at N_T=3 = 0.909232385761665
+    Fidelity at N_T=4 = 0.8954490406957812
 
 
 For this small truncation number the dynamics and fidelities do not
@@ -865,7 +865,7 @@ Redefine the optmap and the optimizer and rerun the optimization
 
     import tempfile
     
-    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir = tempfile.TemporaryDirectory(suffix="pq") # Ends in 'pq' to prevent _ at the end
     print(f"Logging directory = {temp_dir.name}")
     
     max_iter = 300  # set to 1000 for a good result; set to 10 for a quick example
@@ -884,8 +884,8 @@ Redefine the optmap and the optimizer and rerun the optimization
     opt = DCRABOptimizerGradient(
         measure_and_gradient_func=dcrab_goal.get_value_and_gradient,
         optimization_map=optmap,
-        super_iteration_every=100, 
-        max_super_iteration_num=3, # Increase the number of super iterations for a better result
+        super_iteration_every=100,
+        max_super_iteration_num=3,  # Increase the number of super iterations for a better result
         print_every_iteration_num=10,
         super_iteration_tol=1e-6,
         seed=8647,
@@ -896,12 +896,12 @@ Redefine the optmap and the optimizer and rerun the optimization
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmpjf8oyte_
+    Logging directory = /tmp/tmpg2wdoegrpq
 
 
 .. parsed-literal::
 
-    Implicitly cleaning up <TemporaryDirectory '/tmp/tmp10tjo33i'>
+    Implicitly cleaning up <TemporaryDirectory '/tmp/tmp6rh4l4fypq'>
 
 
 .. code:: ipython3
@@ -1114,8 +1114,8 @@ Redefine the optmap and the optimizer and rerun the optimization
 .. parsed-literal::
 
     Setting parameters to the best values.
-    CPU times: user 9h 46min 6s, sys: 3min 36s, total: 9h 49min 43s
-    Wall time: 12min 56s
+    CPU times: user 9h 45min 14s, sys: 3min 29s, total: 9h 48min 43s
+    Wall time: 12min 53s
 
 
 

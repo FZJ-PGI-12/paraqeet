@@ -8,7 +8,7 @@ New users are recommended to start with :doc:`01A_OptimizationMap`, :doc:`01B_Gr
 Fundamentals
 ------------
 
-- :doc:`01_OptimizationMap` — How parameters (``Quantity``) and the ``OptimizationMap`` connect a model to an optimizer.
+- :doc:`01A_OptimizationMap` — How parameters (``Quantity``) and the ``OptimizationMap`` connect a model to an optimizer.
 - :doc:`01B_Gradient_evaluation` - A walkthrough over gradient computation across the package.
 
 Single-qubit control
@@ -42,7 +42,7 @@ Building custom models
 ----------------------
 
 - :doc:`07A_Custom_Hamiltonian` — Plug a user-defined Hamiltonian function into ParaQeet.
-- :doc:`07B_Modelling_using_QuTiP` — Build the Hamiltonian using function and plug it into ParaQeet for optimization.
+- :doc:`07B_Modeling_using_QuTiP` — Build the Hamiltonian using function and plug it into ParaQeet for optimization.
 
 Bosonic systems and smoothness
 ------------------------------

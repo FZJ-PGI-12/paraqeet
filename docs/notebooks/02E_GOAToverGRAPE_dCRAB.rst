@@ -183,7 +183,7 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
     
-    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir = tempfile.TemporaryDirectory(suffix="pq") # Ends in 'pq' to prevent _ at the end
     
     file_logger = FileLogger(temp_dir.name)
     
@@ -238,23 +238,23 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    Iteration number = 10 	  Infidelity  = 7.888e-06
-
-
-.. parsed-literal::
-
-    Iteration number = 20 	  Infidelity  = 3.930e-14
+    Iteration number = 10 	  Infidelity  = 6.307e-05
+    Iteration number = 20 	  Infidelity  = 2.514e-12
     
     
     ==== Decrease in infidelity less than 1e-09 ====
     ==== Starting super-iteration 1 ====
-    * Current lowest infidelity =  3.930e-14
+    * Current lowest infidelity =  2.514e-12
+
+
+.. parsed-literal::
+
     * Current no. of parameters = 25
 
 
 .. parsed-literal::
 
-    Iteration number = 30 	  Infidelity  = 1.497e-05
+    Iteration number = 30 	  Infidelity  = 4.763e-06
     Setting parameters to the best values.
 
 
@@ -267,7 +267,7 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 3.930189507173054e-14, 'iterations': 35, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.5142110615661295e-12, 'iterations': 32, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
