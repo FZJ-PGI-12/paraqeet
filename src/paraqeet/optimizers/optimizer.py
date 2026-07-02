@@ -1,13 +1,13 @@
 """Data class definition for the optimization result object."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
 from paraqeet.file_logger import Logger
-from paraqeet.measurement.measurement import Measurement
 from paraqeet.optimization_map import OptimizationMap
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 @dataclass(repr=False)
@@ -88,9 +88,8 @@ class Optimizer(ABC):
 
     Parameters
     ----------
-    measure: Measurement
-        Implementation of the Measurement class that measures the observable
-        to be minimized.
+    measure_func: Callable[[Array], Float]
+        Function implementing measurement of observables to be minimized.
     optimizables: OptimizationMap
         An optimization map containing all parameters that can be optimized.
         If none, an empty map will be created to which the parameters can
@@ -100,7 +99,7 @@ class Optimizer(ABC):
 
     """
 
-    _measure: Measurement
+    _measure_func: Callable[[Array], Float]
     _optimization_map: OptimizationMap
     _opt_idxs: list[int]
     _logger: Logger | None
@@ -108,11 +107,11 @@ class Optimizer(ABC):
 
     def __init__(
         self,
-        measure: Measurement,
+        measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
     ):
-        self._measure = measure
+        self._measure_func = measure_func
         self._logger = logger
         self.optimization_map = optimization_map
 

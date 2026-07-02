@@ -101,12 +101,12 @@ the resonator and qubit pulses, respectively.
     from paraqeet.measurement.smoothness import Smoothness
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-    from paraqeet.model.coupling import TwoBodyCoupling
+    from paraqeet.model.composite_system import CompositeSystem
+    from paraqeet.model.coupling import Coupling
+    from paraqeet.model.drive import Drive
     from paraqeet.model.qubit import Qubit
     from paraqeet.model.resonator import Resonator
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
@@ -121,7 +121,7 @@ require fix ranges for the minimum and maximum amplitudes.
 
     # in seconds (See Eickbusch et al https://arxiv.org/abs/2111.06414 S9 A)
     delta_sampling = 33e-9
-    n_pwc = 40  # number of piecewiise constants in the pulse
+    n_pwc = 40  # number of piecewise constants in the pulse
     t_final = n_pwc * delta_sampling  # for now just set up for trying
     tlist = np.linspace(0, t_final, n_pwc + 1)
     eps_res = 2 * np.pi * 1.0  # initial amplitude of the resonator (in MHz)
@@ -186,9 +186,6 @@ levels in the resonator.
     
     detuning_drive_res = omega_res - omega_drive_res
     detuning_drive_qubit = omega_qubit - omega_drive_qubit
-    
-    drive_res = RotatingFrameDrive(gen_res)
-    drive_qubit = RotatingFrameDrive(gen_qubit)
 
 Due to the infinite-dimensional nature of the Hilbert space of the
 resonator, it is necessary to introduce a Fock state truncation number
@@ -203,6 +200,10 @@ numbers.
 
 .. code:: ipython3
 
+    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
+    
+    
     def create_experiment(n_fock_truncation_list, fock_target):
         """
         Create the initial and target states, for the given Fock numbers.
@@ -224,8 +225,12 @@ numbers.
                 min_value=-omega_range_factor * omega_qubit,
                 max_value=omega_range_factor * omega_qubit,
             ),
-            drives=[drive_qubit],
+            drives=[],
         )
+    
+        drive_qubit = Drive(qubit.sigma_minus, gen_qubit, add_hermitian=True)
+        qubit.drives = [drive_qubit]
+    
         ground_state_qubit = np.array([[0.0], [1.0]])
     
         # We take it to be 10 times the value in Eickbusch et al to speed up the simulation
@@ -238,22 +243,27 @@ numbers.
                     min_value=-omega_range_factor * omega_res,
                     max_value=omega_range_factor * omega_res,
                 ),
-                dimension=n,
-                drives=[drive_res],
+                num_fock=n,
+                drives=[],
             )
+    
+            drive_res = Drive(resonator.annihilation_op, gen_res, add_hermitian=True)
+            resonator.drives = [drive_res]
+    
             resonator_list.append(resonator)
-            coupling = TwoBodyCoupling(
-                resonator,
-                qubit,
-                is_longitudinal=True,
-                coefficient=Quantity(value=chi, min_value=chi / 2, max_value=2 * chi),
+    
+            coupling_op = np.kron(resonator.num_op, np.array([[1.0, 0.0], [0.0, -1.0]]))
+            coupling = Coupling(
+                coupling_op,
+                g_abs=Quantity(value=chi, min_value=chi / 2, max_value=2 * chi),
             )
             coupling_list.append(coupling)
-            ham = CompositeHamiltonian([resonator, qubit], [coupling])
+            ham = CompositeSystem([resonator, qubit], [coupling])
             hamiltonian_list.append(ham)
-            model = ClosedSystem(hamiltonian=ham)
+            model = SchroedingerEquation(
+                hamiltonian_func=ham.get_value, hamiltonian_and_gradient_func=ham.get_value_and_gradient
+            )
             model_list.append(model)
-            prop = ScipyExpmGRAPE(model, resolution=1e9)
     
             initial_res_state = np.zeros([n, 1], dtype=complex)
             initial_res_state[0, 0] = 1  # vacuum state
@@ -268,13 +278,25 @@ numbers.
             n_op = np.kron(np.diag([x for x in range(n)]), np.identity(2))
             fock_number_op_list.append(n_op)
     
-            prop.set_initial_state(initial_state)
-            prop.set_target_state(target_state)
-            prop.use_schirmer_derivative = True
+            # Propagation dt has to be less than `delta_sampling = 33e-9`. Set dt = 30e-9.
+            prop = ScipyExpmGRAPE(
+                eom_func=model.get_value,
+                eom_and_grad_func=model.get_value_and_gradient,
+                resolution=1/(30e-9),
+                initial_state=initial_state,
+                target_state=target_state,
+                operator_sandwich_function=grape_operator_sandwich_function_closed,
+            )
+            prop.schirmer_derivative = True
     
             prop_list.append(prop)
     
-            fid = StateTransferFidelityGRAPE(propagation=prop, initial_state=initial_state, target_state=target_state)
+            fid = StateTransferFidelityGRAPE(
+                propagation_func=prop.propagate,
+                propagation_and_gradient_func=prop.get_value_and_gradient,
+                target_state=target_state,
+                overlap=overlap_state_vector,
+            )
     
             fid_list.append(fid)
     
@@ -401,23 +423,23 @@ We can compute the fidelities for the different truncation numbers
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.20674360532112698
+    Fidelity at N_T=3 = 0.14410356849601133
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=4 = 0.14197098648890208
+    Fidelity at N_T=4 = 0.06788860193208278
 
 
 which are quite poor! We now proceed with the pulse optimization.
 
 .. code:: ipython3
 
-    max_iter = 1000  # set to 1000 for a good result; set to 10 for a quick example
+    max_iter = 500  # set to 1000 for a good result; set to 10 for a quick example
     optmap = OptimizationMap()
     optmap.add(gen_res, gen_res.get_parameters())
     optmap.add(gen_qubit, gen_qubit.get_parameters())
-    opt = ScipyOptimizerGradient(goal, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=goal.get_value_and_gradient, optimization_map=optmap)
     opt.set_options({"maxfun": max_iter})
     optmap.register_params_with_optimizables()
 
@@ -447,15 +469,125 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    CPU times: user 2min 57s, sys: 1.67 s, total: 2min 59s
-    Wall time: 47.7 s
+    Iteration   10 | Infid = 2.439131e-02
+
+
+.. parsed-literal::
+
+    Iteration   20 | Infid = 2.040161e-02
+
+
+.. parsed-literal::
+
+    Iteration   30 | Infid = 1.743383e-02
+
+
+.. parsed-literal::
+
+    Iteration   40 | Infid = 1.440551e-02
+
+
+.. parsed-literal::
+
+    Iteration   50 | Infid = 1.265304e-02
+
+
+.. parsed-literal::
+
+    Iteration   60 | Infid = 1.150580e-02
+
+
+.. parsed-literal::
+
+    Iteration   70 | Infid = 1.068317e-02
+
+
+.. parsed-literal::
+
+    Iteration   80 | Infid = 9.866069e-03
+
+
+.. parsed-literal::
+
+    Iteration   90 | Infid = 9.278842e-03
+
+
+.. parsed-literal::
+
+    Iteration  100 | Infid = 8.957961e-03
+
+
+.. parsed-literal::
+
+    Iteration  110 | Infid = 8.819450e-03
+
+
+.. parsed-literal::
+
+    Iteration  120 | Infid = 8.717414e-03
+
+
+.. parsed-literal::
+
+    Iteration  130 | Infid = 8.489190e-03
+
+
+.. parsed-literal::
+
+    Iteration  140 | Infid = 7.577569e-03
+
+
+.. parsed-literal::
+
+    Iteration  150 | Infid = 6.873132e-03
+
+
+.. parsed-literal::
+
+    Iteration  160 | Infid = 6.504676e-03
+
+
+.. parsed-literal::
+
+    Iteration  170 | Infid = 6.358210e-03
+
+
+.. parsed-literal::
+
+    Iteration  180 | Infid = 6.346306e-03
+
+
+.. parsed-literal::
+
+    Iteration  190 | Infid = 6.344228e-03
+
+
+.. parsed-literal::
+
+    Iteration  200 | Infid = 6.317264e-03
+
+
+.. parsed-literal::
+
+    Iteration  210 | Infid = 6.303172e-03
+
+
+.. parsed-literal::
+
+    Iteration  220 | Infid = 6.290578e-03
+
+
+.. parsed-literal::
+
+    CPU times: user 5min 38s, sys: 4.86 s, total: 5min 43s
+    Wall time: 1min 2s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0041791411698838266, 'iterations': 157, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.006290573682487199, 'iterations': 331, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -482,19 +614,20 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9480360654391466
-    Fidelity at N_T=4 = 0.9647818644725782
+    Fidelity at N_T=3 = 0.9430944125477283
+    Fidelity at N_T=4 = 0.9338464705569888
 
 
 Setting truncation to higher values
 -----------------------------------
 
-Here we increase the system truncation to 30 and 31 levels and rerun the
-entire simulation.
+Here we increase the system truncation to 15 and 20 levels and rerun the
+entire simulation. For more accurate results, we advise the reader to
+increase the truncation to 30 and 31 levels.
 
-*Note - The following takes about 10-15 mins to run on an AMD-EPYC Milan
-processor with 128 cores and 256GB RAM (might take more depending on the
-number of CPU cores available).*
+*Note - The following takes about 5 mins to run on an AMD-EPYC Milan
+processor with 64 cores (might take more depending on the number of CPU
+cores available).*
 
 We first reset the generator parameters (by redefining them), and
 redefine the resonator with higher truncation numbers.
@@ -523,7 +656,7 @@ redefine the resonator with higher truncation numbers.
 
 .. code:: ipython3
 
-    n_fock_truncation_list = [30, 31]
+    n_fock_truncation_list = [15, 20] # Increase to 30, 31 for more accurate results
     fock_target = 2
     n_times = 1001
     
@@ -536,9 +669,6 @@ redefine the resonator with higher truncation numbers.
     
     detuning_drive_res = omega_res - omega_drive_res
     detuning_drive_qubit = omega_qubit - omega_drive_qubit
-    
-    drive_res = RotatingFrameDrive(gen_res)
-    drive_qubit = RotatingFrameDrive(gen_qubit)
     
     initial_state_list, target_state_list, fock_number_op_list, prop_list, meas_list = create_experiment(
         n_fock_truncation_list, fock_target
@@ -588,12 +718,12 @@ Initial fidelity before optimization
 
 .. parsed-literal::
 
-    Fidelity at N_T=30 = 0.01918978099088022
+    Fidelity at N_T=15 = 0.014283975566438286
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=31 = 0.019189780990880253
+    Fidelity at N_T=20 = 0.014283963209907323
 
 
 We redefine the optimizer and perform the optimization again with higher
@@ -601,11 +731,11 @@ truncation numbers
 
 .. code:: ipython3
 
-    max_iter = 1000  # set to 1000 for a good result; set to 10 for a quick example
+    max_iter = 200  # set to 1000 for a good result; set to 10 for a quick example
     optmap = OptimizationMap()
     optmap.add(gen_res, gen_res.get_parameters())
     optmap.add(gen_qubit, gen_qubit.get_parameters())
-    opt = ScipyOptimizerGradient(goal, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=goal.get_value_and_gradient, optimization_map=optmap)
     opt.set_options({"maxfun": max_iter})
     optmap.register_params_with_optimizables()
 
@@ -617,15 +747,100 @@ truncation numbers
 
 .. parsed-literal::
 
-    CPU times: user 17h 36min 39s, sys: 31min 32s, total: 18h 8min 11s
-    Wall time: 23min 8s
+    Iteration   10 | Infid = 6.029631e-02
+
+
+.. parsed-literal::
+
+    Iteration   20 | Infid = 3.679076e-02
+
+
+.. parsed-literal::
+
+    Iteration   30 | Infid = 2.042122e-02
+
+
+.. parsed-literal::
+
+    Iteration   40 | Infid = 1.200990e-02
+
+
+.. parsed-literal::
+
+    Iteration   50 | Infid = 7.619864e-03
+
+
+.. parsed-literal::
+
+    Iteration   60 | Infid = 5.571817e-03
+
+
+.. parsed-literal::
+
+    Iteration   70 | Infid = 4.007018e-03
+
+
+.. parsed-literal::
+
+    Iteration   80 | Infid = 2.921466e-03
+
+
+.. parsed-literal::
+
+    Iteration   90 | Infid = 2.408506e-03
+
+
+.. parsed-literal::
+
+    Iteration  100 | Infid = 2.128047e-03
+
+
+.. parsed-literal::
+
+    Iteration  110 | Infid = 1.965958e-03
+
+
+.. parsed-literal::
+
+    Iteration  120 | Infid = 1.849402e-03
+
+
+.. parsed-literal::
+
+    Iteration  130 | Infid = 1.754233e-03
+
+
+.. parsed-literal::
+
+    Iteration  140 | Infid = 1.702888e-03
+
+
+.. parsed-literal::
+
+    Iteration  150 | Infid = 1.660657e-03
+
+
+.. parsed-literal::
+
+    Iteration  160 | Infid = 1.619662e-03
+
+
+.. parsed-literal::
+
+    Iteration  170 | Infid = 1.591106e-03
+
+
+.. parsed-literal::
+
+    CPU times: user 5h 21min 5s, sys: 1min 55s, total: 5h 23min 1s
+    Wall time: 6min 59s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0029511036979938954, 'iterations': 321, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 2, 'value': 0.0015868775803169477, 'iterations': 201, 'message': 'STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT'}
 
 
 
@@ -639,12 +854,12 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=30 = 0.9850090383356761
+    Fidelity at N_T=15 = 0.9933534383257082
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=31 = 0.9849668579826837
+    Fidelity at N_T=20 = 0.9926526982087164
 
 
 And the dynamics of the system under these optimized pulses looks like

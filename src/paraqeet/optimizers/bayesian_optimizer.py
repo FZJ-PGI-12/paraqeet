@@ -1,29 +1,28 @@
 """Class definition of the Bayesian Optimizer model."""
 
+from collections.abc import Callable
+
 import jax.numpy as jnp
 from bayes_opt import BayesianOptimization
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class BayesianOptimizer(Optimizer):
-    """Minimizes the outcome of a measuremnt using Bayesian optimization.
+    """Minimize the outcome of a measurement using Bayesian optimization.
 
     This is useful if the evaluation of the measurement is costly.
-    This class is mostly a wrapper around the implementing package.
-
-    See Also
-    --------
-    https://bayesian-optimization.github.io/BayesianOptimization/index.html
+    This class is mostly a wrapper around the implementing package, see
+    `BayesianOptimization
+    <https://bayesian-optimization.github.io/BayesianOptimization/index.html>`_.
 
     Parameters
     ----------
-    measure: Measurement
-        The measure to be optimized.
+    measure_func: Callable[[Array], Float]
+        Function implementing measurement of observables to be minimized.
     optimization_map : OptimizationMap
         All optimizable parameters via the optimization map.
     initial_samples : int=10
@@ -35,18 +34,18 @@ class BayesianOptimizer(Optimizer):
 
     """
 
-    _measure: NormalizableMeasurement
+    _measure_func: Callable[[Array], Float]
     _initial_samples: int
     _iterations: int
 
     def __init__(
         self,
-        measure: NormalizableMeasurement,
+        measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
         initial_samples=10,
         iterations=100,
     ):
-        super().__init__(measure, optimization_map)
+        super().__init__(measure_func, optimization_map)
         self._initial_samples = initial_samples
         self._iterations = iterations
 
@@ -150,8 +149,8 @@ class BayesianOptimizer(Optimizer):
             param.set_reduced_value(kwargs[str(i)])
             log.append(params[i])
 
-        fidelity = self._measure.calculate_normalized_scalar(self._times)
+        fidelity = self._measure_func(self._times)
 
         if self._logger:
-            self._logger.log(log, fidelity)
-        return fidelity
+            self._logger.log(log, float(fidelity))
+        return float(fidelity)

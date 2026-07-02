@@ -1,15 +1,16 @@
 """Class definition for the Runge-Kutta Scipy propagation model."""
 
+from typing import override
+
 import numpy as np  # Using regular numpy for scipy interface
 from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Array, Quantity
+from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.quantity import Array
 
 
-class RungeKutta(Propagation):
+class RungeKutta(StatePropagation):
     """Propagation via the Runge-Kutta Scipy implementation.
 
     Uses scipy's Runge-Kutta implementation for propagating
@@ -24,25 +25,11 @@ class RungeKutta(Propagation):
 
     """
 
-    _initial_time_step: float | None
+    _initial_time_step: float
 
-    def __init__(self, model: EquationOfMotion, initial_time_step: float | None = None):
-        # TODO: setting a default value for resolution
-        initial_time_step = 0.1e-9 if initial_time_step is None else initial_time_step
-        super().__init__(model, resolution=1 / initial_time_step)
-        self._initial_state: Array
-        self._initial_time_step = initial_time_step
-
-    def get_parameters(self) -> list[Quantity]:
-        """Get a list of parameters of the system.
-
-        Returns
-        -------
-        list[Quantity]
-            List of optimizable parameters of the system.
-
-        """
-        return []
+    def __init__(self, eom_func, resolution, initial_state):
+        super().__init__(eom_func, resolution, initial_state)
+        self._initial_time_step = 1 / resolution
 
     def set_initial_state(self, state: Array):
         """Set the initial state for the propagation.
@@ -57,6 +44,7 @@ class RungeKutta(Propagation):
         """
         self._initial_state = np.reshape(state, (-1,))
 
+    @override
     def propagate(self, time: Array) -> Array:
         """Return the solution of the equations of motion.
 
@@ -87,8 +75,8 @@ class RungeKutta(Propagation):
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
-                self._model.get_right_hand_side(np.array([time]), column_state),
-                (-1,),
+                self._eom_func(np.array([time])) @ column_state,
+                (-1),
             )
 
         # Since RK45 uses adaptive time steps and does not guarantee
@@ -112,5 +100,5 @@ class RungeKutta(Propagation):
 
             while integrator.status == "running":
                 integrator.step()
-            states.append(integrator.y)
+            states.append(np.reshape(integrator.y, (-1, 1)))
         return np.array(states)

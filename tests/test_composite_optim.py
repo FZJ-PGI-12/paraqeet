@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-from paraqeet.model.coupling import TwoBodyCoupling
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.composite_system import CompositeSystem
+from paraqeet.model.coupling import Coupling
+from paraqeet.model.drive import Drive
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.model.transmon import Transmon
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
@@ -77,7 +77,6 @@ def coupled_transmons(tone):
             unit="rad",
         ),
     )
-    drive1 = DriveOperator(generator1, is_longitudinal=False)
 
     generator2 = IQMixer(
         envelopes=[tone2],
@@ -94,34 +93,53 @@ def coupled_transmons(tone):
             unit="rad",
         ),
     )
-    drive2 = DriveOperator(generator2, is_longitudinal=False)
 
     transmon1 = Transmon(
-        dimension=3,
+        num_levels=3,
         frequency=Quantity(FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"),
         anharmonicity=Quantity(ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"),
-        drives=[drive1],
+        drives=[],
     )
+
+    drive_op1 = transmon1.annihilation_op + (transmon1.annihilation_op).conj().T
+    drive1 = Drive(drive_op1, generator1)
+    transmon1.drives = [drive1]
+
     transmon2 = Transmon(
-        dimension=3,
+        num_levels=3,
         frequency=Quantity(FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"),
         anharmonicity=Quantity(ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"),
-        drives=[drive2],
+        drives=[],
     )
-    coupling = TwoBodyCoupling(
-        transmon1,
-        transmon2,
-        is_longitudinal=False,
-        coefficient=Quantity(
+
+    drive_op2 = transmon2.annihilation_op + (transmon2.annihilation_op).conj().T
+    drive2 = Drive(drive_op2, generator2)
+    transmon2.drives = [drive2]
+
+    coupling_op = np.kron(
+        transmon1.annihilation_op + transmon1.annihilation_op.conj().T,
+        transmon2.annihilation_op + transmon2.annihilation_op.conj().T,
+    )
+
+    coupling = Coupling(
+        coupling_op,
+        g_abs=Quantity(
             COUPLINGSTR,
             np.array(0.8 * COUPLINGSTR),
             np.array(1.2 * COUPLINGSTR),
             "Hz",
         ),
     )
-    hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
-    model = ClosedSystem(hamiltonian)
-    prop = ScipyExpmGOAT(model=model, resolution=RES)
+    hamiltonian = CompositeSystem([transmon1, transmon2], [coupling])
+    model = SchroedingerEquation(
+        hamiltonian_func=hamiltonian.get_value, hamiltonian_and_gradient_func=hamiltonian.get_value_and_gradient
+    )
+    prop = ScipyExpmGOAT(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=100e9,
+        initial_state=np.identity(transmon1.dimension() * transmon2.dimension()),
+    )
 
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
     pauli_z = np.array([[1, 0], [0.0, -1]])
@@ -129,12 +147,11 @@ def coupled_transmons(tone):
     cr_gate = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 
     cr_gate = pauli_zx @ cr_gate
-    prop.set_initial_state(np.identity(9))
     gate_fid = UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=cr_gate,
     )
-
     tone1_amp = tone1.get_parameters()[0]
 
     optmap = OptimizationMap()
@@ -146,7 +163,7 @@ def coupled_transmons(tone):
 def opt(coupled_transmons):
     """Return Scipy optimizer from coupled transmons."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimizer(measure, optimization_map=optmap)
+    opt = ScipyOptimizer(measure_func=measure.calculate_normalized_scalar, optimization_map=optmap)
     opt.set_options({"maxiter": 5})
     return opt
 
@@ -155,7 +172,7 @@ def opt(coupled_transmons):
 def grad_opt(coupled_transmons):
     """Return Scipy optimizer gradient."""
     measure, optmap = coupled_transmons
-    opt = ScipyOptimizerGradient(measure, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=measure.get_value_and_gradient, optimization_map=optmap)
     opt.set_options({"maxiter": 2})
     return opt
 

@@ -1,18 +1,17 @@
 """optimize a dCRAB pulse by a Scipy gradient based optimizer."""
 
 import warnings
+from collections.abc import Callable
 
 import jax.numpy as jnp
 import numpy as np
 from scipy.optimize import minimize
 
-from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException, IncompatibleOptimizationMap
-from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.quantity import Array, Quantity
+from paraqeet.quantity import Array, Float, Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.waveform import DRAGMixer
 
@@ -45,12 +44,12 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     _num_print_every: int
         Print every this many iterations the current optimization value. Defaults to 5.
     _old_parameters_dict : dict[int, list[Quantity]]
-        Store the parameters of the previous super-iteration in a dictionary labelled by the number of parameters.
+        Store the parameters of the previous super-iteration in a dictionary labeled by the number of parameters.
 
     Parameters
     ----------
-    measure: NormalizableMeasurement
-        Measurement class that measures the observable to be maximised.
+    measure_and_gradient_func: Callable[[Array], tuple[Float, Array]]
+        Function implementing measurement of observables to be minimized.
     optimization_map: OptimizationMap
         An optimization map containing all parameters that can be optimized.
     """
@@ -74,7 +73,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
 
     def __init__(
         self,
-        measure: NormalizableMeasurement,
+        measure_and_gradient_func: Callable[[Array], tuple[Float, Array]],
         optimization_map: OptimizationMap,
         super_iteration_every: int = 30,
         max_super_iteration_num: int = 10,
@@ -83,7 +82,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         super_iteration_tol: float = 1e-7,
         seed: int | None = None,
     ):
-        super().__init__(measure, optimization_map)
+        super().__init__(measure_and_gradient_func, optimization_map)
         self._super_iteration_every = super_iteration_every
         self._max_super_iteration_num = max_super_iteration_num
         self._num_print_every = print_every_iteration_num
@@ -267,9 +266,8 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         """
         log = self.set_parameters(values)
 
-        if isinstance(self._measure, Differentiable):
-            fun, grad = self._measure.get_value_and_gradient(self._times)
-            self._grad_cache = grad
+        fun, grad = self._measure_and_gradient_func(self._times)
+        self._grad_cache = grad
 
         infid = 1.0 - fun
         if self._logger:

@@ -1,12 +1,14 @@
 """Class definition of the unitary fidelity model."""
 
+from collections.abc import Callable
+from typing import override
+
 import jax
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
@@ -17,10 +19,17 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     Fidelity measure that compares the propagator with a desired gate
     by way of L2 norm.
 
+    The `propagation_func` function is required in addition to `propagation_and_gradient_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
+    and evaluation of `measure` function.
+
     Parameters
     ----------
-    propagation : Propagation
-        Implementation of EOM solver.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
+    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Function returning the propagated states and their gradients.
     gate : Array
         Matrix representation of target gate.
     times : Array
@@ -36,72 +45,84 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
     _basis_states: Array | None
     _target_costates: Array
-    _propagation: DifferentiablePropagation
+    _propagation_func: Callable[[Array], Array]
+    _propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
 
     def __init__(
         self,
-        propagation: DifferentiablePropagation,
+        propagation_func: Callable[[Array], Array],
+        propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]],
         gate: Array,
         basis_states: Array | None = None,
     ):
-        self._propagation = propagation
-        if basis_states is not None:
-            self._propagation.set_initial_state(basis_states)
-        else:
-            basis_states = jnp.eye(gate.shape[0])
-        self._basis_states = basis_states
+        self._propagation_func = propagation_func
+        self._propagation_and_gradient_func = propagation_and_gradient_func
+        self._basis_states = basis_states if basis_states is not None else jnp.eye(gate.shape[0])
         self.set_ideal_gate(gate)
 
-    # TODO: since this method is declared as static, it belongs to the class, not to the instance. 
-    # It should be called accordingly.
     @staticmethod
-    def _fid(overlaps: Array) -> float:
+    def _fid(overlaps: Array) -> Float:
         """Gate fidelity from state overlaps.
 
         Parameters
         ----------
-        overlaps : List
+        Overlaps: Array
             State overlap as a one-dimensional array.
 
         Returns
         -------
-        float
+        Float
             Gate fidelity as a single float.
 
         """
-        return float(jnp.abs(jnp.average(overlaps)) ** 2)
+        return (jnp.abs(jnp.average(overlaps)) ** 2).astype(float)
 
-    def measure(self, times: Array) -> Array | float:
+    @override
+    def get_value(self, times: Array) -> Float:
+        states = self._propagation_func(jnp.array(times))
+        overlaps = []
+        for ii, s in enumerate(self._target_costates.T):
+            overlaps.append(jnp.vdot(s, states[-1][:, ii]))
+        return self._fid(jnp.asarray(overlaps))
+
+    @override
+    def measure(self, times: Array) -> Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times=times)
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Return the L2 norm of the last time step compared to the ideal gate.
+
+        Parameters
+        ----------
+        times : Array
+            Array of times.
+
 
         Returns
         -------
         Array
             L2 norm of the last time step compared to the ideal gate.
-
         """
-        # TODO: Fix typing
-        states = self._propagation.propagate(time=times)
-        overlaps = []
-        for ii, s in enumerate(self._target_costates.T):
-            overlaps.append(jnp.vdot(s, states[-1][:, ii]))
-        return UnitaryFidelity._fid(jnp.asarray(overlaps))
+        return self.get_value(times)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Get the L2 norm and the analytic expression for the gradient.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Get the analytic expression for the gradient.
+
+        Parameters
+        ----------
+        times : Array
+            Array of times.
 
         Returns
         -------
-        Tuple[Array Array]
-            Tuple of function value and gradient of shape (n_parameters,).
+        Array
+            Tuple of function value and gradient of shape (n_params,).
 
         """
-        # TODO: Fix typing
-        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)  # gradient of states wrt parameters
+        states, dg_dp_list = self._propagation_and_gradient_func(times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
@@ -115,8 +136,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             g = jnp.average(jnp.asarray(gs))
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
-        fid = UnitaryFidelity._fid(jnp.asarray(overlaps))
-        return fid, jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
 
     def set_ideal_gate(self, gate: Array):
         """Compute target states for the L2 norm.

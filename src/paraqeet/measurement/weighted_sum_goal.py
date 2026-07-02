@@ -1,14 +1,15 @@
 """Class definition of the Weighted Sum Goal model."""
 
 import itertools
+from typing import override
 
 import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.quantity import Array
+from paraqeet.measurement.measurement import DifferentiableNormalizableMeasurement, NormalizableMeasurement
+from paraqeet.quantity import Array, Float
 
 
 class WeightedSumGoal(NormalizableMeasurement, Differentiable):
@@ -44,13 +45,16 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
     """
 
-    _measurements: list[NormalizableMeasurement]
+    _measurements: list[DifferentiableNormalizableMeasurement]
     _weights: Array
     _sum_of_squares_options: dict | None
-    _measurements_in_sum_of_squares: list[NormalizableMeasurement]
+    _measurements_in_sum_of_squares: list[DifferentiableNormalizableMeasurement]
 
     def __init__(
-        self, measurements: list[NormalizableMeasurement], weights: Array, sum_of_squares_options: dict | None = None
+        self,
+        measurements: list[DifferentiableNormalizableMeasurement],
+        weights: Array,
+        sum_of_squares_options: dict | None = None,
     ):
         self._measurements = measurements
         self._weights = weights
@@ -78,8 +82,14 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
                 raise UserWarning("Supplied weights are not normalized.")
             self._measurements_in_sum_of_squares = []
 
+        for meas in self._measurements:
+            if not isinstance(meas, Differentiable):
+                raise ConfigurationException(
+                    "All measurements must be Differentiable to compute the gradient of the WeightedSumGoal"
+                )
+
     @property
-    def measurements(self) -> list[NormalizableMeasurement]:
+    def measurements(self) -> list[DifferentiableNormalizableMeasurement]:
         """Returns the list of measurement"""
         return self._measurements
 
@@ -94,11 +104,12 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
         return self._sum_of_squares_options
 
     @property
-    def measurements_in_sum_of_squares(self) -> list[NormalizableMeasurement]:
+    def measurements_in_sum_of_squares(self) -> list[DifferentiableNormalizableMeasurement]:
         """Returns the list of measurement included in the sum of square difference cost function"""
         return self._measurements_in_sum_of_squares
 
-    def measure(self, times: Array) -> Array | float:
+    @override
+    def measure(self, times: Array) -> Array | Float:
         """Sum of plain weighted measurements.
 
         Returns
@@ -121,8 +132,18 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
         return sum_meas
 
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
+        return self.get_value(times)
+
+    @override
+    def get_value(self, times: Array) -> Float:
         """Sum of weighted measurements from normalized measurements.
+
+        Parameters
+        ----------
+        times: Array
+            Array of times.
 
         Returns
         -------
@@ -138,14 +159,20 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             values_in_sum_of_squares = [
                 val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
             ]
-            sum_square_diff = 0.0
+            sum_square_diff: Float = 0.0
             for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
                 sum_square_diff += (meas_a - meas_b) ** 2
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
-        return float(sum_meas)
+        return sum_meas
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    @override
+    def get_gradient(self, times: Array) -> Array:
         """Sum of weighted measurements from gradient-ized measurements.
+
+        Parameters
+        ----------
+        times: Array:
+            Array of times
 
         Returns
         -------
@@ -155,17 +182,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             Returns the sum of gradients.
 
         """
-        # TODO: Move this to __init__, and store a differentiable_measurements: bool and check here.
-        for mes in self._measurements:
-            if not isinstance(mes, Differentiable):
-                raise ConfigurationException(
-                    "All measurements must be Differentiable to compute the gradient of the WeightedSumGoal"
-                )
-
-        # TODO: Remove the check by moving the check to init
-        values_and_gradients = [
-            m.get_value_and_gradient(times=times) for m in self._measurements if isinstance(m, Differentiable)
-        ]
+        values_and_gradients = [m.get_value_and_gradient(times=times) for m in self._measurements]
         sum_meas = jnp.array(0)
         sum_grads = jnp.zeros_like(values_and_gradients[0][1])
         for ii, w in enumerate(self._weights):
@@ -185,4 +202,4 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
                 grads_diff += 2 * (meas_a[0] - meas_b[0]) * (meas_a[1] - meas_b[1])
             sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
             sum_grads += self._sum_of_squares_options["weight"] * grads_diff
-        return float(sum_meas), sum_grads
+        return sum_grads

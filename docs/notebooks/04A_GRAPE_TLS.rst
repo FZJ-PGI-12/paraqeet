@@ -13,6 +13,9 @@ this software package.
     import matplotlib.pyplot as plt
     import numpy as np
     
+    from paraqeet.model.drive import Drive
+    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
@@ -33,7 +36,7 @@ initial guess, sampling at 21 points during a gate time of 20ns.
     gen.multiply_flat_top = True
     gen.max_amplitude = 2 * 1e8
 
-We have added the option ``multiplyFlatTop``, to ensure the pulse to
+We have added the option ``multiply_flat_top``, to ensure the pulse to
 start and end smoothly at 0 and ``t_final``. This acts like the
 ``FlatTopGaussianFilter``, but enforced directly by the
 ``PWCGenerator``.
@@ -61,67 +64,40 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    from paraqeet import Array
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-    
-    
-    class SpinRWA(DifferentiableHamiltonian):
-        """A Single Spin."""
-    
-        def __init__(self, drives=None):
-            super().__init__(drives)
-            self.sigma_p = np.array([[0j, 1], [0, 0]])
-            self.dim = 2
-    
-        def get_value_at_timestep(self, timestep: float) -> Array:
-            """Just sigma-X."""
-            return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
-    
-        def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-            """Gradient is just the drive matrix."""
-            return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
-    
-        def get_gradient_at_timestep(self, time):
-            """Computes the gradient"""
-            return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
-    
-        def dimension(self) -> int:
-            """Returns the dimension"""
-            raise self.d
-    
-        def get_collapseops(self) -> list[tuple[Array, Array]]:
-            """Returns an empyt list since we study closed system dynamics"""
-            return []
-    
-        def get_parameters(self):
-            """Returns the parameters, which in this case are only the drive parameters"""
-            return self._get_drive_parameters()
-    
-    
-    drive = RotatingFrameDrive(gen)
-    spin = SpinRWA(drives=[drive])
-    model = ClosedSystem(spin)
+    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
+    controlled_qubit.drives = [drive]
+    model = SchroedingerEquation(
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+    )
 
 .. code:: ipython3
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+    from paraqeet.measurement.utils import overlap_state_vector
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
-    
-    prop = ScipyExpmGRAPE(model, resolution=2e9)
+    from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop.set_initial_state(init)
-    prop.set_target_state(target)
+    prop = ScipyExpmGRAPE(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=2e9,
+        initial_state=init,
+        target_state=target,
+        operator_sandwich_function=grape_operator_sandwich_function_closed,
+    )
+    
     times = np.array([0.0, t_final])
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
-        initial_state=init,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         target_state=target,
+        overlap=overlap_state_vector,
     )
 
 .. code:: ipython3
@@ -129,11 +105,20 @@ As a simple toy model, we use a single spin.
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_11_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_11_1.png
 
 
 .. code:: ipython3
@@ -145,7 +130,7 @@ As a simple toy model, we use a single spin.
 
 .. parsed-literal::
 
-    0.7318323723330802
+    Array(0.73183237, dtype=float64)
 
 
 
@@ -158,7 +143,7 @@ As a simple toy model, we use a single spin.
     optmap.add(gen)
     optmap.register_params_with_optimizables()
     
-    opt_grad = ScipyOptimizerGradient(zeroone, optimization_map=optmap)
+    opt_grad = ScipyOptimizerGradient(measure_and_gradient_func=zeroone.get_value_and_gradient, optimization_map=optmap)
 
 Unlike the previous examples, for GRAPE based optimization, we need to
 specify the exact time grid used to discretize the signal for
@@ -171,11 +156,20 @@ from a ``PWCGenerator`` using ``gen.tlist``.
     opt_grad.optimize(gen.tlist)
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 5.927566e-01
+    Iteration    2 | Infid = 8.176245e-02
+    Iteration    3 | Infid = 5.023847e-04
+    Iteration    4 | Infid = 1.443832e-06
+    Iteration    5 | Infid = 1.449951e-13
+
+
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 4.1100456371623295e-13, 'iterations': 7, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 1.4499512701604544e-13, 'iterations': 7, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -184,11 +178,20 @@ iterations.
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_17_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_17_1.png
 
 
 With open system
@@ -216,80 +219,33 @@ Lets first reset the pulse and create a open-system model
 
     import jax.numpy as jnp
     
-    from paraqeet.model.open_system import OpenSystem
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+    from paraqeet.model.master_equation import MasterEquation
+    
+    t1 = Quantity(10e-6, 1e-6, 100e-6)
+    temp = Quantity(10e-3, 1e-3, 50e-3)
+    t2star = Quantity(20e-6, 1e-6, 100e-6)
     
     
-    class SpinRWA(DifferentiableHamiltonian):
-        """A Single Spin."""
+    controlled_qubit = Qubit(
+        frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[], t1=t1, temp=temp, t2star=t2star
+    )
+    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
+    controlled_qubit.drives = [drive]
     
-        def __init__(self, drives=None):
-            super().__init__(drives)
-            self.sigma_p = np.array([[0j, 1], [0, 0]])
-            self.sigma_m = np.array([[0j, 0], [1, 0]])
-            self.sigma_z = np.array([[1, 0j], [0, -1]])
-            self.dim = 2
-            self.t1 = Quantity(10e-6, 1e-6, 100e-6)
-            self.temp = Quantity(10e-3, 1e-3, 50e-3)
-            self.t2star = Quantity(20e-6, 1e-6, 100e-6)
-    
-        def get_value_at_timestep(self, timestep: float) -> Array:
-            """Just sigma-X."""
-            return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
-    
-        def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-            """Gradient is just the drive matrix."""
-            return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
-    
-        def get_gradient_at_timestep(self, time):
-            """Computes the gradient"""
-            return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
-    
-        def dimension(self) -> int:
-            """Returns the dimension"""
-            raise self.d
-    
-        def get_parameters(self):
-            """Returns the parameters, which in this case are only the drive parameters"""
-            return self._get_drive_parameters()
-    
-        def get_decay_rates(self) -> list[float]:
-            """Return decay rate for T1, T2star and Temp respectively."""
-            if (self.t1 is None) or (self.t2star is None) or (self.temp is None):
-                raise Exception("Specify values of T1, T2star and Temp for Open system simulations.")
-    
-            gamma = 1 / self.t1.get_value()
-            gamma_t2star = 0.5 / self.t2star.get_value()
-    
-            hbar_over_kb = 7.638232582257738e-12
-            beta = hbar_over_kb / (self.temp.get_value())
-            # inserting typical qubit freq here. TODO - CHECK
-            nbar = jnp.exp(-beta * 5e9)
-            gamma_temp = gamma * nbar
-            gamma_t1 = gamma * (nbar + 1)
-            return [gamma_t1, gamma_temp, gamma_t2star]
-    
-        def get_collapseops(self) -> list[jnp.ndarray]:
-            """Return a list tuples of decay rates and collapse operators for each subsystem."""
-            gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-            col_t1 = self.sigma_p
-            col_temp = self.sigma_m
-            col_t2star = 2 * self.sigma_z
-            return [(gamma_t1, col_t1), (gamma_temp, col_temp), (gamma_t2star, col_t2star)]
-    
-    
-    drive = RotatingFrameDrive(gen)
-    spin = SpinRWA(drives=[drive])
-    model = OpenSystem(spin, ode_propagation=True)
+    model = MasterEquation(
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        jump_operators=controlled_qubit.get_jump_operators(),
+    )
 
 Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+    from paraqeet.measurement.utils import overlap_density_matrix
+    from paraqeet.propagation.utils import grape_operator_sandwich_function_open, lindblad_step, reverse_lindblad_step
     from paraqeet.propagation.vern7_grape import Vern7GRAPE
-    
-    prop = Vern7GRAPE(model, resolution=10e9)
     
     init = np.array([[1.0], [0.0j]])  # |0>
     target = np.array([[0.0j], [1.0]])  # |1>
@@ -297,23 +253,56 @@ Lets test GRAPE with ODE-propgation
     init = jnp.matmul(init, init.T.conj())
     target = jnp.matmul(target, target.T.conj())
     
-    prop.set_initial_state(init)
-    prop.set_target_state(target)
-    
-    zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
+    prop = Vern7GRAPE(
+        eom_func=model.get_eom_ode_propagation,
+        eom_and_gradient_func=model.get_eom_and_gradient_ode_propagation,
+        resolution=10e9,
         initial_state=init,
         target_state=target,
+        step_function=lindblad_step,
+        reverse_step_function=reverse_lindblad_step,
+        operator_sandwich_function=grape_operator_sandwich_function_open,
+        jump_operators=controlled_qubit.get_jump_operators(),
+    )
+    
+    zeroone = StateTransferFidelityGRAPE(
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
+        target_state=target,
+        overlap=overlap_density_matrix,
     )
 
 .. code:: ipython3
 
+    init
+
+
+
+
+.. parsed-literal::
+
+    Array([[1.+0.j, 0.+0.j],
+           [0.+0.j, 0.+0.j]], dtype=complex128)
+
+
+
+.. code:: ipython3
+
     ts = np.linspace(0, t_final, 101)
-    plot_signal_and_dynamics(gen, prop, times=ts, state_labels=[r"$\rho_0$", r"$\rho_1$"]);
+    plot_signal_and_dynamics(gen, prop, times=ts, state_labels=[r"$\rho_0$", r"$\rho_1$"], open_system=True)
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_25_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_26_1.png
 
 
 .. code:: ipython3
@@ -325,7 +314,7 @@ Lets test GRAPE with ODE-propgation
 
 .. parsed-literal::
 
-    0.01065874418116775
+    Array(0.0109955, dtype=float64)
 
 
 
@@ -340,7 +329,7 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    opt_grad = ScipyOptimizerGradient(zeroone, optimization_map=optmap)
+    opt_grad = ScipyOptimizerGradient(measure_and_gradient_func=zeroone.get_value_and_gradient, optimization_map=optmap)
     opt_grad.set_options({"disp": True})
 
 .. code:: ipython3
@@ -348,21 +337,40 @@ Lets test GRAPE with ODE-propgation
     opt_grad.optimize(tlist)
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 9.816196e-01
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.003370122392267527, 'iterations': 38, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    Iteration    2 | Infid = 9.539974e-03
+
+
+
+
+.. parsed-literal::
+
+    {'status': 2, 'value': 0.009539974355470049, 'iterations': 49, 'message': 'ABNORMAL: '}
 
 
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(gen, prop, times=ts, state_labels=[r"$\rho_0$", r"$\rho_1$"]);
+    plot_signal_and_dynamics(gen, prop, times=ts, state_labels=[r"$\rho_0$", r"$\rho_1$"], open_system=True)
 
 
 
-.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_30_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 04A_GRAPE_TLS_files/04A_GRAPE_TLS_31_1.png
 
 
 .. code:: ipython3
@@ -374,6 +382,6 @@ Lets test GRAPE with ODE-propgation
 
 .. parsed-literal::
 
-    0.9966263172520764
+    Array(0.99046003, dtype=float64)
 
 

@@ -57,7 +57,7 @@ codequality:
   stage: codestyle
   script:
     - pip install mypy mypy-gitlab-code-quality
-    - mypy paraqeet --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
+    - mypy src/paraqeet --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
     - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > mypy-report.json
   artifacts:
     when: always
@@ -70,10 +70,22 @@ codequality:
 formatting-and-linting:
   stage: codestyle
   script:
-    - ruff check --select=I --output-format=gitlab . > ruff-report.json
+    - ruff check --extend-select=I --config=pyproject.toml --output-format=gitlab . > ruff-report.json
   artifacts:
     reports:
       codequality: ruff-report.json
+  allow_failure: true
+  tags: [docker, light]
+
+codespell:
+  stage: codestyle
+  script:
+    - pip install "codespell[toml]"
+    - codespell --toml ./pyproject.toml 2>&1 | tee codespell-report.txt
+  artifacts:
+    when: always
+    paths:
+      - codespell-report.txt
   allow_failure: true
   tags: [docker, light]
 
@@ -101,8 +113,13 @@ build:
 build-docs:
   stage: build
   script:
-    -  pip install -r docs/requirements.txt
-    - sphinx-build -W docs/ docs/_build
+    - pip install -r docs/requirements.txt
+    - sphinx-build -W docs/ docs/_build  2>&1 | tee docs-report.txt
+  artifacts:
+    when: always
+    paths:
+      - docs-report.txt
+  allow_failure: true
   tags: [docker, light]
 
 

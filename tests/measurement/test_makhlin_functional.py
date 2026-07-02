@@ -11,7 +11,7 @@ from tests.propagation.random_propagation import RandomPropagation
 iswap = np.array([[1.0, 0, 0, 0], [0, 0, 1.0j, 0], [0, 1.0j, 0, 0], [0, 0, 0, 1.0]])
 cnot = np.array([[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0], [0, 0, 1.0, 0]])
 swap = np.array([[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, 1.0, 0, 0], [0, 0, 0, 1.0]])
-sqrtSwap = np.array([[1.0, 0, 0, 0], [0, 1.0, 1.0, 0], [0, 1.0, 1.00, 0], [0, 0, 0, 1.0]])
+sqrt_swap = np.array([[1.0, 0, 0, 0], [0, 1.0, 1.0, 0], [0, 1.0, 1.00, 0], [0, 0, 0, 1.0]])
 
 
 def test_positivity():
@@ -22,9 +22,9 @@ def test_positivity():
     """
     propagation = RandomPropagation(4, True)
     times = np.array([1.0])
-    measurement = MakhlinFunctional(propagation)
+    measurement = MakhlinFunctional(propagation.propagate)
 
-    for i in range(100):
+    for _ in range(100):
         m = measurement.measure(times)
         assert 0.0 <= m
 
@@ -49,7 +49,7 @@ def test_local_gates():
     for gate in gates1 + gates2:
         propagation = IdentityPropagation()
         propagation.set_initial_state(gate)
-        measurement = MakhlinFunctional(propagation)
+        measurement = MakhlinFunctional(propagation.propagate)
         m = measurement.measure(np.array([1.0]))
         np.testing.assert_almost_equal(m, 2.0)
 
@@ -59,14 +59,14 @@ def test_perfect_entanglers():
     for gate in [iswap, cnot]:
         propagation = IdentityPropagation()
         propagation.set_initial_state(gate)
-        measurement = MakhlinFunctional(propagation)
+        measurement = MakhlinFunctional(propagation.propagate)
         m = measurement.measure(np.array([1.0]))
         np.testing.assert_almost_equal(m, 0.0)
 
 
 def test_invariants():
     """Test that special gates generate the expected Makhlin invariants."""
-    expectedInvariants = [
+    expected_invariants = [
         [np.eye(4), [1, 0, 3]],
         [iswap, [0, 0, -1]],
         [cnot, [0, 0, 1]],
@@ -74,9 +74,9 @@ def test_invariants():
     ]
 
     propagation = IdentityPropagation()
-    for gate, invariants in expectedInvariants:
+    for gate, invariants in expected_invariants:
         propagation.set_initial_state(gate)
-        measurement = MakhlinFunctional(propagation, np.array(invariants))
+        measurement = MakhlinFunctional(propagation.propagate, np.array(invariants))
         m = measurement.measure(np.array([1.0]))
         np.testing.assert_almost_equal(m, 0.0)
 
@@ -90,16 +90,16 @@ def test_incompatible_shape():
         Raise an error if all propagators are not 4D.
 
     """
-    incompatibleDimensions = np.delete(np.arange(2, 30), 2)
-    for dim in incompatibleDimensions:
+    incompatible_dimensions = np.delete(np.arange(2, 30), 2)
+    for dim in incompatible_dimensions:
         propagation = RandomPropagation(dim, True)
-        measurement = MakhlinFunctional(propagation)
+        measurement = MakhlinFunctional(propagation.propagate)
         with pytest.raises(Exception):
             _ = measurement.measure(np.array([1.0]))
 
 
 def test_measurement_needs_time():
     propagation = RandomPropagation(4, True)
-    measurement = MakhlinFunctional(propagation, None)
+    measurement = MakhlinFunctional(propagation.propagate, None)
     with pytest.raises(ConfigurationException):
         measurement.measure(times=None)

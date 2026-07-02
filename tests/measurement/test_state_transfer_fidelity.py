@@ -3,10 +3,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.measurement.state_transfer_fidelity import (
-    StateTransferFidelity,
-    StateTransferFidelityAD,
-)
+from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.measurement.utils import overlap_state_vector
 from tests.propagation.identity_propagation import IdentityPropagation
 from tests.propagation.random_propagation import RandomPropagation
 
@@ -20,14 +18,14 @@ def identity_propagation():
 def test_limits_vectors(random_state):
     """Test fidelity for state vectors is always in the interval [0, 1)."""
     for size in range(2, 30):
-        initial_state = random_state(size)
         target_state = random_state(size)
         propagation = RandomPropagation(size, False)
         times = np.array([0.0, 1.0])
         measurement = StateTransferFidelity(
-            propagation,
-            initial_state,
-            target_state,
+            propagation_func=propagation.propagate,
+            propagation_and_gradient_func=propagation.get_value_and_gradient,
+            target_state=target_state,
+            overlap=overlap_state_vector,
         )
 
         for _ in range(20):
@@ -45,7 +43,12 @@ def test_vector_equality(identity_propagation, random_state):
         for _ in range(100):
             state = random_state(size)
             identity_propagation.set_initial_state(state)
-            measurement = StateTransferFidelity(identity_propagation, state, state)
+            measurement = StateTransferFidelity(
+                propagation_func=identity_propagation.propagate,
+                propagation_and_gradient_func=identity_propagation.get_value_and_gradient,
+                target_state=state,
+                overlap=overlap_state_vector,
+            )
             m = measurement.measure(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0)
 
@@ -71,11 +74,14 @@ def test_incompatible_shape(identity_propagation, random_state):
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             targetState = random_state(np.random.choice(dimensions))
 
-            fid = StateTransferFidelity(identity_propagation, initialState, targetState)
+            identity_propagation.set_initial_state(initialState)
 
-            fid_AD = StateTransferFidelityAD(identity_propagation, initialState, targetState)
+            fid = StateTransferFidelity(
+                propagation_func=identity_propagation.propagate,
+                propagation_and_gradient_func=identity_propagation.get_value_and_gradient,
+                target_state=targetState,
+                overlap=overlap_state_vector,
+            )
 
             with pytest.raises(Exception):
                 fid.measure(times=np.array([1.0]))
-            with pytest.raises(Exception):
-                fid_AD.measure(times=np.array([1.0]))

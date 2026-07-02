@@ -4,10 +4,11 @@ import numpy as np
 import pytest
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.model.drive import Drive
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.resonator import Resonator
 from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.utils import convert_dm_to_vec, lindblad_step
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope, ZeroEnvelope
@@ -48,13 +49,16 @@ def gen(tone):
 def hamiltonian(gen):
     """Return a resonator object."""
 
-    def _method(dimension):
-        drive = DriveOperator(gen, is_longitudinal=False)
-        return Resonator(
-            dimension=dimension,
+    def _method(num_fock):
+        res = Resonator(
+            num_fock=num_fock,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-            drives=[drive],
+            drives=[],
         )
+        drive_op = res.annihilation_op + (res.annihilation_op).conj().T
+        drive = Drive(drive_op, gen)
+        res.drives = [drive]
+        return res
 
     return _method
 
@@ -64,16 +68,23 @@ def open_resonator():
     """Return an open model for the resonator."""
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
-    drive = DriveOperator(generator, is_longitudinal=False)
-    resonator = Resonator(
+    res = Resonator(
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
-        drives=[drive],
-        dimension=DIMS,
+        drives=[],
+        num_fock=DIMS,
     )
-    resonator.t1 = T1
-    resonator.temp = TEMP
-    resonator.t2star = T2STAR
-    model = OpenSystem(resonator)
+    drive_op = res.annihilation_op + (res.annihilation_op).conj().T
+    drive = Drive(drive_op, generator)
+    res.drives = [drive]
+
+    res.t1 = T1
+    res.temp = TEMP
+    res.t2star = T2STAR
+    model = MasterEquation(
+        hamiltonian_func=res.get_value,
+        hamiltonian_and_gradient_func=res.get_value_and_gradient,
+        jump_operators=res.get_jump_operators(),
+    )
 
     return model
 
@@ -83,9 +94,9 @@ def expm(open_resonator):
     init = np.zeros((DIMS, 1), dtype=np.complex128)
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
+    init_dm_vec = convert_dm_to_vec(init_dm)
 
-    prop = ScipyExpm(open_resonator, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = ScipyExpm(open_resonator.get_value, resolution=100e9, initial_state=init_dm_vec)
     return prop
 
 
@@ -95,14 +106,18 @@ def ode(open_resonator):
     init[DIMS - 1][0] = 1  # Fully excited state
     init_dm = np.matmul(init, init.T)
 
-    open_resonator.ode_propagation = True
-    prop = Vern7(open_resonator, resolution=100e9)
-    prop.set_initial_state(init_dm)
+    prop = Vern7(
+        open_resonator.get_eom_ode_propagation,
+        resolution=100e9,
+        initial_state=init_dm,
+        step_function=lindblad_step,
+        jump_operators=open_resonator.jump_operators,
+    )
     return prop
 
 
-def test_get_value(hamiltonian, time_samples):
-    """Test the getMatrix method."""
+def test_get_hamiltonian(hamiltonian, time_samples):
+    """Test the get_hamiltonian method."""
     for dim in np.arange(1, 10):
         hamil = hamiltonian(dim)
         hams = hamil.get_value(time_samples)

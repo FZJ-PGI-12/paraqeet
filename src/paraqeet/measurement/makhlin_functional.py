@@ -1,5 +1,7 @@
 """Class definition of the Makhlin functional."""
 
+from collections.abc import Callable
+
 import jax.numpy as jnp
 
 from paraqeet.exceptions import (
@@ -7,8 +9,7 @@ from paraqeet.exceptions import (
     IncompatibleLayersException,
 )
 from paraqeet.measurement.measurement import Measurement
-from paraqeet.propagation.propagation import Propagation
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class MakhlinFunctional(Measurement):
@@ -23,9 +24,9 @@ class MakhlinFunctional(Measurement):
 
     Parameters
     ----------
-    propagation : Propagation
-        Abstract base class for any implementation that can solve
-        the equation of motion.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
     times : Array
         One-dimensional vector of timestamps.
     ideal_invariants : Array optional
@@ -33,18 +34,18 @@ class MakhlinFunctional(Measurement):
 
     """
 
-    _propagation: Propagation
+    _propagation_func: Callable[[Array], Array]
     _ideal_invariants: Array | None
 
     def __init__(
         self,
-        propagation: Propagation,
+        propagation_func: Callable[[Array], Array],
         ideal_invariants: Array | None = None,
     ):
-        self._propagation = propagation
+        self._propagation_func = propagation_func
         self._ideal_invariants = ideal_invariants
 
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Measure distance of the propagator to a perfect entangler.
 
         Parameters
@@ -67,7 +68,7 @@ class MakhlinFunctional(Measurement):
         if not times:
             raise ConfigurationException("Time array was not specified")
 
-        u = self._propagation.propagate(times)[-1]
+        u = self._propagation_func(times)[-1]
         if u.shape != (4, 4):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self._makhlin_invariants(u)

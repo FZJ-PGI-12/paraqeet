@@ -188,7 +188,7 @@ class OptimizationMap:
     def register_params_with_optimizables(self) -> None:
         """Register optimizable parameters with the system.
 
-        Utility function that synchronises the list of parameters with
+        Utility function that synchronizes the list of parameters with
         each optimizable class. This needs to be called by the optimizer
         before gradient based optimization to tell the layers which gradients
         to compute.
@@ -241,10 +241,10 @@ class OptimizationMap:
         return self.filter_parameters(lambda quantity: name not in quantity.get_name())
 
     def to_dict(self) -> dict:
-        """Create a dictionary represenation of the optimization map.
+        """Create a dictionary representation of the optimization map.
 
         Creates a dictionary that contains the values of all quantities that are being optimized, sorted by the
-        Optimizable instances to which they belong. The returned dictionary is meant for export using the serialisation
+        Optimizable instances to which they belong. The returned dictionary is meant for export using the serialization
         package. It uses the names of Optimizables and Quantities and assumes that those are unique and not None. The
         format of the dict will be
 

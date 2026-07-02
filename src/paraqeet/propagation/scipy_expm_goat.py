@@ -4,20 +4,39 @@ Uses the GOAT optimization method.
 
 """
 
+from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax.numpy as jnp
-from jax import jit, vmap
+from jax import jit
 from jax.lax import scan
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
-from paraqeet.quantity import Array
+from paraqeet.propagation.utils import construct_times
+from paraqeet.quantity import Array, Float
 
 
-class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
-    """Solve EOMs by piecewise exponentiation via Scipy using GOAT."""
+class ScipyExpmGOAT(ScipyExpm, Differentiable):
+    """Solve EOMs by piecewise exponentiation via Scipy using GOAT.
+
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+    """
+
+    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+
+    def __init__(
+        self,
+        eom_func: Callable[[Array], Array],
+        eom_and_grad_func: Callable[[Array], tuple[Array, Array]],
+        resolution: float,
+        initial_state: Array,
+    ):
+        ScipyExpm.__init__(self, eom_func, resolution, initial_state)
+        self._eom_and_gradient_func = eom_and_grad_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
@@ -81,6 +100,16 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
 
+    @override
+    def get_value(self, times: Array) -> Array | Float:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
+
+    @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
@@ -100,32 +129,27 @@ class ScipyExpmGOAT(ScipyExpm, DifferentiablePropagation):
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
-        if self._model is None:
+        if self._eom_func is None:
             raise ConfigurationException("No equation of motion is configured.")
-        n_params = self._model.get_value_and_gradient(jnp.array([0.0]))[1].shape[1]
+
+        _, eom_grads = self._eom_and_gradient_func(jnp.array([0.0]))
+        n_params = eom_grads.shape[1]
         dim = self._initial_state.shape[0]
         psis = [jnp.array(self._initial_state, dtype=jnp.complex128)]
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._initial_state.shape, dtype=jnp.complex128)]
 
-        grad_func = self._model.get_value_and_gradient
-
         for ti in range(1, len(times)):
-            times, dt = self._construct_times(times, ti)
+            interp_times, dt = construct_times(times, ti, self._resolution)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
-            eom, grads = grad_func(times + dt / 2)
+            eom, grads = self._eom_and_gradient_func(interp_times + dt / 2)
             eom = eom * dt
             grads = jnp.array(grads) * dt
 
-            psi_t = self._propagate_gradient(n_params, psi_t, eom, grads, jnp.arange(0, len(times), 1))
+            psi_t = self._propagate_gradient(n_params, psi_t, eom, grads, jnp.arange(0, len(interp_times), 1))
             psis.append(jnp.array(psi_t[0:dim]))
             dpsis.append(jnp.array([psi_t[dim * ii : dim * (ii + 1)] for ii in range(1, n_params + 1)]))
 
         psis_arr = jnp.array(psis)
         dpsis_arr = jnp.array(dpsis)
-
-        if self.is_open:
-            dim = int(jnp.sqrt(eom.shape[-1]))
-            psis_arr = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis_arr, dim)
-            dpsis_arr = vmap(vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None)), in_axes=(0, None))(dpsis_arr, dim)
         return psis_arr, dpsis_arr

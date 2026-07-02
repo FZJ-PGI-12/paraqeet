@@ -71,13 +71,18 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    opt = ScipyOptimizerGradient(smoothness, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=smoothness.get_value_and_gradient, optimization_map=optmap)
     max_iter = 200
     opt.set_options({"maxiter": max_iter})
 
 .. code:: ipython3
 
     opt.optimize(ts)
+
+
+.. parsed-literal::
+
+    Iteration   10 | Infid = 3.831392e-08
 
 
 
@@ -97,7 +102,7 @@ We can check that the gradient has the correct shape
 
 .. parsed-literal::
 
-    0.9999999988350848
+    Array(1., dtype=float64)
 
 
 
@@ -110,8 +115,8 @@ We can check that the gradient has the correct shape
 
 .. parsed-literal::
 
-    (0.9999999988350848,
-     Array([-1.00058440e-14,  2.15090019e-13, -1.21393925e-13, -3.56757831e-14,
+    (Array(1., dtype=float64),
+     Array([-1.00058440e-14,  2.15090019e-13, -1.21393926e-13, -3.56757831e-14,
              4.32685927e-14, -9.68587243e-14, -4.40413453e-14, -1.06365887e-14,
              1.05700111e-13, -1.52029507e-13,  4.58424060e-14, -7.35246762e-14,
             -3.52732230e-14,  7.81778245e-14,  7.35808110e-14,  8.99784498e-14,
@@ -120,7 +125,7 @@ We can check that the gradient has the correct shape
              8.99784498e-14,  7.35808110e-14,  7.81778245e-14, -3.52732230e-14,
             -7.35246762e-14,  4.58424060e-14, -1.52029507e-13,  1.05700111e-13,
             -1.06365887e-14, -4.40413453e-14, -9.68587243e-14,  4.32685927e-14,
-            -3.56757831e-14, -1.21393925e-13,  2.15090019e-13, -1.00058440e-14,
+            -3.56757831e-14, -1.21393926e-13,  2.15090019e-13, -1.00058440e-14,
             -0.00000000e+00, -0.00000000e+00, -0.00000000e+00, -0.00000000e+00,
             -0.00000000e+00, -0.00000000e+00, -0.00000000e+00, -0.00000000e+00,
             -0.00000000e+00, -0.00000000e+00, -0.00000000e+00, -0.00000000e+00,
@@ -136,11 +141,19 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    plot_signal(gen_qubit, ts, linestyle="--", label="PWC");
+    plot_signal(gen_qubit, ts, linestyle="--", label="PWC")
 
 
 
-.. image:: 08A_Smoothness_measure_files/08A_Smoothness_measure_12_0.png
+
+.. parsed-literal::
+
+    <Axes: xlabel='Time [ns]', ylabel='Amplitude [MHz / $2\\pi$]'>
+
+
+
+
+.. image:: 08A_Smoothness_measure_files/08A_Smoothness_measure_12_1.png
 
 
 As expected obtain a flat pulse.

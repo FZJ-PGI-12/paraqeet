@@ -9,11 +9,13 @@ from typing import Self
 
 import jax
 import jax.numpy as jnp
+import jaxtyping
 import numpy as np
 
 from paraqeet.exceptions import IncompatibleQuantityException
 
 type Array = np.typing.NDArray[np.float64] | np.typing.NDArray[np.complexfloating] | jax.Array
+type Float = float | jaxtyping.Float[jaxtyping.Array, ""]  # noqa F722
 jax.config.update("jax_enable_x64", True)
 
 
@@ -564,7 +566,7 @@ class Quantity:
         Returns
         -------
         bool
-            True if self's value is less than other paramter's value.
+            True if self's value is less than other parameter's value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.

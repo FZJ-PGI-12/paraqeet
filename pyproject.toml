@@ -28,10 +28,11 @@ classifiers = [
 dependencies = [
   "numpy>=2.3.0",
   "scipy>=1.15.3",
-  "jax>=0.6.1",
-  "jaxlib>=0.6.1",
+  "jax>=0.10.0",
+  "jaxlib>=0.10.0",
   "bayesian-optimization>=2.0.4",
-  "cma>=4.2.0"
+  "cma>=4.2.0",
+  "jaxtyping>=0.3.7"
 ]
 
 [tool.sphinx-pyproject]
@@ -43,7 +44,7 @@ copyright = "PGI-12"
 dev = [
   "pytest>=7.2.0",
   "pre-commit>=4.2.0",
-  "ruff>=0.11.13"
+  "ruff>=0.11.13",
 ]
 test = [
   "pytest>=7.2.0",
@@ -51,6 +52,8 @@ test = [
 testNB = [
   "pytest>=7.2.0",
   "matplotlib>=3.10.0",
+  "qutip>=5.2.3",
+  "qutip-jax>=0.1.1"
 ]
 gpu = [
   "jax[cuda12]>=0.4.20",
@@ -121,7 +124,8 @@ extend-select = [
 ignore = [
   "D100", # Missing docstring in public module
   "D205", # 1 blank line required between summary line and description
-  "D40" # All D40x errors are about docstrings
+  "D40", # All D40x errors are about docstrings
+  "E731", # Use of lambda functions
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -129,3 +133,20 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+# Codespell for spell checking
+[tool.codespell]
+# Use US english convention
+builtin = "clear,rare,en-GB_to_en-US"
+
+# Words to allow even though they're in codespell's misspelling dictionary.
+# Comma-separated, lowercase, no spaces around commas.
+ignore-words-list = "fo,nd,wrd,thru,iam,te,ket,lamdas"
+
+# Files / directories / globs to skip.
+skip = "*.lock,*.csv,*.svg,./.git/*,./build/*,./dist/*,./venv/*,./.venv/*,./docs/requirements.txt,*.js"
+
+# Optional quality-of-life settings
+check-filenames = true
+count = true
+quiet-level = 3

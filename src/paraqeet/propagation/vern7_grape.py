@@ -1,50 +1,85 @@
 """Class definition of the 7th-order Verner ODE solver for GRAPE."""
 
+from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax
 import jax.numpy as jnp
-from jax import jit, vmap
+from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
+from paraqeet.propagation.utils import construct_times
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7GRAPE(Vern7, DifferentiablePropagation):
-    """
-    Solve EOMs by 7th order ODE method to compute gradients using GRAPE.
+class Vern7GRAPE(Vern7, Differentiable):
+    r"""
+    Solve EOMs by 7th order ODE method and compute gradients using GRAPE.
 
     Compute the gradients of a quantum system for PWC pulses by using GRAPE.
     Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+
     The state propagations are done by the `Vern7 ODE` method.
 
-    _resolution: float
-        Simulation resolution.
-    _initial_state: Array = None
-        Initial state for forward propagation.
-    _target_state: Array = None
-        Target state for backward propagation.
+    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Function that returns EOM and its gradient for an array of times.
+    _target_state: Array
+        Target state for backwards/reverse propagation for GRAPE.
+    _operator_sandwich_function: Callable
+        Operator sandwich function to compute GRAPE gradients. It evaluates
+
+        1. For closed system
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+
+        2. For open system
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
+
+    _reverse_step_function: Callable
+        Reverse step function for the backwards propagation.
     """
 
-    _target_state: Array | None = None
+    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _target_state: Array
+    _reverse_step_function: Callable
+    _operator_sandwich_function: Callable
 
-    def __init__(self, model: EquationOfMotion, resolution: float):
-        super().__init__(model, resolution)
+    def __init__(
+        self,
+        eom_func: Callable[[Array], Array],
+        eom_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        resolution: float,
+        initial_state: Array,
+        target_state: Array,
+        step_function: Callable,
+        reverse_step_function: Callable,
+        operator_sandwich_function: Callable,
+        jump_operators: list[Array] | None = None,
+    ):
+        Vern7.__init__(self, eom_func, resolution, initial_state, step_function, jump_operators)
+        self._eom_and_gradient_func = eom_and_gradient_func
+        self._reverse_step_function = reverse_step_function
+        self._target_state = target_state
+        self._operator_sandwich_function = operator_sandwich_function
 
-        if self.is_open:
-            self._reverse_step_function = self._reverse_lindblad_step
-        else:
-            self._reverse_step_function = self._reverse_schrodinger_step
+    @property
+    def target_state(self):
+        """Return target state."""
+        return self._target_state
 
-    def set_target_state(self, target_state: Array) -> None:
+    @target_state.setter
+    def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
@@ -52,25 +87,37 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         target_state: Array
             Target state.
         """
-        # For open system check if target state is a density matrixs.
-        if self.is_open:
-            if target_state.shape[-1] != target_state.shape[-2]:
-                raise ConfigurationException(
-                    f"Obtained a state vector of shape {target_state.shape} as target state. "
-                    + "For open system propagation expected a density matrix as the target state."
-                )
-
+        # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._target_state = target_state
 
-    def _reverse_schrodinger_step(self, state: Array, h: Array, cols: list[Array]):
-        return jnp.matmul(state, h)
+    @property
+    def reverse_step_function(self):
+        """Return the reverse step function for solving the backward propagation of the target state."""
+        return self._reverse_step_function
 
-    def _reverse_lindblad_step(self, state: Array, h: Array, cols: list[Array]):
-        del_rho = Vern7._commutator(h, state)
-        for col in cols:
-            del_rho -= jnp.matmul(jnp.matmul(Vern7._dagger(col), state), col)
-            del_rho += 0.5 * Vern7._anti_commutator(jnp.matmul(Vern7._dagger(col), col), state)
-        return del_rho
+    @reverse_step_function.setter
+    def reverse_step_function(self, reverse_step_func: Callable):
+        """Set the step function for solving the backward propagation of the target state."""
+        self._reverse_step_function = reverse_step_func
+
+    @property
+    def operator_sandwich_function(self):
+        r"""Return the operator sandwich function for computing the gradients.
+
+        Closed system involves
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+
+        and open system involves
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
+        """
+        return self._operator_sandwich_function
+
+    @operator_sandwich_function.setter
+    def operator_sandwich_function(self, operator_sandwich_func: Callable):
+        """Set the step function for solving the backward propagation of the target state."""
+        self._operator_sandwich_function = operator_sandwich_func
 
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation(
@@ -117,6 +164,16 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
 
         return psis_t, lamdas_t
 
+    @override
+    def get_value(self, times: Array) -> Array:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
+
+    @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
@@ -133,25 +190,9 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         if len(times) < 2:
             raise ValueError("Vern7GRAPE.get_value_and_gradient needs at least two time points.")
 
-        if self._initial_state is None:
-            raise ConfigurationException("Initial state is not set")
-
-        if self._target_state is None:
-            raise ConfigurationException("Target state is not set")
-
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
-
-        if self._model is None:
-            raise ConfigurationException("No equation of motion is configured.")
-        eom_func = self._model.get_value
-        grad_func = self._model.get_value_and_gradient
-
-        # Verify if `model.ode_propagation` is set to `True`.
-        # ode_propgation returns hamiltonian and collapse operators separately.
-        if not self._model.ode_propagation:
-            raise ConfigurationException("Please set `model.ode_propagation` to `True` for this propagation method.")
 
         psis_list = [init_state]
         lamdas_list = [target_state]
@@ -161,7 +202,7 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             lamda_t = lamdas_list[ti - 1]
 
             # Interpolate times
-            time_grid, dt = self._construct_times(times, ti)
+            time_grid, dt = construct_times(times, ti, self._resolution)
             times_interp = Vern7._interpolate_time(time_grid, dt)
             times_interp = times_interp + dt / 2
 
@@ -173,10 +214,14 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
             # TODO: currently separate time grids are required for the EOM and the gradients.
             # TODO: Can we use one so that the value and gradients are computed simultaneously?
 
-            eom, cols = eom_func(times_interp)
+            eom = self._eom_func(times_interp)
 
             psi_t, lamda_t = self._forward_and_backward_propagation(
-                psi_t, lamda_t, eom * dt, jnp.array(cols) * jnp.sqrt(dt), jnp.arange(0, len(time_grid), 1)
+                psi_t,
+                lamda_t,
+                eom * dt,
+                jnp.array(self._jump_operators) * jnp.sqrt(dt),
+                jnp.arange(0, len(time_grid), 1),
             )
 
             psis_list.append(psi_t)
@@ -186,18 +231,13 @@ class Vern7GRAPE(Vern7, DifferentiablePropagation):
         lamdas = jnp.array(lamdas_list)
 
         lamdas = jnp.flip(lamdas, axis=0)
-        _, dh_dps = grad_func(times[:-1] + dt / 2)
+        _, dh_dps = self._eom_and_gradient_func(times[:-1] + dt / 2)
         dh_dps = jnp.array(dh_dps) * dt
 
         grads = []
         n_params = dh_dps.shape[1]
         for i in range(n_params):
-            if self.is_open:
-                fwd_prop_state = vmap(Vern7._commutator, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
-            else:
-                fwd_prop_state = vmap(jnp.matmul, in_axes=(0, 0))(dh_dps[:, i, ...], psis[1:])
-
-            grad = vmap(jnp.matmul, in_axes=(0, 0))(lamdas[1:], fwd_prop_state)
+            grad = self._operator_sandwich_function(dh_dps[:, i, ...], psis[1:], lamdas[1:])
             grad = jnp.squeeze(grad)
             grads.append(grad)
         return psis, jnp.array(grads)

@@ -1,8 +1,9 @@
 """Class definition of the Measurement model."""
 
 from abc import ABC, abstractmethod
+from typing import Protocol
 
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class Measurement(ABC):
@@ -19,7 +20,7 @@ class Measurement(ABC):
     """
 
     @abstractmethod
-    def measure(self, times: Array) -> Array | float:
+    def measure(self, times: Array) -> Array | Float:
         """Measure the observable and returns the value.
 
         Parameters
@@ -31,8 +32,8 @@ class Measurement(ABC):
 
         Returns
         -------
-        Array or float
-            This abstract method must return an Array or a float when
+        Array or Float
+            This abstract method must return an Array or a Float when
             implemented by subclasses. Might return multiple values.
 
 
@@ -48,7 +49,7 @@ class NormalizableMeasurement(Measurement):
     """
 
     @abstractmethod
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure the normalized observable.
 
         Returns a single scalar value between 0 and 1.
@@ -63,8 +64,32 @@ class NormalizableMeasurement(Measurement):
 
         Returns
         -------
-        float
-            Returns a float if implemented by a subclass.
+        Float
+            Returns a Float if implemented by a subclass.
 
         """
         pass
+
+
+class DifferentiableNormalizableMeasurement(Protocol):
+    """Protocol for a class that is both NormalizableMeasurement and Differentiable"""
+
+    def get_value(self, times: Array) -> Array | Float:
+        """Returns the value of the measurement"""
+        ...
+
+    def get_gradient(self, times: Array) -> Array:
+        """Returns the gradient of the measurement"""
+        ...
+
+    def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
+        """Returns the value and the gradient of the measurement"""
+        ...
+
+    def measure(self, times: Array) -> Array | Float:
+        """Usually the same as get_value"""
+        ...
+
+    def calculate_normalized_scalar(self, times: Array | Float) -> Float:
+        """Usually the same as get_value"""
+        ...

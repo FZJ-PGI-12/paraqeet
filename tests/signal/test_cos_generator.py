@@ -74,8 +74,11 @@ def test_gradient_one_time(gen):
     """Test the generate signal gradient one time function."""
     print(gen.get_parameters())
     gen.set_optimizable_parameters(gen.get_parameters())
-    grads = gen.get_gradient_at_timestep(np.array([0]))
-    assert grads.shape == (len(gen.get_parameters()),)
+    grads = gen.get_gradient(np.array([0]))
+    assert grads.shape == (
+        1,
+        len(gen.get_parameters()),
+    )
 
 
 def test_gradient_shape(gen, time_samples):

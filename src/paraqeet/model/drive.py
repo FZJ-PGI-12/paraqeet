@@ -1,136 +1,91 @@
 """Class definition of a Drive optimizable model."""
 
-from abc import abstractmethod
+from typing import override
 
-from jax import vmap
+import jax.numpy as jnp
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Quantity
+from paraqeet.signal.generator import Generator
 
 
-# TODO: Is Drive a Differentiable object? If so, it should inherit from Differentiable at least 
-# for the purpose of clarity and consistency. Would it make sense to add a default 
-# implementation of the abstract Differentiable method get_value_and_gradient?
-# If not, we should rename the methods to e.g. get_hamiltonian_gradient to avoid confusion.
-class Drive(Optimizable):
-    """Represents a time-dependent drive on a subsystem.
+class Drive(Optimizable, Differentiable):
+    """Represents a time-dependent drive on a system.
 
     This can for example be a microwave or flux drive.
 
+    Parameters
+    ----------
+    drive_op: Array
+        The drive operator. It needs to match the dimension of the system
+        it is associated with.
+    generator : Generator
+        Signal generator.
+    add_hermitian: bool=False
+        A boolean that determines whether the Hermitian conjugate of the drive
+        is added or not
+
     """
 
-    def get_value(self, annihilation_operator: Array, times: Array) -> Array:
-        """Return the matrix representation of the drive.
+    def __init__(self, drive_op: Array, generator: Generator, add_hermitian: bool = False) -> None:
+        self.drive_op = drive_op
+        self.generator = generator
+        self.add_hermitian = add_hermitian
 
-        The dimension is given by the Hamiltonian to which this drive is
-        attached. The default implementation calls getMatrixOneTime for each
-        time step. Subclasses can override this function for a more efficient
-        implementation.
+    @override
+    def get_parameters(self) -> list[Quantity]:
+        """Get a list of parameters of the system.
+
+        Returns
+        -------
+        list[Quantity]
+            List of optimizable parameters of the system.
+
+        """
+        return self.generator.get_parameters()
+
+    @override
+    def get_value(self, times: Array) -> Array:
+        """Return the matrix representation of the drive.
 
         Parameters
         ----------
-        annihilation_operator : Array
-            Operator of the subsystem to which this drive is attached
         times: Array
-            Vector of time samples.
+            Array of times.
 
         Returns
         -------
         Array
-            Matrix of shape [t, n, n]  with 't' as time and 'n' as the Hilbert
-            space dimension.
-
+            Matrix of shape [n_times, n, n]  with n_times as the number of times
+            and 'n' as the Hilbert space dimension.
         """
-        # vmap iterates over the times array and returns float. Not caught by mypy.
-        return vmap(self.get_value_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  # type: ignore
+        signal = self.generator.get_value(times)
+        signal = signal.reshape(*signal.shape, 1, 1)
+        drive_value = signal * self.drive_op
+        drive_value += jnp.where(self.add_hermitian, jnp.conjugate(signal) * self.drive_op.conj().T, 0.0)
+        return drive_value
 
-    @abstractmethod
-    def get_value_at_timestep(self, annihilation_operator: Array, t: float) -> Array:
-        """Return the matrix representation of the drive.
-
-        The dimension is given by the Hamiltonian to which this drive is
-        attached.
-
-        Parameters
-        ----------
-        annihilation_operator
-            Operator of the subsystem to which this drive is attached.
-        t: float
-            One time point.
-
-        Returns
-        -------
-        Array
-            Matrix of shape [n, n]  with `n` as the Hilbert space dimension.
-
-        """
-        pass
-
-    def get_gradient(self, annihilation_operator: Array, times: Array) -> Array:
+    @override
+    def get_gradient(self, times: Array) -> Array:
         """Return the gradient of the system.
 
-        Returns the gradient of the matrix representation of the Hamiltonian
+        Returns the gradient of the matrix representation of the drive Hamiltonian
         with respect to each parameter as a list.
 
         Parameters
         ----------
-        annihilation_operator : Array
-            Operator of the subsystem to which this drive is attached.
         times: Array
-            Vector of time samples.
+            Array of times.
 
         Returns
         -------
         Array
-            Array of shape [t, p, n, n] with 't' as time, 'p' as number of
-            parameters and 'n' as the Hilbert space dimension.
-
-
+            Array of shape [n_times, n_params, n, n] with n_times as the number of times,
+            n_params as number of parameters and 'n' as the Hilbert space dimension.
         """
-        # Ignoring mypy here as vmap makes the array to float
-        return vmap(self.get_gradient_at_timestep, in_axes=(None, 0))(annihilation_operator, times)  #  type: ignore
-
-    @abstractmethod
-    def get_gradient_at_timestep(self, annihilation_operator: Array, timestep: float) -> Array:
-        """Get the one-time gradient of the system.
-
-        Returns the gradient of the matrix representation of the
-        Hamiltonian with respect to each parameter as a list.
-
-        Parameters
-        ----------
-        annihilation_operator : Array
-            Operator of the subsystem to which this drive is attached.
-        timestep: float
-            One time step.
-
-        Returns
-        -------
-        Array
-            Array of shape [p, n, n] with 'p' as the number
-            of parameters and 'n' as the  Hilbert space dimension.
-
-        """
-        pass
-
-    @staticmethod
-    def _repeat(mat: Array, num: int) -> Array:
-        """Repeats the matrix mat for each timestep in the times array.
-
-        Returns an array with shape [t, n, m] where 't' is the
-        number of time steps and 'mat' is an 'n' times 'm' matrix.
-
-        Parameters
-        ----------
-        mat: Array
-            Input matrix for repetition.
-        num : int
-            Number of times of repetition.
-
-        Returns
-        -------
-        Array
-            Repeated matrix for further computation.
-
-        """
-        return mat.reshape((1,) + mat.shape).repeat(num, axis=0)
+        signal_grad = self.generator.get_gradient(times)
+        signal_grad = signal_grad.reshape(*signal_grad.shape, 1, 1)
+        drive_grad = self.drive_op * signal_grad
+        drive_grad += jnp.where(self.add_hermitian, jnp.conjugate(signal_grad) * self.drive_op.conj().T, 0.0)
+        return drive_grad

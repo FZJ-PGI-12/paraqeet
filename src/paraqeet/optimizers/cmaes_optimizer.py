@@ -7,10 +7,9 @@ import jax.numpy as jnp
 import numpy as np
 
 from paraqeet.file_logger import Logger
-from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class CMAEsOptimizer(Optimizer):
@@ -32,8 +31,8 @@ class CMAEsOptimizer(Optimizer):
 
     Parameters
     ----------
-    measure: Measurement
-        Represents any observable and the process of measurement itself.
+    measure_func: Callable[[Array], Float]
+        Function implementing measurement of observables to be minimized.
     optimization_map: OptimizationMap
         Optimizable interface for all parameters considered in optimization.
     logger: FileLogger | None, default=None
@@ -43,18 +42,18 @@ class CMAEsOptimizer(Optimizer):
 
     """
 
-    _measure: NormalizableMeasurement
+    _measure_func: Callable[[Array], Float]
     _options: dict
     _callback: Callable | None
 
     def __init__(
         self,
-        measure: NormalizableMeasurement,
+        measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
         callback=None,
     ):
-        super().__init__(measure, optimization_map, logger)
+        super().__init__(measure_func, optimization_map, logger)
         self._options = {
             "noise": 0,
             "batch_noise": 0,
@@ -227,11 +226,11 @@ class CMAEsOptimizer(Optimizer):
             params[index].set_reduced_value(val)
             log.append(params[index])
 
-        infid = 1.0 - self._measure.calculate_normalized_scalar(self._times)
+        infid = 1.0 - self._measure_func(self._times)
 
         if self._logger:
-            self._logger.log(log, infid)
-        return infid
+            self._logger.log(log, float(infid))
+        return float(infid)
 
     def __determine_termination_status(self, conditions: dict) -> int:
         """Determine the optimization termination status.

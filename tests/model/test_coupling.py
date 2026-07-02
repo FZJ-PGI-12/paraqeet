@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.coupling import TwoBodyCoupling
+from paraqeet.model.coupling import Coupling
 from paraqeet.model.transmon import Transmon
 from paraqeet.quantity import Quantity
 
@@ -28,10 +28,10 @@ def transmon(transmon_parameters):
     """Return a transmon created from the given parameters."""
 
     class CreateTransmon:
-        def get(self, dimension):
+        def get(self, num_levels):
             freq, anharm = transmon_parameters.get()
             transmon = Transmon(
-                dimension=dimension,
+                num_levels=num_levels,
                 frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
                 anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
             )
@@ -44,15 +44,24 @@ def transmon(transmon_parameters):
 def coupling(transmon):
     """Return a coupling generator method."""
 
-    def _method(dim1: int, dim2: int, is_longitudinal: bool, use_rwa: bool = False):
-        transmonA = transmon.get(dim1)
-        transmonB = transmon.get(dim2)
-        coupling = TwoBodyCoupling(
-            subsystem_A=transmonA,
-            subsystem_B=transmonB,
-            is_longitudinal=is_longitudinal,
-            use_rwa=use_rwa,
-            coefficient=Quantity(COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"),
+    def _method(dim1: int, dim2: int, add_hermitian: bool):
+        transmon_a = transmon.get(dim1)
+        transmon_b = transmon.get(dim2)
+        if add_hermitian:
+            coupling_op = np.kron(
+                transmon_a.annihilation_op,
+                transmon_b.annihilation_op.conj().T,
+            )
+        else:
+            coupling_op = np.kron(
+                transmon_a.annihilation_op + transmon_a.annihilation_op.conj().T,
+                transmon_b.annihilation_op + transmon_b.annihilation_op.conj().T,
+            )
+
+        coupling = Coupling(
+            coupling_op=coupling_op,
+            g_abs=Quantity(COUPLINGSTR, 0.8 * COUPLINGSTR, 1.2 * COUPLINGSTR, "Hz"),
+            add_hermitian=add_hermitian,
         )
 
         return coupling
@@ -65,57 +74,36 @@ def test_get_matrices(coupling):
     for _ in range(10):
         dim1 = np.random.randint(2, 7)
         dim2 = np.random.randint(2, 7)
-        dims = [dim1, dim2]
+        total_dim = dim1 * dim2
 
-        # Test shape for Longitudinal coupling
-        coup = coupling(dim1, dim2, is_longitudinal=True)
-        coup_hams = coup.get_couplings()
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
-
-        # Test for RWA
-        coup = coupling(dim1, dim2, is_longitudinal=False, use_rwa=True)
-        coup_hams = coup.get_couplings()
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
-
-        # Test shape for Transverse coupling
-        coup = coupling(dim1, dim2, is_longitudinal=False)
-        coup_hams = coup.get_couplings()
-        for term in coup_hams:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
+        # Test add Hermitian
+        coup = coupling(dim1, dim2, add_hermitian=False)
+        coup_ham = coup.get_value(np.array([0.0]))
+        assert np.shape(coup_ham) == (1, total_dim, total_dim)
+        # Test shape with add Hermitian
+        coup = coupling(dim1, dim2, add_hermitian=True)
+        coup_ham = coup.get_value(np.array([0.0]))
+        assert np.shape(coup_ham) == (1, total_dim, total_dim)
 
 
 def test_gradient_shape(coupling):
     """Test the shape of the gradient."""
     # TODO: Test if the coupling is not optimized
+    times = np.array([0.0, 1e-9, 2e-9, 3e-9])
     dim1 = np.random.randint(2, 7)
     dim2 = np.random.randint(2, 7)
-    dims = [dim1, dim2]
-    coup = coupling(dim1, dim2, is_longitudinal=False)
-    grads = coup.get_coupling_gradients()
-    for grad in grads:
-        for term in grad:
-            for i, ops in enumerate(term):
-                assert np.size(ops) == 0
+    total_dim = dim1 * dim2
+    coup = coupling(dim1, dim2, add_hermitian=False)
+    grads = coup.get_gradient(times)
+    assert np.shape(grads) == (*times.shape, 0, total_dim, total_dim)
     coup.set_optimizable_parameters(coup.get_parameters())
-    grads = coup.get_coupling_gradients()
-    for grad in grads:
-        for term in grad:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
-
+    grads = coup.get_gradient(times)
+    assert np.shape(grads) == (*times.shape, 2, total_dim, total_dim)
     # Test with RWA
     dim1 = np.random.randint(2, 7)
     dim2 = np.random.randint(2, 7)
-    dims = [dim1, dim2]
-    coup = coupling(dim1, dim2, is_longitudinal=False, use_rwa=True)
+    total_dim = dim1 * dim2
+    coup = coupling(dim1, dim2, add_hermitian=True)
     coup.set_optimizable_parameters(coup.get_parameters())
-    grads = coup.get_coupling_gradients()
-    for grad in grads:
-        for term in grad:
-            for i, ops in enumerate(term):
-                assert np.shape(ops) == (dims[i], dims[i])
+    grads = coup.get_gradient(times)
+    assert np.shape(grads) == (*times.shape, 2, total_dim, total_dim)

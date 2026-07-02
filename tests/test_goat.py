@@ -5,14 +5,16 @@ import pytest
 
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.drive_operator import DriveOperator
-from paraqeet.model.open_system import OpenSystem
+from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
+from paraqeet.model.drive import Drive
+from paraqeet.model.master_equation import MasterEquation
 from paraqeet.model.qubit import Qubit
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.utils import convert_dm_to_vec
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -43,48 +45,77 @@ def gen(tone):
     return gen
 
 
-@pytest.fixture(scope="function", params=["openSystem", "closedSystem"])
-def prop(gen, request):
+@pytest.fixture(params=["OpenSystem", "ClosedSystem"])
+def mode(request):
+    return request.param
+
+
+@pytest.fixture
+def prop(gen, mode):
     """Solve the equation of motion.
 
     By piecewise exponentiation with the scipy package.
 
     """
-    drive = DriveOperator(gen, is_longitudinal=False)
-    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[drive], t1=T1, temp=TEMP, t2star=T2STAR)
-    if request.param == "openSystem":
-        model = OpenSystem(controlled_qubit)
-    elif request.param == "closedSystem":
-        model = ClosedSystem(controlled_qubit)
-    return ScipyExpmGOAT(model=model, resolution=RES)
-
-
-@pytest.fixture
-def states(prop):
-    """Compare the overlap of the initial and final state."""
     init = np.array([[1.0], [0.0]])
-    target = np.array([[0.0], [1]])
-
-    if prop.is_open:
+    if mode == "OpenSystem":
         init = np.matmul(init, init.T)
-        target = np.matmul(target, target.T)
+        init = convert_dm_to_vec(init)
 
-    return StateTransferFidelity(
-        propagation=prop,
-        initial_state=init,
-        target_state=target,
+    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    drive = Drive(pauli_x, gen)
+    controlled_qubit.drives = [drive]
+    if mode == "OpenSystem":
+        model = MasterEquation(
+            hamiltonian_func=controlled_qubit.get_value,
+            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+            jump_operators=controlled_qubit.get_jump_operators(),
+        )
+    elif mode == "ClosedSystem":
+        model = SchroedingerEquation(
+            hamiltonian_func=controlled_qubit.get_value,
+            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        )
+    return ScipyExpmGOAT(
+        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=RES, initial_state=init
     )
 
 
 @pytest.fixture
-def gates(prop):
+def states(prop, mode):
+    """Compare the overlap of the initial and final state."""
+    init = np.array([[1.0], [0.0]])
+    target = np.array([[0.0], [1.0]])
+    overlap_func = overlap_state_vector
+
+    if mode == "OpenSystem":
+        init = np.matmul(init, init.T)
+        target = np.matmul(target, target.T)
+
+        init = convert_dm_to_vec(init)
+        target = convert_dm_to_vec(target)
+
+        overlap_func = overlap_vectorized_density_matrix
+
+    return StateTransferFidelity(
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
+        target_state=target,
+        overlap=overlap_func,
+    )
+
+
+@pytest.fixture
+def gates(prop, mode):
     """Compare the propagator with a gate via the L2 norm."""
-    if prop.is_open:
+    if mode == "OpenSystem":
         pytest.skip("Gate optimization is only implemented for closed system.")
-    pauli_x = np.array([[0.0, 1], [1, 0.0]])
-    prop.set_initial_state(np.identity(2))
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    prop.initial_state = np.identity(2)
     return UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=pauli_x,
     )
 
@@ -104,25 +135,25 @@ def opt_map(gen):
 @pytest.fixture
 def grad_opt(states, opt_map):
     """Create a scipy optimizer gradient object over states."""
-    return ScipyOptimizerGradient(measure=states, optimization_map=opt_map)
+    return ScipyOptimizerGradient(measure_and_gradient_func=states.get_value_and_gradient, optimization_map=opt_map)
 
 
 @pytest.fixture
 def grad_gates_opt(gates, opt_map):
     """Create a scipy optimizer gradient object over gates."""
-    return ScipyOptimizerGradient(measure=gates, optimization_map=opt_map)
+    return ScipyOptimizerGradient(measure_and_gradient_func=gates.get_value_and_gradient, optimization_map=opt_map)
 
 
 @pytest.fixture
 def opt(states, opt_map):
     """Create a scipy optimizer object over states."""
-    return ScipyOptimizer(measure=states, optimization_map=opt_map)
+    return ScipyOptimizer(measure_func=states.calculate_normalized_scalar, optimization_map=opt_map)
 
 
 @pytest.fixture
 def gates_opt(gates, opt_map):
     """Create a scipy optimizer gradient object over gates."""
-    return ScipyOptimizer(measure=gates, optimization_map=opt_map)
+    return ScipyOptimizer(measure_func=gates.calculate_normalized_scalar, optimization_map=opt_map)
 
 
 def test_optim_finite_diff(opt) -> None:

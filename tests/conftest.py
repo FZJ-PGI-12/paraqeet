@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 from scipy.stats import unitary_group
 
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.quantity import Quantity
-from tests.model.dummy_model import DummyEquationsOfMotion
-from tests.model.empty_hamiltonian import EmptyHamiltonian
+from tests.model.empty_hamiltonian import EmptySystem
 
 LEN_SIG = 20
 
@@ -32,11 +32,14 @@ def identity():
 
 
 @pytest.fixture
-def model():
+def eom():
     """Return a dummy model generation function."""
 
     def _method(dimension):
-        return DummyEquationsOfMotion(EmptyHamiltonian(dimension))
+        sys = EmptySystem(dimension)
+        return SchroedingerEquation(
+            hamiltonian_func=sys.get_value, hamiltonian_and_gradient_func=sys.get_value_and_gradient
+        ).get_value
 
     return _method
 
@@ -51,7 +54,7 @@ def random_state():
 
     def _method(dimension):
         state = np.random.random(dimension) + 1j * np.random.random(dimension)
-        return state / np.sqrt(np.vdot(state, state))
+        return np.expand_dims(state / np.sqrt(np.vdot(state, state)), axis=1)
 
     return _method
 
@@ -69,6 +72,24 @@ def random_matrix():
         state = np.random.random(size=(n, m))
         +1j * np.random.random(size=(n, m))
         return state / np.trace(state)
+
+    return _method
+
+
+@pytest.fixture
+def random_density_matrix():
+    """Return a random density matrix generating method.
+
+    Generates random density matrix for given dimension n.
+    The matrix is Hermitian and positive semi-definite and
+    normalized to have trace 1.
+
+    """
+
+    def _method(n):
+        state = np.random.random(size=(n, n)) + 1j * np.random.random(size=(n, n))
+        dm = state @ state.conj().T
+        return dm / np.trace(dm)
 
     return _method
 

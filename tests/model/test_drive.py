@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.drive_operator import DriveOperator
+from paraqeet.model.drive import Drive
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
 
@@ -37,25 +37,26 @@ def gen(tone):
 
 @pytest.fixture
 def drive(gen):
-    """Return a generator drive object."""
-    drive = DriveOperator(gen, is_longitudinal=False)
+    """Return a drive"""
+    dim = np.random.randint(2, 10)
+    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
+    drive_op = annihilation_op + annihilation_op.conj().T
+    drive = Drive(drive_op, gen)
     return drive
 
 
 def test_drive_get_value(drive, time_samples):
-    """Test the drive getMatrix method."""
-    dim = np.random.randint(2, 10)
-    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    driveMatrices = drive.get_value(annihilation_op, time_samples)
-    assert driveMatrices.shape == time_samples.shape + (dim, dim)
+    """Test the drive get_value method."""
+    drive_matrices = drive.get_value(time_samples)
+    dim = drive.drive_op.shape[0]
+    assert drive_matrices.shape == time_samples.shape + (dim, dim)
 
 
 def test_drive_gradient(tone, drive, time_samples):
     """Test the drive gradient."""
-    dim = np.random.randint(2, 10)
-    annihilation_op = np.sqrt(np.diag(np.arange(1, dim, dtype=np.float64), k=1))
-    grads = drive.get_gradient(annihilation_op, time_samples)
+    grads = drive.get_gradient(time_samples)
     tone_params = tone.get_parameters()
+    dim = drive.drive_op.shape[0]
     assert grads.shape == time_samples.shape + (len(tone_params), dim, dim)
 
 

@@ -10,6 +10,7 @@ import numpy as np
 from jax import vmap
 
 from paraqeet.propagation.propagation import Propagation
+from paraqeet.propagation.utils import convert_vec_to_dm
 from paraqeet.quantity import Array
 from paraqeet.signal.generator import Generator
 from paraqeet.signal.waveform import Waveform
@@ -18,7 +19,6 @@ matplotlib_inline.backend_inline.set_matplotlib_formats("png")
 
 # Specifying the custom plotting fonts
 mpl.rcParams["font.family"] = "serif"
-mpl.rcParams["font.serif"] = "Tex Gyre Pagella"
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.size"] = " 10.0"
 mpl.rcParams["axes.labelsize"] = " 11.0"
@@ -62,6 +62,9 @@ def plot_signal_and_dynamics(
     alpha: float = 1.0,
     linewidth: float = 1.5,
     marker: str = "",
+    open_system: bool = False,
+    vectorized_dm: bool = False,
+    tol: float | None = None,
 ):
     """Plot the signal and the corresponding dynamics.
 
@@ -69,16 +72,18 @@ def plot_signal_and_dynamics(
     This can be used to plot multiple signals and dynamics on the same plot.
     """
 
-    def calculate_populations(states, dm=False):
+    def calculate_populations(states, open_system, vectorized_dm):
         """Calculate state populations from density matrices and vectorized dm."""
+        if vectorized_dm:
+            states = vmap(convert_vec_to_dm, in_axes=(0))(states)
         if len(states.shape) > 2:
-            if dm:
+            if open_system:
                 pops = jnp.abs(vmap(jnp.diag, in_axes=0)(states))
             else:
                 pops = jnp.abs(states[:, :, 0]) ** 2
                 pops = jnp.reshape(pops, [pops.shape[0], pops.shape[1]])
         else:
-            if dm:
+            if open_system:
                 pops = jnp.diag(states)
             else:
                 pops = jnp.abs(states) ** 2
@@ -100,9 +105,16 @@ def plot_signal_and_dynamics(
     axes[0].set_ylabel("Amplitude \n" + r"[MHz / $2\pi$]")
     axes[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
 
+    pops = calculate_populations(states, open_system, vectorized_dm)
+    if tol is not None:
+        max_pops = np.max(pops, axis=0)
+        index_mask = [True if pop > tol else False for pop in max_pops]
+    else:
+        index_mask = [True] * pops.shape[1]
+
     axes[1].plot(
         times / 1e-9,
-        calculate_populations(states, dm=propagation._is_open),
+        pops[:, np.array(index_mask)],
         ls=linestyle,
         alpha=alpha,
         linewidth=linewidth,
@@ -111,7 +123,7 @@ def plot_signal_and_dynamics(
     axes[1].set_ylabel("Population")
     axes[-1].set_xlabel("Time [ns]")
     if state_labels is not None:
-        axes[1].legend(state_labels)
+        axes[1].legend([state_label for i, state_label in enumerate(state_labels) if index_mask[i]])
     axes[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
 
     return axes

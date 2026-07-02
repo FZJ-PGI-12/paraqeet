@@ -14,15 +14,17 @@ from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
-from paraqeet.model.closed_system import ClosedSystem
-from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
+from paraqeet.measurement.utils import overlap_state_vector
+from paraqeet.model.drive import Drive
+from paraqeet.model.qubit import Qubit
+from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from tests.model.spin_rwa import SpinRWA
 
 T_FINAL = 20e-9
 TLIST = jnp.linspace(0, T_FINAL, 26)
@@ -90,32 +92,41 @@ def gen(tone):
 
 @pytest.fixture
 def model(gen):
-    drive = RotatingFrameDrive(gen)
-    spin = SpinRWA(drives=[drive])
-    model = ClosedSystem(spin)
+    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
+    controlled_qubit.drives = [drive]
+    model = SchroedingerEquation(
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+    )
+
     return model
 
 
 @pytest.fixture
 def prop(model):
-    prop = ScipyExpmGRAPE(model, resolution=1e9)
-
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
 
-    prop.set_initial_state(init)
-    prop.set_target_state(target)
+    prop = ScipyExpmGRAPE(
+        model.get_value,
+        model.get_value_and_gradient,
+        resolution=1e9,
+        initial_state=init,
+        target_state=target,
+        operator_sandwich_function=grape_operator_sandwich_function_closed,
+    )
     return prop
 
 
 @pytest.fixture
 def fid(prop):
-    init = jnp.array([[1.0], [0]])  # |0>
-    target = jnp.array([[0.0], [1]])  # |1>
+    target = jnp.array([[0.0], [1.0]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
-        initial_state=init,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
+        overlap=overlap_state_vector,
         target_state=target,
     )
     return zeroone
@@ -127,13 +138,13 @@ def opt_grad(tone, fid, gen, prop):
     optmap.add(tone)
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, prop, generators=gen)
-    opt_grad = ScipyOptimizerGradient(goat, optimization_map=optmap)
+    goat = GOATOverGRAPE(fid, generators=gen, propagation_resolution=prop.resolution)
+    opt_grad = ScipyOptimizerGradient(measure_and_gradient_func=goat.get_value_and_gradient, optimization_map=optmap)
     return opt_grad
 
 
 def test_can_measure(fid, gen, prop):
-    fid = GOATOverGRAPE(fid, prop, generators=[gen])
+    fid = GOATOverGRAPE(fid, generators=[gen], propagation_resolution=prop.resolution)
     val, grad = fid.get_value_and_gradient(times=TLIST)
     assert 0 <= fid.measure(times=TLIST)
     assert 0 <= val <= 1

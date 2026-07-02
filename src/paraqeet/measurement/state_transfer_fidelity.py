@@ -1,16 +1,15 @@
 """The class definition of state transfer fidelity model."""
 
-import warnings
 from collections.abc import Callable
+from typing import override
 
 import jax
 import jax.numpy as jnp
-from jax import grad, jit
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
-from paraqeet.quantity import Array
+from paraqeet.measurement.utils import vjp_jacobian
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
@@ -18,66 +17,72 @@ jax.config.update("jax_enable_x64", True)
 class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     """Fidelity measure that compares overlap of the initial and final state.
 
+    This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
+    The overlap function is assumed to be a JAX jit compatible functionally pure function.
+
+    The fidelity function has a default implementation of `abs(overlap)^2`.
+    The user can replace the fidelity function with a JAX jit compatible function
+    of the form `fid(overlap: Array, *args, **kwargs) -> float`.
+
+    The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
+
+    The `propagation_func` function is required in addition to `propagation_and_gradient_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
+    and evaluation of `measure` function.
+
     Parameters
     ----------
-    propagation : DifferentiablePropagation
-        Abstract base class for any implementation that can solve
-        the equation of motion.
-    initial_state : Array
-        Initial state.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
+    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+        Function returning the propagated states and their gradients.
     target_state : Array
         Target state.
     times : Array
         One-dimensional vector of timestamps.
-
     """
 
-    _initial_state: Array
     _target_state: Array
-    _propagation: DifferentiablePropagation
+    _overlap: Callable[[Array, Array], Array]
+    _propagation_func: Callable[[Array], Array]
+    _propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _overlap_grad: Callable
+    _fid_grad: Callable
 
     def __init__(
         self,
-        propagation: DifferentiablePropagation,
-        initial_state: Array,
+        propagation_func: Callable[[Array], Array],
+        propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]],
         target_state: Array,
+        overlap: Callable[[Array, Array], Array],
     ):
-        self._propagation = propagation
-        self._initial_state = initial_state
-        self._target_state = target_state
-        if target_state.shape != initial_state.shape:
-            warnings.warn(
-                UserWarning(
-                    f"Different shapes for target_state({target_state.shape})"
-                    f"and initial_state({initial_state.shape}) detected."
-                    " Use restrict_subsystems to project states to "
-                    "the same shape before measuring."
-                )
-            )
-        self._propagation.set_initial_state(self._initial_state)
-        if self._propagation.is_open:
-            self._overlap = self._overlap_dm
-        else:
-            self._overlap = self._overlap_vec
+        self._propagation_func = propagation_func
+        self._propagation_and_gradient_func = propagation_and_gradient_func
+        self._target_state = jnp.array(target_state, dtype=jnp.complex128)
+        self._overlap = overlap
+        self._overlap_grad = vjp_jacobian(self._overlap)
+        self._fid_grad = vjp_jacobian(self._fid)
 
     @staticmethod
-    def _fid(overlap: Array) -> float:
-        return float(jnp.abs(jnp.average(overlap)) ** 2)
+    def _fid(overlap: Array) -> Float:
+        return (jnp.abs(jnp.average(overlap)) ** 2).astype(float)
 
-    @staticmethod
-    def _overlap_vec(target_state, final_state):
-        return jnp.vdot(target_state, final_state)
+    @override
+    def get_value(self, times: Array) -> Float:
+        states = self._propagation_func(jnp.array(times))
+        final_state = states[-1]
+        return self._fid(self._overlap(final_state, self._target_state))
 
-    @staticmethod
-    def _overlap_dm(target_state, final_state):
-        return jnp.linalg.trace(jnp.matmul(target_state, final_state))
+    @override
+    def measure(self, times: Array) -> Float:
+        return self.get_value(times=times)
 
-    def measure(self, times: Array) -> Array | float:
-        """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar(times=times)
-
-    def calculate_normalized_scalar(self, times: Array | float) -> float:
+    @override
+    def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure overlap between initial and target state. To be used with an optimizer.
+        For NormalizableMeasurement objects that are also Differentiable this coincide
+        with the get_value method.
 
         Parameters
         ----------
@@ -86,113 +91,66 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
         Returns
         -------
-        float
-            Overlap between initial and target state in a bare float.
+        Float
+            Overlap between initial and target state in a bare Float.
 
         """
-        # TODO: `propagate` needs at least two time points initial and final.
-        # TODO: Does Measurement implement default conversion from times: float -> Array?
-        # TODO: Fix typing
-        states = self._propagation.propagate(time=times)
-        final_state = states[-1]
-        f = self._overlap(self._target_state, final_state)
-        return StateTransferFidelity._fid(f)
+        return self.get_value(times)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Compute function value and corresponding gradient.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Compute the gradient.
+
+        Parameters
+        ----------
+        times : Array
+            One-dimensional vector of timestamps.
+
 
         Returns
         -------
-        Tuple[Array, Array]
-            Tuple of function value and gradient of shape (n_parameters,).
+        Array
+            The gradient of shape (n_params,).
 
         """
-        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
+        states, dg_dp_list = self._propagation_and_gradient_func(times)
         final_state = states[-1]
         df_dp_list = []
-        f = self._overlap(self._target_state, final_state)
+        f = self._overlap(final_state, self._target_state)
         for dg_dp in dg_dp_list[-1]:
-            g = self._overlap(self._target_state, dg_dp)
-            df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
-        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
-
-
-class StateTransferFidelityAD(StateTransferFidelity):
-    """Fidelity measure that compares overlap of the initial and final state.
-
-    Parameters
-    ----------
-    propagation : Propagation
-        Abstract base class for any implementation that can solve
-        the equation of motion.
-    initial_state : Array
-        Initial state.
-    target_state : Array
-        Target state.
-    times : Array
-        One-dimensional vector of timestamps.
-
-    """
-
-    _gradient_function: Callable | None
-
-    def __init__(
-        self,
-        propagation: DifferentiablePropagation,
-        initial_state: Array,
-        target_state: Array,
-    ):
-        super().__init__(propagation, initial_state, target_state)
-        self._gradient_function = None
-
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-        """Measure with gradient.
-
-        Overwrite inherited `measure_with_gradient` to calculate
-        gradients using AD.
-
-        Returns
-        -------
-        Tuple[float, Array]
-            Tuple of function value and gradient of shape (n_parameters,).
-
-        """
-        if self._gradient_function is None:
-            self._gradient_function = jit(grad(self._fid, argnums=0))
-
-        states, dg_dp_list = self._propagation.get_value_and_gradient(times=times)
-        final_state = states[-1]
-        df_dp_list = []
-        f = self._overlap(self._target_state, final_state)
-        for dg_dp in dg_dp_list[-1]:
-            g = self._overlap(self._target_state, dg_dp)
-            dfdp = self._gradient_function(f) * g
-            df_dp_list.append(jnp.real(dfdp))
-        return StateTransferFidelity._fid(f), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+            dfdp = self._fid_grad(f) * (self._overlap_grad(dg_dp, self._target_state).T @ dg_dp)
+            df_dp_list.append(jnp.real(jnp.squeeze(dfdp)))
+        return jnp.array(df_dp_list)  # (n_parameters,)
 
 
 class StateTransferFidelityGRAPE(StateTransferFidelity):
     """Fidelity measure that compares overlap of the initial and final state.
 
-    For GRAPE the optimizable parameters are vector quantities.
+    For GRAPE the optimizable parameters are vector quantities given by the PWC bins of the pulse.
+
+    This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
+    The overlap function is assumed to be a JAX jit compatible functionally pure function.
+
+    The fidelity function has a default implementation of `abs(overlap)^2`.
+    The user can replace the fidelity function with a JAX jit compatible function
+    of the form `fid(overlap: Array, *args, **kwargs) -> float`.
+
+    The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
 
     Parameters
     ----------
-    propagation : DifferentiablePropagation
-        Abstract base class for any implementation that can solve
-        the equation of motion.
-    initial_state : Array
-        Initial state.
+    propagation_func: Callable[[Array], Array]
+        Function that evaluates the propagation of some initial state.
+        Expected to be of the form `func(t: Array) -> states: Array`.
+    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
     target_state : Array
         Target state.
     times : Array
         One-dimensional vector of timestamps.
-
     """
 
-    _propagation: DifferentiablePropagation
-
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Compute function value and corresponding gradient.
 
         Returns
@@ -201,11 +159,13 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
             Tuple of function value and gradient of shape (n_parameters,).
 
         """
-        states, grads = self._propagation.get_value_and_gradient(times=times)
+        states, grads = self._propagation_and_gradient_func(times)
         final_state = states[-1]
-        f = self._overlap(self._target_state, final_state)
-        if self._propagation.is_open:
-            grads = jnp.real(jnp.linalg.trace(grads)).flatten()
-        else:
-            grads = 0.5 * jnp.real(f.conj() * grads + grads.conj() * f).flatten()
-        return StateTransferFidelity._fid(f), grads  # shape scalar, (n_parameters,)
+        f = self._overlap(final_state, self._target_state)
+        grads = jnp.real(self._fid_grad(f) * grads)
+        return self._fid(f), grads.flatten()  # shape scalar, (n_parameters,)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient

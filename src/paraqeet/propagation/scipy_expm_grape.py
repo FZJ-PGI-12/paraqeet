@@ -6,7 +6,9 @@ Hamiltonian is defined in the rotating frame of drive.
 
 """
 
+from collections.abc import Callable
 from functools import partial
+from typing import override
 
 import jax
 import jax.numpy as jnp
@@ -14,25 +16,27 @@ from jax import jit, vmap
 from jax.lax import scan
 from jax.scipy.linalg import expm, expm_frechet
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.propagation.differentiable_propagation import DifferentiablePropagation
 from paraqeet.propagation.scipy_expm import ScipyExpm
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
+class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     """Solve EOMs by piecewise exponentiation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
     GRAPE. Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+
     The state propagations are done by the `ScipyExpm` method.
 
-    _res: float
+    _resolution: float
         Simulation resolution.
     _initial_state: Array = None
         Initial state for forward propagation.
@@ -43,15 +47,32 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         matrix exponential. If false, use frechet derivative.
     """
 
-    # TODO: Add internal time-list as an attribute that stores the times to evaluate the pulse at
-
-    _target_state: Array | None = None
+    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _target_state: Array
     _schirmer_derivative: bool = False
+    _operator_sandwich_function: Callable
 
-    def __init__(self, model: EquationOfMotion, resolution: float):
-        super().__init__(model, resolution)
+    def __init__(
+        self,
+        eom_func: Callable[[Array], Array],
+        eom_and_grad_func: Callable[[Array], tuple[Array, Array]],
+        resolution: float,
+        initial_state: Array,
+        target_state: Array,
+        operator_sandwich_function: Callable,
+    ):
+        ScipyExpm.__init__(self, eom_func, resolution, initial_state)
+        self._eom_and_gradient_func = eom_and_grad_func
+        self.target_state = target_state
+        self._operator_sandwich_function = operator_sandwich_function
 
-    def set_target_state(self, target_state: Array) -> None:
+    @property
+    def target_state(self):
+        """Return target state."""
+        return self._target_state
+
+    @target_state.setter
+    def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
         Parameters
@@ -59,43 +80,35 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         target_state: Array
             Target state.
         """
-        # Verify if `model.ode_propagation` is set to `False`.
-        # ode_propgation returns hamiltonian and collapse operators separately.
-        if self._model is None:
-            raise ConfigurationException("No equation of motion is configured.")
-        eom = self._model.get_value(jnp.array([0]))
-        if len(eom) == 2:
-            raise ConfigurationException("Please set `model.ode_propagation` to `False` for this propagation method.")
-
-        # For open system convert Density Matrix to Vectorized form.
-        if self.is_open:
-            try:
-                if len(target_state.shape) == 1:  # An (n,) array
-                    target_state = jnp.reshape(target_state, (-1, 1))
-                # Compare the shapes of target state with the generator of time translation
-                dim_generator = eom.shape[1]
-                # Comparing dim -2 as 0 can be batch dimension
-                if target_state.shape[-2] == jnp.sqrt(dim_generator):
-                    # check if it is a square matrix. Check the last 2 dimensions are equal.
-                    if target_state.shape[-1] == target_state.shape[-2]:
-                        # This is a density matrix
-                        target_state = ScipyExpm._convert_dm_to_vec(target_state, dim_generator)
-            except Exception as e:
-                raise ConfigurationException(
-                    f"Obtained a state vector of shape {target_state.shape} as target state. "
-                    + "For open system propagation expected a density matrix or vectorized density matrix "
-                    + "as the target state.\n"
-                    + f"Raised exception: `{e}`"
-                )
+        # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._target_state = target_state
 
     @property
-    def use_schirmer_derivative(self) -> bool:
+    def operator_sandwich_function(self):
+        r"""Return the operator sandwich function for computing the gradients.
+
+        Closed system involves
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+
+        and open system involves
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
+        """
+        return self._operator_sandwich_function
+
+    @operator_sandwich_function.setter
+    def operator_sandwich_function(self, operator_sandwich_func: Callable):
+        """Set the step function for solving the backward propagation of the target state."""
+        self._operator_sandwich_function = operator_sandwich_func
+
+    @property
+    def schirmer_derivative(self) -> bool:
         """Returns whether the Schirmer method is used to compute the derivative of the unitary operator."""
         return self._schirmer_derivative
 
-    @use_schirmer_derivative.setter
-    def use_schirmer_derivative(self, schirmer_derivative: bool) -> None:
+    @schirmer_derivative.setter
+    def schirmer_derivative(self, schirmer_derivative: bool) -> None:
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
         Parameters
@@ -104,31 +117,6 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
             If True use Schirmer derivative, if False use Frechet Derivative.
         """
         self._schirmer_derivative = schirmer_derivative
-
-    @staticmethod
-    @jit
-    def _sandwich_op_values(
-        bwd_propagated_state: Array,
-        op: Array,
-        fwd_propagated_state: Array,
-    ) -> Array:
-        r"""Compute \\langle \\lambda(t) | O | \\psi(t) \\rangle.
-
-        Parameters
-        ----------
-        bwd_propagated_state: Array
-            Backwards propagated states
-        op: Array
-            Array of operator for each time point.
-        fwd_propagated_state: Array
-            Forwards propagated states
-
-        Returns
-        -------
-        Array
-            Matrix element of the operator for each time point.
-        """
-        return jnp.matmul(bwd_propagated_state, jnp.matmul(op, fwd_propagated_state))
 
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation(
@@ -207,7 +195,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         ham: Array
             -iHdt
         dh_dp: Array
-            -i\\frac{\\partial H}{\\partial u} dt
+            -i\frac{\partial H}{\partial u} dt
         """
         return expm_frechet(ham, dh_dp)
 
@@ -221,7 +209,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         ham : Array
             -iHdt
         dh_dp : Array
-            -i\\frac{\\partial H}{\\partial u} dt
+            -i\frac{\partial H}{\partial u} dt
         """
         zeros = jnp.zeros_like(ham)
         h_extended = jnp.block([[ham, dh_dp], [zeros, ham]])
@@ -266,6 +254,7 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
         psis_t, psis_list = scan(forward_propagation, psis_t, steps_arr)
         return psis_list
 
+    @override
     def propagate(self, time: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
         if len(time) < 2:
@@ -279,39 +268,48 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         time_grid = time[:-1] + dt / 2
 
-        if self._model is None:
-            raise ConfigurationException("No model is configured to provide an equation of motion.")
-
-        eom_func = self._model.get_value
-        eom = eom_func(time_grid) * dt
+        eom = self._eom_func(time_grid) * dt
 
         us = vmap(ScipyExpmGRAPE._exponentiate, in_axes=(0,))(eom)
 
         psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
-
-        # if open system convert back the vectorized density matrices to matrix shape
-        dim = eom.shape[-2]
-        if self.is_open:
-            psis = jnp.array(psis)
-            psis = vmap(ScipyExpm._convert_vec_to_dm, in_axes=(0, None))(psis, int(jnp.sqrt(dim)))
         return jnp.array(psis)
 
-    def _gradient_closed_system(self, time: Array) -> tuple[Array, Array]:
+    @override
+    def get_value(self, times: Array) -> Float | Array:
+        return self.propagate(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, gradient = self.get_value_and_gradient(times)
+        return gradient
+
+    @override
+    def get_value_and_gradient(self, times: Array) -> tuple:
+        """Compute gradients using GRAPE.
+
+        Compute the forward propagation of the initial state and
+        the backward propagation of the target state.
+
+        Psis represent the forward propagation and lamdas represent
+        the backward propagation states.
+
+        This propagation method assumes a PWC pulse as input.
+        """
+        # TODO: Test if this get_value_and_gradient method also works for open systems.
+
+        if len(times) < 2:
+            raise ValueError("ScipyExpmGRAPE.get_value_and_gradient needs at least two time points.")
+
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)
         target_state = target_state.conj().T
 
-        if self._model is None:
-            raise ConfigurationException("No model is configured to provide an equation of motion.")
+        dt = times[1] - times[0]
+        time_grid = times[:-1] + dt / 2
 
-        grad_func = self._model.get_value_and_gradient
-
-        dt = time[1] - time[0]
-
-        time_grid = time[:-1] + dt / 2
-
-        hams, dh_dps = grad_func(time_grid)
+        hams, dh_dps = self._eom_and_gradient_func(time_grid)
         hams = hams * dt
         dh_dps = jnp.array(dh_dps) * dt
 
@@ -342,47 +340,8 @@ class ScipyExpmGRAPE(ScipyExpm, DifferentiablePropagation):
 
         grads = []
         for i in range(n_params):
-            grad = vmap(
-                ScipyExpmGRAPE._sandwich_op_values, in_axes=(0, 0, 0)
-            )(
-                lamdas[1:],
-                u_grads[:, i, ...],  # type: ignore
-                psis[:-1],
-            )
+            grad = self._operator_sandwich_function(u_grads[:, i, ...], psis[:-1], lamdas[1:])
             grad = jnp.squeeze(grad)
             grads.append(grad)
 
         return psis, jnp.array(grads)
-
-    def _gradient_open_systems(self, time: Array) -> tuple[Array, Array]:
-        raise NotImplementedError(
-            "Currently ScipyExpmGRAPE is not supported for open system optimization."
-            + " Use Vern7GRAPE as an alternative (with `model.ode_propagation = True`)."
-        )
-
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Compute gradients using GRAPE.
-
-        Compute the forward propagation of the initial state and
-        the backward propagation of the target state.
-
-        Psis represent the forward propagation and lamdas represent
-        the backward propagation states.
-
-        This propagation method assumes a PWC pulse as input.
-        """
-        if len(times) < 2:
-            raise ValueError("ScipyExpmGRAPE.get_value_and_gradient needs at least two time points.")
-
-        if self._initial_state is None:
-            raise ConfigurationException("Initial state is not set")
-
-        if self._target_state is None:
-            raise ConfigurationException("Target state is not set")
-
-        if self.is_open:
-            psis, grads = self._gradient_open_systems(times)
-        else:
-            psis, grads = self._gradient_closed_system(times)
-
-        return psis, grads

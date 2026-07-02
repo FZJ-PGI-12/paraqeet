@@ -25,7 +25,7 @@ def random_meas(random_unitary_matrix):
         propagation.set_initial_state(gate)
         cz = np.identity(4)
         cz[-1, -1] = -1.0
-        meas_list.append(UnitaryFidelity(propagation, cz))
+        meas_list.append(UnitaryFidelity(propagation.propagate, propagation.get_value_and_gradient, cz))
     return meas_list
 
 
@@ -119,7 +119,7 @@ def test_weighted_sum_goal_mismatched_weights():
 
     """
     with pytest.raises(ConfigurationException):
-        WeightedSumGoal(measurements=[], weights=[0.2, 0.3, 0.5])
+        WeightedSumGoal(measurements=[], weights=np.array([0.2, 0.3, 0.5]))
 
 
 def test_weighted_sum_goal_weights_not_normalized():
@@ -132,4 +132,4 @@ def test_weighted_sum_goal_weights_not_normalized():
 
     """
     with pytest.raises(UserWarning):
-        WeightedSumGoal(measurements=[None, None, None], weights=[0.4, 0.3, 0.5])
+        WeightedSumGoal(measurements=[None, None, None], weights=np.array([0.4, 0.3, 0.5]))

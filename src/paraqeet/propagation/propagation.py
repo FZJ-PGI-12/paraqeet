@@ -1,12 +1,10 @@
 """Class definition of the Propagation model."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 
 import jax.numpy as jnp
-import numpy as np
 
-from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.model.open_system import OpenSystem
 from paraqeet.quantity import Array
 
 
@@ -24,26 +22,12 @@ class Propagation(ABC):
         The corresponding time step dt = 1/resolution
     """
 
-    _model: EquationOfMotion | None
-    _initial_state: Array | None = None
-    _is_open: bool = False
+    _eom_func: Callable[[Array], Array]
     _resolution: float
 
-    def __init__(self, model: EquationOfMotion | None, resolution: float):
-        self._model = model
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float):
+        self._eom_func = eom_func
         self._resolution = resolution
-        if isinstance(model, OpenSystem):
-            self.is_open = True
-
-    @property
-    def is_open(self) -> bool:
-        """Return if the propagation is for open or closed system."""
-        return self._is_open
-
-    @is_open.setter
-    def is_open(self, flag) -> None:
-        """Set if the propagation is for open or closed system."""
-        self._is_open = flag
 
     @property
     def resolution(self) -> float:
@@ -54,60 +38,6 @@ class Propagation(ABC):
     def resolution(self, resolution: float) -> None:
         """Set the propagation resolution."""
         self._resolution = resolution
-
-    def _construct_times(self, time, ti):
-        """Construct one-dimensional vector of time.
-
-        Interpolate the user-specified times to match the propagation resolution.
-
-        Parameters
-        ----------
-        time: Array
-            Array of timesteps.
-        ti: int
-            Snapshot of the time at a current step
-
-        Returns
-        -------
-        Array
-            Array of timestamps in specified resolution.
-        int
-            Difference in time step.
-
-        """
-        t0 = time[ti - 1]
-        t1 = time[ti]
-        steps = int(np.floor((t1 - t0) * self.resolution + 0.5))
-        if steps == 0:
-            steps = 1
-        times = jnp.linspace(t0, t1, steps, endpoint=False)
-        if steps < 2:
-            dt = t1 - t0
-        else:
-            dt = times[1] - times[0]
-        return times, dt
-
-    # TODO: Keep or remove get_parameters?
-    # @staticmethod
-    def get_parameters(self):
-        """Per default, propagation methods have no parameters to optimize."""
-        return []
-
-    def set_initial_state(self, state: Array):
-        """Set the initial state for the propagation. (Default implementation)
-
-        Propagation implementations that do not need the state should not
-        implement this function.
-
-        Subclasses can access the state in the _initial_sate field.
-
-        Parameters
-        ----------
-        state: Array
-            Parameter value to be set as the initial state for the propagation.
-
-        """
-        self._initial_state = state
 
     @abstractmethod
     def propagate(self, time: Array) -> Array:
@@ -133,3 +63,24 @@ class Propagation(ABC):
         # TODO: Distinguish between internal time (class property), i.e. the time grid of the
         # method vs. time points (input parameter) desired by other classes, e.g. Measurements
         pass
+
+
+class StatePropagation(Propagation):
+    """Abstract class to implement methods to propagate states."""
+
+    _initial_state: Array
+
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array):
+        super().__init__(eom_func, resolution)
+        self.initial_state = initial_state
+
+    @property
+    def initial_state(self):
+        """Return initial state."""
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, state: Array):
+        """Set initial state."""
+        # TODO: Provide explicit wrappers for multiple initial states or density vectors
+        self._initial_state = jnp.array(state, dtype=jnp.complex128)
