@@ -17,6 +17,7 @@ extensions = [
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx.ext.autodoc",  # Core library for html generation from docstrings
     "sphinx.ext.autosummary",  # Create neat summary tables
+    "sphinx.ext.intersphinx",  # Cross-link to NumPy/SciPy/JAX/Python docs
     "myst_parser",  #  Include md in html
     "sphinx.ext.linkcode",  # To add a source button to each class
 ]
@@ -24,6 +25,15 @@ extensions = [
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
 autodoc_typehints = "description"
+
+# Make external types (numpy, scipy, jax, python builtins) clickable in the
+# rendered API documentation.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "jax": ("https://docs.jax.dev/en/latest/", None),
+}
 
 exclude_patterns = ["**.ipynb_checkpoints"]
 
@@ -77,6 +87,7 @@ latex_engine = "xelatex"
 
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+html_js_files = ["custom.js"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

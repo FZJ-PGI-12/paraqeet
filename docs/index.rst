@@ -28,9 +28,10 @@ Each module interacts only with the module above it in hierarchy.
 
 Currently implemented optimization methods
 
-- GRAPE: Gradient Ascent Pulse Enginnering
+- GRAPE: Gradient Ascent Pulse Engineering
 - GOAT: Gradient Optimization of Analytic conTrols
-- dCRAB : (Gradient based) dressed Chopped RAndom Basis
+- dCRAB: (Gradient based) dressed Chopped RAndom Basis
+- GOAToverGRAPE: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
 
 Usage
 ============
