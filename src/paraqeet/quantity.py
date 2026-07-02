@@ -566,7 +566,7 @@ class Quantity:
         Returns
         -------
         bool
-            True if self's value is less than other paramter's value.
+            True if self's value is less than other parameter's value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.

@@ -40,7 +40,7 @@ class PWCGenerator(Generator):
         The in-phase component of the pulse
     _outofphase: Quantity
         The out-of-phase component of the pulse
-    _optimizable_paramters: list[Quantity]
+    _optimizable_parameters: list[Quantity]
         List of own parameters that would be optimized by the optimizer.
     _multiply_flat_top: bool
         Flag to multiply flat-top-Gaussain pulse to the signal to ensure it

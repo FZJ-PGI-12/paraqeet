@@ -12,14 +12,12 @@ from paraqeet.quantity import Array, Float
 
 
 class BayesianOptimizer(Optimizer):
-    """Minimizes the outcome of a measuremnt using Bayesian optimization.
+    """Minimize the outcome of a measurement using Bayesian optimization.
 
     This is useful if the evaluation of the measurement is costly.
-    This class is mostly a wrapper around the implementing package.
-
-    See Also
-    --------
-    https://bayesian-optimization.github.io/BayesianOptimization/index.html
+    This class is mostly a wrapper around the implementing package, see
+    `BayesianOptimization
+    <https://bayesian-optimization.github.io/BayesianOptimization/index.html>`_.
 
     Parameters
     ----------
