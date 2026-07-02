@@ -15,7 +15,7 @@ import numpy as np
 from paraqeet.exceptions import IncompatibleQuantityException
 
 type Array = np.typing.NDArray[np.float64] | np.typing.NDArray[np.complexfloating] | jax.Array
-type Float = float | jaxtyping.Float[jaxtyping.Array, ""]
+type Float = float | jaxtyping.Float[jaxtyping.Array, ""]  # noqa F722
 jax.config.update("jax_enable_x64", True)
 
 
@@ -477,7 +477,7 @@ class Quantity:
         self._name = name
 
     def get_unit(self) -> str:
-        """Get unit of measurement from paramter."""
+        """Get unit of measurement from parameter."""
         return self._unit
 
     def is_scalar(self) -> bool:
@@ -566,7 +566,7 @@ class Quantity:
         Returns
         -------
         bool
-            True if self's value is less than other paramter's value.
+            True if self's value is less than other parameter's value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
@@ -683,7 +683,7 @@ class Quantity:
         return abs(self.get_value())
 
     def __float__(self):
-        """Magic method for float coversion.
+        """Magic method for float conversion.
 
         Raises
         ------

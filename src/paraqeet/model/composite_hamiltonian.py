@@ -140,7 +140,6 @@ class CompositeHamiltonian(Hamiltonian):
         # Take the gradients from all subsystems and plug them into the
         # tensor product with identities
         for one_index, sub_hamil in enumerate(self._sub_hamiltonians):
-            # TODO: Fix typing
             # ignoring mypy due to vmap
             sub_gradient = sub_hamil.get_gradient(times)  # type: ignore
             sub_gradient = tensor_product_with_identity([sub_gradient], [one_index], self._dimensions)

@@ -19,6 +19,10 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     Fidelity measure that compares the propagator with a desired gate
     by way of L2 norm.
 
+    The `propagation_func` function is required in addition to `propagation_and_gradient_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
+    and evaluation of `measure` function.
+
     Parameters
     ----------
     propagation_func: Callable[[Array], Array]
@@ -72,7 +76,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Gate fidelity as a single float.
 
         """
-        return float(jnp.abs(jnp.average(overlaps)) ** 2)
+        return (jnp.abs(jnp.average(overlaps)) ** 2).astype(float)
 
     @override
     def get_value(self, times: Array) -> Float:

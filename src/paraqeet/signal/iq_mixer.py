@@ -12,7 +12,7 @@ from paraqeet.signal.waveform import LocalOscillator, Waveform
 class ComplexIQMixer(Generator):
     """Control signal generation.
 
-    Waveforms of envelopes (low bandwith) are mixed with a local oscillator
+    Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired complex control field to the system.
 
     Parameters
@@ -84,7 +84,7 @@ class ComplexIQMixer(Generator):
     def _complex_signal(self, times: Array) -> Array:
         """Generate a signal for time(s).
 
-        Doesnt take real value now for ease of gradient computation.
+        Doesn't take real value now for ease of gradient computation.
 
         Parameters
         ----------
@@ -127,12 +127,12 @@ class ComplexIQMixer(Generator):
         Since the
 
         .. math::
-            signal = \\epsilon(t)^*  \\exp(i \\omega t)  \\exp(-i \\phi)
+            signal = \epsilon(t)^*  \exp(i \omega t)  \exp(-i \phi)
 
         The derivative of the signal with respect to a real parameter p is
 
         .. math::
-            \\frac{\\partial}{\\partial p} z = \\frac{\\partial z}{\\partial p}
+            \frac{\partial}{\partial p} z = \frac{\partial z}{\partial p}
 
         Parameters
         ----------
@@ -191,7 +191,7 @@ class ComplexIQMixer(Generator):
 class IQMixer(ComplexIQMixer):
     """Control signal generation.
 
-    Waveforms of envelopes (low bandwith) are mixed with a local oscillator
+    Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired real control field to the system.
 
     Parameters

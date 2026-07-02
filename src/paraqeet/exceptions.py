@@ -39,7 +39,7 @@ class IncompatibleOptimizationMap(Exception):
     """Raise when incorrect number of quantities are specified.
 
     Raised when the number of quantities specified in optimization map
-    doesnt match the number of gradients computed.
+    doesn't match the number of gradients computed.
 
     """
 

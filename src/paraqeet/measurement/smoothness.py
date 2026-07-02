@@ -44,13 +44,14 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         factor is the number of piecewise constants minus 1 time sthe maximum
         difference squared.
 
-        Parameters:
+        Parameters
+        ----------
         times: Array
             Array of times
 
         Returns
         -------
-        float
+        Float
             The normalized sum of consecutive square differences in the pulse.
         """
         pulse = self._pwc_generator.get_value(times)
@@ -70,36 +71,34 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
         indices = jnp.arange(0, num_pwc - 1)
         vmap_get_squared_difference = jax.vmap(get_squared_difference)
-        return float(1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff)
+        return 1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff
 
     @override
     def measure(self, times: Array) -> Float:
         return self.get_value(times)
 
-    # TODO: This should depend on the internal time grid and not on the input time value.
-    # This means that the `times` should just be a float.
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         return self.get_value(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:
-        """Compute the gradient
+        """Compute the gradient.
 
         Compute with respect to all parameters in the optimization map.
         For parameters that are not in the passed PWCGenerator the partial derivative
         is simply zero.
 
-        Parameters:
+        Parameters
+        ----------
         times: Array
             Array of times. Not accessed, but we leave it for consistency with
             the abstract get_gradient method.
 
-
         Returns
         -------
-        Tuple[float, Array]
-            Tuple of function value as bare float and gradient of shape (n_parameters,)
+        Tuple[Float, Array]
+            Tuple of function value as Float and gradient of shape (n_parameters,)
 
         """
         opt_pwc_params = self._pwc_generator.optimizable_parameters

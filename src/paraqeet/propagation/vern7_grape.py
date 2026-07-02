@@ -13,7 +13,7 @@ from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.utils import construct_times
 from paraqeet.propagation.vern7 import Vern7
-from paraqeet.quantity import Array, Float
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
@@ -26,23 +26,28 @@ class Vern7GRAPE(Vern7, Differentiable):
     Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+
     The state propagations are done by the `Vern7 ODE` method.
 
     _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
         Function that returns EOM and its gradient for an array of times.
     _target_state: Array
         Target state for backwards/reverse propagation for GRAPE.
-    _reverse_step_function: Callable
-        Reverse step function for the backwards propagation.
     _operator_sandwich_function: Callable
         Operator sandwich function to compute GRAPE gradients. It evaluates
+
         1. For closed system
             .. math::
-                \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
         2. For open system
             .. math::
-                \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+                \text{Tr}(\sigma(t) [H, \rho(t)])
+
+    _reverse_step_function: Callable
+        Reverse step function for the backwards propagation.
     """
 
     _eom_gradient_func: Callable[[Array], Array]
@@ -100,12 +105,12 @@ class Vern7GRAPE(Vern7, Differentiable):
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
-        .. math::
-            \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
         and open system involves
-        .. math::
-            \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
         """
         return self._operator_sandwich_function
 
@@ -123,7 +128,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         col,
         steps_arr,
     ):
-        """Forward propagate inital state and backward propagate target state.
+        """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
@@ -206,7 +211,7 @@ class Vern7GRAPE(Vern7, Differentiable):
                     "Propagation resolution has been set very low. Higher resolution needed for this method."
                 )
 
-            # TODO: currently seperate time grids are required for the EOM and the gradients.
+            # TODO: currently separate time grids are required for the EOM and the gradients.
             # TODO: Can we use one so that the value and gradients are computed simultaneously?
 
             eom = self._eom_func(times_interp)

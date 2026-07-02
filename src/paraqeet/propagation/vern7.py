@@ -45,7 +45,7 @@ class Vern7(StatePropagation):
         step_function: Callable
             Step function used to that implements the right hand side of the EOM.
         jump_operators: list[Array] | None
-            A list of jump operators (each multiplied by the sqrt of the correspoding decay rate).
+            A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
             Defaults to None for closed system.
         """
         super().__init__(eom_func, resolution, initial_state)
@@ -207,7 +207,7 @@ class Vern7(StatePropagation):
             state_t = states[ti - 1]
             step_times, dt = construct_times(times, ti, self._resolution)
             times_interp = Vern7._interpolate_time(step_times, dt)
-            # TODO: Seperate jump operators from EOM.
+            # TODO: Separate jump operators from EOM.
             eom = self._eom_func(times_interp + dt / 2)
             state_t = self._propagate_in_time(
                 state_t,

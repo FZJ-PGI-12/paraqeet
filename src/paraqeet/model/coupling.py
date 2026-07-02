@@ -13,15 +13,15 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Coupling(Optimizable, Differentiable):
-    """Represents a coupling term between two subsystems. Denoting by O
-    the coupling operator and g = |g| exp(i phi) the coupling coefficient,
+    r"""Represents a coupling term between two subsystems. Denoting by O
+    the coupling operator and g = \|g\| exp(i phi) the coupling coefficient,
     if add_hermitian = False this adds a term
 
-    |g| exp(i phi) * O
+    \|g\| exp(i phi) * O
 
     while if True it adds a term
 
-    |g| exp(i phi) * O + h.c.
+    \|g\| exp(i phi) * O + h.c.
 
     Attributes
     ----------

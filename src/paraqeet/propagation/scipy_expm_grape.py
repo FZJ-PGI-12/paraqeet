@@ -25,11 +25,14 @@ jax.config.update("jax_enable_x64", True)
 
 
 class ScipyExpmGRAPE(ScipyExpm, Differentiable):
-    """Solve EOMs by piecewise exponentation via Scipy using GRAPE.
+    """Solve EOMs by piecewise exponentiation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
     GRAPE. Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
+
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
 
     The state propagations are done by the `ScipyExpm` method.
 
@@ -40,7 +43,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     _target_state: Array = None
         Target state for backward propagation.
     _schirmer_derivative: bool = False
-        If true, compute the gradient by Schirmer Derivative/Method of auxillary
+        If true, compute the gradient by Schirmer Derivative/Method of auxiliary
         matrix exponential. If false, use frechet derivative.
     """
 
@@ -85,12 +88,12 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
-        .. math::
-            \\langle \\lambda(t) \\lvert \\frac{\\partial H}{\\partial \\alpha} \\rvert \\psi(t) \\rangle
+            .. math::
+                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
         and open system involves
-        .. math::
-            \\text{Tr}(\\sigma(t) [H, \\rho(t)])
+            .. math::
+                \text{Tr}(\sigma(t) [H, \rho(t)])
         """
         return self._operator_sandwich_function
 
@@ -123,7 +126,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         lamdas_t,
         steps_arr,
     ):
-        """Forward propagate inital state and backward propagate target state.
+        """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
@@ -157,7 +160,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         lamdas_t,
         steps_arr,
     ):
-        """Forward propagate inital state and backward propagate target state.
+        """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
@@ -192,21 +195,21 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         ham: Array
             -iHdt
         dh_dp: Array
-            -i\\frac{\\partial H}{\\partial u} dt
+            -i\frac{\partial H}{\partial u} dt
         """
         return expm_frechet(ham, dh_dp)
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
     def _exponentiate_schirmer(dim, ham, dh_dp):
-        r"""Exponentiate an auxilliary matrix to compute U and dU.
+        r"""Exponentiate an auxiliary matrix to compute U and dU.
 
         Parameters
         ----------
         ham : Array
             -iHdt
         dh_dp : Array
-            -i\\frac{\\partial H}{\\partial u} dt
+            -i\frac{\partial H}{\partial u} dt
         """
         zeros = jnp.zeros_like(ham)
         h_extended = jnp.block([[ham, dh_dp], [zeros, ham]])

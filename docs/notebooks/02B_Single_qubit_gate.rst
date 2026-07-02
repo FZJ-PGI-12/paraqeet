@@ -10,9 +10,9 @@ single-qubit gate, specifically an :math:`X`-gate.
     import numpy as np
     
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.drive_operator import DriveOperator
+    from paraqeet.model.drive import Drive
     from paraqeet.model.qubit import Qubit
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -36,7 +36,6 @@ the Hamiltonian as
 
     freq = 4.327884e9 * 2 * np.pi
     
-    # drive = DriveOperator(gen, is_longitudinal=False)
     controlled_qubit = Qubit(
         frequency=Quantity(
             freq,
@@ -55,11 +54,13 @@ For signal generation, we define a simple cosine shaped tone generator
 
     t_simu = 10e-9
     tone = ConstantEnvelope()
-    # In this notebook we set the parameter t_final equal to the simulation
-    # time, but it is not strictly necessary as long as t_final is larger
-    # than t_simu (see the notebook 02A_Single_qubit_state_preparation.ipynb)
     tone.t_final.set_value(t_simu)
     gen = IQMixer(envelopes=[tone])
+
+In this notebook we set the parameter ``t_final`` equal to the
+simulation time, but it is not strictly necessary as long as ``t_final``
+is larger than ``t_simu`` (see the notebook
+02A_Single_qubit_state_preparation.ipynb)
 
 We can inspect the parameters with
 
@@ -82,18 +83,15 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
-    drive = DriveOperator(gen, is_longitudinal=False)
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
+    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
+    drive = Drive(pauli_x, gen)
     controlled_qubit.drives = [drive]
-    model = ClosedSystem(controlled_qubit)
-
-In this notebook, we would like to optimize the amplitude ``Amplitude``
-and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
-
-.. code:: ipython3
-
-    drive = DriveOperator(gen, is_longitudinal=False)
-    controlled_qubit.drives = [drive]
-    model = ClosedSystem(controlled_qubit)
+    eom = SchroedingerEquation(
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+    )
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
@@ -105,22 +103,20 @@ optimization procedure.
     params_gen[0].set_value(0.5 * np.pi / t_simu)
     params_gen[2].set_value(1.01 * freq)
 
-We select a propagation method, piecewise constant exponentation, and
+We select a propagation method, piecewise constant exponentiation, and
 configure an :math:`X`-gate as a target gate. Also we initialize the
 identity at time :math:`0`.
 
 .. code:: ipython3
 
-    prop = ScipyExpmGOAT(model, resolution=500e9)
     times = np.array([0.0, t_simu])
     
-    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
-    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
-    
-    prop.set_initial_state(np.identity(2))
+    prop = ScipyExpmGOAT(
+        eom_func=eom.get_value, eom_and_grad_func=eom.get_value_and_gradient, resolution=100e9, initial_state=np.identity(2)
+    )
     gate_fid = UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=pauli_x,
     )
 
@@ -129,11 +125,20 @@ identity at time :math:`0`.
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_simu, 501)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_16_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_15_1.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -145,7 +150,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    Gate fidelity: 0.09555411208408474
+    Gate fidelity: 0.09513387531954913
 
 
 We define an optimizer and link our fidelity measure as a goal function
@@ -156,28 +161,60 @@ frequency, as in the state transfer example.
 
     optmap = OptimizationMap()
     optmap.add(gen, [params_gen[0], params_gen[2]])
-    opt = ScipyOptimizerGradient(gate_fid, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=gate_fid.get_value_and_gradient, optimization_map=optmap)
 
 .. code:: ipython3
 
     opt.optimize(times)
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 8.828845e-01
+    Iteration    2 | Infid = 8.811287e-01
+    Iteration    3 | Infid = 8.797420e-01
+    Iteration    4 | Infid = 8.723340e-01
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.8037201693294322, 'iterations': 17, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    Iteration    5 | Infid = 8.598577e-01
+    Iteration    6 | Infid = 8.312694e-01
+    Iteration    7 | Infid = 8.074955e-01
+    Iteration    8 | Infid = 8.038981e-01
+
+
+.. parsed-literal::
+
+    Iteration    9 | Infid = 8.036776e-01
+    Iteration   10 | Infid = 8.036767e-01
+    Iteration   11 | Infid = 8.036766e-01
+
+
+
+
+.. parsed-literal::
+
+    {'status': 1, 'value': 0.8036766363151119, 'iterations': 16, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_22_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_21_1.png
 
 
 Dynamics of Pauli operators
@@ -217,10 +254,15 @@ information to identify the problem.
     
         ax[-1].set_xlabel("Time [ns]")
         ax[1].legend(["X", "Y", "Z"])
+        plt.show()
         return fig, ax
     
     
     plot_pauli()
+
+
+
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_24_0.png
 
 
 
@@ -234,11 +276,7 @@ information to identify the problem.
 
 
 
-
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_25_1.png
-
-
-Instead, we look at the expecation values of the three Pauli operators
+Instead, we look at the expectation values of the three Pauli operators
 and observe that the qubit is rotating at its eigenfrequency along the
 Z-axis. We can mitigate this problem by allowing the rotation axis of
 our drive to shift and include the phase parameter in the optimization.
@@ -247,7 +285,7 @@ our drive to shift and include the phase parameter in the optimization.
 
     optmap = OptimizationMap()
     optmap.add(tone, [params_gen[0], params_gen[2], params_gen[3]])
-    opt = ScipyOptimizer(gate_fid, optimization_map=optmap)
+    opt = ScipyOptimizer(measure_func=gate_fid.measure, optimization_map=optmap)
 
 .. code:: ipython3
 
@@ -256,17 +294,66 @@ our drive to shift and include the phase parameter in the optimization.
     opt.optimize(times)
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 8.813303e-01
+    Iteration    2 | Infid = 8.793034e-01
+    Iteration    3 | Infid = 8.731364e-01
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 1.0475176281943277e-11, 'iterations': 108, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    Iteration    4 | Infid = 8.557180e-01
+    Iteration    5 | Infid = 8.147796e-01
+    Iteration    6 | Infid = 7.273990e-01
+    Iteration    7 | Infid = 5.589118e-01
+
+
+.. parsed-literal::
+
+    Iteration    8 | Infid = 3.803423e-01
+    Iteration    9 | Infid = 2.908736e-01
+    Iteration   10 | Infid = 2.374870e-01
+    Iteration   11 | Infid = 2.348226e-01
+
+
+.. parsed-literal::
+
+    Iteration   12 | Infid = 2.318530e-01
+    Iteration   13 | Infid = 2.117373e-01
+    Iteration   14 | Infid = 1.769397e-01
+    Iteration   15 | Infid = 1.039797e-01
+
+
+.. parsed-literal::
+
+    Iteration   16 | Infid = 3.359271e-02
+    Iteration   17 | Infid = 3.991542e-03
+    Iteration   18 | Infid = 6.391801e-05
+    Iteration   19 | Infid = 8.339528e-08
+
+
+.. parsed-literal::
+
+    Iteration   20 | Infid = 1.151436e-09
+    Iteration   21 | Infid = 8.832046e-12
+
+
+
+
+.. parsed-literal::
+
+    {'status': 1, 'value': 8.832046205498045e-12, 'iterations': 108, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
 .. code:: ipython3
 
     plot_pauli()
+
+
+
+.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_28_0.png
 
 
 
@@ -278,8 +365,4 @@ our drive to shift and include the phase parameter in the optimization.
             <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>],
            dtype=object))
 
-
-
-
-.. image:: 02B_Single_qubit_gate_files/02B_Single_qubit_gate_29_1.png
 

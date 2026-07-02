@@ -1,6 +1,6 @@
 """Class definition of the Bayesian Optimizer model."""
 
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 from bayes_opt import BayesianOptimization
@@ -12,14 +12,12 @@ from paraqeet.quantity import Array, Float
 
 
 class BayesianOptimizer(Optimizer):
-    """Minimizes the outcome of a measuremnt using Bayesian optimization.
+    """Minimize the outcome of a measurement using Bayesian optimization.
 
     This is useful if the evaluation of the measurement is costly.
-    This class is mostly a wrapper around the implementing package.
-
-    See Also
-    --------
-    https://bayesian-optimization.github.io/BayesianOptimization/index.html
+    This class is mostly a wrapper around the implementing package, see
+    `BayesianOptimization
+    <https://bayesian-optimization.github.io/BayesianOptimization/index.html>`_.
 
     Parameters
     ----------
@@ -76,7 +74,7 @@ class BayesianOptimizer(Optimizer):
 
         Performs the actual optimization.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
         For an array of times, the first time point is the start time.*
 
         Returns

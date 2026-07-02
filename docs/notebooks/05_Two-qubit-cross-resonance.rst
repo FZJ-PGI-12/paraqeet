@@ -9,10 +9,10 @@ Gradient-based optimization of a cross-resonance gate between two transmons
     import numpy as np
     
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-    from paraqeet.model.coupling import TwoBodyCoupling
-    from paraqeet.model.drive_operator import DriveOperator
+    from paraqeet.model.composite_system import CompositeSystem
+    from paraqeet.model.coupling import Coupling
+    from paraqeet.model.drive import Drive
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.model.transmon import Transmon
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -27,10 +27,10 @@ Gradient-based optimization of a cross-resonance gate between two transmons
 System Setup
 ------------
 
-The sytem consists of two coupled transmons with three levels each. We
+The system consists of two coupled transmons with three levels each. We
 fix the transmon frequency and anharmonicity to values that don’t have
 any unwanted frequency collisions. The coupling strength is fixed as
-well. These parameters have to be specified as Quantites with a range,
+well. These parameters have to be specified as Quantities with a range,
 but we will not pass them to the optimized in order to keep them fixed.
 Additionally, the first transmon is driven at the frequency of the
 second one to apply a cross-resonance (CR) gate. The second transmon is
@@ -45,7 +45,12 @@ form), can take considerably long time.
     t_final = 150e-9
     tone1 = FlatTopGaussianEnvelope(
         amplitude=Quantity(
-            190e6 * 2 * np.pi, min_value=1e5 * 2 * np.pi, max_value=250e6 * 2 * np.pi, name="Amp", unit="Hz", two_pi=True
+            190e6 * 2 * np.pi / 2,
+            min_value=1e5 * 2 * np.pi,
+            max_value=250e6 * 2 * np.pi,
+            name="Amp",
+            unit="Hz",
+            two_pi=True,
         ),
         t_final=Quantity(
             t_final,
@@ -58,7 +63,7 @@ form), can take considerably long time.
     
     tone2 = FlatTopGaussianEnvelope(
         amplitude=Quantity(
-            9.18e6 * 2 * np.pi,
+            9.18e6 * 2 * np.pi / 2,
             min_value=1e5 * 2 * np.pi,
             max_value=250e6 * 2 * np.pi,
             name="Amp",
@@ -95,7 +100,6 @@ form), can take considerably long time.
             two_pi=True,
         ),
     )
-    drive1 = DriveOperator(generator1, is_longitudinal=False)
     
     generator2 = IQMixer(
         envelopes=[tone2],
@@ -116,10 +120,10 @@ form), can take considerably long time.
         ),
     )
     
-    drive2 = DriveOperator(generator2, is_longitudinal=False)
     
+    num_levels = 3
     transmon1 = Transmon(
-        dimension=3,
+        num_levels=num_levels,
         frequency=Quantity(
             5.5e9 * 2 * np.pi,
             5.2e9 * 2 * np.pi,
@@ -136,10 +140,15 @@ form), can take considerably long time.
             "Transmon 1 anharmonicity",
             two_pi=True,
         ),
-        drives=[drive1],
+        drives=[],
     )
+    
+    drive_op1 = transmon1.annihilation_op + (transmon1.annihilation_op).conj().T
+    drive1 = Drive(drive_op1, generator1)
+    transmon1.drives = [drive1]
+    
     transmon2 = Transmon(
-        dimension=3,
+        num_levels=num_levels,
         frequency=Quantity(
             6.0e9 * 2 * np.pi,
             5.9e9 * 2 * np.pi,
@@ -156,13 +165,20 @@ form), can take considerably long time.
             "Transmon 2 anharmonicity",
             two_pi=True,
         ),
-        drives=[drive2],
+        drives=[],
     )
-    coupling = TwoBodyCoupling(
-        transmon1,
-        transmon2,
-        is_longitudinal=False,
-        coefficient=Quantity(
+    
+    drive_op2 = transmon2.annihilation_op + (transmon2.annihilation_op).conj().T
+    drive2 = Drive(drive_op2, generator2)
+    transmon2.drives = [drive2]
+    
+    coupling_op = np.kron(
+        transmon1.annihilation_op + transmon1.annihilation_op.conj().T,
+        transmon2.annihilation_op + transmon2.annihilation_op.conj().T,
+    )
+    coupling = Coupling(
+        coupling_op,
+        g_abs=Quantity(
             25e6 * 2 * np.pi,
             10e6 * 2 * np.pi,
             60e6 * 2 * np.pi,
@@ -171,12 +187,12 @@ form), can take considerably long time.
             two_pi=True,
         ),
     )
-    hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
+    hamiltonian = CompositeSystem([transmon1, transmon2], [coupling])
 
 
 .. parsed-literal::
 
-    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns] [Amp: 9.18 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
+    [Amp: 95 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns] [Amp: 4.59 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
 
 
 .. code:: ipython3
@@ -213,7 +229,7 @@ idling.
 
 .. code:: ipython3
 
-    matrix = hamiltonian.get_value_at_timestep(0.0)
+    matrix = hamiltonian.get_value(np.array([0.0]))
     evals = np.linalg.eigvalsh(matrix)
     print("Energies in GHz: ", np.round(evals / 1e6) / 1e3 / (2 * np.pi))
     transitions = evals[1:] - evals[:-1]
@@ -226,36 +242,38 @@ idling.
 
 .. parsed-literal::
 
-    Energies in GHz:  [-0.          5.49864413  6.00109628 10.75823753 11.49735309 11.80404466 16.7555141  17.30475781 22.56021318]
-    Transition energies in GHz:  [5.49869649 0.50249417 4.75717547 0.73908102 0.3067312  4.95139654 0.54918068 5.25552493]
+    Energies in GHz:  [[-0.          5.49864413  6.00109628 10.75823753 11.49735309 11.80404466 16.7555141  17.30475781 22.56021318]]
+    Transition energies in GHz:  []
 
 
 
 
 .. parsed-literal::
 
-    Array([[0.00000000e+00, 1.24401983e+05, 0.00000000e+00, 2.79215219e+06, 1.57079633e+08, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
-           [1.24401983e+05, 3.76991118e+10, 1.75930971e+05, 1.57079633e+08, 2.79215219e+06, 2.22144147e+08, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
-           [0.00000000e+00, 1.75930971e+05, 7.41415866e+10, 0.00000000e+00, 2.22144147e+08, 2.79215219e+06, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
-           [2.79215219e+06, 1.57079633e+08, 0.00000000e+00, 3.45575192e+10, 1.24401983e+05, 0.00000000e+00, 3.94869950e+06, 2.22144147e+08, 0.00000000e+00],
-           [1.57079633e+08, 2.79215219e+06, 2.22144147e+08, 1.24401983e+05, 7.22566310e+10, 1.75930971e+05, 2.22144147e+08, 3.94869950e+06, 3.14159265e+08],
-           [0.00000000e+00, 2.22144147e+08, 2.79215219e+06, 0.00000000e+00, 1.75930971e+05, 1.08699106e+11, 0.00000000e+00, 3.14159265e+08, 3.94869950e+06],
-           [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 3.94869950e+06, 2.22144147e+08, 0.00000000e+00, 6.76070739e+10, 1.24401983e+05, 0.00000000e+00],
-           [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.22144147e+08, 3.94869950e+06, 3.14159265e+08, 1.24401983e+05, 1.05306186e+11, 1.75930971e+05],
-           [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 3.14159265e+08, 3.94869950e+06, 0.00000000e+00, 1.75930971e+05, 1.41748661e+11]], dtype=float64)
+    Array([[[0.00000000e+00+0.j, 6.22009913e+04+0.j, 0.00000000e+00+0.j, 1.39607610e+06+0.j, 1.57079633e+08+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j],
+            [6.22009913e+04+0.j, 3.76991118e+10+0.j, 8.79654856e+04+0.j, 1.57079633e+08+0.j, 1.39607610e+06+0.j, 2.22144147e+08+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j],
+            [0.00000000e+00+0.j, 8.79654856e+04+0.j, 7.41415866e+10+0.j, 0.00000000e+00+0.j, 2.22144147e+08+0.j, 1.39607610e+06+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j],
+            [1.39607610e+06+0.j, 1.57079633e+08+0.j, 0.00000000e+00+0.j, 3.45575192e+10+0.j, 6.22009913e+04+0.j, 0.00000000e+00+0.j, 1.97434975e+06+0.j, 2.22144147e+08+0.j, 0.00000000e+00+0.j],
+            [1.57079633e+08+0.j, 1.39607610e+06+0.j, 2.22144147e+08+0.j, 6.22009913e+04+0.j, 7.22566310e+10+0.j, 8.79654856e+04+0.j, 2.22144147e+08+0.j, 1.97434975e+06+0.j, 3.14159265e+08+0.j],
+            [0.00000000e+00+0.j, 2.22144147e+08+0.j, 1.39607610e+06+0.j, 0.00000000e+00+0.j, 8.79654856e+04+0.j, 1.08699106e+11+0.j, 0.00000000e+00+0.j, 3.14159265e+08+0.j, 1.97434975e+06+0.j],
+            [0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 1.97434975e+06+0.j, 2.22144147e+08+0.j, 0.00000000e+00+0.j, 6.76070739e+10+0.j, 6.22009913e+04+0.j, 0.00000000e+00+0.j],
+            [0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 2.22144147e+08+0.j, 1.97434975e+06+0.j, 3.14159265e+08+0.j, 6.22009913e+04+0.j, 1.05306186e+11+0.j, 8.79654856e+04+0.j],
+            [0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 3.14159265e+08+0.j, 1.97434975e+06+0.j, 0.00000000e+00+0.j, 8.79654856e+04+0.j, 1.41748661e+11+0.j]]], dtype=complex128)
 
 
 
 Computing the gate fidelity
 ---------------------------
 
-We select a propagation method, piecewise constant exponentation, and
+We select a propagation method, piecewise constant exponentiation, and
 configure CR as a target gate.
 
 .. code:: ipython3
 
-    model = ClosedSystem(hamiltonian)
-    prop = ScipyExpmGOAT(model, resolution=100e9)
+    model = SchroedingerEquation(
+        hamiltonian_func=hamiltonian.get_value,
+        hamiltonian_and_gradient_func=hamiltonian.get_value_and_gradient,
+    )
     
     # We need to pad the operators with zeros so we introduce a helper zero matrix
     dim = transmon1.dimension() * transmon2.dimension()
@@ -284,9 +302,16 @@ configure CR as a target gate.
     
     times = np.array([0.0, t_final])
     
-    prop.set_initial_state(np.identity(transmon1.dimension() * transmon2.dimension()))
+    prop = ScipyExpmGOAT(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=100e9,
+        initial_state=np.identity(transmon1.dimension() * transmon2.dimension()),
+    )
+    
     gate_fid = UnitaryFidelity(
-        propagation=prop,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         gate=cr_gate,
     )
     gate_fid.measure(times)
@@ -296,7 +321,7 @@ configure CR as a target gate.
 
 .. parsed-literal::
 
-    0.13180213234859084
+    Array(0.03713341, dtype=float64)
 
 
 
@@ -417,7 +442,7 @@ The only optimizable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
+    [Amp: 95 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
 
 
 
@@ -427,14 +452,14 @@ The only optimizable parameter is the frequency of transmon 1.
     optmap.add(tone1)
     print(optmap)
     
-    opt = ScipyOptimizerGradient(gate_fid, optimization_map=optmap)
-    opt.set_options({"ftol": 0.1})
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=gate_fid.get_value_and_gradient, optimization_map=optmap)
+    opt.set_options({"ftol": 0.1, "maxls": 50, "gtol": 1e-8})
 
 
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.FlatTopGaussianEnvelope'> ====
-    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
+    [Amp: 95 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
     
     
 
@@ -449,7 +474,7 @@ The only optimizable parameter is the frequency of transmon 1.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.FlatTopGaussianEnvelope'> ====
-    [Amp: 190 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
+    [Amp: 95 MHz x 2pi, t_up: 30 ns, t_down: 120 ns, ramp_time: 15 ns]
 
 
 
@@ -459,11 +484,16 @@ The only optimizable parameter is the frequency of transmon 1.
     opt.optimize(times)
 
 
+.. parsed-literal::
+
+    Iteration    1 | Infid = 9.362616e-01
+
+
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.8566635903399564, 'iterations': 4, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.9362615819622282, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 

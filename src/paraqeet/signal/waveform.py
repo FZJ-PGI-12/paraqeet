@@ -20,7 +20,7 @@ jax.config.update("jax_enable_x64", True)
 class Waveform(Optimizable, Differentiable):
     """Classical electronics."""
 
-    # AC: the following annotation does not seem neded / correct.
+    # AC: the following annotation does not seem needed / correct.
     _partial_grads_function: Callable | None = None
     _gradient_function: Callable | None = None
     _grad_arg_nums: tuple[int, ...] = ()
@@ -368,7 +368,7 @@ class DRAGMixer(Waveform):
 
         Parameters
         ----------
-        envelope_tones: ist[Waveform]
+        envelope_tones: list[Waveform]
             The list of tones defining the total envelope.
         deltas : list[Quantity]
             A List of Quantities representing the delta parameters to add to
@@ -376,7 +376,7 @@ class DRAGMixer(Waveform):
 
         Returns
         -------
-        ist[Waveform]
+        list[Waveform]
             The list of envelope Tones with the added delta parameters.
         """
         for ii, env_tone in enumerate(envelope_tones):
@@ -463,7 +463,7 @@ class DRAGMixer(Waveform):
 
         Collect and return the parameter gradients from the Tone and the carrier
         Tone. Compute the gradient of the generator parameters by AD.
-        The order of the gradients should match the order of paramters in
+        The order of the gradients should match the order of parameters in
         `self.get_parameter()` method
 
         Parameters
@@ -586,7 +586,7 @@ class FlatTopGaussianFilter(Waveform):
 
         Collect and return the parameter gradients from the Tone and the carrier
         Tone. Compute the gradient of the generator parameters by AD.
-        The order of the gradients should match the order of paramters in
+        The order of the gradients should match the order of parameters in
         `self.get_parameter()` method
 
         Parameters

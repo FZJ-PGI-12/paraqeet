@@ -20,7 +20,11 @@ from paraqeet.quantity import Array, Float
 
 
 class ScipyExpmGOAT(ScipyExpm, Differentiable):
-    """Solve EOMs by piecewise exponentation via Scipy using GOAT."""
+    """Solve EOMs by piecewise exponentiation via Scipy using GOAT.
+
+    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
+    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+    """
 
     _eom_gradient_func: Callable[[Array], Array]
 

@@ -85,7 +85,8 @@ class ScipyOptimizer(Optimizer):
     def _default_callback(self, intermediate_result):
         self._num_iterations += 1
         fun = intermediate_result.fun if hasattr(intermediate_result, "fun") else None
-        print(f"Iteration {self._num_iterations:4d} | Infid = {fun:.6e}")
+        if self._num_iterations % 10 == 0:
+            print(f"Iteration {self._num_iterations:4d} | Infid = {fun:.6e}")
 
     def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Scipy optimizer.
@@ -95,7 +96,7 @@ class ScipyOptimizer(Optimizer):
         Since the search parameters are dimensionless and bound by [-1, 1], we set the bounds of the scipy minimize
         module to -1, and 1 explicitly in each search dimension.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
         For an array of times, the first time point is the start time.*
 
         Returns

@@ -6,15 +6,17 @@ for a single spin or qubit.
 
 .. code:: ipython3
 
+    import jax.numpy as jnp
     import numpy as np
     
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.drive_operator import DriveOperator
+    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.model.drive import Drive
     from paraqeet.model.qubit import Qubit
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
-    from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-    from paraqeet.propagation.scipy_expm import ScipyExpm
+    from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -35,22 +37,21 @@ Hamiltonian as
     freq_q = 4.8e9
     omega_q = 2 * np.pi * freq_q
     
-    controlled_qubit = Qubit(frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz", two_pi=True), drives=[])
-    model = ClosedSystem(controlled_qubit)
+    controlled_qubit = Qubit(frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz"), drives=[])
 
 For signal generation, we define a simple cosine shaped tone generator
 :math:`A \cos(\omega t)`
 
 .. code:: ipython3
 
-    tone = ConstantEnvelope()
-    gen = IQMixer(envelopes=[tone])
+    envelope = ConstantEnvelope()
+    gen = IQMixer(envelopes=[envelope])
 
 We can inspect the pre-defined parameters with
 
 .. code:: ipython3
 
-    params_tone = tone.get_parameters()
+    params_tone = envelope.get_parameters()
     print(params_tone)
     params_gen = gen.get_parameters()
     print(params_gen)
@@ -67,9 +68,13 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
-    drive = DriveOperator(gen, is_longitudinal=False)
+    pauli_x = jnp.array([[0.0, 1.0], [1.0, 0.0]])
+    drive = Drive(pauli_x, gen)
     controlled_qubit.drives = [drive]
-    model = ClosedSystem(controlled_qubit)
+    schrgl = SchroedingerEquation(
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+    )
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
@@ -103,12 +108,13 @@ controlled qubit at the time ``t_simu``:
 
 .. code:: ipython3
 
-    print(controlled_qubit.get_gradient_at_timestep(np.array([t_simu])))
+    print(controlled_qubit.get_value_and_gradient(np.array([t_simu])))
 
 
 .. parsed-literal::
 
-    []
+    (Array([[[-1.50796447e+10, -2.49345621e+08],
+            [-2.49345621e+08,  1.50796447e+10]]], dtype=float64), Array([], shape=(1, 0, 2, 2), dtype=float64))
 
 
 We see that in this case it is empty. This is because, we haven’t yet
@@ -119,22 +125,25 @@ default to :math:`32 \, \mathrm{ns}`. This is not necessarily the
 simulation time, which is another parameter of our choice called
 ``t_simu`` in this case.
 
-Next, we select a propagation method, piecewise constant exponentation,
+Next, we select a propagation method, piecewise constant exponentiation,
 and configure a state transfer problem from :math:`\ket{0}` to
 :math:`\ket{1}`.
 
 .. code:: ipython3
 
-    prop = ScipyExpm(model, resolution=100e9)  # implicit timestep is 1 / resolution
-    times = np.array([0.0, t_simu])
-    
-    
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
+    
+    prop = ScipyExpmGOAT(
+        eom_func=schrgl.get_value, eom_and_grad_func=schrgl.get_value_and_gradient, resolution=100e9, initial_state=init
+    )  # implicit timestep is 1 / resolution
+    times = np.array([0.0, t_simu])
+    
     zeroone = StateTransferFidelity(
-        propagation=prop,
-        initial_state=init,
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
         target_state=target,
+        overlap=overlap_state_vector,
     )
 
 Population dynamics
@@ -145,11 +154,20 @@ Population dynamics
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_simu, 101)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 02A_Single_qubit_state_preparation_files/02A_Single_qubit_state_preparation_19_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 02A_Single_qubit_state_preparation_files/02A_Single_qubit_state_preparation_19_1.png
 
 
 As expected, we get a partial transfer and a low fidelity.
@@ -174,21 +192,23 @@ and the parameters of the cosine tone.
 
     optmap = OptimizationMap()
     optmap.add(gen, [params_gen[0], params_gen[2]])
-    opt = ScipyOptimizer(zeroone, optimization_map=optmap)
+    opt = ScipyOptimizerGradient(measure_and_gradient_func=zeroone.get_value_and_gradient, optimization_map=optmap)
 
 One might think that the gradient associated with ``controlled_qubit``
 would not be empty, but instead
 
 .. code:: ipython3
 
-    controlled_qubit.get_gradient_at_timestep(np.array([t_simu]))
+    controlled_qubit.get_value_and_gradient(np.array([t_simu]))
 
 
 
 
 .. parsed-literal::
 
-    Array([], shape=(0, 2, 2), dtype=float64)
+    (Array([[[-1.50796447e+10, -2.49345621e+08],
+             [-2.49345621e+08,  1.50796447e+10]]], dtype=float64),
+     Array([], shape=(1, 0, 2, 2), dtype=float64))
 
 
 
@@ -198,21 +218,22 @@ by ``optmap``. To remedy this
 .. code:: ipython3
 
     optmap.register_params_with_optimizables()
-    print(controlled_qubit.get_gradient_at_timestep(np.array([t_simu])))
+    print(controlled_qubit.get_value_and_gradient(np.array([t_simu])))
 
 
 .. parsed-literal::
 
-    [[[-0.        +0.j        -0.49605735+0.j       ]
-      [-0.49605735+0.j        -0.        +0.j       ]]
+    (Array([[[-1.50796447e+10, -2.49345621e+08],
+            [-2.49345621e+08,  1.50796447e+10]]], dtype=float64), Array([[[[ 0.        , -0.9921147 ],
+             [-0.9921147 ,  0.        ]],
     
-     [[ 0.        -0.j        -0.15749839-1.2467281j]
-      [-0.15749839-1.2467281j  0.        -0.j       ]]]
+            [[ 0.        , -0.31499677],
+             [-0.31499677,  0.        ]]]], dtype=float64))
 
 
 .. code:: ipython3
 
-    tone.get_value_and_gradient([t_simu])
+    envelope.get_value_and_gradient(jnp.array([t_simu]))
 
 
 
@@ -237,7 +258,7 @@ want to optimize, which can be accessed via the optmap as
     [Amplitude: 40 MHz x 2pi, lo_freq: 4.85 GHz x 2pi]
 
 
-We can now run the optmization as
+We can now run the optimization as
 
 .. code:: ipython3
 
@@ -246,7 +267,18 @@ We can now run the optmization as
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 3.008704396734174e-13, 'iterations': 33, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    Iteration    1 | Infid = 5.240158e-02
+    Iteration    2 | Infid = 4.736437e-02
+    Iteration    3 | Infid = 3.677094e-02
+    Iteration    4 | Infid = 2.531545e-04
+
+
+.. parsed-literal::
+
+    Iteration    5 | Infid = 6.304633e-07
+    Iteration    6 | Infid = 3.336522e-10
+    Iteration    7 | Infid = 4.971579e-13
+    {'status': 1, 'value': 4.971578704271451e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 The new optimal parameters are
@@ -265,11 +297,20 @@ We can now plot the optimized dynamics
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 02A_Single_qubit_state_preparation_files/02A_Single_qubit_state_preparation_36_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 02A_Single_qubit_state_preparation_files/02A_Single_qubit_state_preparation_36_1.png
 
 
 We can see from the plot and optimizer output that we have found good
@@ -282,7 +323,7 @@ controls.
 
 .. parsed-literal::
 
-    State fidelity: 0.9999999999996274
+    State fidelity: 0.9999999999995028
 
 
 In this notebook, we focused on state preparation. In the next notebook,

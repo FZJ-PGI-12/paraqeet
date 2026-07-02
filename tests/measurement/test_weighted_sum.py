@@ -41,7 +41,7 @@ def test_weighted_sum_goal(random_meas):
 
 
 def test_weighted_sum_goal_options(random_meas):
-    """Test that the key error on the options is catched correctly"""
+    """Test that the key error on the options is caught correctly"""
     weights = np.random.random(len(random_meas))
     weights /= sum(weights)
     meas_bool = [True for _ in range(len(random_meas))]

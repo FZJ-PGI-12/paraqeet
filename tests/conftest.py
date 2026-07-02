@@ -166,7 +166,7 @@ def random_limits_for_quantity():
     """Return random limits for quantities.
 
     Returns random but valid minimum and maximum values
-    for the given value array while taking acount for negative values.
+    for the given value array while taking account for negative values.
 
     """
 

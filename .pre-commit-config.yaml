@@ -3,15 +3,24 @@ repos:
     rev: v0.8.3
     hooks:
       - id: ruff  # linter
-        args: [ --fix, --config=pyproject.toml, --select=I]
+        args: [ --fix, --config=pyproject.toml,--extend-select=I]
       - id: ruff-format  # formatter
         args: [--config=pyproject.toml ]
+
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.15.0'
     hooks:
     - id: mypy
+
 -   repo: https://github.com/kynan/nbstripout
     rev: 0.6.1
     hooks:
       - id: nbstripout
         args: [--drop-empty-cells, '--extra-keys=metadata.kernelspec metadata.version']
+
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.4.1
+  hooks:
+    - id: codespell
+      additional_dependencies:
+        - tomli

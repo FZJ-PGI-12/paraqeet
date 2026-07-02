@@ -66,6 +66,16 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
                 padded_grad = np.append(padded_grad, np.zeros((num_pixels, num_params)), axis=0)
         return jnp.array(padded_grad)
 
+    def _construct_interpolated_times(self, times: Array):
+        # Construct the same time grid as propagation to evaluate control gradients
+        interp_times = jnp.array([])
+        for ti in range(1, len(times)):
+            t_interpolated, dt = construct_times(times, ti, self._propagation_resolution)
+            interp_times = jnp.append(interp_times, t_interpolated, axis=0)
+
+        interp_times = jnp.append(interp_times, interp_times[-1] + dt)
+        return interp_times, dt
+
     @override
     def get_value(self, times: Array) -> Float:
         """Sum of plain weighted measurements.
@@ -84,7 +94,10 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         grape = self._measurement
         for gen in self._gens:
             gen._update_inphase_and_outofphase()
-        return jnp.array(grape.get_value(times=times))
+
+        interp_times, _ = self._construct_interpolated_times(times)
+
+        return grape.measure(times=interp_times)
 
     @override
     def measure(self, times: Array) -> Float:
@@ -116,12 +129,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         for gen in self._gens:
             gen._update_inphase_and_outofphase()
 
-        # Construct the same time grid as propagation to evaluate control gradients
-        interp_times = jnp.array([])
-        for ti in range(1, len(times)):
-            t_interpolated, dt = construct_times(times, ti, self._propagation_resolution)
-            interp_times = jnp.append(interp_times, t_interpolated, axis=0)
-
+        interp_times, dt = self._construct_interpolated_times(times)
         time_grid = interp_times[:-1] + dt / 2
 
         control_gradients: list[Array] = []

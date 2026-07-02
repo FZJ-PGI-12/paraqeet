@@ -12,10 +12,12 @@ by using the GOAToverGRAPE method.
 
 .. code:: ipython3
 
-    import jax.numpy as jnp
     import matplotlib.pyplot as plt
     import numpy as np
     
+    from paraqeet.model.drive import Drive
+    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import DCRABEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
@@ -74,48 +76,13 @@ As before we define a single spin in the rotating frame of the drive.
 
 .. code:: ipython3
 
-    from paraqeet.model.closed_system import ClosedSystem
-    from paraqeet.model.differentiable_hamiltonian import DifferentiableHamiltonian
-    from paraqeet.model.rotating_frame_drive import RotatingFrameDrive
-    from paraqeet.quantity import Array
-    
-    
-    class SpinRWA(DifferentiableHamiltonian):
-        """A Single Spin."""
-    
-        def __init__(self, drives=None):
-            super().__init__(drives)
-            self.sigma_p = jnp.array([[0j, 1], [0, 0]])
-            self.dim = 2
-    
-        def get_value_at_timestep(self, timestep: float) -> Array:
-            """Just sigma-X."""
-            return self._drives[0].get_value_at_timestep(self.sigma_p, timestep)
-    
-        def get_value_and_gradient(self, times: Array) -> tuple[Array, Array] | tuple[float, Array]:
-            """Gradient is just the drive matrix."""
-            return self.get_value(times), self._drives[0].get_gradient(self.sigma_p, times)
-    
-        def get_gradient_at_timestep(self, time):
-            """Computes the gradient"""
-            return self._drives[0].get_gradient_at_timestep(self.sigma_p, time)
-    
-        def dimension(self) -> int:
-            """Returns the dimension"""
-            raise self.d
-    
-        def get_collapseops(self) -> list[tuple[Array, Array]]:
-            """Returns an empyt list since we study closed system dynamics"""
-            return []
-    
-        def get_parameters(self):
-            """Returns the parameters, which in this case are only the drive parameters"""
-            return self._get_drive_parameters()
-    
-    
-    drive = RotatingFrameDrive(gen)
-    spin = SpinRWA(drives=[drive])
-    model = ClosedSystem(spin)
+    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
+    controlled_qubit.drives = [drive]
+    model = SchroedingerEquation(
+        hamiltonian_func=controlled_qubit.get_value,
+        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+    )
 
 And using GRAPE as the method to propagate and compute the gradients.
 The propagation :math:`dt` has to be smaller than the :math:`\Delta t`
@@ -126,20 +93,27 @@ of the time grid used for discretization. In this case
 .. code:: ipython3
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+    from paraqeet.measurement.utils import overlap_state_vector
     from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
-    prop = ScipyExpmGRAPE(model, resolution=3e9)
+    init = np.array([[1.0], [0.0]])  # |0>
+    target = np.array([[0.0], [1.0]])  # |1>
     
-    init = np.array([[1.0], [0]])  # |0>
-    target = np.array([[0.0], [1]])  # |1>
-    
-    prop.set_initial_state(init)
-    prop.set_target_state(target)
-    
-    zeroone = StateTransferFidelityGRAPE(
-        propagation=prop,
+    prop = ScipyExpmGRAPE(
+        eom_func=model.get_value,
+        eom_and_grad_func=model.get_value_and_gradient,
+        resolution=3e9,
         initial_state=init,
         target_state=target,
+        operator_sandwich_function=grape_operator_sandwich_function_closed,
+    )
+    
+    zeroone = StateTransferFidelityGRAPE(
+        propagation_func=prop.propagate,
+        propagation_and_gradient_func=prop.get_value_and_gradient,
+        target_state=target,
+        overlap=overlap_state_vector,
     )
 
 .. code:: ipython3
@@ -147,14 +121,23 @@ of the time grid used for discretization. In this case
     from plotting import plot_signal_and_dynamics
     
     ts = np.linspace(0.0, t_final, 101)
-    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(gen, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_12_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
-3. Optimisation
+
+
+.. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_12_1.png
+
+
+3. Optimization
 ---------------
 
 Finally, we define the ``DCRABOptimizerGradient`` that takes the
@@ -177,14 +160,14 @@ compute the gradient wrt the dCRAB envelope
      CRAB Re coefficient 1: -0.707,
      CRAB Re frequency 0: 4 Hz x 2pi,
      CRAB Re frequency 1: 4.51 Hz x 2pi,
-     CRAB Re Phase 0: -75.6 mHz x 2pi,
-     CRAB Re Phase 1: 320 mHz x 2pi,
+     CRAB Re Phase 0: -475 mrad,
+     CRAB Re Phase 1: 2.01 rad,
      CRAB Im coefficient 0: -0.419,
      CRAB Im coefficient 1: 0.72,
      CRAB Im frequency 0: 472 mHz x 2pi,
      CRAB Im frequency 1: 4.27 Hz x 2pi,
-     CRAB Im Phase 0: -23.1 mHz x 2pi,
-     CRAB Im Phase 1: 317 mHz x 2pi]
+     CRAB Im Phase 0: -145 mrad,
+     CRAB Im Phase 1: 1.99 rad]
 
 
 
@@ -200,7 +183,7 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
     
-    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir = tempfile.TemporaryDirectory(suffix="pq") # Ends in 'pq' to prevent _ at the end
     
     file_logger = FileLogger(temp_dir.name)
     
@@ -208,9 +191,9 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
     optmap.add(tone, [params[0]] + params[2:])
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, prop, generators=[gen])
+    goat = GOATOverGRAPE(zeroone, gen, prop.resolution)
     opt_grad = DCRABOptimizerGradient(
-        goat,
+        measure_and_gradient_func=goat.get_value_and_gradient,
         optimization_map=optmap,
         super_iteration_every=150,
         max_super_iteration_num=5,
@@ -219,12 +202,6 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
         seed=19573,
     )
     opt_grad.logger = file_logger
-
-
-.. parsed-literal::
-
-    datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-
 
 The ``optmap`` in this case contains the pulse amplitude and the Fourier
 coefficients for the optimization.
@@ -239,7 +216,7 @@ coefficients for the optimization.
 .. parsed-literal::
 
     ==== <class 'paraqeet.signal.envelopes.DCRABEnvelope'> ====
-    [Amplitude: 1.57e+07, CRAB Re coefficient 0: 0.801, CRAB Re coefficient 1: -0.707, CRAB Re frequency 0: 4 Hz x 2pi, CRAB Re frequency 1: 4.51 Hz x 2pi, CRAB Re Phase 0: -75.6 mHz x 2pi, CRAB Re Phase 1: 320 mHz x 2pi, CRAB Im coefficient 0: -0.419, CRAB Im coefficient 1: 0.72, CRAB Im frequency 0: 472 mHz x 2pi, CRAB Im frequency 1: 4.27 Hz x 2pi, CRAB Im Phase 0: -23.1 mHz x 2pi, CRAB Im Phase 1: 317 mHz x 2pi]
+    [Amplitude: 1.57e+07, CRAB Re coefficient 0: 0.801, CRAB Re coefficient 1: -0.707, CRAB Re frequency 0: 4 Hz x 2pi, CRAB Re frequency 1: 4.51 Hz x 2pi, CRAB Re Phase 0: -475 mrad, CRAB Re Phase 1: 2.01 rad, CRAB Im coefficient 0: -0.419, CRAB Im coefficient 1: 0.72, CRAB Im frequency 0: 472 mHz x 2pi, CRAB Im frequency 1: 4.27 Hz x 2pi, CRAB Im Phase 0: -145 mrad, CRAB Im Phase 1: 1.99 rad]
 
 
 
@@ -261,46 +238,80 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    Iteration number = 10 	  Infidelity  = 3.178e-05
+    Iteration number = 10 	  Infidelity  = 6.307e-05
+    Iteration number = 20 	  Infidelity  = 2.514e-12
+    
+    
+    ==== Decrease in infidelity less than 1e-09 ====
+    ==== Starting super-iteration 1 ====
+    * Current lowest infidelity =  2.514e-12
 
 
 .. parsed-literal::
 
+    * Current no. of parameters = 25
+
+
+.. parsed-literal::
+
+    Iteration number = 30 	  Infidelity  = 4.763e-06
     Setting parameters to the best values.
 
 
+.. parsed-literal::
+
+    Stopping the optimization or backtracking to previous best fidelity. Going to step with 13 parameters.
+
+
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 5.767608612927688e-12, 'iterations': 37, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.5142110615661295e-12, 'iterations': 32, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
 As the parameters are added with random values, the optimization may not
 succeed sometimes. If it does not reach a low value restart the
-optimization. Here, we have choosen a seed that converges to the target
+optimization. Here, we have chosen a seed that converges to the target
 fidelity.
 
 .. code:: ipython3
 
     opt_grad.set_parameters(opt_grad.best_params)
-    plot_signal_and_dynamics(gen, prop, ts);
+    plot_signal_and_dynamics(gen, prop, ts)
 
 
 
-.. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_21_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_21_1.png
 
 
 .. code:: ipython3
 
     from plotting import plot_infidelity_vs_evaluation_from_logs
     
-    plot_infidelity_vs_evaluation_from_logs(log_path=temp_dir.name + "/opt.log", label="GOAT over GRAPE");
+    plot_infidelity_vs_evaluation_from_logs(log_path=temp_dir.name + "/opt.log", label="GOAT over GRAPE")
 
 
 
-.. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_22_0.png
+
+.. parsed-literal::
+
+    <Axes: xlabel='Evaluation number', ylabel='Infidelity'>
+
+
+
+
+.. image:: 02E_GOAToverGRAPE_dCRAB_files/02E_GOAToverGRAPE_dCRAB_22_1.png
 
 
 .. code:: ipython3

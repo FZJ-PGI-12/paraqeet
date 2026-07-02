@@ -71,15 +71,15 @@ def test_filter(optmap) -> None:
 
     # Manual filtering
     pars = optmap.get_all_parameters()
-    filterd = []
+    filtered = []
     for par in pars:
         if HzFilter(par):
-            filterd.append(par)
+            filtered.append(par)
 
     # Builtin filter
     optmap.filter_parameters(HzFilter)
     pars = optmap.get_all_parameters()
-    assert pars == filterd
+    assert pars == filtered
 
 
 def test_properties(optmap, dummy_optimizable) -> None:
@@ -123,7 +123,7 @@ def test_access_to_all_optimizables_parameters(optmap, dummy_optimizable) -> Non
 def test_no_initial_parameters() -> None:
     """Test for initial parameters for a map.
 
-    After initialisation, the map should not contain any
+    After initialization, the map should not contain any
     optimizables or parameters.
 
     """
@@ -219,7 +219,7 @@ def test_removing_optimizables(opt_map_with_optimizables) -> None:
 
 
 def test_removing_parameters(opt_map_with_optimizables) -> None:
-    """Test removing paramters.
+    """Test removing parameters.
 
     Removing an optimizable should decrease to the number of parameters
     by the correct amount.

@@ -12,11 +12,11 @@ from paraqeet.quantity import Array, Quantity
 
 
 class QubitHamiltonian(Hamiltonian):
-    """Hamiltonian of a single qubit -frequency / 2 * pauli_z.
+    r"""Hamiltonian of a single qubit -frequency / 2 * pauli_z.
 
-    The implementation uses the quantum information convention of having |0> = [1 0]^T
+    The implementation uses the quantum information convention of having :math:`|0\rangle` = [1 0]^T
     system that is compatible with the projection of a higher-dimensional
-    as ground state and |1> = [0 1]^T as excited state. Hence, the Hamiltonian
+    as ground state and :math:`|1\rangle` = [0 1]^T as excited state. Hence, the Hamiltonian
     should be taken with a minus sign.
 
     Attributes

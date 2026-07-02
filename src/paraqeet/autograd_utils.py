@@ -1,6 +1,6 @@
 """Helper functions for automatic differentation."""
 
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 from jax import jit, vjp, vmap
@@ -56,8 +56,8 @@ def get_value_and_jacobian(f: Callable, argnums: int | tuple[int] = 0) -> Callab
             return y, grads[0] if argnums_is_int else grads
 
         # Array output: feed basis vectors covering the flattened output
-        I = jnp.eye(y.size, dtype=y.dtype).reshape((y.size,) + y.shape)
-        jac_tuple = vmap(vjp_fn)(I)
+        Identity = jnp.eye(y.size, dtype=y.dtype).reshape((y.size,) + y.shape)
+        jac_tuple = vmap(vjp_fn)(Identity)
 
         reshaped = tuple(jac.reshape(y.shape + jnp.shape(diff_args[i])) for i, jac in enumerate(jac_tuple))
 

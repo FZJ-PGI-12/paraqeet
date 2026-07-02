@@ -65,9 +65,9 @@ def test_identity_operator(dim: int):
 
 # Tests for matrix sqrt for positive semi-definite operators
 def test_identity():
-    """sqrt(I) = I."""
-    ide_mat = jnp.eye(5)
-    np.testing.assert_allclose(matrix_sqrt_psd(ide_mat), ide_mat, atol=1e-6)
+    """sqrt(Identity) = Identity."""
+    Identity = jnp.eye(5)
+    np.testing.assert_allclose(matrix_sqrt_psd(Identity), Identity, atol=1e-6)
 
 
 def test_diagonal():

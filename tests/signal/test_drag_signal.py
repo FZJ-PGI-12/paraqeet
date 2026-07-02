@@ -1,4 +1,4 @@
-"""Test the functionality of the generation of the DRAG correted signal."""
+"""Test the functionality of the generation of the DRAG corrected signal."""
 
 import numpy as np
 import pytest

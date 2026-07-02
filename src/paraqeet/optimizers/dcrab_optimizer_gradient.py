@@ -1,7 +1,7 @@
 """optimize a dCRAB pulse by a Scipy gradient based optimizer."""
 
 import warnings
-from typing import Callable
+from collections.abc import Callable
 
 import jax.numpy as jnp
 import numpy as np
@@ -44,7 +44,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     _num_print_every: int
         Print every this many iterations the current optimization value. Defaults to 5.
     _old_parameters_dict : dict[int, list[Quantity]]
-        Store the parameters of the previous super-iteration in a dictonary labelled by the number of parameters.
+        Store the parameters of the previous super-iteration in a dictionary labeled by the number of parameters.
 
     Parameters
     ----------
@@ -131,7 +131,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
                 params.append(env.get_parameters()[-1])  # Add pulse delta to optimization if it is a DRAG tone.
             self._optimization_map.add(env, params)
 
-        # Get all parameters and update scales for optimiztaion
+        # Get all parameters and update scales for optimization
         params = self._optimization_map.get_all_parameters()
         self._scales = jnp.array([p.get_scale() for p in params]).flatten()
         print(f"* Current no. of parameters = {len(params)}")
@@ -242,7 +242,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
                     f"Got values from optimization than does not fit in optimization map. \n \
                     No. of values from optimization = {num_values} \
                     and no. of objects in optimization map \
-                    (in the differnt super-iterations) = {list(self._old_parameters_dict.keys())}."
+                    (in the different super-iterations) = {list(self._old_parameters_dict.keys())}."
                 )
         else:
             for index, val in enumerate(np.split(values, self._opt_idxs[:-1])):
@@ -291,7 +291,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
 
         Performs the actual optimization.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicity assumed to be zero.
+        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
         For an array of times, the first time point is the start time.*
 
         Returns

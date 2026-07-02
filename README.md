@@ -27,8 +27,8 @@ Each module interacts only with the module above it in hierarchy.
   <center><img src="https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/raw/main/docs/layers.png" alt="Layers" width="60%"/></center>
 </div>
 
-Currently implementated optimization methods
-- GRAPE: Gradient Ascent Pulse Enginnering
+Currently implemented optimization methods
+- GRAPE: Gradient Ascent Pulse Engineering
 - GOAT: Gradient Optimization of Analytic conTrols
 - dCRAB : (Gradient based) dressed Chopped RAndom Basis
 
