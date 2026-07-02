@@ -82,23 +82,7 @@ We can check that the gradient has the correct shape
 
 .. parsed-literal::
 
-    Iteration    1 | Infid = 3.521878e-06
-    Iteration    2 | Infid = 8.218050e-07
-    Iteration    3 | Infid = 7.482841e-07
-    Iteration    4 | Infid = 7.037571e-07
-    Iteration    5 | Infid = 5.844981e-07
-    Iteration    6 | Infid = 4.565950e-07
-    Iteration    7 | Infid = 2.771197e-07
-
-
-.. parsed-literal::
-
-    Iteration    8 | Infid = 2.486787e-07
-    Iteration    9 | Infid = 8.115540e-08
     Iteration   10 | Infid = 3.831392e-08
-    Iteration   11 | Infid = 1.038865e-08
-    Iteration   12 | Infid = 6.700992e-09
-    Iteration   13 | Infid = 1.164915e-09
 
 
 

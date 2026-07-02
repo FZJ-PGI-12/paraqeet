@@ -85,7 +85,8 @@ class ScipyOptimizer(Optimizer):
     def _default_callback(self, intermediate_result):
         self._num_iterations += 1
         fun = intermediate_result.fun if hasattr(intermediate_result, "fun") else None
-        print(f"Iteration {self._num_iterations:4d} | Infid = {fun:.6e}")
+        if self._num_iterations % 10 == 0:
+            print(f"Iteration {self._num_iterations:4d} | Infid = {fun:.6e}")
 
     def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the Scipy optimizer.
