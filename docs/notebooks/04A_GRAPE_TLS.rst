@@ -14,7 +14,7 @@ this software package.
     import numpy as np
     
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
@@ -64,12 +64,12 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
-    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian = QubitHamiltonian(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(qubit_hamiltonian.sigma_minus, gen, add_hermitian=True)
+    qubit_hamiltonian.drives = [drive]
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 .. code:: ipython3
@@ -84,7 +84,7 @@ As a simple toy model, we use a single spin.
     
     prop = ScipyExpmGRAPE(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=2e9,
         initial_state=init,
         target_state=target,
@@ -95,7 +95,7 @@ As a simple toy model, we use a single spin.
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -156,15 +156,6 @@ from a ``PWCGenerator`` using ``gen.tlist``.
     opt_grad.optimize(gen.tlist)
 
 
-.. parsed-literal::
-
-    Iteration    1 | Infid = 5.927566e-01
-    Iteration    2 | Infid = 8.176245e-02
-    Iteration    3 | Infid = 5.023847e-04
-    Iteration    4 | Infid = 1.443832e-06
-    Iteration    5 | Infid = 1.449951e-13
-
-
 
 
 .. parsed-literal::
@@ -220,22 +211,23 @@ Lets first reset the pulse and create a open-system model
     import jax.numpy as jnp
     
     from paraqeet.model.master_equation import MasterEquation
+    from paraqeet.model.qubit import Qubit
     
     t1 = Quantity(10e-6, 1e-6, 100e-6)
     temp = Quantity(10e-3, 1e-3, 50e-3)
     t2star = Quantity(20e-6, 1e-6, 100e-6)
     
     
-    controlled_qubit = Qubit(
-        frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[], t1=t1, temp=temp, t2star=t2star
-    )
-    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian = QubitHamiltonian(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(qubit_hamiltonian.sigma_minus, gen, add_hermitian=True)
+    qubit_hamiltonian.drives = [drive]
+    
+    open_qubit = Qubit(hamiltonian=qubit_hamiltonian, t1=t1, temp=temp, t2star=t2star)
     
     model = MasterEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
-        jump_operators=controlled_qubit.get_jump_operators(),
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
+        jump_operators=open_qubit.get_jump_operators(),
     )
 
 Lets test GRAPE with ODE-propgation
@@ -255,19 +247,19 @@ Lets test GRAPE with ODE-propgation
     
     prop = Vern7GRAPE(
         eom_func=model.get_eom_ode_propagation,
-        eom_and_gradient_func=model.get_eom_and_gradient_ode_propagation,
+        eom_gradient_func=model.get_eom_gradient_ode_propagation,
         resolution=10e9,
         initial_state=init,
         target_state=target,
         step_function=lindblad_step,
         reverse_step_function=reverse_lindblad_step,
         operator_sandwich_function=grape_operator_sandwich_function_open,
-        jump_operators=controlled_qubit.get_jump_operators(),
+        jump_operators=open_qubit.get_jump_operators(),
     )
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_density_matrix,
     )
@@ -335,16 +327,6 @@ Lets test GRAPE with ODE-propgation
 .. code:: ipython3
 
     opt_grad.optimize(tlist)
-
-
-.. parsed-literal::
-
-    Iteration    1 | Infid = 9.816196e-01
-
-
-.. parsed-literal::
-
-    Iteration    2 | Infid = 9.539974e-03
 
 
 

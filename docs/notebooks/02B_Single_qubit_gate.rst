@@ -11,7 +11,7 @@ single-qubit gate, specifically an :math:`X`-gate.
     
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
@@ -36,7 +36,7 @@ the Hamiltonian as
 
     freq = 4.327884e9 * 2 * np.pi
     
-    controlled_qubit = Qubit(
+    qubit_hamiltonian = QubitHamiltonian(
         frequency=Quantity(
             freq,
             min_value=freq / 4,
@@ -83,14 +83,14 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
-    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
-    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
-    drive = Drive(pauli_x, gen)
-    controlled_qubit.drives = [drive]
+    sigma_x = qubit_hamiltonian.sigma_x
+    sigma_y = qubit_hamiltonian.sigma_y
+    sigma_z = qubit_hamiltonian.sigma_z
+    drive = Drive(sigma_x, gen)
+    qubit_hamiltonian.drives = [drive]
     eom = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 Textbook values for implementing an :math:`X` rotation on this system at
@@ -112,12 +112,12 @@ identity at time :math:`0`.
     times = np.array([0.0, t_simu])
     
     prop = ScipyExpmGOAT(
-        eom_func=eom.get_value, eom_and_grad_func=eom.get_value_and_gradient, resolution=100e9, initial_state=np.identity(2)
+        eom_func=eom.get_value, eom_gradient_func=eom.get_gradient, resolution=100e9, initial_state=np.identity(2)
     )
     gate_fid = UnitaryFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
-        gate=pauli_x,
+        propagation_gradient_func=prop.get_gradient,
+        gate=sigma_x,
     )
 
 .. code:: ipython3
@@ -170,25 +170,7 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    Iteration    1 | Infid = 8.828845e-01
-    Iteration    2 | Infid = 8.811287e-01
-    Iteration    3 | Infid = 8.797420e-01
-    Iteration    4 | Infid = 8.723340e-01
-
-
-.. parsed-literal::
-
-    Iteration    5 | Infid = 8.598577e-01
-    Iteration    6 | Infid = 8.312694e-01
-    Iteration    7 | Infid = 8.074955e-01
-    Iteration    8 | Infid = 8.038981e-01
-
-
-.. parsed-literal::
-
-    Iteration    9 | Infid = 8.036776e-01
     Iteration   10 | Infid = 8.036767e-01
-    Iteration   11 | Infid = 8.036766e-01
 
 
 
@@ -246,9 +228,9 @@ information to identify the problem.
         ax[0].set_ylabel(r"Field [MHz / $2\pi$]")
         ax[0].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
-        ax[1].plot(ts / 1e-9, expecation_value(pauli_x, states[:, :, 0]))
-        ax[1].plot(ts / 1e-9, expecation_value(pauli_y, states[:, :, 0]))
-        ax[1].plot(ts / 1e-9, expecation_value(pauli_z, states[:, :, 0]))
+        ax[1].plot(ts / 1e-9, expecation_value(sigma_x, states[:, :, 0]))
+        ax[1].plot(ts / 1e-9, expecation_value(sigma_y, states[:, :, 0]))
+        ax[1].plot(ts / 1e-9, expecation_value(sigma_z, states[:, :, 0]))
         ax[1].set_ylabel(r"Expectation value $\langle\hat\sigma_i\rangle$")
         ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
@@ -296,47 +278,12 @@ our drive to shift and include the phase parameter in the optimization.
 
 .. parsed-literal::
 
-    Iteration    1 | Infid = 8.813303e-01
-    Iteration    2 | Infid = 8.793034e-01
-    Iteration    3 | Infid = 8.731364e-01
-
-
-.. parsed-literal::
-
-    Iteration    4 | Infid = 8.557180e-01
-    Iteration    5 | Infid = 8.147796e-01
-    Iteration    6 | Infid = 7.273990e-01
-    Iteration    7 | Infid = 5.589118e-01
-
-
-.. parsed-literal::
-
-    Iteration    8 | Infid = 3.803423e-01
-    Iteration    9 | Infid = 2.908736e-01
     Iteration   10 | Infid = 2.374870e-01
-    Iteration   11 | Infid = 2.348226e-01
-
-
-.. parsed-literal::
-
-    Iteration   12 | Infid = 2.318530e-01
-    Iteration   13 | Infid = 2.117373e-01
-    Iteration   14 | Infid = 1.769397e-01
-    Iteration   15 | Infid = 1.039797e-01
-
-
-.. parsed-literal::
-
-    Iteration   16 | Infid = 3.359271e-02
-    Iteration   17 | Infid = 3.991542e-03
-    Iteration   18 | Infid = 6.391801e-05
-    Iteration   19 | Infid = 8.339528e-08
 
 
 .. parsed-literal::
 
     Iteration   20 | Infid = 1.151436e-09
-    Iteration   21 | Infid = 8.832046e-12
 
 
 

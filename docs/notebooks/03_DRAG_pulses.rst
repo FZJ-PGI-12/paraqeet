@@ -10,7 +10,7 @@ First, we make the necessary imports.
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.drive import Drive
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import Transmon
+    from paraqeet.model.transmon import TransmonHamiltonian
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
@@ -56,7 +56,7 @@ corrected signal in the DRAGMixer
     anhar = -200e6 * 2 * np.pi
     
     num_levels = 3
-    controlled_transmon = Transmon(
+    transmon_hamiltonian = TransmonHamiltonian(
         frequency=Quantity(
             freq,
             min_value=np.array(freq / 4),
@@ -75,20 +75,20 @@ corrected signal in the DRAGMixer
         drives=[],
     )
     
-    drive_op = controlled_transmon.annihilation_op + (controlled_transmon.annihilation_op).conj().T
+    drive_op = transmon_hamiltonian.annihilation_op + (transmon_hamiltonian.annihilation_op).conj().T
     drive = Drive(drive_op, gen)
-    controlled_transmon.drives = [drive]
+    transmon_hamiltonian.drives = [drive]
     
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_transmon.get_value,
-        hamiltonian_and_gradient_func=controlled_transmon.get_value_and_gradient,
+        hamiltonian_func=transmon_hamiltonian.get_value,
+        hamiltonian_gradient_func=transmon_hamiltonian.get_gradient,
     )
     
     params = gen.get_parameters()
     
     prop = ScipyExpmGOAT(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=100e9,
         initial_state=np.eye(num_levels),
     )
@@ -156,7 +156,7 @@ reference defined above is used.
 
     gate_fid = UnitaryFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         gate=rx(np.pi / 2),
     )
 
@@ -220,40 +220,11 @@ and the parameters of the cosine tone.
     opt.optimize(times)
 
 
-.. parsed-literal::
-
-    Iteration    1 | Infid = 2.608488e-02
 
 
 .. parsed-literal::
 
-    Iteration    2 | Infid = 2.024433e-02
-    Iteration    3 | Infid = 5.765745e-03
-
-
-.. parsed-literal::
-
-    Iteration    4 | Infid = 5.762506e-03
-
-
-.. parsed-literal::
-
-    Iteration    5 | Infid = 5.762154e-03
-    Iteration    6 | Infid = 5.760993e-03
-    Iteration    7 | Infid = 5.760922e-03
-
-
-.. parsed-literal::
-
-    Iteration    8 | Infid = 5.760912e-03
-    Iteration    9 | Infid = 5.760910e-03
-
-
-
-
-.. parsed-literal::
-
-    {'status': 1, 'value': 0.005760910023328569, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.005760894081225376, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -274,10 +245,10 @@ Print all parameters that were optimized.
 
                Name:                Value                  Min                  Max
     --------------------------------------------------------------------------------
-          Amplitude:         2.455094e+08         0.000000e+00         1.000000e+09
-              Delta:        -2.493769e+09        -3.769911e+09        -1.256637e+08
-            lo_freq:         3.015935e+10         2.412743e+10         3.619115e+10
-              Phase:         3.539781e-04        -3.141593e+00         3.141593e+00
+          Amplitude:         2.455072e+08         0.000000e+00         1.000000e+09
+              Delta:        -2.493540e+09        -3.769911e+09        -1.256637e+08
+            lo_freq:         3.015934e+10         2.412743e+10         3.619115e+10
+              Phase:         2.006086e-04        -3.141593e+00         3.141593e+00
 
 
 Plot final pulse shape and population transfer. Target is the full
@@ -314,6 +285,6 @@ smaller than initially.
 
 .. parsed-literal::
 
-    Array(0.99423909, dtype=float64)
+    Array(0.99423911, dtype=float64)
 
 

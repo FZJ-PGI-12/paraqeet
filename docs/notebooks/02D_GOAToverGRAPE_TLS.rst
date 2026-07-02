@@ -24,7 +24,7 @@ where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
     import numpy as np
     
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -95,12 +95,12 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
-    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian = QubitHamiltonian(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(qubit_hamiltonian.sigma_minus, gen, add_hermitian=True)
+    qubit_hamiltonian.drives = [drive]
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 Using GRAPE as the method to propagate and compute the gradients
@@ -117,7 +117,7 @@ Using GRAPE as the method to propagate and compute the gradients
     
     prop = ScipyExpmGRAPE(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=2e9,
         initial_state=init,
         target_state=target,
@@ -126,7 +126,7 @@ Using GRAPE as the method to propagate and compute the gradients
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -187,14 +187,6 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
 .. code:: ipython3
 
     opt_grad.optimize(np.array([0.0, t_simu]))
-
-
-.. parsed-literal::
-
-    Iteration    1 | Infid = 2.532580e-04
-    Iteration    2 | Infid = 5.797786e-05
-    Iteration    3 | Infid = 1.629585e-12
-    Iteration    4 | Infid = -8.881784e-16
 
 
 

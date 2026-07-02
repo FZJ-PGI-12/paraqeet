@@ -9,11 +9,12 @@ Gradient-based optimization of a cross-resonance gate between two transmons
     import numpy as np
     
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.composite_system import CompositeSystem
+    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
     from paraqeet.model.coupling import Coupling
     from paraqeet.model.drive import Drive
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import Transmon
+    from paraqeet.model.transmon import TransmonHamiltonian
+    from paraqeet.model.utils import sigma_x, sigma_y, sigma_z
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.propagation.propagation import Propagation
@@ -122,7 +123,7 @@ form), can take considerably long time.
     
     
     num_levels = 3
-    transmon1 = Transmon(
+    transmon_hamiltonian_1 = TransmonHamiltonian(
         num_levels=num_levels,
         frequency=Quantity(
             5.5e9 * 2 * np.pi,
@@ -143,11 +144,11 @@ form), can take considerably long time.
         drives=[],
     )
     
-    drive_op1 = transmon1.annihilation_op + (transmon1.annihilation_op).conj().T
+    drive_op1 = transmon_hamiltonian_1.annihilation_op + (transmon_hamiltonian_1.annihilation_op).conj().T
     drive1 = Drive(drive_op1, generator1)
-    transmon1.drives = [drive1]
+    transmon_hamiltonian_1.drives = [drive1]
     
-    transmon2 = Transmon(
+    transmon_hamiltonian_2 = TransmonHamiltonian(
         num_levels=num_levels,
         frequency=Quantity(
             6.0e9 * 2 * np.pi,
@@ -168,13 +169,13 @@ form), can take considerably long time.
         drives=[],
     )
     
-    drive_op2 = transmon2.annihilation_op + (transmon2.annihilation_op).conj().T
+    drive_op2 = transmon_hamiltonian_2.annihilation_op + (transmon_hamiltonian_2.annihilation_op).conj().T
     drive2 = Drive(drive_op2, generator2)
-    transmon2.drives = [drive2]
+    transmon_hamiltonian_2.drives = [drive2]
     
     coupling_op = np.kron(
-        transmon1.annihilation_op + transmon1.annihilation_op.conj().T,
-        transmon2.annihilation_op + transmon2.annihilation_op.conj().T,
+        transmon_hamiltonian_1.annihilation_op + transmon_hamiltonian_1.annihilation_op.conj().T,
+        transmon_hamiltonian_2.annihilation_op + transmon_hamiltonian_2.annihilation_op.conj().T,
     )
     coupling = Coupling(
         coupling_op,
@@ -187,7 +188,7 @@ form), can take considerably long time.
             two_pi=True,
         ),
     )
-    hamiltonian = CompositeSystem([transmon1, transmon2], [coupling])
+    hamiltonian = CompositeHamiltonian([transmon_hamiltonian_1, transmon_hamiltonian_2], [coupling])
 
 
 .. parsed-literal::
@@ -197,7 +198,7 @@ form), can take considerably long time.
 
 .. code:: ipython3
 
-    (transmon2.frequency.get_value() - transmon1.frequency.get_value()) / (2 * np.pi)
+    (transmon_hamiltonian_2.frequency.get_value() - transmon_hamiltonian_1.frequency.get_value()) / (2 * np.pi)
 
 
 
@@ -272,23 +273,23 @@ configure CR as a target gate.
 
     model = SchroedingerEquation(
         hamiltonian_func=hamiltonian.get_value,
-        hamiltonian_and_gradient_func=hamiltonian.get_value_and_gradient,
+        hamiltonian_gradient_func=hamiltonian.get_gradient,
     )
     
     # We need to pad the operators with zeros so we introduce a helper zero matrix
-    dim = transmon1.dimension() * transmon2.dimension()
+    dim = transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()
     padding = ((0, dim - 4), (0, dim - 4))
     
-    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
-    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
+    sigma_x = sigma_x()
+    sigma_y = sigma_y()
+    sigma_z = sigma_z()
     
-    pauli_ix = np.pad(np.kron(np.identity(2), pauli_x), pad_width=padding, mode="constant", constant_values=0.0)
-    pauli_iy = np.pad(np.kron(np.identity(2), pauli_y), pad_width=padding, mode="constant", constant_values=0.0)
-    pauli_iz = np.pad(np.kron(np.identity(2), pauli_z), pad_width=padding, mode="constant", constant_values=0.0)
+    pauli_ix = np.pad(np.kron(np.identity(2), sigma_x), pad_width=padding, mode="constant", constant_values=0.0)
+    pauli_iy = np.pad(np.kron(np.identity(2), sigma_y), pad_width=padding, mode="constant", constant_values=0.0)
+    pauli_iz = np.pad(np.kron(np.identity(2), sigma_z), pad_width=padding, mode="constant", constant_values=0.0)
     
     pauli_zx = np.pad(
-        np.exp(1j * np.pi / 4) * np.kron(pauli_z, pauli_x), pad_width=padding, mode="constant", constant_values=0.0
+        np.exp(1j * np.pi / 4) * np.kron(sigma_z, sigma_x), pad_width=padding, mode="constant", constant_values=0.0
     )
     
     cr_gate = np.pad(
@@ -304,14 +305,14 @@ configure CR as a target gate.
     
     prop = ScipyExpmGOAT(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=100e9,
-        initial_state=np.identity(transmon1.dimension() * transmon2.dimension()),
+        initial_state=np.identity(transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()),
     )
     
     gate_fid = UnitaryFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         gate=cr_gate,
     )
     gate_fid.measure(times)
@@ -329,8 +330,8 @@ configure CR as a target gate.
 
     def plot_population(propagation: Propagation):
         """Plot the population from the Propagation object."""
-        basis1 = [i for i in range(transmon1.dimension())]
-        basis2 = [i for i in range(transmon2.dimension())]
+        basis1 = [i for i in range(transmon_hamiltonian_1.dimension())]
+        basis2 = [i for i in range(transmon_hamiltonian_2.dimension())]
         labels = [rf"$|{i},{j}\rangle$" for (i, j) in itertools.product(basis1, basis2)]
     
         signal1 = generator1.get_value(tlist)
@@ -352,7 +353,7 @@ configure CR as a target gate.
     
         ax[2].plot(
             tlist / 1e-9,
-            np.abs(states)[:, :, transmon2.dimension()] ** 2,
+            np.abs(states)[:, :, transmon_hamiltonian_2.dimension()] ** 2,
             label=labels,
         )
         ax[2].set_xlabel("Time [ns]")
@@ -400,31 +401,21 @@ configure CR as a target gate.
         ax[1].legend(["X", "Y", "Z"])
         ax[1].grid(True, linestyle=(1, (1, 5)), linewidth=1)
     
-        ax[2].plot(tlist / 1e-9, expecation_value(pauli_ix, states[:, :, transmon2.dimension()]))
-        ax[2].plot(tlist / 1e-9, expecation_value(pauli_iy, states[:, :, transmon2.dimension()]))
-        ax[2].plot(tlist / 1e-9, expecation_value(pauli_iz, states[:, :, transmon2.dimension()]))
+        ax[2].plot(tlist / 1e-9, expecation_value(pauli_ix, states[:, :, transmon_hamiltonian_2.dimension()]))
+        ax[2].plot(tlist / 1e-9, expecation_value(pauli_iy, states[:, :, transmon_hamiltonian_2.dimension()]))
+        ax[2].plot(tlist / 1e-9, expecation_value(pauli_iz, states[:, :, transmon_hamiltonian_2.dimension()]))
         ax[2].set_ylabel(r"$\langle 1, x|\hat\sigma_i|1, x\rangle$")
         ax[-1].set_xlabel("Time [ns]")
         ax[2].legend(["X", "Y", "Z"])
         ax[2].grid(True, linestyle=(1, (1, 5)), linewidth=1)
-    
-        return fig, ax
+        plt.show()
     
     
     plot_pauli()
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 500x750 with 3 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>, <Axes: ylabel='$\\langle 0, x|\\hat\\sigma_i|0, x\\rangle$'>, <Axes: xlabel='Time [ns]', ylabel='$\\langle 1, x|\\hat\\sigma_i|1, x\\rangle$'>], dtype=object))
-
-
-
-
-.. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_12_1.png
+.. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_12_0.png
 
 
 Optimization
@@ -484,16 +475,11 @@ The only optimizable parameter is the frequency of transmon 1.
     opt.optimize(times)
 
 
-.. parsed-literal::
-
-    Iteration    1 | Infid = 9.362616e-01
-
-
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.9362615819622282, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.93624378929706, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -512,14 +498,5 @@ The only optimizable parameter is the frequency of transmon 1.
 
 
 
-
-.. parsed-literal::
-
-    (<Figure size 500x750 with 3 Axes>,
-     array([<Axes: ylabel='Field [MHz]'>, <Axes: ylabel='$\\langle 0, x|\\hat\\sigma_i|0, x\\rangle$'>, <Axes: xlabel='Time [ns]', ylabel='$\\langle 1, x|\\hat\\sigma_i|1, x\\rangle$'>], dtype=object))
-
-
-
-
-.. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_19_1.png
+.. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_19_0.png
 

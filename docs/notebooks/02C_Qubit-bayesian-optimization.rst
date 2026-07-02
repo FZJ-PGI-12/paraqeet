@@ -13,7 +13,7 @@ uses Bayesian optimization instead of gradient descent.
     from paraqeet.logger import Logger
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
@@ -38,10 +38,12 @@ Hamiltonian as
     freq_q = 4.8e9
     omega_q = 2 * np.pi * freq_q
     
-    controlled_qubit = Qubit(frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz", two_pi=True), drives=[])
+    qubit_hamiltonian = QubitHamiltonian(
+        frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz", two_pi=True), drives=[]
+    )
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 For signal generation, we define a simple cosine shaped tone generator
@@ -66,14 +68,12 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 .. code:: ipython3
 
     freq = 4.8e9 * 2 * np.pi
-    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
-    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
-    drive = Drive(pauli_x, gen)
-    controlled_qubit = Qubit(frequency=Quantity(freq, 0.8 * freq, 1.2 * freq), drives=[drive])
+    sigma_x = qubit_hamiltonian.sigma_x
+    drive = Drive(sigma_x, gen)
+    qubit_hamiltonian.drives = [drive]
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 Textbook values for implementing an :math:`X` rotation on this system at
@@ -96,16 +96,12 @@ identity at time :math:`0`.
     
     prop = ScipyExpmGOAT(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=100e9,
         initial_state=np.identity(2),
     )
     
-    gate_fid = UnitaryFidelity(
-        propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
-        gate=pauli_x,
-    )
+    gate_fid = UnitaryFidelity(propagation_func=prop.propagate, propagation_gradient_func=prop.get_gradient, gate=sigma_x)
 
 .. code:: ipython3
 
@@ -187,12 +183,12 @@ to collect all samples that the optimizer takes
     | [39m2        [39m | [39m0.0001104[39m | [39m-0.395334[39m | [39m-0.706488[39m | [39m-0.815322[39m |
     | [39m3        [39m | [39m0.0003939[39m | [39m-0.627479[39m | [39m-0.308878[39m | [39m-0.206465[39m |
     | [35m4        [39m | [35m0.0094778[39m | [35m0.0776334[39m | [35m-0.161610[39m | [35m0.3704390[39m |
-    | [39m5        [39m | [39m-.085e-06[39m | [39m-0.591095[39m | [39m0.7562348[39m | [39m-0.945224[39m |
+    | [39m5        [39m | [39m3.085e-06[39m | [39m-0.591095[39m | [39m0.7562348[39m | [39m-0.945224[39m |
     | [35m6        [39m | [35m0.2028943[39m | [35m0.3409350[39m | [35m-0.165390[39m | [35m0.1173796[39m |
     | [39m7        [39m | [39m0.0007805[39m | [39m-0.719226[39m | [39m-0.603797[39m | [39m0.6014891[39m |
     | [39m8        [39m | [39m0.0434133[39m | [39m0.9365231[39m | [39m-0.373151[39m | [39m0.3846452[39m |
-    | [39m9        [39m | [39m-.729e-06[39m | [39m0.7527783[39m | [39m0.7892133[39m | [39m-0.829911[39m |
-    | [39m10       [39m | [39m-.574e-06[39m | [39m-0.921890[39m | [39m-0.660339[39m | [39m0.7562850[39m |
+    | [39m9        [39m | [39m1.729e-06[39m | [39m0.7527783[39m | [39m0.7892133[39m | [39m-0.829911[39m |
+    | [39m10       [39m | [39m3.574e-06[39m | [39m-0.921890[39m | [39m-0.660339[39m | [39m0.7562850[39m |
 
 
 .. parsed-literal::
@@ -204,18 +200,18 @@ to collect all samples that the optimizer takes
 
     | [35m12       [39m | [35m0.3210977[39m | [35m0.3995182[39m | [35m-0.075493[39m | [35m-0.066396[39m |
     | [39m13       [39m | [39m0.1647017[39m | [39m0.5639544[39m | [39m-0.194260[39m | [39m-0.341354[39m |
-
-
-.. parsed-literal::
-
     | [35m14       [39m | [35m0.3215744[39m | [35m0.5552035[39m | [35m0.1456268[39m | [35m-0.017306[39m |
-    | [39m15       [39m | [39m-.246e-06[39m | [39m0.2755778[39m | [39m0.3197374[39m | [39m-0.141076[39m |
-    | [39m16       [39m | [39m0.2212795[39m | [39m0.5554470[39m | [39m0.1939444[39m | [39m-0.022655[39m |
 
 
 .. parsed-literal::
 
+    | [39m15       [39m | [39m7.246e-06[39m | [39m0.2755778[39m | [39m0.3197374[39m | [39m-0.141076[39m |
+    | [39m16       [39m | [39m0.2212795[39m | [39m0.5554470[39m | [39m0.1939444[39m | [39m-0.022655[39m |
     | [39m17       [39m | [39m0.1641519[39m | [39m0.5808638[39m | [39m-0.020411[39m | [39m-0.013947[39m |
+
+
+.. parsed-literal::
+
     | [35m18       [39m | [35m0.3386069[39m | [35m0.3983636[39m | [35m-0.078108[39m | [35m-0.062977[39m |
 
 
@@ -234,8 +230,8 @@ to collect all samples that the optimizer takes
 
 .. parsed-literal::
 
-    | [39m24       [39m | [39m-.894e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
-    | [39m25       [39m | [39m-.132e-08[39m | [39m-0.877018[39m | [39m-0.657881[39m | [39m0.0207137[39m |
+    | [39m24       [39m | [39m6.894e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
+    | [39m25       [39m | [39m5.132e-08[39m | [39m-0.877018[39m | [39m-0.657881[39m | [39m0.0207137[39m |
     | [39m26       [39m | [39m0.0011949[39m | [39m-0.795254[39m | [39m-0.508318[39m | [39m0.9524448[39m |
 
 
@@ -282,7 +278,7 @@ to collect all samples that the optimizer takes
 
 .. parsed-literal::
 
-    | [39m40       [39m | [39m-.035e-07[39m | [39m-0.831439[39m | [39m0.3584873[39m | [39m-0.030378[39m |
+    | [39m40       [39m | [39m3.035e-07[39m | [39m-0.831439[39m | [39m0.3584873[39m | [39m-0.030378[39m |
 
 
 .. parsed-literal::
@@ -342,7 +338,7 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m55       [39m | [39m0.5246147[39m | [39m0.8660061[39m | [39m0.0128609[39m | [39m0.6739320[39m |
-    | [39m56       [39m | [39m-.541e-05[39m | [39m-0.879484[39m | [39m-0.954218[39m | [39m0.7154813[39m |
+    | [39m56       [39m | [39m5.541e-05[39m | [39m-0.879484[39m | [39m-0.954218[39m | [39m0.7154813[39m |
 
 
 .. parsed-literal::
@@ -353,6 +349,10 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m58       [39m | [39m0.3471668[39m | [39m1.0      [39m | [39m-0.039209[39m | [39m0.5793447[39m |
+
+
+.. parsed-literal::
+
     | [39m59       [39m | [39m0.2922228[39m | [39m0.9356930[39m | [39m0.1417109[39m | [39m0.5855986[39m |
 
 
@@ -371,12 +371,16 @@ to collect all samples that the optimizer takes
 
     | [39m63       [39m | [39m0.6789449[39m | [39m0.9501645[39m | [39m-0.002108[39m | [39m-0.416996[39m |
     | [39m64       [39m | [39m0.0028832[39m | [39m0.6475185[39m | [39m-0.866986[39m | [39m0.2989424[39m |
-    | [39m65       [39m | [39m0.0003793[39m | [39m-0.712240[39m | [39m0.6268556[39m | [39m0.2073338[39m |
 
 
 .. parsed-literal::
 
+    | [39m65       [39m | [39m0.0003793[39m | [39m-0.712240[39m | [39m0.6268556[39m | [39m0.2073338[39m |
     | [39m66       [39m | [39m0.0001554[39m | [39m0.5744876[39m | [39m0.9758150[39m | [39m0.6370951[39m |
+
+
+.. parsed-literal::
+
     | [39m67       [39m | [39m0.0004002[39m | [39m0.3575027[39m | [39m-0.296749[39m | [39m-0.023575[39m |
 
 
@@ -524,7 +528,7 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m101      [39m | [39m0.6713142[39m | [39m0.4207872[39m | [39m0.0082869[39m | [39m-0.461412[39m |
-    | [39m102      [39m | [39m-.840e-06[39m | [39m-0.838311[39m | [39m0.7147163[39m | [39m-0.902185[39m |
+    | [39m102      [39m | [39m2.840e-06[39m | [39m-0.838311[39m | [39m0.7147163[39m | [39m-0.902185[39m |
 
 
 .. parsed-literal::
@@ -546,13 +550,13 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m107      [39m | [39m0.0144301[39m | [39m0.7975162[39m | [39m0.2655924[39m | [39m0.9053020[39m |
-    | [39m108      [39m | [39m-.685e-05[39m | [39m-0.454330[39m | [39m0.6388374[39m | [39m-0.363639[39m |
+    | [39m108      [39m | [39m8.685e-05[39m | [39m-0.454330[39m | [39m0.6388374[39m | [39m-0.363639[39m |
 
 
 .. parsed-literal::
 
     | [39m109      [39m | [39m0.0194496[39m | [39m1.0      [39m | [39m0.1289968[39m | [39m0.2124224[39m |
-    | [39m110      [39m | [39m-.449e-06[39m | [39m0.2988408[39m | [39m-0.849121[39m | [39m0.4582089[39m |
+    | [39m110      [39m | [39m2.449e-06[39m | [39m0.2988408[39m | [39m-0.849121[39m | [39m0.4582089[39m |
     =============================================================
 
 

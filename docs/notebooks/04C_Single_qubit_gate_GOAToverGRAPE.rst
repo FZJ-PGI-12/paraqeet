@@ -8,7 +8,7 @@ Single qubit gate optimization using GOAT over GRAPE
     
     from paraqeet.model.drive import Drive
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import Transmon
+    from paraqeet.model.transmon import TransmonHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.pwc_generator import PWCGenerator
     from paraqeet.signal.waveform import DRAGMixer, FlatTopGaussianFilter
@@ -101,7 +101,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    transmon = Transmon(
+    transmon_hamiltonian = TransmonHamiltonian(
         frequency=Quantity(
             qubit_freq,
             1.2 * qubit_freq,
@@ -114,11 +114,11 @@ The Hamiltonain in the rotating frame of the drive is given by -
         num_levels=num_levels,
     )
     
-    drive = Drive(transmon.annihilation_op, gen, add_hermitian=True)
-    transmon.drives = [drive]
+    drive = Drive(transmon_hamiltonian.annihilation_op, gen, add_hermitian=True)
+    transmon_hamiltonian.drives = [drive]
     
     model = SchroedingerEquation(
-        hamiltonian_func=transmon.get_value, hamiltonian_and_gradient_func=transmon.get_value_and_gradient
+        hamiltonian_func=transmon_hamiltonian.get_value, hamiltonian_gradient_func=transmon_hamiltonian.get_gradient
     )
 
 .. code:: ipython3
@@ -135,7 +135,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     
     prop = ScipyExpmGRAPE(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=1e9,
         initial_state=init,
         target_state=target,
@@ -145,7 +145,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -246,48 +246,19 @@ Optimization
 
 .. parsed-literal::
 
-    Iteration    1 | Infid = 3.691359e-03
-    Iteration    2 | Infid = 3.425165e-03
-    Iteration    3 | Infid = 3.343533e-03
-    Iteration    4 | Infid = 3.274070e-03
-    Iteration    5 | Infid = 3.099736e-03
-    Iteration    6 | Infid = 2.971867e-03
-    Iteration    7 | Infid = 2.930071e-03
-    Iteration    8 | Infid = 2.920853e-03
-
-
-.. parsed-literal::
-
-    Iteration    9 | Infid = 2.913038e-03
     Iteration   10 | Infid = 2.888190e-03
-    Iteration   11 | Infid = 2.716150e-03
-    Iteration   12 | Infid = 2.688922e-03
 
 
 .. parsed-literal::
 
-    Iteration   13 | Infid = 2.667013e-03
-    Iteration   14 | Infid = 2.649782e-03
-    Iteration   15 | Infid = 2.647345e-03
-    Iteration   16 | Infid = 2.646974e-03
-    Iteration   17 | Infid = 2.646913e-03
-
-
-.. parsed-literal::
-
-    Iteration   18 | Infid = 2.646869e-03
-
-
-.. parsed-literal::
-
-    Iteration   19 | Infid = 2.646869e-03
+    Iteration   20 | Infid = 2.645565e-03
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0026468690799831274, 'iterations': 46, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.0026421876646713915, 'iterations': 75, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 

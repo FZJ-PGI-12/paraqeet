@@ -101,11 +101,11 @@ the resonator and qubit pulses, respectively.
     from paraqeet.measurement.smoothness import Smoothness
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
-    from paraqeet.model.composite_system import CompositeSystem
+    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
     from paraqeet.model.coupling import Coupling
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
-    from paraqeet.model.resonator import Resonator
+    from paraqeet.model.qubit import QubitHamiltonian
+    from paraqeet.model.resonator import ResonatorHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -154,7 +154,6 @@ Similarly one can plot the qubit tone.
     
     plot_signal(gen_res, ts, ax, linestyle="--", label="Resonator pulse")
     plot_signal(gen_qubit, ts, ax, linestyle="-", label="Qubit pulse")
-    
     plt.legend()
     plt.show()
 
@@ -219,7 +218,7 @@ numbers.
         fock_number_op_list = []
         fid_list = []
     
-        qubit = Qubit(
+        qubit_hamiltonian = QubitHamiltonian(
             frequency=Quantity(
                 value=detuning_drive_qubit,
                 min_value=-omega_range_factor * omega_qubit,
@@ -228,8 +227,8 @@ numbers.
             drives=[],
         )
     
-        drive_qubit = Drive(qubit.sigma_minus, gen_qubit, add_hermitian=True)
-        qubit.drives = [drive_qubit]
+        drive_qubit = Drive(qubit_hamiltonian.sigma_minus, gen_qubit, add_hermitian=True)
+        qubit_hamiltonian.drives = [drive_qubit]
     
         ground_state_qubit = np.array([[0.0], [1.0]])
     
@@ -237,7 +236,7 @@ numbers.
         chi = 2 * np.pi * 32.81e3 * 10
     
         for n in n_fock_truncation_list:
-            resonator = Resonator(
+            resonator_hamiltonian = ResonatorHamiltonian(
                 frequency=Quantity(
                     value=detuning_drive_res,
                     min_value=-omega_range_factor * omega_res,
@@ -247,22 +246,20 @@ numbers.
                 drives=[],
             )
     
-            drive_res = Drive(resonator.annihilation_op, gen_res, add_hermitian=True)
-            resonator.drives = [drive_res]
+            drive_res = Drive(resonator_hamiltonian.annihilation_op, gen_res, add_hermitian=True)
+            resonator_hamiltonian.drives = [drive_res]
     
-            resonator_list.append(resonator)
+            resonator_list.append(resonator_hamiltonian)
     
-            coupling_op = np.kron(resonator.num_op, np.array([[1.0, 0.0], [0.0, -1.0]]))
+            coupling_op = np.kron(resonator_hamiltonian.num_op, np.array([[1.0, 0.0], [0.0, -1.0]]))
             coupling = Coupling(
                 coupling_op,
                 g_abs=Quantity(value=chi, min_value=chi / 2, max_value=2 * chi),
             )
             coupling_list.append(coupling)
-            ham = CompositeSystem([resonator, qubit], [coupling])
+            ham = CompositeHamiltonian([resonator_hamiltonian, qubit_hamiltonian], [coupling])
             hamiltonian_list.append(ham)
-            model = SchroedingerEquation(
-                hamiltonian_func=ham.get_value, hamiltonian_and_gradient_func=ham.get_value_and_gradient
-            )
+            model = SchroedingerEquation(hamiltonian_func=ham.get_value, hamiltonian_gradient_func=ham.get_gradient)
             model_list.append(model)
     
             initial_res_state = np.zeros([n, 1], dtype=complex)
@@ -281,8 +278,8 @@ numbers.
             # Propagation dt has to be less than `delta_sampling = 33e-9`. Set dt = 30e-9.
             prop = ScipyExpmGRAPE(
                 eom_func=model.get_value,
-                eom_and_grad_func=model.get_value_and_gradient,
-                resolution=1/(30e-9),
+                eom_gradient_func=model.get_gradient,
+                resolution=1 / (30e-9),
                 initial_state=initial_state,
                 target_state=target_state,
                 operator_sandwich_function=grape_operator_sandwich_function_closed,
@@ -293,7 +290,7 @@ numbers.
     
             fid = StateTransferFidelityGRAPE(
                 propagation_func=prop.propagate,
-                propagation_and_gradient_func=prop.get_value_and_gradient,
+                propagation_gradient_func=prop.get_gradient,
                 target_state=target_state,
                 overlap=overlap_state_vector,
             )
@@ -504,90 +501,75 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 9.866069e-03
+    Iteration   80 | Infid = 9.866070e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 9.278842e-03
+    Iteration   90 | Infid = 9.278848e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 8.957961e-03
+    Iteration  100 | Infid = 8.957972e-03
 
 
 .. parsed-literal::
 
-    Iteration  110 | Infid = 8.819450e-03
+    Iteration  110 | Infid = 8.820142e-03
 
 
 .. parsed-literal::
 
-    Iteration  120 | Infid = 8.717414e-03
+    Iteration  120 | Infid = 8.738079e-03
 
 
 .. parsed-literal::
 
-    Iteration  130 | Infid = 8.489190e-03
+    Iteration  130 | Infid = 8.464208e-03
 
 
 .. parsed-literal::
 
-    Iteration  140 | Infid = 7.577569e-03
+    Iteration  140 | Infid = 7.518731e-03
 
 
 .. parsed-literal::
 
-    Iteration  150 | Infid = 6.873132e-03
+    Iteration  150 | Infid = 6.866288e-03
 
 
 .. parsed-literal::
 
-    Iteration  160 | Infid = 6.504676e-03
+    Iteration  160 | Infid = 6.454712e-03
 
 
 .. parsed-literal::
 
-    Iteration  170 | Infid = 6.358210e-03
+    Iteration  170 | Infid = 6.383899e-03
 
 
 .. parsed-literal::
 
-    Iteration  180 | Infid = 6.346306e-03
+    Iteration  180 | Infid = 6.322007e-03
 
 
 .. parsed-literal::
 
-    Iteration  190 | Infid = 6.344228e-03
+    Iteration  190 | Infid = 6.320054e-03
 
 
 .. parsed-literal::
 
-    Iteration  200 | Infid = 6.317264e-03
-
-
-.. parsed-literal::
-
-    Iteration  210 | Infid = 6.303172e-03
-
-
-.. parsed-literal::
-
-    Iteration  220 | Infid = 6.290578e-03
-
-
-.. parsed-literal::
-
-    CPU times: user 5min 38s, sys: 4.86 s, total: 5min 43s
-    Wall time: 1min 2s
+    CPU times: user 4min 59s, sys: 5.18 s, total: 5min 4s
+    Wall time: 1min
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.006290573682487199, 'iterations': 331, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.006319446339632329, 'iterations': 292, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -614,8 +596,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9430944125477283
-    Fidelity at N_T=4 = 0.9338464705569888
+    Fidelity at N_T=3 = 0.9435485463888695
+    Fidelity at N_T=4 = 0.9332778200058509
 
 
 Setting truncation to higher values
@@ -656,7 +638,7 @@ redefine the resonator with higher truncation numbers.
 
 .. code:: ipython3
 
-    n_fock_truncation_list = [15, 20] # Increase to 30, 31 for more accurate results
+    n_fock_truncation_list = [15, 20]  # Increase to 30, 31 for more accurate results
     fock_target = 2
     n_times = 1001
     
@@ -777,70 +759,70 @@ truncation numbers
 
 .. parsed-literal::
 
-    Iteration   70 | Infid = 4.007018e-03
+    Iteration   70 | Infid = 4.006977e-03
 
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 2.921466e-03
+    Iteration   80 | Infid = 2.919865e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 2.408506e-03
+    Iteration   90 | Infid = 2.429120e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 2.128047e-03
+    Iteration  100 | Infid = 2.141361e-03
 
 
 .. parsed-literal::
 
-    Iteration  110 | Infid = 1.965958e-03
+    Iteration  110 | Infid = 1.929256e-03
 
 
 .. parsed-literal::
 
-    Iteration  120 | Infid = 1.849402e-03
+    Iteration  120 | Infid = 1.802909e-03
 
 
 .. parsed-literal::
 
-    Iteration  130 | Infid = 1.754233e-03
+    Iteration  130 | Infid = 1.732753e-03
 
 
 .. parsed-literal::
 
-    Iteration  140 | Infid = 1.702888e-03
+    Iteration  140 | Infid = 1.696865e-03
 
 
 .. parsed-literal::
 
-    Iteration  150 | Infid = 1.660657e-03
+    Iteration  150 | Infid = 1.652172e-03
 
 
 .. parsed-literal::
 
-    Iteration  160 | Infid = 1.619662e-03
+    Iteration  160 | Infid = 1.625293e-03
 
 
 .. parsed-literal::
 
-    Iteration  170 | Infid = 1.591106e-03
+    Iteration  170 | Infid = 1.601547e-03
 
 
 .. parsed-literal::
 
-    CPU times: user 5h 21min 5s, sys: 1min 55s, total: 5h 23min 1s
-    Wall time: 6min 59s
+    CPU times: user 6h 8min 22s, sys: 1min 51s, total: 6h 10min 14s
+    Wall time: 7min 32s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.0015868775803169477, 'iterations': 201, 'message': 'STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT'}
+    {'status': 2, 'value': 0.0015915832405125618, 'iterations': 202, 'message': 'STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT'}
 
 
 
@@ -854,12 +836,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=15 = 0.9933534383257082
-
-
-.. parsed-literal::
-
-    Fidelity at N_T=20 = 0.9926526982087164
+    Fidelity at N_T=15 = 0.993474980163718
+    Fidelity at N_T=20 = 0.9928198934876475
 
 
 And the dynamics of the system under these optimized pulses looks like

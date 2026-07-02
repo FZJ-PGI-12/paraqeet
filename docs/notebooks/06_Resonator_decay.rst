@@ -14,7 +14,7 @@ example.
     
     from paraqeet.model.drive import Drive
     from paraqeet.model.master_equation import MasterEquation
-    from paraqeet.model.resonator import Resonator
+    from paraqeet.model.resonator import Resonator, ResonatorHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ZeroEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -34,23 +34,27 @@ Exponentiating the full Lindbladian super-operator
     freq = 6.02e9 * 2 * np.pi
     num_fock = 5
     
-    resonator = Resonator(
+    resonator_hamiltonian = ResonatorHamiltonian(
         frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
         drives=[],
         num_fock=num_fock,
+    )
+    
+    drive_op = resonator_hamiltonian.annihilation_op + (resonator_hamiltonian.annihilation_op).conj().T
+    drive = Drive(drive_op, gen)
+    resonator_hamiltonian.drives = [drive]
+    
+    open_resonator = Resonator(
+        hamiltonian=resonator_hamiltonian,
         t1=Quantity(value=10e-9, min_value=10e-9, max_value=1000e-9, unit="s"),
         t2star=Quantity(value=50e-7, min_value=10e-9, max_value=100e-6, unit="s"),
         temp=Quantity(value=50e-3, min_value=10e-3, max_value=10e-2, unit="K"),
     )
     
-    drive_op = resonator.annihilation_op + (resonator.annihilation_op).conj().T
-    drive = Drive(drive_op, gen)
-    resonator.drives = [drive]
-    
     model = MasterEquation(
-        hamiltonian_func=resonator.get_value,
-        hamiltonian_and_gradient_func=resonator.get_value_and_gradient,
-        jump_operators=resonator.get_jump_operators(),
+        hamiltonian_func=resonator_hamiltonian.get_value,
+        hamiltonian_gradient_func=resonator_hamiltonian.get_gradient,
+        jump_operators=open_resonator.get_jump_operators(),
     )
 
 1. Fock state decay -
@@ -293,7 +297,7 @@ Using ODE solver to compute the state
         resolution=100e9,
         initial_state=init_dm,
         step_function=lindblad_step,
-        jump_operators=resonator.get_jump_operators(),
+        jump_operators=open_resonator.get_jump_operators(),
     )
     
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True)
@@ -349,7 +353,7 @@ Using ODE solver to compute the state
         resolution=100e9,
         initial_state=coherent_state,
         step_function=lindblad_step,
-        jump_operators=resonator.get_jump_operators(),
+        jump_operators=open_resonator.get_jump_operators(),
     )
     
     plot_signal_and_dynamics(gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True)

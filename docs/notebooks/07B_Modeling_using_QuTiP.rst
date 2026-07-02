@@ -155,7 +155,7 @@ when it is called.
         raise Exception("Hamiltonian gradients have not been defined.")
     
     
-    model = SchroedingerEquation(hamiltonian_func=jax_ham_func, hamiltonian_and_gradient_func=ham_grad)
+    model = SchroedingerEquation(hamiltonian_func=jax_ham_func, hamiltonian_gradient_func=ham_grad)
 
 2. Define propagation method and measurement function
 -----------------------------------------------------
@@ -179,13 +179,13 @@ identity matrix with the goal to prepare the Hadamard gate.
     target = qobj_to_array(target_qobj)
     
     prop = ScipyExpmGOAT(
-        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=100e9, initial_state=init
+        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init
     )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -195,11 +195,20 @@ identity matrix with the goal to prepare the Hadamard gate.
     from plotting import plot_signal_and_dynamics
     
     ts = jnp.linspace(0.0, t_final, 501)
-    plot_signal_and_dynamics(cos_env, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(cos_env, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 07B_Modeling_using_QuTiP_files/07B_Modeling_using_QuTiP_15_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 07B_Modeling_using_QuTiP_files/07B_Modeling_using_QuTiP_15_1.png
 
 
 .. code:: ipython3
@@ -230,23 +239,23 @@ Hamiltonian function also using QuTiP objects.
         ham_grads = jnp.stack(
             [grads[:, 0].reshape((-1, 1, 1)) * sigma_x, grads[:, 1].reshape((-1, 1, 1)) * sigma_x], axis=1
         )
-        return jax_ham_func(t), ham_grads
+        return ham_grads
 
 Finally we can redefine the model (and propagation and measurement
 function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. code:: ipython3
 
-    model = SchroedingerEquation(hamiltonian_func=jax_ham_func, hamiltonian_and_gradient_func=grad_tls_hamiltonian)
+    model = SchroedingerEquation(hamiltonian_func=jax_ham_func, hamiltonian_gradient_func=grad_tls_hamiltonian)
     
     prop = ScipyExpmGOAT(
-        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=100e9, initial_state=init
+        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init
     )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -294,40 +303,30 @@ function) with the updated ``hamiltonian_and_gradient_func``.
     opt.optimize(times)
 
 
-.. parsed-literal::
-
-    Iteration    1 | Infid = 1.887855e-02
-    Iteration    2 | Infid = 1.238241e-02
 
 
 .. parsed-literal::
 
-    Iteration    3 | Infid = 2.082279e-04
-    Iteration    4 | Infid = 1.173600e-05
-    Iteration    5 | Infid = 1.021922e-08
-
-
-.. parsed-literal::
-
-    Iteration    6 | Infid = 2.795519e-11
-    Iteration    7 | Infid = 5.551115e-15
-
-
-
-
-.. parsed-literal::
-
-    {'status': 1, 'value': 5.551115123125783e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 3.774758283725532e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
 .. code:: ipython3
 
-    plot_signal_and_dynamics(cos_env, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"]);
+    plot_signal_and_dynamics(cos_env, prop, ts, state_labels=[r"$|0\rangle$", r"$|1\rangle$"])
 
 
 
-.. image:: 07B_Modeling_using_QuTiP_files/07B_Modeling_using_QuTiP_26_0.png
+
+.. parsed-literal::
+
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
+           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+
+
+
+
+.. image:: 07B_Modeling_using_QuTiP_files/07B_Modeling_using_QuTiP_26_1.png
 
 
 .. code:: ipython3
