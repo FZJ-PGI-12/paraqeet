@@ -7,7 +7,6 @@ import numpy as np
 from jax import jit, vmap
 from jax.scipy.linalg import sqrtm
 
-# from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array
 
 
@@ -214,27 +213,6 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
         product = jnp.kron(product, m)
 
     return product
-
-
-#
-# def construct_jump_operators_from_subsystems(subsystems: list[OpenSystem], dimensions: list[int]) -> list[Array]:
-#     """
-#     Gather jump operators from the subsystems and then tensor product them
-#     with identity to create the jump operators of the right dimension.
-#
-#     Parameters
-#     ----------
-#     subsystems: list[OpenSystem]
-#         List of open systems in the same order as in CompositeSystem.
-#     dimensions: list[int]
-#         List of dimension of each subsystem.
-#     """
-#     all_collapse_ops = []
-#     for n, subsystem in enumerate(subsystems):
-#         jump_ops = subsystem.get_jump_operators()
-#         for jump_op in jump_ops:
-#             all_collapse_ops.append(tensor_product_with_identity([jump_op], [n], dimensions))
-#     return all_collapse_ops
 
 
 ## Helper functions for cross-package support
