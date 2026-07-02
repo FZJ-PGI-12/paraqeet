@@ -16,7 +16,7 @@ by using the GOAToverGRAPE method.
     import numpy as np
     
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import DCRABEnvelope
@@ -76,12 +76,12 @@ As before we define a single spin in the rotating frame of the drive.
 
 .. code:: ipython3
 
-    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
-    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian = QubitHamiltonian(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(qubit_hamiltonian.sigma_minus, gen, add_hermitian=True)
+    qubit_hamiltonian.drives = [drive]
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 And using GRAPE as the method to propagate and compute the gradients.
@@ -102,7 +102,7 @@ of the time grid used for discretization. In this case
     
     prop = ScipyExpmGRAPE(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=3e9,
         initial_state=init,
         target_state=target,
@@ -111,7 +111,7 @@ of the time grid used for discretization. In this case
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -183,7 +183,7 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
     
-    temp_dir = tempfile.TemporaryDirectory(suffix="pq") # Ends in 'pq' to prevent _ at the end
+    temp_dir = tempfile.TemporaryDirectory(suffix="pq")  # Ends in 'pq' to prevent _ at the end
     
     file_logger = FileLogger(temp_dir.name)
     
@@ -239,16 +239,16 @@ coefficients for the optimization.
 .. parsed-literal::
 
     Iteration number = 10 	  Infidelity  = 6.307e-05
+
+
+.. parsed-literal::
+
     Iteration number = 20 	  Infidelity  = 2.514e-12
     
     
     ==== Decrease in infidelity less than 1e-09 ====
     ==== Starting super-iteration 1 ====
     * Current lowest infidelity =  2.514e-12
-
-
-.. parsed-literal::
-
     * Current no. of parameters = 25
 
 

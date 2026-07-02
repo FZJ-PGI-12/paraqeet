@@ -9,14 +9,12 @@ from paraqeet.quantity import Array
 
 
 class Propagation(ABC):
-    """Abstract base class for any implementation of the equations of motion.
-
-    The right-hand side of the equation is provided by the underlying model.
+    """Abstract base class for solver of the equations of motion.
 
     Parameters
     ----------
-    model: Model
-        Represents the equation of motion for a given Hamiltonian.
+    _eom_func: Callable
+        A function that gives the equation of motion.
     resolution: float
         Propagation resolution used to solve the equation of motion.
         The corresponding time step dt = 1/resolution

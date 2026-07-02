@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
-from paraqeet.model.qubit import Qubit
+from paraqeet.model.qubit import Qubit, QubitHamiltonian
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -42,7 +42,7 @@ def ham(gen):
     """Return a qubit."""
     pauli_x = np.array([[0.0, 1.0], [0.0, 1.0]])
     drive = Drive(pauli_x, gen)
-    return Qubit(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
+    return QubitHamiltonian(Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[drive])
 
 
 def test_get_hamiltonian(ham, time_samples):
@@ -58,9 +58,9 @@ def test_gradient(gen, ham, time_samples):
     plus the derivative w.r.t. the qubit frequency.
     """
 
-    _, grads = gen.get_value_and_gradient(time_samples)
+    grads = gen.get_gradient(time_samples)
     ham.set_optimizable_parameters(ham.get_parameters())
-    _, ham_grads = ham.get_value_and_gradient(time_samples)
+    ham_grads = ham.get_gradient(time_samples)
     assert ham_grads.shape == (
         len(time_samples),
         grads.shape[1] + 1,
@@ -84,13 +84,19 @@ def test_needs_parameters_for_decay_rates(ham):
         t1 = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
         t2star = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
         temp = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
+        qubit = Qubit(
+            hamiltonian=ham,
+            t1=t1,
+            temp=temp,
+            t2star=t2star,
+        )
         ham.t1 = t1
         ham.t2star = t2star
         ham.temp = temp
         if t1 is not None and t2star is not None and temp is not None:
             # Valid parameters should work
-            ham.get_jump_operators()
+            qubit.get_jump_operators()
         else:
             # Invalid parameters should raise an exception
             with pytest.raises(ConfigurationException):
-                ham.get_jump_operators()
+                qubit.get_jump_operators()

@@ -16,7 +16,7 @@ from paraqeet.measurement.state_transfer_fidelity import (
 )
 from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.model.drive import Drive
-from paraqeet.model.qubit import Qubit
+from paraqeet.model.qubit import QubitHamiltonian
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -92,12 +92,12 @@ def gen(tone):
 
 @pytest.fixture
 def model(gen):
-    controlled_qubit = Qubit(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
-    drive = Drive(controlled_qubit.sigma_minus, gen, add_hermitian=True)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian = QubitHamiltonian(frequency=Quantity(0.0, 0.0, 2 * np.pi * 1e6, unit="Hz"), drives=[])
+    drive = Drive(qubit_hamiltonian.sigma_minus, gen, add_hermitian=True)
+    qubit_hamiltonian.drives = [drive]
     model = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
     return model
@@ -110,7 +110,7 @@ def prop(model):
 
     prop = ScipyExpmGRAPE(
         model.get_value,
-        model.get_value_and_gradient,
+        model.get_gradient,
         resolution=1e9,
         initial_state=init,
         target_state=target,
@@ -125,7 +125,7 @@ def fid(prop):
 
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         overlap=overlap_state_vector,
         target_state=target,
     )

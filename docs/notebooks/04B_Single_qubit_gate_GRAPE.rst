@@ -11,7 +11,7 @@ Single spin Part 3: Single qubit gate optimization using GRAPE
     
     from paraqeet.model.drive import Drive
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import Transmon
+    from paraqeet.model.transmon import TransmonHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
@@ -69,7 +69,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     drive_freq = freq + offset
     qubit_freq = freq - drive_freq
     
-    transmon = Transmon(
+    transmon_hamiltonian = TransmonHamiltonian(
         frequency=Quantity(
             qubit_freq,
             1.2 * qubit_freq,
@@ -82,12 +82,12 @@ The Hamiltonain in the rotating frame of the drive is given by -
         num_levels=num_levels,
     )
     
-    drive = Drive(transmon.annihilation_op, gen, add_hermitian=True)
-    transmon.drives = [drive]
+    drive = Drive(transmon_hamiltonian.annihilation_op, gen, add_hermitian=True)
+    transmon_hamiltonian.drives = [drive]
     
     
     model = SchroedingerEquation(
-        hamiltonian_func=transmon.get_value, hamiltonian_and_gradient_func=transmon.get_value_and_gradient
+        hamiltonian_func=transmon_hamiltonian.get_value, hamiltonian_gradient_func=transmon_hamiltonian.get_gradient
     )
 
 .. code:: ipython3
@@ -104,7 +104,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     
     prop = ScipyExpmGRAPE(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=1e9,
         initial_state=init,
         target_state=target,
@@ -114,7 +114,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -178,28 +178,14 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    Iteration    1 | Infid = 6.132357e-01
-    Iteration    2 | Infid = 2.186693e-01
-    Iteration    3 | Infid = 4.769458e-02
-    Iteration    4 | Infid = 4.665449e-03
-    Iteration    5 | Infid = 2.567502e-03
-    Iteration    6 | Infid = 1.584818e-03
-    Iteration    7 | Infid = 5.730724e-04
-
-
-.. parsed-literal::
-
-    Iteration    8 | Infid = 1.134631e-05
-    Iteration    9 | Infid = 3.978981e-07
     Iteration   10 | Infid = 1.254676e-08
-    Iteration   11 | Infid = 2.763889e-10
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.763889117574081e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.7638846766819825e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 

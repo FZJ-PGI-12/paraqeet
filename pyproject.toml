@@ -43,8 +43,11 @@ copyright = "PGI-12"
 [project.optional-dependencies]
 dev = [
   "pytest>=7.2.0",
+  "matplotlib>=3.10.0",
   "pre-commit>=4.2.0",
   "ruff>=0.11.13",
+  "qutip>=5.2.3",
+  "qutip-jax>=0.1.1"
 ]
 test = [
   "pytest>=7.2.0",

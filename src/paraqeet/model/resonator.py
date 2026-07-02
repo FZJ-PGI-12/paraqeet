@@ -7,18 +7,18 @@ import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
-from paraqeet.model.system import OpenSystem
+from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Resonator(OpenSystem):
+class ResonatorHamiltonian(Hamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
     The only optimizable parameter is the frequency.
 
-    Parameters
+    Attributes
     ----------
     _num_fock : int
         Number of Fock states included in the numerical representation of
@@ -27,12 +27,6 @@ class Resonator(OpenSystem):
         Frequency of the harmonic oscillator.
     drives : list[Drive], optional
         List of time-dependent drives of the subsystem.
-    t1: Quantity | None
-        Energy relaxation time.
-    temp: Quantity | None
-        Temperature of the qubit.
-    t2star: Quantity | None
-        Dephasing time.
     """
 
     def __init__(
@@ -40,29 +34,15 @@ class Resonator(OpenSystem):
         num_fock: int,
         frequency: Quantity,
         drives: list[Drive] | None = None,
-        t1: Quantity | None = None,
-        temp: Quantity | None = None,
-        t2star: Quantity | None = None,
     ):
         super().__init__(drives=drives)
         self._num_fock = num_fock
         self.frequency = frequency
         self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, num_fock, dtype=jnp.float64), k=1))
-        self._num_op = self._annihilation_op.T @ self._annihilation_op
-        self.t1 = t1
-        self.temp = temp
-        self.t2star = t2star
+        self._num_op = self._annihilation_op.conj().T @ self._annihilation_op
 
     @override
     def dimension(self) -> int:
-        """Return the dimension of the Hilbert space of the system.
-
-        Returns
-        -------
-        int
-            Hilbert space dimension.
-
-        """
         return self._num_fock
 
     @property
@@ -104,6 +84,35 @@ class Resonator(OpenSystem):
             derivatives = jnp.append(derivatives, grad, axis=1)
         return derivatives
 
+
+class Resonator:
+    """A system representing a resonator. It allows to store information about relaxation and dephasing times
+    and get the corresponding jump operators
+
+    Attributes
+    ----------
+    hamiltonian: ResonatorHamiltonian
+        The Hamiltonian of a resonator in the Fock basis.
+    t1: Quantity | None
+        Photon decay time.
+    temp: Quantity | None
+        Temperature of the qubit.
+    t2star: Quantity | None
+        Dephasing time.
+    """
+
+    def __init__(
+        self,
+        hamiltonian: ResonatorHamiltonian,
+        t1: Quantity | None = None,
+        temp: Quantity | None = None,
+        t2star: Quantity | None = None,
+    ):
+        self.hamiltonian = hamiltonian
+        self.t1 = t1
+        self.temp = temp
+        self.t2star = t2star
+
     def get_decay_rates(self) -> list[Array]:
         """Return decay rate for T1, T2star and Temp respectively."""
         if (self.t1 is None) or (self.t2star is None) or (self.temp is None):
@@ -114,7 +123,7 @@ class Resonator(OpenSystem):
 
         hbar_over_kb = 7.638232582257738e-12
         beta = hbar_over_kb / (self.temp.get_value())
-        nbar = jnp.exp(-beta * self.frequency.get_value())
+        nbar = jnp.exp(-beta * self.hamiltonian.frequency.get_value())
         gamma_temp = gamma * nbar
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
@@ -129,7 +138,8 @@ class Resonator(OpenSystem):
             List of jump operators
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
-        col_t1 = jnp.sqrt(gamma_t1) * self._annihilation_op
-        col_temp = jnp.sqrt(gamma_temp) * self._annihilation_op.T
-        col_t2star = jnp.sqrt(gamma_t2star) * 2 * jnp.matmul(self._annihilation_op.T, self._annihilation_op)
+        annihilation_op = self.hamiltonian.annihilation_op
+        col_t1 = jnp.sqrt(gamma_t1) * annihilation_op
+        col_temp = jnp.sqrt(gamma_temp) * annihilation_op.T
+        col_t2star = jnp.sqrt(gamma_t2star) * 2 * jnp.matmul(annihilation_op.T, annihilation_op)
         return [col_t1, col_temp, col_t2star]

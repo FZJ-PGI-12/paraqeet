@@ -7,7 +7,7 @@ from paraqeet.logger import Logger
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.model.drive import Drive
-from paraqeet.model.qubit import Qubit
+from paraqeet.model.qubit import QubitHamiltonian
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
@@ -31,23 +31,23 @@ PARAMS[2].set_value(1.01 * FREQ)
 INIT = np.array([[1.0], [0]])
 TARGET = np.array([[0.0], [1]])
 
-CONTROLLED_QUBIT = Qubit(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[])
+QUBIT_HAMILTONIAN = QubitHamiltonian(frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ), drives=[])
 pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
 DRIVE = Drive(pauli_x, GEN)
-CONTROLLED_QUBIT.drives = [DRIVE]
+QUBIT_HAMILTONIAN.drives = [DRIVE]
 MODEL = SchroedingerEquation(
-    hamiltonian_func=CONTROLLED_QUBIT.get_value,
-    hamiltonian_and_gradient_func=CONTROLLED_QUBIT.get_value_and_gradient,
+    hamiltonian_func=QUBIT_HAMILTONIAN.get_value,
+    hamiltonian_gradient_func=QUBIT_HAMILTONIAN.get_gradient,
 )
 
 PROP = ScipyExpmGOAT(
-    eom_func=MODEL.get_value, eom_and_grad_func=MODEL.get_value_and_gradient, resolution=100e9, initial_state=INIT
+    eom_func=MODEL.get_value, eom_gradient_func=MODEL.get_gradient, resolution=100e9, initial_state=INIT
 )
 
 
 ZEROONE = StateTransferFidelity(
     propagation_func=PROP.propagate,
-    propagation_and_gradient_func=PROP.get_value_and_gradient,
+    propagation_gradient_func=PROP.get_gradient,
     target_state=TARGET,
     overlap=overlap_state_vector,
 )

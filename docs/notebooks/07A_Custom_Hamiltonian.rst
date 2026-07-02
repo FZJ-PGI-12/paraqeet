@@ -110,7 +110,7 @@ we define a function that raises exception when it is called.
         raise Exception("Hamiltonian gradients have not been defined.")
     
     
-    model = SchroedingerEquation(hamiltonian_func=tls_hamiltonian, hamiltonian_and_gradient_func=ham_grad)
+    model = SchroedingerEquation(hamiltonian_func=tls_hamiltonian, hamiltonian_gradient_func=ham_grad)
 
 2. Define propagation method and measurement function
 -----------------------------------------------------
@@ -128,13 +128,13 @@ Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
     target = jnp.array([[0.0], [1]])  # |1>
     
     prop = ScipyExpmGOAT(
-        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=100e9, initial_state=init
+        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init
     )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -191,7 +191,7 @@ Here we demonstrate both the cases.
         pulse_amp = amplitude.get_value()
         pulse_freq = frequency.get_value()
         ham_grads = jnp.stack([grad_amp(t, pulse_freq), grad_frequency(t, pulse_amp, pulse_freq)], axis=1)
-        return tls_hamiltonian(t), ham_grads
+        return ham_grads
 
 2. Gradient functions using Automatic differentiation
 
@@ -203,23 +203,23 @@ Here we demonstrate both the cases.
         ham_grads = jnp.stack(
             [grads[:, 0].reshape((-1, 1, 1)) * sigma_x, grads[:, 1].reshape((-1, 1, 1)) * sigma_x], axis=1
         )
-        return tls_hamiltonian(t), ham_grads
+        return ham_grads
 
 Finally we can redefine the model (and propagation and measurement
 function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. code:: ipython3
 
-    model = SchroedingerEquation(hamiltonian_func=tls_hamiltonian, hamiltonian_and_gradient_func=grad_tls_hamiltonian)
+    model = SchroedingerEquation(hamiltonian_func=tls_hamiltonian, hamiltonian_gradient_func=grad_tls_hamiltonian)
     
     prop = ScipyExpmGOAT(
-        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=100e9, initial_state=init
+        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init
     )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -267,26 +267,11 @@ function) with the updated ``hamiltonian_and_gradient_func``.
     opt.optimize(times)
 
 
-.. parsed-literal::
-
-    Iteration    1 | Infid = 1.887855e-02
-    Iteration    2 | Infid = 1.238241e-02
-    Iteration    3 | Infid = 2.082279e-04
 
 
 .. parsed-literal::
 
-    Iteration    4 | Infid = 1.173600e-05
-    Iteration    5 | Infid = 1.021922e-08
-    Iteration    6 | Infid = 2.795786e-11
-    Iteration    7 | Infid = 3.330669e-15
-
-
-
-
-.. parsed-literal::
-
-    {'status': 1, 'value': 3.3306690738754696e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.4424906541753444e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 

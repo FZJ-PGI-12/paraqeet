@@ -1,6 +1,7 @@
 """Class definition for a mixed state transfer fidelity model."""
 
 from collections.abc import Callable
+from typing import override
 
 import jax.numpy as jnp
 import jax.scipy.linalg as sclin
@@ -22,9 +23,9 @@ class MixedStateTransferFidelity(Measurement):
     propagation_func: Callable[[Array], Array]
         Function that evaluates the propagation of some initial state.
         Expected to be of the form `func(t: Array) -> states: Array`.
-    targetState : Array
+    target_state : Array
         Final state of the density matrices.
-    times : Array
+    times: Array
         One-dimensional vector of timestamps.
 
     """
@@ -44,6 +45,7 @@ class MixedStateTransferFidelity(Measurement):
         # store the sqrt of the density matrix to simplify the measurement
         self._target_state_sqrt = sclin.sqrtm(self._target_state)
 
+    @override
     def measure(self, times: Array) -> Array | Float:
         """Measure overlap between initial and final state of density matrices.
 

@@ -23,7 +23,7 @@ class Coupling(Optimizable, Differentiable):
 
     \|g\| exp(i phi) * O + h.c.
 
-    Parameters
+    Attributes
     ----------
     coupling_op: Array
         The coupling operator. It needs to match the dimension of the

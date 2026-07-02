@@ -6,7 +6,7 @@ from scipy.stats import unitary_group
 
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.quantity import Quantity
-from tests.model.empty_hamiltonian import EmptySystem
+from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 LEN_SIG = 20
 
@@ -36,9 +36,9 @@ def eom():
     """Return a dummy model generation function."""
 
     def _method(dimension):
-        sys = EmptySystem(dimension)
+        sys = EmptyHamiltonian(dimension)
         return SchroedingerEquation(
-            hamiltonian_func=sys.get_value, hamiltonian_and_gradient_func=sys.get_value_and_gradient
+            hamiltonian_func=sys.get_value, hamiltonian_gradient_func=sys.get_gradient
         ).get_value
 
     return _method

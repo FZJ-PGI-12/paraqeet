@@ -1,12 +1,13 @@
 """Class definition of an open system."""
 
 from collections.abc import Callable
+from typing import override
 
 import jax.numpy as jnp
 from jax import vmap
 
 from paraqeet.model.equation_of_motion import EquationOfMotion
-from paraqeet.quantity import Array, Float
+from paraqeet.quantity import Array
 
 
 class MasterEquation(EquationOfMotion):
@@ -17,14 +18,12 @@ class MasterEquation(EquationOfMotion):
     Defaults to returning the Lindblad superoperator. For ODE based methods use the
     `get_eom_ode_propagation` and `get_eom_and_gradient_ode_propagation` methods.
 
-    Parameters
+    Attributes
     ----------
     hamiltonian_func : Callable[[Array], Array]
         Hamiltonian as a function of time.
-    hamiltonian_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    hamiltonian_gradient_func: Callable[[Array], tuple[Array, Array]]
         Hamiltonian, Hamiltonian gradients as a function of time.
-    jump_operators: list[Array]
-        Jump operators present in the system (multiplied by the sqrt of corresponding decay rates).
     """
 
     _jump_operators: list[Array]
@@ -33,10 +32,10 @@ class MasterEquation(EquationOfMotion):
     def __init__(
         self,
         hamiltonian_func: Callable[[Array], Array],
-        hamiltonian_and_gradient_func: Callable[[Array], tuple[Array | Float, Array]],
+        hamiltonian_gradient_func: Callable[[Array], Array],
         jump_operators: list[Array],
     ):
-        super().__init__(hamiltonian_func, hamiltonian_and_gradient_func)
+        super().__init__(hamiltonian_func, hamiltonian_gradient_func)
         self._jump_operators = jump_operators
         self._total_dimension = hamiltonian_func(jnp.array([0.0])).shape[1]
 
@@ -83,7 +82,7 @@ class MasterEquation(EquationOfMotion):
     def _create_hamiltonian_grad_superop(self, timestep: float):
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
         identityop = jnp.eye(self._total_dimension)
-        _, ham_grad = self._hamiltonian_and_gradient_func(jnp.array(timestep, ndmin=1))
+        ham_grad = self._hamiltonian_gradient_func(jnp.array(timestep, ndmin=1))
         ham_grad = ham_grad.squeeze(axis=0)
         term1 = -1j * vmap(jnp.kron, in_axes=(None, 0))(identityop, ham_grad)
         term2 = 1j * vmap(jnp.kron, in_axes=(0, None))(jnp.transpose(ham_grad, axes=(0, 2, 1)), identityop)
@@ -111,7 +110,7 @@ class MasterEquation(EquationOfMotion):
         ham_eom = self._hamiltonian_func(times)
         return -1j * ham_eom
 
-    def get_eom_and_gradient_ode_propagation(self, times: Array) -> tuple[Array, Array]:
+    def get_eom_gradient_ode_propagation(self, times: Array) -> Array:
         """Return EOM for ODE propagation methods, and its gradient.
 
         Return the coherent part of the EOM, i.e., the Hamiltonian and its gradient.
@@ -128,9 +127,10 @@ class MasterEquation(EquationOfMotion):
         Array
              Hamiltonian EOM ([t, N, N] matrix)
         """
-        ham_eom, grads = self._hamiltonian_and_gradient_func(times)
-        return -1j * ham_eom, -1j * grads
+        grads = self._hamiltonian_gradient_func(times)
+        return -1j * grads
 
+    @override
     def get_value(self, times: Array):
         """Return the Lindblad superoperator.
 
@@ -146,8 +146,9 @@ class MasterEquation(EquationOfMotion):
         """
         return self._create_lindbladian_superop(times)
 
-    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        """Return the Lindblad superoperator and its gradient.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Return the gradient of the Lindbladian superoperator.
 
         Parameters
         ----------
@@ -159,7 +160,5 @@ class MasterEquation(EquationOfMotion):
         Array
             RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
         """
-        eom = self._create_lindbladian_superop(times)
-        # ignoring mypy due to vmap
         grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
-        return eom, grads
+        return grads

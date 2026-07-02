@@ -4,11 +4,11 @@ from typing import override
 
 import numpy as np
 
-from paraqeet.model.system import OpenSystem
+from paraqeet.model.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 
-class EmptySystem(OpenSystem):
+class EmptyHamiltonian(Hamiltonian):
     """A Hamiltonian that is filled with zeros for all time steps.
 
     Parameters
@@ -39,8 +39,4 @@ class EmptySystem(OpenSystem):
 
     # TODO: implement abstract methods from Hamiltonian
     def dimension(self) -> int:
-        raise NotImplementedError("Method not implemented yet.")
-
-    # TODO: implement abstract methods from Hamiltonian
-    def get_jump_operators(self) -> list[tuple[Array, Array]]:
         raise NotImplementedError("Method not implemented yet.")

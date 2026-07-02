@@ -7,7 +7,7 @@ from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.transmon import Transmon
+from paraqeet.model.transmon import Transmon, TransmonHamiltonian
 from paraqeet.propagation.scipy_expm import ScipyExpm
 from paraqeet.propagation.utils import convert_dm_to_vec, lindblad_step
 from paraqeet.propagation.vern7 import Vern7
@@ -52,17 +52,17 @@ def hamiltonian(gen):
     """Return a transmon object."""
 
     def _method(num_levels):
-        transmon = Transmon(
+        transmon_hamiltonian = TransmonHamiltonian(
             num_levels=num_levels,
             frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
             anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
             drives=[],
         )
-        drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
+        drive_op = transmon_hamiltonian.annihilation_op + (transmon_hamiltonian.annihilation_op).conj().T
         drive = Drive(drive_op, gen)
         drive.set_optimizable_parameters(drive.get_parameters())
-        transmon.drives = [drive]
-        return transmon
+        transmon_hamiltonian.drives = [drive]
+        return transmon_hamiltonian
 
     return _method
 
@@ -72,22 +72,20 @@ def open_transmon():
     """Return an open model for the transmon."""
     tone = ZeroEnvelope()
     generator = IQMixer(envelopes=[tone])
-    transmon = Transmon(
+    transmon_hamiltonian = TransmonHamiltonian(
+        num_levels=DIMS,
         frequency=Quantity(FREQ, 0.8 * FREQ, 1.2 * FREQ),
         anharmonicity=Quantity(ANHARMONICITY, 1.2 * ANHARMONICITY, 0.8 * ANHARMONICITY),
         drives=[],
-        num_levels=DIMS,
     )
-    drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
+    drive_op = transmon_hamiltonian.annihilation_op + (transmon_hamiltonian.annihilation_op).conj().T
     drive = Drive(drive_op, generator)
-    transmon.drives = [drive]
+    transmon_hamiltonian.drives = [drive]
 
-    transmon.t1 = T1
-    transmon.temp = TEMP
-    transmon.t2star = T2STAR
+    transmon = Transmon(hamiltonian=transmon_hamiltonian, t1=T1, temp=TEMP, t2star=T2STAR)
     model = MasterEquation(
-        hamiltonian_func=transmon.get_value,
-        hamiltonian_and_gradient_func=transmon.get_value_and_gradient,
+        hamiltonian_func=transmon_hamiltonian.get_value,
+        hamiltonian_gradient_func=transmon_hamiltonian.get_gradient,
         jump_operators=transmon.get_jump_operators(),
     )
 
@@ -212,17 +210,18 @@ def test_setters_and_getters(hamiltonian, random_quantity):
 def test_needs_parameters_for_decay_rates(hamiltonian):
     for _ in range(10):
         for dim in np.arange(1, 10):
-            hamil = hamiltonian(dim)
+            transmon_hamiltonian = hamiltonian(dim)
+            transmon = Transmon(hamiltonian=transmon_hamiltonian)
             t1 = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
             t2star = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
             temp = Quantity(1.0, 0.0, 2.0) if np.random.random() < 0.8 else None
-            hamil.t1 = t1
-            hamil.t2star = t2star
-            hamil.temp = temp
+            transmon.t1 = t1
+            transmon.t2star = t2star
+            transmon.temp = temp
             if t1 is not None and t2star is not None and temp is not None:
                 # Valid parameters should work
-                hamil.get_jump_operators()
+                transmon.get_jump_operators()
             else:
                 # Invalid parameters should raise an exception
                 with pytest.raises(ConfigurationException):
-                    hamil.get_jump_operators()
+                    transmon.get_jump_operators()

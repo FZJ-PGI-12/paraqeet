@@ -26,26 +26,26 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
     "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
     """
 
-    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _eom_gradient_func: Callable[[Array], Array]
 
     def __init__(
         self,
         eom_func: Callable[[Array], Array],
-        eom_and_grad_func: Callable[[Array], tuple[Array, Array]],
+        eom_gradient_func: Callable[[Array], Array],
         resolution: float,
         initial_state: Array,
     ):
         ScipyExpm.__init__(self, eom_func, resolution, initial_state)
-        self._eom_and_gradient_func = eom_and_grad_func
+        self._eom_gradient_func = eom_gradient_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
 
         Parameters
         ----------
-        psi : Array
+        psi: Array
             State of the system.
-        dpsis : Array
+        dpsis: Array
             Differential of state.
 
         Returns
@@ -116,7 +116,7 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         Parameters
         ----------
         time: Array
-            Array of timesteps.
+            Array of times.
 
         Returns
         -------
@@ -132,7 +132,7 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         if self._eom_func is None:
             raise ConfigurationException("No equation of motion is configured.")
 
-        _, eom_grads = self._eom_and_gradient_func(jnp.array([0.0]))
+        eom_grads = self._eom_gradient_func(jnp.array([0.0]))
         n_params = eom_grads.shape[1]
         dim = self._initial_state.shape[0]
         psis = [jnp.array(self._initial_state, dtype=jnp.complex128)]
@@ -142,7 +142,8 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
             interp_times, dt = construct_times(times, ti, self._resolution)
             psi_t = self._create_super_state(psis[-1], dpsis[-1])
 
-            eom, grads = self._eom_and_gradient_func(interp_times + dt / 2)
+            eom = self._eom_func(interp_times + dt / 2)
+            grads = self._eom_gradient_func(interp_times + dt / 2)
             eom = eom * dt
             grads = jnp.array(grads) * dt
 

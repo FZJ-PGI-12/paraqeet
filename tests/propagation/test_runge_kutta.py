@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.runge_kutta import RungeKutta
-from tests.model.empty_hamiltonian import EmptySystem
+from tests.model.empty_hamiltonian import EmptyHamiltonian
 from tests.propagation.test_common_propagation import check_propagation
 
 
@@ -14,10 +14,10 @@ def rk():
     """Return a Runge-Kutta model generating method."""
 
     def _method(dimension):
-        sys = EmptySystem(dimension)
+        sys = EmptyHamiltonian(dimension)
         eom = SchroedingerEquation(
             hamiltonian_func=sys.get_value,
-            hamiltonian_and_gradient_func=sys.get_value_and_gradient,
+            hamiltonian_gradient_func=sys.get_gradient,
         )
         return RungeKutta(eom_func=eom.get_value, resolution=1e9, initial_state=np.array([[1.0], [0.0j]]))
 

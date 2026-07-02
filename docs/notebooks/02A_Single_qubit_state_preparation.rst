@@ -12,7 +12,7 @@ for a single spin or qubit.
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.measurement.utils import overlap_state_vector
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -37,7 +37,7 @@ Hamiltonian as
     freq_q = 4.8e9
     omega_q = 2 * np.pi * freq_q
     
-    controlled_qubit = Qubit(frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz"), drives=[])
+    qubit_hamiltonian = QubitHamiltonian(frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz"), drives=[])
 
 For signal generation, we define a simple cosine shaped tone generator
 :math:`A \cos(\omega t)`
@@ -68,12 +68,11 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
-    pauli_x = jnp.array([[0.0, 1.0], [1.0, 0.0]])
-    drive = Drive(pauli_x, gen)
-    controlled_qubit.drives = [drive]
+    drive = Drive(qubit_hamiltonian.sigma_x, gen)
+    qubit_hamiltonian.drives = [drive]
     schrgl = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
 
 Textbook values for implementing an :math:`X` rotation on this system at
@@ -108,7 +107,7 @@ controlled qubit at the time ``t_simu``:
 
 .. code:: ipython3
 
-    print(controlled_qubit.get_value_and_gradient(np.array([t_simu])))
+    print(qubit_hamiltonian.get_value_and_gradient(np.array([t_simu])))
 
 
 .. parsed-literal::
@@ -135,13 +134,13 @@ and configure a state transfer problem from :math:`\ket{0}` to
     target = np.array([[0.0], [1.0]])  # |1>
     
     prop = ScipyExpmGOAT(
-        eom_func=schrgl.get_value, eom_and_grad_func=schrgl.get_value_and_gradient, resolution=100e9, initial_state=init
+        eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=100e9, initial_state=init
     )  # implicit timestep is 1 / resolution
     times = np.array([0.0, t_simu])
     
     zeroone = StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -179,7 +178,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    State fidelity: 0.34736071270511687
+    State fidelity: 0.3473607127051165
 
 
 Optimization
@@ -194,12 +193,12 @@ and the parameters of the cosine tone.
     optmap.add(gen, [params_gen[0], params_gen[2]])
     opt = ScipyOptimizerGradient(measure_and_gradient_func=zeroone.get_value_and_gradient, optimization_map=optmap)
 
-One might think that the gradient associated with ``controlled_qubit``
+One might think that the gradient associated with ``qubit_hamiltonian``
 would not be empty, but instead
 
 .. code:: ipython3
 
-    controlled_qubit.get_value_and_gradient(np.array([t_simu]))
+    qubit_hamiltonian.get_value_and_gradient(np.array([t_simu]))
 
 
 
@@ -218,7 +217,7 @@ by ``optmap``. To remedy this
 .. code:: ipython3
 
     optmap.register_params_with_optimizables()
-    print(controlled_qubit.get_value_and_gradient(np.array([t_simu])))
+    print(qubit_hamiltonian.get_value_and_gradient(np.array([t_simu])))
 
 
 .. parsed-literal::
@@ -267,18 +266,7 @@ We can now run the optimization as
 
 .. parsed-literal::
 
-    Iteration    1 | Infid = 5.240158e-02
-    Iteration    2 | Infid = 4.736437e-02
-    Iteration    3 | Infid = 3.677094e-02
-    Iteration    4 | Infid = 2.531545e-04
-
-
-.. parsed-literal::
-
-    Iteration    5 | Infid = 6.304633e-07
-    Iteration    6 | Infid = 3.336522e-10
-    Iteration    7 | Infid = 4.971579e-13
-    {'status': 1, 'value': 4.971578704271451e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 5.009326287108706e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 The new optimal parameters are
@@ -323,7 +311,7 @@ controls.
 
 .. parsed-literal::
 
-    State fidelity: 0.9999999999995028
+    State fidelity: 0.9999999999994991
 
 
 In this notebook, we focused on state preparation. In the next notebook,

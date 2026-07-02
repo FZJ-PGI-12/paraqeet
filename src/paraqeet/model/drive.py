@@ -15,7 +15,7 @@ class Drive(Optimizable, Differentiable):
 
     This can for example be a microwave or flux drive.
 
-    Parameters
+    Attributes
     ----------
     drive_op: Array
         The drive operator. It needs to match the dimension of the system

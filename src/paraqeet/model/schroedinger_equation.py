@@ -1,5 +1,7 @@
 """Class definition of a closed model."""
 
+from typing import override
+
 from paraqeet.model.equation_of_motion import EquationOfMotion
 from paraqeet.quantity import Array
 
@@ -9,24 +11,17 @@ class SchroedingerEquation(EquationOfMotion):
 
     Its dynamics is given by the Schrödinger equation.
 
-    Parameters
-    ----------
-    hamiltonian : Hamiltonian
-        Matrix representation of a Hamiltonian.
-
     """
 
+    @override
     def get_value(self, times: Array) -> Array:
-        """Get the matrix equations of motion.
-
-        Computes the right hand side of the Schrödinger equation
+        """Computes the right hand side of the Schrödinger equation
         without multiplying the state.
-        Used for unitary solvers.
 
         Parameters
         ----------
-        times : Array
-            Vector of time samples.
+        times: Array
+            Array of times
 
         Returns
         -------
@@ -37,13 +32,16 @@ class SchroedingerEquation(EquationOfMotion):
         """
         return -1.0j * self._hamiltonian_func(times)
 
-    def get_value_and_gradient(self, times) -> tuple[Array, Array]:
-        """Compute the gradient of getMatrix.
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Compute the gradient of right hand side of the Schrödinger equation
+        without multiplying the state.
+
 
         Parameters
         ----------
-        times : Array
-            Vector of time samples.
+        times: Array
+            Array of times.
 
         Returns
         -------
@@ -51,5 +49,5 @@ class SchroedingerEquation(EquationOfMotion):
             Returns the gradient of getMatrix.
 
         """
-        eom, eom_gradient = self._hamiltonian_and_gradient_func(times)
-        return -1.0j * eom, -1.0j * eom_gradient
+        eom_gradient = self._hamiltonian_gradient_func(times)
+        return -1.0j * eom_gradient

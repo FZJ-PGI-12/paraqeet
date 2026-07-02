@@ -22,7 +22,7 @@ The aim here is to compute the gradients of an objective function
 :math:`(\mathcal{F})`, a :math:`\texttt{Measurement}` in ParaQeet, with
 respect to the parameters of the input pulse :math:`(\vec{\alpha})`.
 Computing this derivative for a state-transfer fidelity
-:math:`(\mathcal{F}(t) = |\phi|^2 =  |\langle \lambda | \psi(t) \rangle|^2)`
+:math:`(\mathcal{F}(t) = |\phi|^2 = |\langle \lambda | \psi(t) \rangle|^2)`
 for a pulse :math:`(u(t))` would lead to computing the terms
 
 .. math:: \frac{\partial \mathcal{F}(t) }{\partial \alpha} = \frac{\partial \mathcal{F}(t)}{\partial \phi}  \frac{\partial \phi}{\partial u} \frac{\partial u}{\partial \alpha}.
@@ -407,22 +407,22 @@ and add its frequency and drive parameters to the optmap.
 .. code:: ipython3
 
     from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.model.qubit import QubitHamiltonian
     
     freq_q = 4.8e9
     omega_q = 2 * np.pi * freq_q
     sigma_x = jnp.array([[0.0, 1.0], [1.0, 0.0]])
     
     drive = Drive(sigma_x, gen, add_hermitian=False)
-    controlled_qubit = Qubit(
+    qubit_hamiltonian = QubitHamiltonian(
         frequency=Quantity(omega_q, 0.8 * omega_q, 1.2 * omega_q, unit="Hz", name="Qubit Freq"), drives=[drive]
     )
     
-    model_params = controlled_qubit.get_parameters()
+    model_params = qubit_hamiltonian.get_parameters()
 
 .. code:: ipython3
 
-    optmap.add(controlled_qubit, model_params[-1])
+    optmap.add(qubit_hamiltonian, model_params[-1])
     optmap.register_params_with_optimizables()
     optmap
 
@@ -434,7 +434,7 @@ and add its frequency and drive parameters to the optmap.
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
     [amplitude: 2e+07, mu: 1.2e-08, sigma: 5e-09, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
     
-    ==== <class 'paraqeet.model.qubit.Qubit'> ====
+    ==== <class 'paraqeet.model.qubit.QubitHamiltonian'> ====
     [Qubit Freq: 30.2 GHz]
 
 
@@ -445,7 +445,7 @@ the gradient of the Hamiltonian and check the number of components.
 
 .. code:: ipython3
 
-    value, grads = controlled_qubit.get_value_and_gradient(ts)
+    value, grads = qubit_hamiltonian.get_value_and_gradient(ts)
     grads.shape
 
 
@@ -469,8 +469,8 @@ right hand side of the EOM.
     from paraqeet.model.schroedinger_equation import SchroedingerEquation
     
     schrgl = SchroedingerEquation(
-        hamiltonian_func=controlled_qubit.get_value,
-        hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+        hamiltonian_func=qubit_hamiltonian.get_value,
+        hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
     )
     
     value, grads = schrgl.get_value_and_gradient(ts)
@@ -544,7 +544,7 @@ the final time points.
     target = np.array([[0.0], [1.0]])  # |1>
     
     prop = ScipyExpmGOAT(
-        eom_func=schrgl.get_value, eom_and_grad_func=schrgl.get_value_and_gradient, resolution=10e9, initial_state=init
+        eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=10e9, initial_state=init
     )
     
     value, grads = prop.get_value_and_gradient(times)
@@ -590,7 +590,7 @@ Then
     
     measure = StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )

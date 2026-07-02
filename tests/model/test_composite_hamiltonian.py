@@ -3,10 +3,10 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.composite_system import CompositeSystem
+from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
 from paraqeet.model.coupling import Coupling
 from paraqeet.model.drive import Drive
-from paraqeet.model.transmon import Transmon
+from paraqeet.model.transmon import TransmonHamiltonian
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -58,16 +58,16 @@ def transmon(transmon_parameters, gen):
 
     def get(num_levels):
         freq, anharm = transmon_parameters.get()
-        transmon = Transmon(
+        transmon_hamiltonian = TransmonHamiltonian(
             num_levels=num_levels,
             frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
             anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
             drives=[],
         )
-        drive_op = transmon.annihilation_op + (transmon.annihilation_op).conj().T
+        drive_op = transmon_hamiltonian.annihilation_op + (transmon_hamiltonian.annihilation_op).conj().T
         drive = Drive(drive_op, gen)
-        transmon.drives = [drive]
-        return transmon
+        transmon_hamiltonian.drives = [drive]
+        return transmon_hamiltonian
 
     return get
 
@@ -79,8 +79,8 @@ def uncoupled_transmons(transmon):
     def _method(dim1, dim2):
         transmon1 = transmon(dim1)
         transmon2 = transmon(dim2)
-        composite_sys = CompositeSystem([transmon1, transmon2])
-        return composite_sys
+        composite_hamiltonian = CompositeHamiltonian([transmon1, transmon2])
+        return composite_hamiltonian
 
     return _method
 
@@ -108,8 +108,9 @@ def coupled_transmons(transmon):
             add_hermitian=add_hermitian,
         )
 
-        composite_sys = CompositeSystem([transmon1, transmon2], [coupling])
-        return composite_sys
+        composite_hamiltonian = CompositeHamiltonian([transmon1, transmon2], [coupling])
+
+        return composite_hamiltonian
 
     return _method
 

@@ -28,8 +28,8 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     propagation_func: Callable[[Array], Array]
         Function that evaluates the propagation of some initial state.
         Expected to be of the form `func(t: Array) -> states: Array`.
-    propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
-        Function returning the propagated states and their gradients.
+    propagation_gradient_func: Callable[[Array], Array]
+        Function returning the gradients of the propagated states.
     gate : Array
         Matrix representation of target gate.
     times : Array
@@ -46,17 +46,18 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     _basis_states: Array | None
     _target_costates: Array
     _propagation_func: Callable[[Array], Array]
-    _propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+
+    _propagation_gradient_func: Callable[[Array], Array]
 
     def __init__(
         self,
         propagation_func: Callable[[Array], Array],
-        propagation_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        propagation_gradient_func: Callable[[Array], Array],
         gate: Array,
         basis_states: Array | None = None,
     ):
         self._propagation_func = propagation_func
-        self._propagation_and_gradient_func = propagation_and_gradient_func
+        self._propagation_gradient_func = propagation_gradient_func
         self._basis_states = basis_states if basis_states is not None else jnp.eye(gate.shape[0])
         self.set_ideal_gate(gate)
 
@@ -108,12 +109,12 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         return self.get_value(times)
 
     @override
-    def get_gradient(self, times: Array) -> Array:
+    def get_value_and_gradient(self, times: Array) -> tuple[Float, Array]:
         """Get the analytic expression for the gradient.
 
         Parameters
         ----------
-        times : Array
+        times: Array
             Array of times.
 
         Returns
@@ -122,7 +123,8 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             Tuple of function value and gradient of shape (n_params,).
 
         """
-        states, dg_dp_list = self._propagation_and_gradient_func(times)  # gradient of states wrt parameters
+        states = self._propagation_func(times)
+        dg_dp_list = self._propagation_gradient_func(times)  # gradient of states wrt parameters
         overlaps = []
         for ii, s in enumerate(self._target_costates.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
@@ -136,7 +138,12 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
             g = jnp.average(jnp.asarray(gs))
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
-        return jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+        return self._fid(jnp.asarray(overlaps)), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        _, grad = self.get_value_and_gradient(times)
+        return grad
 
     def set_ideal_gate(self, gate: Array):
         """Compute target states for the L2 norm.

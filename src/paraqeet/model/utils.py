@@ -7,33 +7,32 @@ import numpy as np
 from jax import jit, vmap
 from jax.scipy.linalg import sqrtm
 
-from paraqeet.model.system import OpenSystem
 from paraqeet.quantity import Array
 
 
 def sigma_x():
     """Return the Pauli-X operator."""
-    return np.array([[0.0j, 1.0], [1.0, 0.0j]])
+    return np.array([[0.0, 1.0], [1.0, 0.0]])
 
 
 def sigma_y():
     """Return the Pauli-Y operator."""
-    return np.array([[0.0, 1.0j], [-1.0j, 0.0]])
+    return np.array([[0.0, -1.0j], [1.0j, 0.0]])
 
 
 def sigma_z():
     """Return the Pauli-Z operator."""
-    return np.array([[1.0, 0.0j], [0.0j, -1.0]])
-
-
-def sigma_plus():
-    """Return the Pauli-creation operator."""
-    return np.array([[0.0j, 1.0], [0.0, 0.0j]])
+    return np.array([[1.0, 0.0], [0.0, -1.0]])
 
 
 def sigma_minus():
-    """Return the Pauli-annihilation operator."""
-    return np.array([[0.0j, 0.0], [1.0, 0.0j]])
+    """Return the Pauli minus operator in the quantum information convention."""
+    return np.array([[0.0, 1.0], [0.0, 0.0]])
+
+
+def sigma_plus():
+    """Return the Pauli plus operator in the quantum information convention."""
+    return np.array([[0.0, 0.0], [1.0, 0.0]])
 
 
 def identity_operator(dim: int):
@@ -41,28 +40,28 @@ def identity_operator(dim: int):
     return np.eye(dim)
 
 
-def dagger(Op: Array):
+def dagger(op: Array):
     """Return transpose conjugate of an operator."""
-    return Op.T.conj()
+    return op.T.conj()
 
 
 @jit
-def matrix_sqrt(Op: Array):
+def matrix_sqrt(op: Array):
     """Returns matrix square root using jax based implementation.
     This works for any general matrix with positive eigenvalues.
 
     Uses jax.scipy.lingalg.sqrtm for the implementation.
     *NOTE - This function does not support automatic-differentiation.*
     """
-    return sqrtm(Op)
+    return sqrtm(op)
 
 
 @jit
-def matrix_sqrt_psd(A):
+def matrix_sqrt_psd(a_mat):
     """Matrix square root of a Hermitian positive semi-definite matrix like a density matrix."""
-    w, V = jnp.linalg.eigh(A)
+    w, v_mat = jnp.linalg.eigh(a_mat)
     w_sqrt = jnp.sqrt(jnp.clip(w, min=0.0))  # clip tiny negatives from roundoff
-    return (V * w_sqrt) @ dagger(V)
+    return (v_mat * w_sqrt) @ dagger(v_mat)
 
 
 def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]):
@@ -162,20 +161,20 @@ def convert_state_to_dm(state: Array):
 
 
 @jit
-def tensor(A: Array, B: Array) -> Array:
-    """Tensor product of two operators OpA and OpB"""
-    return jnp.kron(A, B)
+def tensor(op_a: Array, op_b: Array) -> Array:
+    """Tensor product of two operators"""
+    return jnp.kron(op_a, op_b)
 
 
-def ntensor(Ops: list[Array]) -> Array:
+def ntensor(ops: list[Array]) -> Array:
     r"""Tensor product of a list of operators in the left to right order.
 
     Returns the operator:
         .. math::
             \text{ntensor}[A_1, A_2, ..., A_N] = A_1 \otimes A_2 \otimes ... \otimes A_N.
     """
-    full_op = Ops[0]
-    for op in Ops[1:]:
+    full_op = ops[0]
+    for op in ops[1:]:
         full_op = tensor(full_op, op)
     return full_op
 
@@ -215,26 +214,6 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
         product = jnp.kron(product, m)
 
     return product
-
-
-def construct_jump_operators_from_subsystems(subsystems: list[OpenSystem], dimensions: list[int]) -> list[Array]:
-    """
-    Gather jump operators from the subsystems and then tensor product them
-    with identity to create the jump operators of the right dimension.
-
-    Parameters
-    ----------
-    subsystems: list[OpenSystem]
-        List of open systems in the same order as in CompositeSystem.
-    dimensions: list[int]
-        List of dimension of each subsystem.
-    """
-    all_collapse_ops = []
-    for n, subsystem in enumerate(subsystems):
-        jump_ops = subsystem.get_jump_operators()
-        for jump_op in jump_ops:
-            all_collapse_ops.append(tensor_product_with_identity([jump_op], [n], dimensions))
-    return all_collapse_ops
 
 
 ## Helper functions for cross-package support

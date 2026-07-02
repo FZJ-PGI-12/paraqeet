@@ -50,7 +50,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         Reverse step function for the backwards propagation.
     """
 
-    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
+    _eom_gradient_func: Callable[[Array], Array]
     _target_state: Array
     _reverse_step_function: Callable
     _operator_sandwich_function: Callable
@@ -58,7 +58,7 @@ class Vern7GRAPE(Vern7, Differentiable):
     def __init__(
         self,
         eom_func: Callable[[Array], Array],
-        eom_and_gradient_func: Callable[[Array], tuple[Array, Array]],
+        eom_gradient_func: Callable[[Array], Array],
         resolution: float,
         initial_state: Array,
         target_state: Array,
@@ -68,7 +68,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         jump_operators: list[Array] | None = None,
     ):
         Vern7.__init__(self, eom_func, resolution, initial_state, step_function, jump_operators)
-        self._eom_and_gradient_func = eom_and_gradient_func
+        self._eom_gradient_func = eom_gradient_func
         self._reverse_step_function = reverse_step_function
         self._target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
@@ -231,7 +231,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         lamdas = jnp.array(lamdas_list)
 
         lamdas = jnp.flip(lamdas, axis=0)
-        _, dh_dps = self._eom_and_gradient_func(times[:-1] + dt / 2)
+        dh_dps = self._eom_gradient_func(times[:-1] + dt / 2)
         dh_dps = jnp.array(dh_dps) * dt
 
         grads = []
