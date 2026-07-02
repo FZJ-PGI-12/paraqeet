@@ -57,7 +57,7 @@ codequality:
   stage: codestyle
   script:
     - pip install mypy mypy-gitlab-code-quality
-    - mypy paraqeet --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
+    - mypy src/paraqeet --no-error-summary > mypy-out.txt || true # "|| true" is used for preventing job fail when mypy find errors
     - PYTHONHASHSEED=0 mypy-gitlab-code-quality < mypy-out.txt > mypy-report.json
   artifacts:
     when: always
