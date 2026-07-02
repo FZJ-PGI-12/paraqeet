@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.composite_system import CompositeSystem
+from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
 from paraqeet.model.coupling import Coupling
 from paraqeet.model.drive import Drive
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
-from paraqeet.model.transmon import Transmon
+from paraqeet.model.transmon import TransmonHamiltonian
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -94,31 +94,31 @@ def coupled_transmons(tone):
         ),
     )
 
-    transmon1 = Transmon(
+    transmon_hamiltonian_1 = TransmonHamiltonian(
         num_levels=3,
         frequency=Quantity(FREQ1, np.array(0.8 * FREQ1), np.array(1.2 * FREQ1), "Hz"),
         anharmonicity=Quantity(ANHARM1, np.array(1.2 * ANHARM1), np.array(0.8 * ANHARM1), "Hz"),
         drives=[],
     )
 
-    drive_op1 = transmon1.annihilation_op + (transmon1.annihilation_op).conj().T
+    drive_op1 = transmon_hamiltonian_1.annihilation_op + (transmon_hamiltonian_1.annihilation_op).conj().T
     drive1 = Drive(drive_op1, generator1)
-    transmon1.drives = [drive1]
+    transmon_hamiltonian_1.drives = [drive1]
 
-    transmon2 = Transmon(
+    transmon_hamiltonian_2 = TransmonHamiltonian(
         num_levels=3,
         frequency=Quantity(FREQ2, np.array(0.8 * FREQ2), np.array(1.2 * FREQ2), "Hz"),
         anharmonicity=Quantity(ANHARM2, np.array(1.2 * ANHARM2), np.array(0.8 * ANHARM2), "Hz"),
         drives=[],
     )
 
-    drive_op2 = transmon2.annihilation_op + (transmon2.annihilation_op).conj().T
+    drive_op2 = transmon_hamiltonian_2.annihilation_op + (transmon_hamiltonian_2.annihilation_op).conj().T
     drive2 = Drive(drive_op2, generator2)
-    transmon2.drives = [drive2]
+    transmon_hamiltonian_2.drives = [drive2]
 
     coupling_op = np.kron(
-        transmon1.annihilation_op + transmon1.annihilation_op.conj().T,
-        transmon2.annihilation_op + transmon2.annihilation_op.conj().T,
+        transmon_hamiltonian_1.annihilation_op + transmon_hamiltonian_1.annihilation_op.conj().T,
+        transmon_hamiltonian_2.annihilation_op + transmon_hamiltonian_2.annihilation_op.conj().T,
     )
 
     coupling = Coupling(
@@ -130,15 +130,15 @@ def coupled_transmons(tone):
             "Hz",
         ),
     )
-    hamiltonian = CompositeSystem([transmon1, transmon2], [coupling])
+    hamiltonian = CompositeHamiltonian([transmon_hamiltonian_1, transmon_hamiltonian_2], [coupling])
     model = SchroedingerEquation(
-        hamiltonian_func=hamiltonian.get_value, hamiltonian_and_gradient_func=hamiltonian.get_value_and_gradient
+        hamiltonian_func=hamiltonian.get_value, hamiltonian_gradient_func=hamiltonian.get_gradient
     )
     prop = ScipyExpmGOAT(
         eom_func=model.get_value,
-        eom_and_grad_func=model.get_value_and_gradient,
+        eom_gradient_func=model.get_gradient,
         resolution=100e9,
-        initial_state=np.identity(transmon1.dimension() * transmon2.dimension()),
+        initial_state=np.identity(transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()),
     )
 
     pauli_x = np.array([[0.0, 1], [1, 0.0]])
@@ -149,7 +149,7 @@ def coupled_transmons(tone):
     cr_gate = pauli_zx @ cr_gate
     gate_fid = UnitaryFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         gate=cr_gate,
     )
     tone1_amp = tone1.get_parameters()[0]

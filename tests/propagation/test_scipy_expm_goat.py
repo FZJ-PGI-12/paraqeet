@@ -5,7 +5,7 @@ import pytest
 
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from tests.model.empty_hamiltonian import EmptySystem
+from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 
 @pytest.fixture
@@ -13,13 +13,11 @@ def expm():
     """Return a Scipy piecewise exponentiation solver generating function."""
 
     def _method(dimension, resolution, initial_state):
-        sys = EmptySystem(dimension)
-        schreq = SchroedingerEquation(
-            hamiltonian_func=sys.get_value, hamiltonian_and_gradient_func=sys.get_value_and_gradient
-        )
+        sys = EmptyHamiltonian(dimension)
+        schreq = SchroedingerEquation(hamiltonian_func=sys.get_value, hamiltonian_gradient_func=sys.get_gradient)
         return ScipyExpmGOAT(
             eom_func=schreq.get_value,
-            eom_and_grad_func=schreq.get_value_and_gradient,
+            eom_gradient_func=schreq.get_gradient,
             resolution=resolution,
             initial_state=initial_state,
         )

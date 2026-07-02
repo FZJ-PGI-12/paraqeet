@@ -12,7 +12,7 @@ from paraqeet.differentiable import Differentiable
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array, Quantity
-from tests.model.empty_hamiltonian import EmptySystem
+from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 
 class RandomPropagation(Propagation, Differentiable):
@@ -42,8 +42,8 @@ class RandomPropagation(Propagation, Differentiable):
         generate_matrices: bool = False,
         auto_update: bool = True,
     ):
-        sys = EmptySystem(0)
-        eom = SchroedingerEquation(sys.get_value, sys.get_value_and_gradient)
+        sys = EmptyHamiltonian(0)
+        eom = SchroedingerEquation(sys.get_value, sys.get_gradient)
         super().__init__(eom.get_value, 1e9)
         self._dimension = dimension
         self._create_matrices = generate_matrices

@@ -6,7 +6,6 @@ import pytest
 
 from paraqeet.model.utils import (
     construct_annihilation_op,
-    construct_basis_state,
     construct_composite_basis_state,
     construct_creation_op,
     convert_state_to_dm,
@@ -25,27 +24,27 @@ from paraqeet.model.utils import (
 # Test common operators
 def test_sigma_x():
     """Return the Pauli-X operator."""
-    assert np.all(sigma_x() == np.array([[0.0j, 1.0], [1.0, 0.0j]]))
+    assert np.all(sigma_x() == np.array([[0.0, 1.0], [1.0, 0.0]]))
 
 
 def test_sigma_y():
     """Return the Pauli-Y operator."""
-    assert np.all(sigma_y() == np.array([[0.0, 1.0j], [-1.0j, 0.0]]))
+    assert np.all(sigma_y() == np.array([[0.0, -1.0j], [1.0j, 0.0]]))
 
 
 def test_sigma_z():
     """Return the Pauli-Z operator."""
-    assert np.all(sigma_z() == np.array([[1.0, 0.0j], [0.0j, -1.0]]))
+    assert np.all(sigma_z() == np.array([[1.0, 0.0], [0.0, -1.0]]))
 
 
 def test_sigma_plus():
     """Return the Pauli-creation operator."""
-    assert np.all(sigma_plus() == np.array([[0.0j, 1.0], [0.0, 0.0j]]))
+    assert np.all(sigma_plus() == np.array([[0.0, 0.0], [1.0, 0.0]]))
 
 
 def test_sigma_minus():
     """Return the Pauli-annihilation operator."""
-    assert np.all(sigma_minus() == np.array([[0.0j, 0.0], [1.0, 0.0j]]))
+    assert np.all(sigma_minus() == np.array([[0.0, 1.0], [0.0, 0.0]]))
 
 
 @pytest.mark.parametrize("dim", [2, 5, 10])
@@ -67,8 +66,8 @@ def test_identity_operator(dim: int):
 # Tests for matrix sqrt for positive semi-definite operators
 def test_identity():
     """sqrt(I) = I."""
-    I = jnp.eye(5)
-    np.testing.assert_allclose(matrix_sqrt_psd(I), I, atol=1e-6)
+    ide_mat = jnp.eye(5)
+    np.testing.assert_allclose(matrix_sqrt_psd(ide_mat), ide_mat, atol=1e-6)
 
 
 def test_diagonal():
@@ -81,25 +80,25 @@ def test_diagonal():
 def test_square_of_sqrt(n):
     """S @ S == A for Hermitian positive semi-definite A."""
     rng = np.random.default_rng(0)
-    M = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
-    A = jnp.asarray(M @ M.conj().T)
-    S = matrix_sqrt_psd(A)
-    np.testing.assert_allclose(S @ S, A, atol=1e-5, rtol=1e-5)
+    m_mat = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
+    a_mat = jnp.asarray(m_mat @ m_mat.conj().T)
+    s_mat = matrix_sqrt_psd(a_mat)
+    np.testing.assert_allclose(s_mat @ s_mat, a_mat, atol=1e-5, rtol=1e-5)
 
 
 # Tests for partial trace
 
 
-@pytest.mark.parametrize("dim_A,dim_B", [(2, 3), (5, 2), (10, 5)])
-def test_partial_trace_product_state(random_state, dim_A, dim_B):
+@pytest.mark.parametrize("dim_a,dim_b", [(2, 3), (5, 2), (10, 5)])
+def test_partial_trace_product_state(random_state, dim_a, dim_b):
     r"""Partial trace of ρ_A $\otimes$ ρ_B returns ρ_A or ρ_B."""
-    psi_A = random_state(dim_A)
-    psi_B = random_state(dim_B)
-    rho_A = convert_state_to_dm(psi_A)
-    rho_B = convert_state_to_dm(psi_B)
-    rho = tensor(rho_A, rho_B)
-    np.testing.assert_allclose(partial_trace(rho, (dim_A, dim_B), (0,)), rho_A, atol=1e-5)
-    np.testing.assert_allclose(partial_trace(rho, (dim_A, dim_B), (1,)), rho_B, atol=1e-5)
+    psi_a = random_state(dim_a)
+    psi_b = random_state(dim_b)
+    rho_a = convert_state_to_dm(psi_a)
+    rho_b = convert_state_to_dm(psi_b)
+    rho = tensor(rho_a, rho_b)
+    np.testing.assert_allclose(partial_trace(rho, (dim_a, dim_b), (0,)), rho_a, atol=1e-5)
+    np.testing.assert_allclose(partial_trace(rho, (dim_a, dim_b), (1,)), rho_b, atol=1e-5)
 
 
 def test_trace_out_all_gives_total_trace(random_density_matrix):

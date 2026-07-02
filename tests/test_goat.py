@@ -8,7 +8,7 @@ from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
 from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.qubit import Qubit
+from paraqeet.model.qubit import Qubit, QubitHamiltonian
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
@@ -62,23 +62,24 @@ def prop(gen, mode):
         init = np.matmul(init, init.T)
         init = convert_dm_to_vec(init)
 
-    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
+    qubit_hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
     pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
     drive = Drive(pauli_x, gen)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian.drives = [drive]
+    open_qubit = Qubit(hamiltonian=qubit_hamiltonian, t1=T1, temp=TEMP, t2star=T2STAR)
     if mode == "OpenSystem":
         model = MasterEquation(
-            hamiltonian_func=controlled_qubit.get_value,
-            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
-            jump_operators=controlled_qubit.get_jump_operators(),
+            hamiltonian_func=qubit_hamiltonian.get_value,
+            hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
+            jump_operators=open_qubit.get_jump_operators(),
         )
     elif mode == "ClosedSystem":
         model = SchroedingerEquation(
-            hamiltonian_func=controlled_qubit.get_value,
-            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+            hamiltonian_func=qubit_hamiltonian.get_value,
+            hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
         )
     return ScipyExpmGOAT(
-        eom_func=model.get_value, eom_and_grad_func=model.get_value_and_gradient, resolution=RES, initial_state=init
+        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=RES, initial_state=init
     )
 
 
@@ -100,7 +101,7 @@ def states(prop, mode):
 
     return StateTransferFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_func,
     )
@@ -115,7 +116,7 @@ def gates(prop, mode):
     prop.initial_state = np.identity(2)
     return UnitaryFidelity(
         propagation_func=prop.propagate,
-        propagation_and_gradient_func=prop.get_value_and_gradient,
+        propagation_gradient_func=prop.get_gradient,
         gate=pauli_x,
     )
 

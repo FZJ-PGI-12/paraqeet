@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from paraqeet.model.coupling import Coupling
-from paraqeet.model.transmon import Transmon
+from paraqeet.model.transmon import TransmonHamiltonian
 from paraqeet.quantity import Quantity
 
 COUPLINGSTR = 25e6 * 2 * np.pi
@@ -30,12 +30,12 @@ def transmon(transmon_parameters):
     class CreateTransmon:
         def get(self, num_levels):
             freq, anharm = transmon_parameters.get()
-            transmon = Transmon(
+            transmon_hamiltonian = TransmonHamiltonian(
                 num_levels=num_levels,
                 frequency=Quantity(freq, 0.8 * freq, 1.2 * freq),
                 anharmonicity=Quantity(anharm, 1.2 * anharm, 0.8 * anharm),
             )
-            return transmon
+            return transmon_hamiltonian
 
     return CreateTransmon()
 

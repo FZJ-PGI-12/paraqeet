@@ -9,7 +9,7 @@ from paraqeet.measurement.state_transfer_fidelity import (
 from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
 from paraqeet.model.drive import Drive
 from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.qubit import Qubit
+from paraqeet.model.qubit import Qubit, QubitHamiltonian
 from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -69,19 +69,20 @@ def model(pwc_gen, mode):
         init = np.matmul(init, init.T)
         init = convert_dm_to_vec(init)
 
-    controlled_qubit = Qubit(Quantity(FREQ, FREQ / 4, FREQ), drives=[], t1=T1, temp=TEMP, t2star=T2STAR)
-    drive = Drive(controlled_qubit.sigma_minus, pwc_gen, add_hermitian=True)
-    controlled_qubit.drives = [drive]
+    qubit_hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
+    drive = Drive(qubit_hamiltonian.sigma_minus, pwc_gen, add_hermitian=True)
+    qubit_hamiltonian.drives = [drive]
+    open_qubit = Qubit(hamiltonian=qubit_hamiltonian, t1=T1, temp=TEMP, t2star=T2STAR)
     if mode == "OpenSystem":
         model = MasterEquation(
-            hamiltonian_func=controlled_qubit.get_value,
-            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
-            jump_operators=controlled_qubit.get_jump_operators(),
+            hamiltonian_func=qubit_hamiltonian.get_value,
+            hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
+            jump_operators=open_qubit.get_jump_operators(),
         )
     elif mode == "ClosedSystem":
         model = SchroedingerEquation(
-            hamiltonian_func=controlled_qubit.get_value,
-            hamiltonian_and_gradient_func=controlled_qubit.get_value_and_gradient,
+            hamiltonian_func=qubit_hamiltonian.get_value,
+            hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
         )
     return model
 
@@ -113,7 +114,7 @@ def states(model, mode, solver):
     if solver == "expm":
         prop_method = ScipyExpmGRAPE(
             eom_func=model.get_value,
-            eom_and_grad_func=model.get_value_and_gradient,
+            eom_gradient_func=model.get_gradient,
             resolution=1 / DELTAT,
             initial_state=init,
             target_state=target,
@@ -123,7 +124,7 @@ def states(model, mode, solver):
     elif mode == "ClosedSystem" and solver == "ode":
         prop_method = Vern7GRAPE(
             eom_func=model.get_value,
-            eom_and_gradient_func=model.get_value_and_gradient,
+            eom_gradient_func=model.get_gradient,
             resolution=10e9,
             initial_state=init,
             target_state=target,
@@ -135,7 +136,7 @@ def states(model, mode, solver):
     elif mode == "OpenSystem" and solver == "ode":
         prop_method = Vern7GRAPE(
             eom_func=model.get_eom_ode_propagation,
-            eom_and_gradient_func=model.get_eom_and_gradient_ode_propagation,
+            eom_gradient_func=model.get_eom_gradient_ode_propagation,
             resolution=10e9,
             initial_state=init,
             target_state=target,
@@ -145,12 +146,12 @@ def states(model, mode, solver):
             jump_operators=model.jump_operators,
         )
 
-    prop_method.inital_state = init
+    prop_method.initial_state = init
     prop_method.target_state = target
 
     return StateTransferFidelityGRAPE(
         propagation_func=prop_method.propagate,
-        propagation_and_gradient_func=prop_method.get_value_and_gradient,
+        propagation_gradient_func=prop_method.get_gradient,
         target_state=target,
         overlap=overlap_func,
     )
