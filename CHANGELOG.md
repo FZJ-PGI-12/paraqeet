@@ -26,12 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combined `StateTransferFidelity` with `StateTransferFidelityAD` classes, such that gradient of fidelity and overlap functions are automatically computed.
 - Coupling and Drive classes take operators from the user
 - Reduced system sizes in Examples 08B and 08C for faster docs compilation
+- System to Hamiltonian. Qubit, Resonator, and Transmon are now containers for the Hamiltonian and other properties.
+- Propagation, measurement that inherit from Differentiable expect eom and gradient separately.
+
 
 ### Removed
 - `Tex-Gyre-Pagella` font from plotting
 - `get_value_at_timestep` and `get_value_and_gradient_at_timestep` methods. Replaced with vectorized code
 - `DifferentiablePropagation` class in favor of explicitly inheriting from `Differentiable`  
-
+- Solvable in favor of Hamiltonian.
 
 ## [v0.11.1] - 2026-03-27
 
