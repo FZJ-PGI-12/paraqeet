@@ -36,15 +36,12 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
     The state propagations are done by the `ScipyExpm` method.
 
-    _resolution: float
-        Simulation resolution.
-    _initial_state: Array = None
-        Initial state for forward propagation.
-    _target_state: Array = None
-        Target state for backward propagation.
-    _schirmer_derivative: bool = False
-        If true, compute the gradient by Schirmer Derivative/Method of auxiliary
-        matrix exponential. If false, use frechet derivative.
+    Attributes:
+        _resolution (float): Simulation resolution.
+        _initial_state (Array, optional): Initial state for forward propagation. Defaults to None.
+        _target_state (Array, optional): Target state for backward propagation. Defaults to None.
+        _schirmer_derivative (bool): If true, compute the gradient by Schirmer Derivative/Method of auxiliary
+            matrix exponential. If false, use frechet derivative. Defaults to False.
     """
 
     _eom_gradient_func: Callable[[Array], Array]
@@ -61,7 +58,17 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         target_state: Array,
         operator_sandwich_function: Callable,
     ):
-        ScipyExpm.__init__(self, eom_func, resolution, initial_state)
+        """
+        Args:
+            eom_func: A function that gives the equation of motion.
+            eom_gradient_func: A function that gives the gradient of the equation of motion.
+            resolution: Propagation resolution used to solve the equation of motion.
+                The corresponding time step dt = 1/resolution.
+            initial_state: State at the beginning of the simulation.
+            target_state: Target state at the end of the simulation.
+            operator_sandwich_function: Function for backpropagating the target state.
+        """
+        super().__init__(eom_func, resolution, initial_state)
         self._eom_gradient_func = eom_gradient_func
         self.target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
@@ -75,10 +82,8 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
-        Parameters
-        ----------
-        target_state: Array
-            Target state.
+        Args:
+            target_state: Target state.
         """
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._target_state = target_state
@@ -111,10 +116,8 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     def schirmer_derivative(self, schirmer_derivative: bool) -> None:
         """Schirmer Derivative method to compute derivative of Unitary operator.
 
-        Parameters
-        ----------
-        schirmer_derivative : bool
-            If True use Schirmer derivative, if False use Frechet Derivative.
+        Args:
+            schirmer_derivative: If True use Schirmer derivative, if False use Frechet Derivative.
         """
         self._schirmer_derivative = schirmer_derivative
 
@@ -130,12 +133,12 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
-        Parameters
-        ----------
-        psis_t : Array
-            Forward propagated state
-        lamdas_t : Array
-            Backward propagated state
+        Args:
+            us: Unitaries at different times.
+            psis_t: Forward propagated state
+            lamdas_t: Backward propagated state
+                of 1 representing the iteration index.
+            steps_arr: Array from 0 to the length of the List of times, in steps
         """
 
         def forward_propagation(psis_t, index):
@@ -164,12 +167,14 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
-        Parameters
-        ----------
-        psis_t: Array
-            Forward propagated state
-        lamdas_t: Array
-            Backward propagated state
+        Args:
+
+            us: Unitaries at different times.
+            us_rev: Inverse of the unitaries at different times.
+            psis_t: Forward propagated state.
+            lamdas_t: Backward propagated state.
+            steps_arr: Array from 0 to the length of the List of times, in steps
+                of 1 representing the iteration index.
         """
 
         def forward_propagation(psis_t, index):
@@ -187,29 +192,23 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
-    def _exponentiate_frechet(dim, ham, dh_dp):
+    def _exponentiate_frechet(dim: int, ham: Array, dh_dp: Array):
         r"""Exponentiate and also calculate the frechet derivative.
 
-        Parameters
-        ----------
-        ham: Array
-            -iHdt
-        dh_dp: Array
-            -i\frac{\partial H}{\partial u} dt
+        Args:
+            ham: -iHdt
+            dh_dp: -i\frac{\partial H}{\partial u} dt
         """
         return expm_frechet(ham, dh_dp)
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
-    def _exponentiate_schirmer(dim, ham, dh_dp):
+    def _exponentiate_schirmer(dim, ham: Array, dh_dp: Array):
         r"""Exponentiate an auxiliary matrix to compute U and dU.
 
-        Parameters
-        ----------
-        ham : Array
-            -iHdt
-        dh_dp : Array
-            -i\frac{\partial H}{\partial u} dt
+        Args:
+            ham: -iHdt
+            dh_dp: -i\frac{\partial H}{\partial u} dt
         """
         zeros = jnp.zeros_like(ham)
         h_extended = jnp.block([[ham, dh_dp], [zeros, ham]])
@@ -221,10 +220,11 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
     def _exponentiate(ham):
         r"""Exponentiate EOM using Expm.
 
-        Parameters
-        ----------
-            ham : Array
-                -iHdt
+        Args:
+            ham: -i H dt.
+
+        Returns:
+            The expontial of -i H dt.
         """
         return expm(ham)
 
@@ -239,12 +239,10 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
-        Parameters
-        ----------
-        psis_t : Array
-            Forward propagated state
-        lamdas_t : Array
-            Backward propagated state
+        Args:
+            us: Unitaries at different times.
+            psis_t: Forward propagated state
+            steps_arr: Array from 0 to the length of the List of times, in steps
         """
 
         def forward_propagation(psis_t, index):
@@ -255,18 +253,18 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         return psis_list
 
     @override
-    def propagate(self, time: Array) -> Array:
+    def propagate(self, times: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("ScipyExpmGRAPE.propagate needs at least two time points.")
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
-        dt = time[1] - time[0]
+        dt = times[1] - times[0]
 
-        time_grid = time[:-1] + dt / 2
+        time_grid = times[:-1] + dt / 2
 
         eom = self._eom_func(time_grid) * dt
 

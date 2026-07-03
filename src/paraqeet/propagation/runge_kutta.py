@@ -15,19 +15,18 @@ class RungeKutta(StatePropagation):
 
     Uses scipy's Runge-Kutta implementation for propagating
     a state vector or density matrix.
-
-    Parameters
-    ----------
-    model : Model
-        Represents the equation of motion for a given Hamiltonian.
-    initial_time_step : float | None, optional
-        The initial time step for the adaptive time steps in RK45.
-
     """
 
     _initial_time_step: float
 
     def __init__(self, eom_func, resolution, initial_state):
+        """
+        Args:
+            eom_func: A function that gives the equation of motion.
+            resolution: Propagation resolution used to solve the equation of motion.
+                The corresponding time step dt = 1/resolution.
+            initial_state: State at the beginning of the simulation.
+        """
         super().__init__(eom_func, resolution, initial_state)
         self._initial_time_step = 1 / resolution
 
@@ -36,40 +35,30 @@ class RungeKutta(StatePropagation):
 
         Subclasses can access the state in the _initial_state field.
 
-        Parameters
-        ----------
-        state: Array
-            Parameter value to be set as the initial state for the propagation.
+        Args:
+            state: Parameter value to be set as the initial state for the propagation.
 
         """
         self._initial_state = np.reshape(state, (-1,))
 
     @override
-    def propagate(self, time: Array) -> Array:
+    def propagate(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the solution of the equations of motion.
+        Returns:
+            The solution of the equations of motion.
 
         Raises
-        ------
-        ConfigurationException
-            If the initial state is not set.
-        ValueError
-            If the propagation needs at least two time steps.
-
+            ConfigurationException: If the initial state is not set.
+            ValueError: If the propagation needs at least two time steps.
         """
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
 
-        if len(time) < 2:
+        if len(times) < 2:
             raise ValueError("RungeKutta.propagate needs at least two time steps")
 
         def callback(time, state):
@@ -83,17 +72,17 @@ class RungeKutta(StatePropagation):
         # to return a state for each time stamp, this
         # function has to iterate over the time steps itself.
         states = [self._initial_state]
-        for ti in range(1, len(time)):
+        for ti in range(1, len(times)):
             dt = self._initial_time_step
-            if dt is None or dt > time[ti] - time[ti - 1]:
-                dt = float(time[ti] - time[ti - 1]) / 5
+            if dt is None or dt > times[ti] - times[ti - 1]:
+                dt = float(times[ti] - times[ti - 1]) / 5
 
             # This is the scipy implementation of RK45, which is compatible with (non-jax) numpy
             integrator = RK45(
                 fun=callback,
-                t0=time[ti - 1],
+                t0=times[ti - 1],
                 y0=np.reshape(states[-1], (-1,)),
-                t_bound=time[ti],
+                t_bound=times[ti],
                 first_step=dt,
                 vectorized=False,
             )

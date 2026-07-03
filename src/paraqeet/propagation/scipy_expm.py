@@ -21,18 +21,11 @@ class ScipyExpm(StatePropagation):
     Solve the equation of motion by piecewise exponentiation with the
     Scipy package.
 
-    Parameters
-    ----------
-    model: Model
-        Represents the equation of motion for a given Hamiltonian.
-    res: float
-        Resolution at which to sample the EOM.
-
     """
 
     @staticmethod
     @jit
-    def _propagate_in_time(psis_t, eom, steps_arr):
+    def _propagate_in_time(psis_t: Array, eom: Array, steps_arr: Array):
         """Propagate the system in time.
 
         Iteratively propagate state/states (psis_t) according
@@ -40,20 +33,14 @@ class ScipyExpm(StatePropagation):
         `jax.scipy.linalg.expm` to compute the propagators.
         The iterations use `jax.lax.scan` to avoid compilation overhead.
 
-        Parameters
-        ----------
-        psis_t: Array
-            State/states at time 't'.
-        eom: Array
-            Equation of motion for a list of times.
-        steps_arr: Array
-            Array from 0 to the length of the List of time, in steps of 1
-            representing the iteration index.
+        Args:
+            psis_t: State/states at time 't'.
+            eom: Equation of motion for a list of times.
+            steps_arr: Array from 0 to the length of the List of times, in steps
+                of 1 representing the iteration index.
 
-        Returns
-        -------
-        Array
-            Returns the evolved state.
+        Returns:
+            The evolved state.
 
         """
 
@@ -67,20 +54,15 @@ class ScipyExpm(StatePropagation):
 
     @staticmethod
     @jit
-    def _propagate_psi(eom_matrix, psis_t):
+    def _propagate_psi(eom_matrix: Array, psis_t: Array):
         """Propagate the state/states (psis_t).
 
-        Parameters
-        ----------
-        eom_matrix : Array
-            The equations of motion matrix.
-        psis_t : Array
-            State/states at time 't'.
+        Args:
+            eom_matrix: The equations of motion matrix.
+            psis_t: State/states at time 't'.
 
-        Returns
-        -------
-        Array
-            Returns the evolved state.
+        Returns:
+            Array: Returns the evolved state.
 
         """
         return expm(eom_matrix) @ psis_t
@@ -91,20 +73,14 @@ class ScipyExpm(StatePropagation):
 
         Loop over all desired times in time at set resolution.
 
-        Parameters
-        ----------
-        times: Array
-            Any one-dimensional vector of timestamps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the solution of the equations of motion.
+        Returns:
+            The solution of the equations of motion.
 
-        Raises
-        ------
-        ConfigurationException
-            If the initial state is not set.
+        Raises:
+            ConfigurationException: If the initial state is not set.
 
         """
         if len(times) < 2:

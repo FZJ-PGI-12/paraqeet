@@ -14,15 +14,10 @@ class Serializer(ABC):
         """
         Saves data to a persistent format. The actual format depends on the implementation.
 
-        Parameters
-        ----------
-        data: dict
-            the data to be exported
-        comment: str
-            Optional comment to be stored with the data, for example a description of the data. Implementations have
-            to decide how to store the comment.
-        -------
-
+        Args:
+            data: the data to be exported
+            comment: Optional comment to be stored with the data, for example a description of the data.
+                Implementations have to decide how to store the comment.
         """
         pass
 
@@ -36,7 +31,7 @@ class Serializer(ABC):
         """Loads and returns the comment, if any, that was previously saved with the data. Returns None if no comment
         was saved.
 
-        Returns
+        Returns:
             The comment, or None if no comment was saved.
         """
         pass

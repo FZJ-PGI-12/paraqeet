@@ -15,14 +15,13 @@ class ComplexIQMixer(Generator):
     Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired complex control field to the system.
 
-    Parameters
-    ----------
-    envelopes : List[Waveform]
-        List of input devices.
-    frequency : Quantity | None
-        Frequency of local oscillator.
-    phase : Quantity | None
-        Phase of local oscillator.
+    Args:
+        envelopes : List[Waveform]
+            List of input devices.
+        frequency : Quantity | None
+            Frequency of local oscillator.
+        phase : Quantity | None
+            Phase of local oscillator.
     """
 
     _envs: list[Waveform]
@@ -54,10 +53,9 @@ class ComplexIQMixer(Generator):
         Collects and returns a list of parameters from the tone, generator
         and the carrier signal.
 
-        Returns
-        -------
-        list[Quantity]
-            All Parameters describing the signal.
+        Returns:
+            list[Quantity]
+                All Parameters describing the signal.
         """
         pars = []
         for env in self._envs:
@@ -70,9 +68,8 @@ class ComplexIQMixer(Generator):
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimized.
 
-        Parameters
-        ----------
-        params : list[Quantity]
+        Args:
+            params : list[Quantity]
         """
         super().set_optimizable_parameters(params)
 
@@ -86,15 +83,13 @@ class ComplexIQMixer(Generator):
 
         Doesn't take real value now for ease of gradient computation.
 
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: Array
+                One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Array
-            Returns the signal vector.
+        Returns:
+            Array
+                Returns the signal vector.
 
         """
         env = jnp.zeros_like(times)
@@ -108,15 +103,13 @@ class ComplexIQMixer(Generator):
     def get_value(self, times: Array) -> Array:
         """Generate a signal for time(s).
 
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: Array
+                One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Array
-            Returns the signal vector.
+        Returns:
+            Array
+                Returns the signal vector.
 
         """
         return self._complex_signal(times)
@@ -134,15 +127,13 @@ class ComplexIQMixer(Generator):
         .. math::
             \frac{\partial}{\partial p} z = \frac{\partial z}{\partial p}
 
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: Array
+                One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Array
-            The signal gradient vector as a (n_times, n_params) array.
+        Returns:
+            Array
+                The signal gradient vector as a (n_times, n_params) array.
         """
         phase_fac = jnp.exp(-1j * self._phase.get_value())
         lo_out = self._lo.get_value(times)
@@ -194,14 +185,13 @@ class IQMixer(ComplexIQMixer):
     Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired real control field to the system.
 
-    Parameters
-    ----------
-    envelopes : List[Waveform]
-        List of input devices.
-    frequency : Quantity | None
-        Frequency of local oscillator.
-    phase : Quantity | None
-        Phase of local oscillator.
+    Args:
+        envelopes : List[Waveform]
+            List of input devices.
+        frequency : Quantity | None
+            Frequency of local oscillator.
+        phase : Quantity | None
+            Phase of local oscillator.
     """
 
     @override

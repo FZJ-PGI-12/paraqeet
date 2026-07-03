@@ -34,19 +34,13 @@ class Vern7(StatePropagation):
         jump_operators: list[Array] | None = None,
     ):
         """
-        Parameters
-        ----------
-        eom_func: Callable[[Array], Array]
-            Equation of motion (EOM) as a function of time.
-        resolution: float
-            Resolution at which to sample the EOM.
-        initial_state: Array
-            Initial state.
-        step_function: Callable
-            Step function used to that implements the right hand side of the EOM.
-        jump_operators: list[Array] | None
-            A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
-            Defaults to None for closed system.
+        Args:
+            eom_func: Equation of motion (EOM) as a function of time.
+            resolution: Resolution at which to sample the EOM.
+            initial_state: Initial state.
+            step_function: Step function used to that implements the right hand side of the EOM.
+            jump_operators: A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
+                Defaults to None for closed system.
         """
         super().__init__(eom_func, resolution, initial_state)
         self._step_function = step_function
@@ -181,21 +175,14 @@ class Vern7(StatePropagation):
 
         Loop over all desired times in time at set resolution.
 
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the solution of the equations of motion.
+        Returns:
+            The solution of the equations of motion.
 
-        Raises
-        ------
-        ConfigurationException
-            If the initial state is not set.
-
+        Raises:
+            ConfigurationException: If the initial state is not set.
         """
         if len(times) < 2:
             raise ValueError("Vern7.propagate needs at least two time points.")

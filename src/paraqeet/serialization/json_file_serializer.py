@@ -24,7 +24,7 @@ class JSONFileSerializer(Serializer):
             json.dump(data, f)
 
     def load(self) -> dict:
-        """Loads and returns the data from JSON file"""
+        """Loads and returns the data from JSON file."""
         with open(self._file) as f:
             data = json.load(f)
             if not isinstance(data, dict):

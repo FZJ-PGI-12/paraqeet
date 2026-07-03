@@ -35,23 +35,26 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         resolution: float,
         initial_state: Array,
     ):
-        ScipyExpm.__init__(self, eom_func, resolution, initial_state)
+        """
+        Args:
+            eom_func: A function that gives the equation of motion.
+            eom_gradient_func: A function that gives the gradient of the equation of motion.
+            resolution: Propagation resolution used to solve the equation of motion.
+                The corresponding time step dt = 1/resolution.
+            initial_state: State at the beginning of the simulation.
+        """
+        super().__init__(eom_func, resolution, initial_state)
         self._eom_gradient_func = eom_gradient_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
 
-        Parameters
-        ----------
-        psi: Array
-            State of the system.
-        dpsis: Array
-            Differential of state.
+        Args:
+            psi: State of the system.
+            dpsis: Differential of state.
 
-        Returns
-        -------
-        Array
-            Returns a super state created from the state and the differential.
+        Returns:
+            Array: Returns a super state created from the state and the differential.
 
         """
         super_state = [psi]
@@ -59,22 +62,16 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         psi_t = jnp.concatenate(super_state)
         return psi_t
 
-    def _create_goat_ham(self, n_params, eom, grads):
+    def _create_goat_ham(self, n_params: int, eom: Array, grads: Array):
         """Create a Hamiltonian for the GOAT optimization method.
 
-        Parameters
-        ----------
-        n_params: int
-            Number of parameters.
-        eom: Array
-            Equations of motion in matrix form.
-        grads: Array
-            Gradients of the system at a particular step.
+        Args:
+            n_params: Number of parameters.
+            eom: Equations of motion in matrix form.
+            grads: Gradients of the system at a particular step.
 
-        Returns
-        -------
-        Array
-            Hamiltonian for the GOAT optimization method.
+        Returns:
+            Array: Hamiltonian for the GOAT optimization method.
 
         """
         line = [eom]
@@ -113,15 +110,11 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
-        Parameters
-        ----------
-        time: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        tuple[Array, Array]
-            First dimension is time, second dimension is the parameter.
+        Returns:
+            tuple[Array, Array]: First dimension is time, second dimension is the parameter.
 
         """
         if len(times) < 2:

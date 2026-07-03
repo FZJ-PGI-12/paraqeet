@@ -31,23 +31,20 @@ class Vern7GRAPE(Vern7, Differentiable):
 
     The state propagations are done by the `Vern7 ODE` method.
 
-    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
-        Function that returns EOM and its gradient for an array of times.
-    _target_state: Array
-        Target state for backwards/reverse propagation for GRAPE.
-    _operator_sandwich_function: Callable
-        Operator sandwich function to compute GRAPE gradients. It evaluates
+    Attributes:
+        _eom_and_gradient_func: Function that returns EOM and its gradient for an array of times.
+        _target_state: Target state for backwards/reverse propagation for GRAPE.
+        _operator_sandwich_function: Operator sandwich function to compute GRAPE gradients. It evaluates
 
-        1. For closed system
-            .. math::
-                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+            1. For closed system
+                .. math::
+                    \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
-        2. For open system
-            .. math::
-                \text{Tr}(\sigma(t) [H, \rho(t)])
+            2. For open system
+                .. math::
+                    \text{Tr}(\sigma(t) [H, \rho(t)])
 
-    _reverse_step_function: Callable
-        Reverse step function for the backwards propagation.
+        _reverse_step_function: Reverse step function for the backwards propagation.
     """
 
     _eom_gradient_func: Callable[[Array], Array]
@@ -67,7 +64,28 @@ class Vern7GRAPE(Vern7, Differentiable):
         operator_sandwich_function: Callable,
         jump_operators: list[Array] | None = None,
     ):
-        Vern7.__init__(self, eom_func, resolution, initial_state, step_function, jump_operators)
+        r"""
+        Args:
+            eom_func: Equation of motion (EOM) as a function of time.
+            eom_and_gradient_func: Function that returns EOM and its gradient for an array of times.
+            resolution: Resolution at which to sample the EOM.
+            initial_state: Initial state.
+            target_state: Target state for backwards/reverse propagation for GRAPE.
+            step_function: Step function used to that implements the right hand side of the EOM.
+            jump_operators: A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
+                Defaults to None for closed system.
+            reverse_step_function: Reverse step function for the backwards propagation.
+            operator_sandwich_function: Operator sandwich function to compute GRAPE gradients. It evaluates
+
+                1. For closed system
+                    .. math::
+                        \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+
+                2. For open system
+                    .. math::
+                        \text{Tr}(\sigma(t) [H, \rho(t)])
+        """
+        super().__init__(eom_func, resolution, initial_state, step_function, jump_operators)
         self._eom_gradient_func = eom_gradient_func
         self._reverse_step_function = reverse_step_function
         self._target_state = target_state
@@ -82,10 +100,8 @@ class Vern7GRAPE(Vern7, Differentiable):
     def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
-        Parameters
-        ----------
-        target_state: Array
-            Target state.
+        Args:
+            target_state: Target state.
         """
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._target_state = target_state
@@ -132,12 +148,9 @@ class Vern7GRAPE(Vern7, Differentiable):
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
-        Parameters
-        ----------
-        psis_t: Array
-            Forward propagated state
-        lamdas_t: Array
-            Backward propagated state
+        Args:
+            psis_t: Forward propagated state
+            lamdas_t: Backward propagated state
         """
 
         def forward_propagation(psis_t, index):

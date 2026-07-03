@@ -47,7 +47,7 @@ def dagger(op: Array):
     return op.conj().T
 
 
-def lindblad_step(state: Array, h: Array, cols: list[Array], *args, **kwargs):
+def lindblad_step(state: Array, h: Array, cols: list[Array]):
     """Step function for ODE propagation methods, such as Vern7, for the Lindblad master equation."""
     del_rho = commutator(h, state)
     for col in cols:
@@ -56,17 +56,17 @@ def lindblad_step(state: Array, h: Array, cols: list[Array], *args, **kwargs):
     return del_rho
 
 
-def schrodinger_step(state: Array, h: Array, *args, **kwargs):
+def schrodinger_step(state: Array, h: Array):
     """Step function for ODE propagation methods, such as Vern7, for the Schrödinger equation."""
     return jnp.matmul(h, state)
 
 
-def reverse_schrodinger_step(state: Array, h: Array, *args, **kwargs):
+def reverse_schrodinger_step(state: Array, h: Array):
     """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Schrödinger equation."""
     return jnp.matmul(state, h)
 
 
-def reverse_lindblad_step(state: Array, h: Array, cols: list[Array], *args, **kwargs):
+def reverse_lindblad_step(state: Array, h: Array, cols: list[Array]):
     """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Lindblad master equation."""
     del_rho = commutator(h, state)
     for col in cols:
@@ -99,34 +99,29 @@ def grape_operator_sandwich_function_open(ham_grads, fwd_prop_states, rev_prop_s
     return jnp.linalg.trace(grad)
 
 
-def construct_times(time, ti, resolution):
+def construct_times(times: Array, ti: int, resolution: float) -> tuple:
     """Construct one-dimensional vector of time.
 
     Interpolate the user-specified times to match the propagation resolution.
 
-    Parameters
-    ----------
-    time: Array
-        Array of timesteps.
-    ti: int
-        Snapshot of the time at a current step
+    Args:
+        times: Array of times.
+        ti: Snapshot of the time at a current step.
+        resolution: Time steps resolution.
 
-    Returns
-    -------
-    Array
-        Array of timestamps in specified resolution.
-    int
-        Difference in time step.
+    Returns:
+        Array: Array of timestamps in specified resolution.
+        int: Difference in time step.
 
     """
-    t0 = time[ti - 1]
-    t1 = time[ti]
+    t0 = times[ti - 1]
+    t1 = times[ti]
     steps = int(np.floor((t1 - t0) * resolution + 0.5))
     if steps == 0:
         steps = 1
-    times = jnp.linspace(t0, t1, steps, endpoint=False)
+    new_times = jnp.linspace(t0, t1, steps, endpoint=False)
     if steps < 2:
         dt = t1 - t0
     else:
-        dt = times[1] - times[0]
-    return times, dt
+        dt = new_times[1] - new_times[0]
+    return new_times, dt
