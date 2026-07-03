@@ -70,7 +70,7 @@ class StatePropagation(Propagation):
             initial_state: State at the beginning of the simulation.
         """
         super().__init__(eom_func, resolution)
-        self._initial_state = initial_state
+        self.initial_state = initial_state
 
     @property
     def initial_state(self):
