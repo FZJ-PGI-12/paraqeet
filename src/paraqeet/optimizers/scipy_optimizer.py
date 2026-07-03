@@ -12,16 +12,7 @@ from paraqeet.quantity import Array, Float
 
 
 class ScipyOptimizer(Optimizer):
-    """Minimize the outcome of a measurement with the scipy optimization package.
-
-    Parameters
-    ----------
-    measure_func: Callable[[Array], Float]
-        Function implementing measurement of observables to be minimized.
-    optimization_map: OptimizationMap
-        An optimization map containing all parameters that can be optimized.
-
-    """
+    """Minimize the outcome of a measurement with the scipy optimization package."""
 
     _measure_func: Callable[[Array], Float]
     _opt_idxs: list[int]
@@ -31,6 +22,14 @@ class ScipyOptimizer(Optimizer):
     _num_iterations: int = 0
 
     def __init__(self, measure_func: Callable[[Array], Float], optimization_map: OptimizationMap) -> None:
+        """...
+
+        Args:
+            measure_func: Function implementing measurement of observables
+                to be minimized.
+            optimization_map: An optimization map containing all parameters
+                that can be optimized.
+        """
         super().__init__(measure_func, optimization_map)
         self._options = {"disp": True}
         self._method = "L-BFGS-B"
@@ -45,15 +44,8 @@ class ScipyOptimizer(Optimizer):
     def method(self, method: str) -> None:
         """Select method from scipy.optimize.minimize.
 
-        See Also
-        --------
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
-
-        Parameters
-        ----------
-        method: str
-            Type of solver, specified by string value.
-
+        Args:
+            method: Type of solver, specified by string value.
         """
         self._method = method
 
@@ -74,11 +66,8 @@ class ScipyOptimizer(Optimizer):
     def callback(self, cbfun: Callable) -> None:
         """Set the callback function for the optimizer.
 
-        Parameters
-        ----------
-        Callable
-            The function to be set as the callback.
-
+        Args:
+            cbfun: The function to be set as the callback.
         """
         self._callback = cbfun
 
@@ -93,17 +82,20 @@ class ScipyOptimizer(Optimizer):
 
         Performs the actual optimization.
 
-        Since the search parameters are dimensionless and bound by [-1, 1], we set the bounds of the scipy minimize
-        module to -1, and 1 explicitly in each search dimension.
+        Since the search parameters are dimensionless and bound by [-1, 1],
+        we set the bounds of the scipy minimize module to -1 and 1 explicitly
+        in each search dimension.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
-        For an array of times, the first time point is the start time.*
+        Note:
+            If input ``times`` is a float, then the start time of propagation
+            is implicitly assumed to be zero. For an array of times, the first
+            time point is the start time.
 
-        Returns
-        -------
-        OptimizationResult
+        Args:
+            times: Array of times or a float (assumed start time zero).
+
+        Returns:
             The result of the optimization.
-
         """
         if self._logger:
             self._logger.start()
@@ -143,16 +135,11 @@ class ScipyOptimizer(Optimizer):
 
         Internal callback.
 
-        Parameters
-        ----------
-        values: Array
-            Parameter values for the update.
+        Args:
+            values: Parameter values for the update.
 
-        Returns
-        -------
-        Array
-            Returns the measurement result.
-
+        Returns:
+            The measurement result.
         """
         log = []
         params = self._optimization_map.get_all_parameters()

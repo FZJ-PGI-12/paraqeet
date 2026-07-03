@@ -18,20 +18,6 @@ class BayesianOptimizer(Optimizer):
     This class is mostly a wrapper around the implementing package, see
     `BayesianOptimization
     <https://bayesian-optimization.github.io/BayesianOptimization/index.html>`_.
-
-    Parameters
-    ----------
-    measure_func: Callable[[Array], Float]
-        Function implementing measurement of observables to be minimized.
-    optimization_map : OptimizationMap
-        All optimizable parameters via the optimization map.
-    initial_samples : int=10
-        Number of iterations before the explorations starts the exploration
-        for the maximum.
-    iterations: int =100
-        Number of iterations where the method attempts to find the maximum
-        value.
-
     """
 
     _measure_func: Callable[[Array], Float]
@@ -45,6 +31,18 @@ class BayesianOptimizer(Optimizer):
         initial_samples=10,
         iterations=100,
     ):
+        """...
+
+        Args:
+            measure_func: Function implementing measurement of observables
+                to be minimized.
+            optimization_map: All optimizable parameters via the optimization
+                map.
+            initial_samples: Number of iterations before the exploration
+                starts the exploration for the maximum.
+            iterations: Number of iterations where the method attempts to
+                find the maximum value.
+        """
         super().__init__(measure_func, optimization_map)
         self._initial_samples = initial_samples
         self._iterations = iterations
@@ -74,15 +72,17 @@ class BayesianOptimizer(Optimizer):
 
         Performs the actual optimization.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
-        For an array of times, the first time point is the start time.*
+        Note:
+            If input ``times`` is a float, then the start time of propagation
+            is implicitly assumed to be zero. For an array of times, the first
+            time point is the start time.
 
-        Returns
-        -------
-        OptimizationResult
-            Result of optimization via the OptimizationResult object.
-            (status, value, iterations and the raw result)
+        Args:
+            times: Array of times or a float (assumed start time zero).
 
+        Returns:
+            Result of optimization (status, value, iterations, and the raw
+            result).
         """
         self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
 
@@ -132,16 +132,11 @@ class BayesianOptimizer(Optimizer):
 
         Internal callback.
 
-        Parameters
-        ----------
-        **kwargs
-            A dict mapping parameter names to their values.
+        Args:
+            **kwargs: A dict mapping parameter names to their values.
 
-        Returns
-        -------
-        Array
-            Returns the fidelity after setting the parameters.
-
+        Returns:
+            The fidelity after setting the parameters.
         """
         log = []
         params = self._optimization_map.get_all_parameters()

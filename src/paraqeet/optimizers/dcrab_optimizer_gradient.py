@@ -33,25 +33,9 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     Implements dCRAB optimization involving super-iterations that adds additional
     optimization components to the dCRAB envelope and freezes the older parameters.
 
-    *Note - This works with a `DCRABEnvelope` or a `list[DCRABEnvelope]` as envelopes.*
-
-    _num_iteration: int
-        Current iteration number.
-    _super_iteration_every: int
-        Number of iterations after which one super-iteration is performed. Defaults to 30.
-    _max_super_iteration_num: int
-        Maximum number of super-iterations to perform. Defaults to 10.
-    _num_print_every: int
-        Print every this many iterations the current optimization value. Defaults to 5.
-    _old_parameters_dict : dict[int, list[Quantity]]
-        Store the parameters of the previous super-iteration in a dictionary labeled by the number of parameters.
-
-    Parameters
-    ----------
-    measure_and_gradient_func: Callable[[Array], tuple[Float, Array]]
-        Function implementing measurement of observables to be minimized.
-    optimization_map: OptimizationMap
-        An optimization map containing all parameters that can be optimized.
+    Note:
+        This works with a ``DCRABEnvelope`` or a ``list[DCRABEnvelope]`` as
+        envelopes.
     """
 
     _num_iteration: int = 0
@@ -82,6 +66,25 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         super_iteration_tol: float = 1e-7,
         seed: int | None = None,
     ):
+        """...
+
+        Args:
+            measure_and_gradient_func: Function implementing measurement of
+                observables to be minimized, returning (value, gradient).
+            optimization_map: An optimization map containing all parameters
+                that can be optimized.
+            super_iteration_every: Number of iterations after which one
+                super-iteration is performed. Defaults to 30.
+            max_super_iteration_num: Maximum number of super-iterations to
+                perform. Defaults to 10.
+            print_every_iteration_num: Print every this many iterations the
+                current optimization value. Defaults to 5.
+            fallback_optimization: Fallback optimization to perform after
+                all super-iterations.
+            super_iteration_tol: Tolerance for triggering a super-iteration.
+                Defaults to 1e-7.
+            seed: Random seed for adding new dCRAB components.
+        """
         super().__init__(measure_and_gradient_func, optimization_map)
         self._super_iteration_every = super_iteration_every
         self._max_super_iteration_num = max_super_iteration_num
@@ -197,23 +200,19 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     def set_parameters(self, values):
         """Update the parameter values.
 
-        This method is derived from the `ScipyoptimizerGradient` class and designed
-        to catch cases involving mismatch in dimension of parameters.
+        This method is derived from the ``ScipyOptimizerGradient`` class and
+        designed to catch cases involving mismatch in dimension of parameters.
 
         Since, in dCRAB, new parameters are added in each super-iteration,
         the previous best result may be one with fewer parameters.
-        In that case, all subsequent parameters are set to their minimum value (by setting the reduced value to -1).
+        In that case, all subsequent parameters are set to their minimum value
+        (by setting the reduced value to -1).
 
-        Parameters
-        ----------
-        values: Array
-            Parameter values for the update.
+        Args:
+            values: Parameter values for the update.
 
-        Returns
-        -------
-        Array
-            Returns the inverse of the fidelity.
-
+        Returns:
+            The log of parameter updates.
         """
         log = []
         params = self._optimization_map.get_all_parameters()
@@ -253,16 +252,11 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     def _set_parameters_and_measure(self, values) -> float:
         """Update the parameter values and return measurement result.
 
-        Parameters
-        ----------
-        values: Array
-            Parameter values for the update.
+        Args:
+            values: Parameter values for the update.
 
-        Returns
-        -------
-        Array
-            Returns the inverse of the fidelity.
-
+        Returns:
+            The inverse of the fidelity.
         """
         log = self.set_parameters(values)
 
@@ -291,14 +285,16 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
 
         Performs the actual optimization.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
-        For an array of times, the first time point is the start time.*
+        Note:
+            If input ``times`` is a float, then the start time of propagation
+            is implicitly assumed to be zero. For an array of times, the first
+            time point is the start time.
 
-        Returns
-        -------
-        OptimizationResult
+        Args:
+            times: Array of times or a float (assumed start time zero).
+
+        Returns:
             The result of the optimization.
-
         """
         self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
 

@@ -14,29 +14,14 @@ from paraqeet.quantity import Array, Float
 class OptimizationResult:
     """Data class for representing optimization results.
 
-    Attributes
-    ----------
-    STATUS_FINISHED : int
-        The optimization finished without a clear success or failure.
-        This is used by algorithms that do not necessarily converge towards a
-        solution.
-    STATUS_SUCCESS : int
-        The optimization successfully found an optimum.
-    STATUS_FAILED : int
-        The optimization failed to converge.
-    status : int
-        Indicates if the optimization was successful.
-        Should have one of the status constants as value.
-    value : float
-        The value at the best point of the optimized function.
-    iterations : int
-        The number of iterations during the optimization.
-    message : str | None, optional
-        Any additional message from the optimization algorithm.
-        This can be an error message in case of failure.
-    raw_result : Any | None, optional
-        The raw result from the underlying algorithm.
-
+    Args:
+        status: Indicates if the optimization was successful.
+            Should have one of the status constants as value.
+        value: The value at the best point of the optimized function.
+        iterations: The number of iterations during the optimization.
+        message: Any additional message from the optimization algorithm.
+            This can be an error message in case of failure.
+        raw_result: The raw result from the underlying algorithm.
     """
 
     # The optimization finished without a clear success or failure.
@@ -66,8 +51,7 @@ class OptimizationResult:
 
         Represents the Optimizer object as a dictionary with status,
         value, and iterations. If a message has been added, adds that
-        too the dict too.
-
+        to the dict too.
         """
         as_dict = {
             "status": self.status,
@@ -85,18 +69,6 @@ class Optimizer(ABC):
 
     The class accepts a list of optimizable parameters from the lower layers
     which shall be optimized in order to minimize the given measure.
-
-    Parameters
-    ----------
-    measure_func: Callable[[Array], Float]
-        Function implementing measurement of observables to be minimized.
-    optimizables: OptimizationMap
-        An optimization map containing all parameters that can be optimized.
-        If none, an empty map will be created to which the parameters can
-        be added later used.
-    logger: FileLogger
-        The file logger object.
-
     """
 
     _measure_func: Callable[[Array], Float]
@@ -111,6 +83,16 @@ class Optimizer(ABC):
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
     ):
+        """...
+
+        Args:
+            measure_func: Function implementing measurement of observables
+                to be minimized.
+            optimization_map: An optimization map containing all parameters
+                that can be optimized. If none, an empty map will be created
+                to which the parameters can be added later.
+            logger: The file logger object.
+        """
         self._measure_func = measure_func
         self._logger = logger
         self.optimization_map = optimization_map
@@ -124,10 +106,8 @@ class Optimizer(ABC):
     def logger(self, logger: Logger):
         """Set the logger for the optimizer object.
 
-        Parameters
-        ----------
-        logger : Logger
-            Logger object to be set as the logger for the system.
+        Args:
+            logger: Logger object to be set as the logger for the system.
         """
         self._logger = logger
 
@@ -137,11 +117,8 @@ class Optimizer(ABC):
 
         Parameters that can be optimized need to be added to this map.
 
-        Returns
-        -------
-        paraqeet.optimization_map
-            Returns the optimization map that this optimizer uses.
-
+        Returns:
+            The optimization map that this optimizer uses.
         """
         return self._optimization_map
 
@@ -152,11 +129,8 @@ class Optimizer(ABC):
         Registers optimizables and their length to keep track of vector
         and matrix valued parameters.
 
-        Parameters
-        ----------
-        opt: OptimizationMap
-            Takes in the optimizables to set parameters.
-
+        Args:
+            opt: Takes in the optimizables to set parameters.
         """
         self._optimization_map = opt
 
@@ -170,12 +144,12 @@ class Optimizer(ABC):
         The result will include the raw result of the underlying algorithm
         for more information.
 
-        Returns
-        -------
-        OptimizationResult
-            Result of optimization via the OptimizationResult object.
-            (status, value, iterations and the raw result)
+        Args:
+            times: Array of times or a float (assumed start time zero).
 
+        Returns:
+            Result of optimization via the OptimizationResult object
+            (status, value, iterations and the raw result).
         """
         pass
 
