@@ -19,14 +19,10 @@ class Differentiable(ABC):
     def get_value(self, times: Array) -> Array | Float:
         """Calculate the value of the object.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array | Float
+        Returns:
             The value of the object.
             If it returns an Array then the value is calculated at the n_times and the dimension should be
             (n_times, (dimensions_of_object)). If the object is a scalar (1x1 Array)
@@ -41,14 +37,10 @@ class Differentiable(ABC):
     def get_gradient(self, times: Array) -> Array:
         """Calculate the gradient of the object.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
+        Returns:
             The gradient of the object. There are two main cases.
 
             1) The array has dimensions (n_times, n_params, (dimensions_of_object)).
@@ -62,8 +54,7 @@ class Differentiable(ABC):
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Calculate the value and the gradient of the object.
 
-        Returns
-        -------
-        The value and the gradient of the object.
+        Returns:
+            The value and the gradient of the object.
         """
         return self.get_value(times), self.get_gradient(times)

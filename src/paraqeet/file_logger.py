@@ -10,11 +10,8 @@ from paraqeet.quantity import Quantity
 class FileLogger(Logger):
     """Logger that writes messages to a file.
 
-    Parameters
-    ----------
-    logdir: str="."
-        Destination directory to store the logs.
-
+    Args:
+        logdir: Destination directory to store the logs.
     """
 
     _logdir: str
@@ -35,11 +32,8 @@ class FileLogger(Logger):
 
         Stores both the log and the result files.
 
-        Parameters
-        ----------
-        logdir: str
-            Destination directory to store the logs.
-
+        Args:
+            logdir: Destination directory to store the logs.
         """
         self._logdir = logdir
         self._logfile = os.path.join(self._logdir, "opt.log")
@@ -54,13 +48,9 @@ class FileLogger(Logger):
     def log(self, params: list[Quantity], infidelity: float):
         """Write the formatted parameters and the goal to the log file.
 
-        Parameters
-        ----------
-        params: list[Quantity]
-            List of quantities to be written to the log file.
-        infidelity: float
-            Goal value to be written to the log file.
-
+        Args:
+            params: List of quantities to be written to the log file.
+            infidelity: Goal value to be written to the log file.
         """
         super().log(params, infidelity)
         formatted_params = [param.get_value().tolist() for param in params]
@@ -77,11 +67,9 @@ class FileLogger(Logger):
     def stop(self, result_message: str | None = None):
         """Stop logging and end the log file with the run information.
 
-        Parameters
-        ----------
-        result_message: str | None = None
-            The message that the user wants to write at the end of the log file.
-
+        Args:
+            result_message: The message that the user wants to write at the
+                end of the log file.
         """
         super().stop()
         with open(self._result_file, "a") as log:

@@ -270,10 +270,10 @@ class PWCGenerator(Generator):
         ----------
         inphase: Array
             1-D vector of step values of real part of the PWC signal.
-        out-of-phase: Array
+        outofphase: Array
             1-D vector of step values of complex part of the PWC signal.
-        tlist: Array
-            Time bins of the PWC pulse.
+        dt: Array
+            Time step.
         t: Array
             One time point.
 

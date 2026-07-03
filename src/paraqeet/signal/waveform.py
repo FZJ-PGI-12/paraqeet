@@ -411,7 +411,7 @@ class DRAGMixer(Waveform):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
         deltas: list[float]
             Variable number of inputs for delta parameters for each tone.
@@ -433,7 +433,7 @@ class DRAGMixer(Waveform):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns

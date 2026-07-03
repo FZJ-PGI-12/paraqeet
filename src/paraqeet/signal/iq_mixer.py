@@ -110,7 +110,7 @@ class ComplexIQMixer(Generator):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns
@@ -136,7 +136,7 @@ class ComplexIQMixer(Generator):
 
         Parameters
         ----------
-        t: Array
+        times: Array
             One-dimensional vector of timestamps.
 
         Returns

@@ -21,17 +21,6 @@ class MakhlinFunctional(Measurement):
     the distance is measured as the Euclidean distance between
     the actual and ideal invariants.
     Else, the Makhlin distance is used.
-
-    Parameters
-    ----------
-    propagation_func: Callable[[Array], Array]
-        Function that evaluates the propagation of some initial state.
-        Expected to be of the form `func(t: Array) -> states: Array`.
-    times : Array
-        One-dimensional vector of timestamps.
-    ideal_invariants : Array optional
-        One-dimensional vector of ideal Makhlin invariants.
-
     """
 
     _propagation_func: Callable[[Array], Array]
@@ -42,28 +31,30 @@ class MakhlinFunctional(Measurement):
         propagation_func: Callable[[Array], Array],
         ideal_invariants: Array | None = None,
     ):
+        """...
+
+        Args:
+            propagation_func: Function that evaluates the propagation of some
+                initial state. Expected to be of the form
+                ``func(t: Array) -> states: Array``.
+            ideal_invariants: One-dimensional vector of ideal Makhlin
+                invariants.
+        """
         self._propagation_func = propagation_func
         self._ideal_invariants = ideal_invariants
 
     def measure(self, times: Array) -> Array | Float:
         """Measure distance of the propagator to a perfect entangler.
 
-        Parameters
-        ----------
-        times : Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Array
+        Returns:
             Distance of propagator.
 
-        Raises
-        ------
-        IncompatibleLayersException
-            Raises an exception if a quadratic unitary
-            4x4 operator is not received.
-
+        Raises:
+            IncompatibleLayersException: If a quadratic unitary 4x4 operator
+                is not received.
         """
         if not times:
             raise ConfigurationException("Time array was not specified")
@@ -82,16 +73,11 @@ class MakhlinFunctional(Measurement):
 
         Returns a tuple with the three invariants g1, g2 and g3.
 
-        Parameters
-        ----------
-        U: Array
-            Input matrix for computing the Makhlin invariants of.
+        Args:
+            u: Input matrix for computing the Makhlin invariants of.
 
-        Returns
-        -------
-        Tuple[Array, Array, Array]
-            Returns a tuple of 3 Numpy Array as invariants g1, g2 and g3.
-
+        Returns:
+            Tuple of 3 Arrays as invariants g1, g2 and g3.
         """
         # transform to bell basis
         q = jnp.array(

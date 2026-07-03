@@ -96,8 +96,8 @@ class Hamiltonian(Optimizable, Differentiable):
 
         Parameters
         ----------
-        t: float
-            Time.
+        times: Array
+            Array of times.
 
         Returns
         -------

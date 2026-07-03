@@ -22,36 +22,30 @@ class Smoothness(NormalizableMeasurement, Differentiable):
     """Smoothness of a pulse. It follows the definition in
     Heeres et al., https://arxiv.org/abs/1608.02430 (2017), in particular
     Eqs. 23 and 24 of the supplementary material.
-
-    Parameters
-    ----------
-    pwc_generator: PWCGenerator
-        The generator from which we extract the pulse.
-    times: Array
-        One-dimensional vector of timestamps.
     """
 
     _pwc_generator: PWCGenerator
 
     def __init__(self, pwc_generator: PWCGenerator):
-        # super().__init__(pwc_generator.tlist)
+        """...
+
+        Args:
+            pwc_generator: The generator from which we extract the pulse.
+        """
         self._pwc_generator = pwc_generator
 
     @override
     def get_value(self, times: Array) -> Float:
-        """Returns the normalized sum of consecutive square differences of the pulse.
+        """Return the normalized sum of consecutive square differences of the pulse.
+
         As the maximums difference is twice the maximum amplitude, the normalization
-        factor is the number of piecewise constants minus 1 time sthe maximum
+        factor is the number of piecewise constants minus 1 times the maximum
         difference squared.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Float
+        Returns:
             The normalized sum of consecutive square differences in the pulse.
         """
         pulse = self._pwc_generator.get_value(times)
@@ -62,10 +56,8 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         def get_squared_difference(index):
             """Squared difference between two consecutive bins in PWC pulse.
 
-            Parameters
-            ----------
-            index : int
-                index of the bin
+            Args:
+                index: Index of the bin.
             """
             return jnp.abs(pulse[index] - pulse[index + 1]) ** 2
 
@@ -89,17 +81,12 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         For parameters that are not in the passed PWCGenerator the partial derivative
         is simply zero.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times. Not accessed, but we leave it for consistency with
-            the abstract get_gradient method.
+        Args:
+            times: Array of times. Not accessed, but we leave it for consistency
+                with the abstract get_gradient method.
 
-        Returns
-        -------
-        Tuple[Float, Array]
-            Tuple of function value as Float and gradient of shape (n_parameters,)
-
+        Returns:
+            Gradient of shape (n_parameters,).
         """
         opt_pwc_params = self._pwc_generator.optimizable_parameters
         opt_params = self._pwc_generator.all_optimizable_parameters
@@ -107,12 +94,9 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         def get_partial_derivative(n, vec):
             """Derivatives of the smoothness measure for 3 cases: starting point, center and end point.
 
-            Parameters
-            ----------
-            n : int
-                location in the piecewise constant vector
-            vec : Array
-                piecewise constant vector
+            Args:
+                n: Location in the piecewise constant vector.
+                vec: Piecewise constant vector.
             """
             num_pwc = vec.shape[0]
             res = (

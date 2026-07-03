@@ -16,18 +16,13 @@ def get_value_and_jacobian(f: Callable, argnums: int | tuple[int] = 0) -> Callab
 
     It supports functions with complex + vector valued inputs, and complex + vector valued outputs.
 
-    Parameters
-    ----------
-    f : Callable
-        JAX-jit compatible function to be differentiated.
-    argnums : int, tuple[int]
-        int or tuple of ints (similar to jax.grad).
-        Arguments for which the gradients are computed.
+    Args:
+        f: JAX-jit compatible function to be differentiated.
+        argnums: int or tuple of ints (similar to jax.grad).
+            Arguments for which the gradients are computed.
 
-    Returns
-    -------
-    _type_
-        _description_
+    Returns:
+        A function that returns (value, gradient) for the given arguments.
     """
     if isinstance(argnums, int):
         argnums_is_int = True

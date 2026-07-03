@@ -26,21 +26,9 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
 
-    The `propagation_func` function is required in addition to `propagation_and_gradient_func` as a computationally
+    The `propagation_func` function is required in addition to `propagation_gradient_func` as a computationally
     "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
     and evaluation of `measure` function.
-
-    Parameters
-    ----------
-    propagation_func: Callable[[Array], Array]
-        Function that evaluates the propagation of some initial state.
-        Expected to be of the form `func(t: Array) -> states: Array`.
-    propagation_and_gradient_func: Callable[[Array], Array]
-        Function returning the gradient of the propagated states.
-    target_state : Array
-        Target state.
-    times : Array
-        One-dimensional vector of timestamps.
     """
 
     _target_state: Array
@@ -57,6 +45,18 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         target_state: Array,
         overlap: Callable[[Array, Array], Array],
     ):
+        """...
+
+        Args:
+            propagation_func: Function that evaluates the propagation of some
+                initial state. Expected to be of the form
+                ``func(t: Array) -> states: Array``.
+            propagation_gradient_func: Function returning the gradient of the
+                propagated states.
+            target_state: Target state.
+            overlap: Overlap function of the form
+                ``overlap(final_state, target_state)``.
+        """
         self._propagation_func = propagation_func
         self._propagation_gradient_func = propagation_gradient_func
         self._target_state = jnp.array(target_state, dtype=jnp.complex128)
@@ -84,16 +84,11 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         For NormalizableMeasurement objects that are also Differentiable this coincide
         with the get_value method.
 
-        Parameters
-        ----------
-        times : Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Float
+        Returns:
             Overlap between initial and target state in a bare Float.
-
         """
         return self.get_value(times)
 
@@ -101,17 +96,11 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     def get_gradient(self, times: Array) -> Array:
         """Compute the gradient.
 
-        Parameters
-        ----------
-        times : Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: One-dimensional vector of timestamps.
 
-
-        Returns
-        -------
-        Array
+        Returns:
             The gradient of shape (n_params,).
-
         """
         states = self._propagation_func(times)
         dg_dp_list = self._propagation_gradient_func(times)
@@ -137,28 +126,14 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
     of the form `fid(overlap: Array, *args, **kwargs) -> float`.
 
     The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
-
-    Parameters
-    ----------
-    propagation_func: Callable[[Array], Array]
-        Function that evaluates the propagation of some initial state.
-        Expected to be of the form `func(t: Array) -> states: Array`.
-    propagation_gradient_func: Callable[[Array], Array]
-    target_state: Array
-        Target state.
-    times : Array
-        One-dimensional vector of timestamps.
     """
 
     @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Compute function value and corresponding gradient.
 
-        Returns
-        -------
-        Tuple[Array, Array]
+        Returns:
             Tuple of function value and gradient of shape (n_parameters,).
-
         """
         states = self._propagation_func(times)
         grads = self._propagation_gradient_func(times)

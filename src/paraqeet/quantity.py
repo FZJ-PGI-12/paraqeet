@@ -418,7 +418,7 @@ class Quantity:
         """Return the symbol or description or this quantity.
 
         Note that this does not have to be unique.
-        For uniquely identifying a quantity, use getUUID.
+        For uniquely identifying a quantity, use :meth:`get_name`.
 
         Returns:
             Value of the name attribute.

@@ -17,17 +17,6 @@ class MixedStateTransferFidelity(Measurement):
     Fidelity measure that compares the overlap of the initial
     and final state of density matrices.
     Note: this implementation is still very inaccurate.
-
-    Parameters
-    ----------
-    propagation_func: Callable[[Array], Array]
-        Function that evaluates the propagation of some initial state.
-        Expected to be of the form `func(t: Array) -> states: Array`.
-    target_state : Array
-        Final state of the density matrices.
-    times: Array
-        One-dimensional vector of timestamps.
-
     """
 
     _target_state: Array
@@ -37,10 +26,18 @@ class MixedStateTransferFidelity(Measurement):
     def __init__(
         self,
         propagation_func: Callable[[Array], Array],
-        targetState: Array,
+        target_state: Array,
     ):
+        """...
+
+        Args:
+            propagation_func: Function that evaluates the propagation of some
+                initial state. Expected to be of the form
+                ``func(t: Array) -> states: Array``.
+            target_state: Target state.
+        """
         self._propagation_func = propagation_func
-        self._target_state = targetState
+        self._target_state = target_state
 
         # store the sqrt of the density matrix to simplify the measurement
         self._target_state_sqrt = sclin.sqrtm(self._target_state)
@@ -49,16 +46,12 @@ class MixedStateTransferFidelity(Measurement):
     def measure(self, times: Array) -> Array | Float:
         """Measure overlap between initial and final state of density matrices.
 
-        Returns
-        -------
-        Array
+        Returns:
             Overlap between initial and final state of density matrices.
 
-        Raises
-        ------
-        IncompatibleLayersException
-            Raises an exception if required vector shape is not received.
-
+        Raises:
+            IncompatibleLayersException: If required vector shape is not
+                received.
         """
         state = self._propagation_func(times)[-1]
         if state.shape != self._target_state.shape:

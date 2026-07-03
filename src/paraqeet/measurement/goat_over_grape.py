@@ -16,15 +16,7 @@ from paraqeet.signal.pwc_generator import PWCGenerator
 
 
 class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
-    """Combine GRAPE propagation with analytic gradients of GOAT via chain rule.
-
-    Parameters
-    ----------
-    measurement : StateTransferFidelityGRAPE
-        A StateTransferFidelityGRAPE measurement.
-    generators: PWCGenerator | list[PWCGenerator]
-        A PWCGenerator or a list of PWCGenerators that are used for propagation.
-    """
+    """Combine GRAPE propagation with analytic gradients of GOAT via chain rule."""
 
     _measurement: StateTransferFidelityGRAPE
     _gens: list[PWCGenerator]
@@ -36,6 +28,14 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         generators: PWCGenerator | list[PWCGenerator],
         propagation_resolution: int,
     ):
+        """...
+
+        Args:
+            measurement: A StateTransferFidelityGRAPE measurement.
+            generators: A PWCGenerator or a list of PWCGenerators that are
+                used for propagation.
+            propagation_resolution: Resolution for time interpolation.
+        """
         self._measurement = measurement
         self._gens = generators if isinstance(generators, list) else [generators]
         for gen in self._gens:
@@ -45,16 +45,11 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
     def _pad_with_zeros(self, grad: Array, gen_num: int) -> Array:
         """Pad gradient with zeros depending on the subsystem number and number of PWC pixels in the pulses.
 
-        Parameters
-        ----------
-        grad : Array
-            Gradient from a subsystem.
-        gen_num : int
-            Subsystem number, also determined by the generator order.
+        Args:
+            grad: Gradient from a subsystem.
+            gen_num: Subsystem number, also determined by the generator order.
 
-        Returns
-        -------
-        Array
+        Returns:
             Return padded gradient vector.
         """
         num_pixels, num_params = grad.shape
@@ -80,16 +75,11 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
     def get_value(self, times: Array) -> Float:
         """Sum of plain weighted measurements.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times
+        Args:
+            times: Array of times
 
-        Returns
-        -------
-        Array
+        Returns:
             Returns the plain weighted sum.
-
         """
         grape = self._measurement
         for gen in self._gens:
@@ -117,13 +107,8 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 
-        Returns
-        -------
-        Array
-            Function value.
-        Array
-            Gradients.
-
+        Returns:
+            Tuple of (function value, gradients).
         """
         grape = self._measurement
         for gen in self._gens:
