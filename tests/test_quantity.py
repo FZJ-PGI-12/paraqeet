@@ -330,16 +330,11 @@ def test_is_scalar_or_vector(random_quantity):
 def __generate_random_matrix(n: int) -> np.ndarray:
     """Generate a random matrix of size `n` by `n`.
 
-    Parameters
-    ----------
-    n: int
-        Dimension of the matrix.
+    Args:
+        n: Dimension of the matrix.
 
-    Returns
-    -------
-    Array
-        Returns a randomly generated `N` by `N` matrix.
-
+    Returns:
+        A randomly generated `N` by `N` matrix.
     """
     magnitude: float = np.power(10.0, np.random.randint(-10, 10))
     return (2 * np.random.random((n, n)) - 1) * magnitude

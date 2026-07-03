@@ -8,33 +8,23 @@ from paraqeet.quantity import Array
 
 
 class RandomMeasurement(NormalizableMeasurement):
-    """Mock class that returns a random measurement value between 0 and 1.
-
-    Parameters
-    ----------
-    propagation : Propagation
-        Abstract base class for any implementation
-        that can solve the equation of motion.
-    times : Array
-        One-dimensional vector of timestamps.
-    """
-
-    _propagation: Propagation
+    """Mock class that returns a random measurement value between 0 and 1."""
 
     def __init__(self, propagation: Propagation):
+        """
+        Args:
+            propagation: Abstract base class for any implementation
+                that can solve the equation of motion.
+        """
         self._propagation = propagation
 
-    # TODO: Check the implementation method measure
     def measure(self, times: Array) -> Array | float:
         return self.calculate_normalized_scalar(times=times)
 
     def calculate_normalized_scalar(self, times: Array | float) -> float:
         """Return the result of measurement.
 
-        Returns
-        -------
-        Array
+        Returns:
             The result of the measurement.
-
         """
         return float(np.random.random())

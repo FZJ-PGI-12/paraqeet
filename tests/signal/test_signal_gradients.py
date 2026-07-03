@@ -15,10 +15,8 @@ time = jnp.linspace(0, 10e-6, 100)
 def tone():
     """Tone with analytic gradient.
 
-    Returns
-    -------
-    paraqeet.signal.envelopes.Envelope
-        A Flat top Gaussian Envelope
+    Returns:
+        A Flat top Gaussian Envelope.
     """
     return FlatTopGaussianEnvelope()
 
@@ -27,10 +25,8 @@ def tone():
 def tone_ad():
     """Tone with AutoDiff gradients.
 
-    Returns
-    -------
-    paraqeet.signal.envelopes.Envelope
-        A Flat top Gaussian Envelope without gradients defined
+    Returns:
+        A Flat top Gaussian Envelope without gradients defined.
     """
     return FlatTopGaussianEnvelopeAD()
 
@@ -38,18 +34,12 @@ def tone_ad():
 def random_entries_from_list(elements: Array, num: int = 0) -> Array:
     """Get random entries from an array of elements.
 
-    Parameters
-    ----------
-    elements: Array
-        Array of elements to choose from.
-    num: int
-        Number of random entries asked for.
+    Args:
+        elements: Array of elements to choose from.
+        num: Number of random entries asked for.
 
-    Returns
-    -------
-    Array
-        Returns random entries selected from a list of elements.
-
+    Returns:
+        Random entries selected from a list of elements.
     """
     if num is None:
         num = np.random.randint(0, len(elements))
