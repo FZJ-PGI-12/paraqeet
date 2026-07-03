@@ -20,7 +20,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Quantity:
-    r"""Represent any physical quantity used in model or pulse specification.
+    """Represent any physical quantity used in model or pulse specification.
 
     For arithmetic operations just the numeric value is used.
     The value itself is stored in an optimizer friendly way as a float
@@ -31,35 +31,6 @@ class Quantity:
     numpy arrays internally, such that scalar values are represented by arrays of shape (1,). All getter functions only
     return numpy arrays. If the value is an array and min/max are floats, the latter will be considered constant bounds
     for all value and will be converted into constant arrays.
-
-    Note on python's operators: equality checks `q == p` and `q != p` check
-    for the values of the quantities q and p. For vector or matrix quantities,
-    these check if all values are equal. If you want to be sure that two
-    quantities are the same object (i.e. the same memory address), use `q is p`.
-    Ordering operators like `q > p` will only work for scalar quantities and
-    will raise an exception for vector or matrix quantities.
-
-    Parameters
-    ----------
-    value: Array | float
-        Value of the quantity
-    min_value: Array | float
-        Minimum this quantity is allowed to take.
-        If this is a float, it will be a default interval around the value will be chosen.
-    max_value: Array | float
-        Maximum this quantity is allowed to take.
-    unit: str
-        physical unit
-    name: str
-        symbol or description of this quantity
-    two_pi: bool
-        divide by two pi for representation
-
-    Raises
-    ------
-    IncompatibleQuantityException
-        If misconfigured by the user, e.g., bounds are not given or the wrong shape.
-
     """
 
     _unit: str
@@ -85,6 +56,22 @@ class Quantity:
         name: str = "",
         two_pi: bool = False,
     ):
+        """Represent any physical quantity used in model or pulse specification.
+
+        Args:
+            value: Value of the quantity.
+            min_value: Minimum this quantity is allowed to take.
+                If this is a float, a default interval around the value will be chosen.
+            max_value: Maximum this quantity is allowed to take.
+            unit: Physical unit.
+            name: Symbol or description of this quantity.
+            two_pi: Divide by two pi for representation.
+
+        Raises:
+            IncompatibleQuantityException: If misconfigured by the user,
+                e.g., bounds are not given or the wrong shape.
+
+        """
         if value is None or max_value is None or min_value is None:
             raise IncompatibleQuantityException("value, minimum, and maximum must be not null")
 
@@ -149,9 +136,7 @@ class Quantity:
         the list of parameters that this quantity is calculated from,
         otherwise an empty list is returned.
 
-        Returns
-        -------
-        list[Quantity]
+        Returns:
             List of parameter dependencies.
         """
         if self._dependent:
@@ -166,9 +151,7 @@ class Quantity:
         calculate its value from. If no other Quantities calculate their value
         using this quantity, returns an empty list.
 
-        Returns
-        -------
-        list[Quantity]
+        Returns:
             List of parameter dependencies.
         """
         return self._dependents
@@ -187,33 +170,23 @@ class Quantity:
         Creates a Quantity object that represents a Quantity that is calculated
         from other quantities using the relation function.
 
-        Parameters
-        ----------
-        quantities: Quantity | list[Quantity]
-            The quantities from which to calculate the value of self.
-        relation: Callable
-            Function describing how to calculate the value of self from other
-            Quantities.
-        unit: str | None
-            The unit of the resulting Quantity. If 'None', then the units of all
-            quantities are assumed the same.
-        name: str | None
-            A string identifier name of the resulting Quantity. If 'None', then
-            a name is generated from the names of the related Quantities.
-        two_pi: bool
-            Divide by two pi for representation.
+        Args:
+            quantities: The quantities from which to calculate the value of self.
+            relation: Function describing how to calculate the value of self
+                from other Quantities.
+            unit: The unit of the resulting Quantity. If 'None', then the units
+                of all quantities are assumed the same.
+            name: A string identifier name of the resulting Quantity. If 'None',
+                then a name is generated from the names of the related Quantities.
+            two_pi: Divide by two pi for representation.
 
-        Returns
-        -------
-        Quantity
-            The Quantity with a relation set up, which recalculates the value of
-            self from all dependencies.
+        Returns:
+            The Quantity with a relation set up, which recalculates the value
+            of self from all dependencies.
 
-        Raises
-        ------
-            ValueError:
-                If any quantities do not have the same unit and no special
-                unit is specified.
+        Raises:
+            ValueError: If any quantities do not have the same unit and no
+                special unit is specified.
 
         """
         quantities = quantities if isinstance(quantities, list) else [quantities]
@@ -249,16 +222,13 @@ class Quantity:
 
         If the quantity is updated, so is this relational copy.
 
-        Parameters
-        ----------
-        quantity: Quantity | List[Quantity]
-            The quantities from which the relational copy should be created.
+        Args:
+            quantity: The quantities from which the relational copy should be
+                created.
 
-        Returns
-        -------
-        Quantity
-            The Quantity with a relation set up, which recalculates the value of
-            self from all dependencies.
+        Returns:
+            The Quantity with a relation set up, which recalculates the value
+            of self from all dependencies.
         """
         qty = cls(
             value=quantity.get_value(),
@@ -275,10 +245,10 @@ class Quantity:
     def dependent(self):
         """The dependency status of the quantity.
 
-        if True:
-            The value of this quantity is calculated from other quantities
-        if False:
-            The value of this quantity is independent of any other quantity
+        If True:
+            The value of this quantity is calculated from other quantities.
+        If False:
+            The value of this quantity is independent of any other quantity.
         """
         return self._dependent
 
@@ -290,16 +260,12 @@ class Quantity:
     ) -> None:
         """Add a relation of self to one or more other quantities.
 
-        Parameters
-        ----------
-        other: Quantity | List[Quantity]
-            The quantities from which to calculate the value of self.
-        relation: Callable
-            Function describing how to calculate the value of self from other
-            Quantities.
-        check_units: bool
-            If False, the check for equal units is not performed and unequal
-            units are allowed.
+        Args:
+            other: The quantities from which to calculate the value of self.
+            relation: Function describing how to calculate the value of self
+                from other Quantities.
+            check_units: If False, the check for equal units is not performed
+                and unequal units are allowed.
 
         """
         other = other if isinstance(other, list) else [other]
@@ -324,7 +290,6 @@ class Quantity:
 
         Update function that is called if a value that this quantity
         is dependent on is changed.
-
         """
         self._set_value(self._relation(*[qty.get_value() for qty in self._dependencies]))
 
@@ -335,11 +300,8 @@ class Quantity:
     def get_reduced_value(self) -> Array:
         """Return the value in the reduced representation.
 
-        Returns
-        -------
-        Array
+        Returns:
             Value from the reduced representation.
-
         """
         return jnp.reshape(self._value, (-1, 1))
 
@@ -348,16 +310,13 @@ class Quantity:
 
         Value needs to be within the range of 'min_value' and 'max_value'.
 
-        Parameters
-        ----------
-        value
-            Input value to be used for setting.
+        Args:
+            value: Input value to be used for setting.
 
-        Raises
-        ------
-        ValueError
-            If the value is not within the range of 'min_value' and 'max_value', if the shape of the value is different
-            from 'min_value' or 'max_value', or if this is a dependent quantity
+        Raises:
+            ValueError: If the value is not within the range of 'min_value' and
+                'max_value', if the shape of the value is different from
+                'min_value' or 'max_value', or if this is a dependent quantity.
 
         """
         if self._dependent:
@@ -424,13 +383,9 @@ class Quantity:
     def set_limits(self, min_value: Array | float, max_value: Array | float) -> None:
         """Set the allowed minimum and maximum of this quantity.
 
-        Parameters
-        ----------
-        min_value : int
-            Input value for setting the minimum limit.
-        max_value : int
-            Input value for setting the maximum limit.
-
+        Args:
+            min_value: Input value for setting the minimum limit.
+            max_value: Input value for setting the maximum limit.
         """
         old_value = self.get_value()
         min_value_fixed = self._fix_parameter_types(min_value)
@@ -444,9 +399,10 @@ class Quantity:
         self._set_value(old_value)
 
     def set_value_and_limits(self, value: Array | float, min_value: Array | float, max_value: Array | float) -> None:
-        """
-        This can be used to set the value and the limits to new values at the same time. This function does not raise
-        an exception if the new value is outside of the old limits.
+        """Set the value and the limits to new values at the same time.
+
+        This function does not raise an exception if the new value is outside
+        of the old limits.
         """
         value_fixed = self._fix_parameter_types(value)
         min_value_fixed = self._fix_parameter_types(min_value)
@@ -464,11 +420,8 @@ class Quantity:
         Note that this does not have to be unique.
         For uniquely identifying a quantity, use getUUID.
 
-        Returns
-        -------
-        str
+        Returns:
             Value of the name attribute.
-
         """
         return self._name
 
@@ -558,19 +511,15 @@ class Quantity:
     def __lt__(self, other) -> bool:
         """Magic method for representation of less-than operation.
 
-        Raises
-        ------
-        IncompatibleQuantityException
-            If the parameter is incompatible for this operation.
+        Raises:
+            IncompatibleQuantityException: If the parameter is incompatible
+                for this operation.
 
-        Returns
-        -------
-        bool
+        Returns:
             True if self's value is less than other parameter's value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
-
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
@@ -579,20 +528,16 @@ class Quantity:
     def __le__(self, other) -> bool:
         """Magic method for representation of less-equal operation.
 
-        Raises
-        ------
-        IncompatibleQuantityException
-            If the parameter is incompatible for this operation.
+        Raises:
+            IncompatibleQuantityException: If the parameter is incompatible
+                for this operation.
 
-        Returns
-        -------
-        bool
+        Returns:
             True if self's value is less than or equal to the operand's
             value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
-
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
@@ -613,20 +558,16 @@ class Quantity:
     def __ge__(self, other) -> bool:
         """Magic method for representation of greater-equal operation.
 
-        Raises
-        ------
-        IncompatibleQuantityException
-            If the parameter is incompatible for this operation.
+        Raises:
+            IncompatibleQuantityException: If the parameter is incompatible
+                for this operation.
 
-        Returns
-        -------
-        bool
+        Returns:
             True if self's value is greater than or equal to the operand's
             value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
-
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
@@ -635,19 +576,15 @@ class Quantity:
     def __gt__(self, other) -> bool:
         """Magic method for representation of greater-than operation.
 
-        Raises
-        ------
-        IncompatibleQuantityException
-            If the parameter is incompatible for this operation.
+        Raises:
+            IncompatibleQuantityException: If the parameter is incompatible
+                for this operation.
 
-        Returns
-        -------
-        bool
+        Returns:
             True if self's value is greater than the operand's value.
             Note: Because mypy doesn't understand what the type of
             'self.get_value' and 'other.get_value' is, the return
             type might have to be written as 'Any'.
-
         """
         if not self.is_scalar():
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
@@ -668,11 +605,8 @@ class Quantity:
     def __getitem__(self, key):
         """Magic method for selection of item.
 
-        Parameters
-        ----------
-        key: int
-            Index of object for retrieval.
-
+        Args:
+            key: Index of object for retrieval.
         """
         if self._length == 1 and key == 0:
             return self.get_value()
@@ -685,11 +619,9 @@ class Quantity:
     def __float__(self):
         """Magic method for float conversion.
 
-        Raises
-        ------
-        NotImplementedError
-            If the length of the parameter is greater than 1.
-
+        Raises:
+            NotImplementedError: If the length of the parameter is greater
+                than 1.
         """
         if self._length > 1:
             raise NotImplementedError
@@ -738,17 +670,12 @@ class Quantity:
     def _make_human_readable(val, use_prefix: bool = True) -> str:
         """Convert to human readable string in engineering notation.
 
-        Parameters
-        ----------
-        use_prefix: bool=True
-            Adds a prefix string derived from '_engineering_number'
-            to the final format string.
+        Args:
+            use_prefix: Adds a prefix string derived from '_engineering_number'
+                to the final format string.
 
-        Returns
-        -------
-        str
+        Returns:
             Human readable formatted string for value.
-
         """
         if use_prefix:
             num, prefix = Quantity._engineering_number(val)
@@ -764,16 +691,11 @@ class Quantity:
 
         Returns number and prefix.
 
-        Parameters
-        ----------
-        val: float
-            Input number to be converted to engineering notation.
+        Args:
+            val: Input number to be converted to engineering notation.
 
-        Returns
-        -------
-        tuple[float, str]
+        Returns:
             Engineering notation composite made of the number and the prefix.
-
         """
         if np.isnan(val):
             return np.nan, "NaN"
@@ -801,10 +723,12 @@ class Quantity:
         return sign * (10 ** (tmp % 3)), prefix
 
     def to_dict(self) -> dict:
-        """
-        Creates a dictionary representation of this quantity that can be stored. The returned dict is compatible with
-        the from_dict function, i.e. the quantity can be fully restored including its bounds, name, unit, etc. Higher
-        dimensional quantities (tensors) will be flattened into a list but their proper shape is stored as well.
+        """Create a dictionary representation of this quantity that can be stored.
+
+        The returned dict is compatible with the from_dict function, i.e. the
+        quantity can be fully restored including its bounds, name, unit, etc.
+        Higher dimensional quantities (tensors) will be flattened into a list
+        but their proper shape is stored as well.
         """
         if self.dependent:
             raise UserWarning("Saving of dependent quantities is not supported yet")
@@ -819,9 +743,11 @@ class Quantity:
         }
 
     def from_dict(self, data: dict) -> None:
-        """
-        Loads the quantity from a dictionary. The dictionary must have the same form as the one created by the toDict
-        function. All properties of this quantity (value, name, etc.) will be overwritten.
+        """Loads the quantity from a dictionary.
+
+        The dictionary must have the same form as the one created by the to_dict
+        function. All properties of this quantity (value, name, etc.) will be
+        overwritten.
         """
         self._unit = data["unit"]
         self._shape = data["shape"]
