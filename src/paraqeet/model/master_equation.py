@@ -11,19 +11,12 @@ from paraqeet.quantity import Array
 
 
 class MasterEquation(EquationOfMotion):
-    """
-    Model of an open quantum system, defined by the Hamiltonian and jump operators.
+    """Model of an open quantum system, defined by the Hamiltonian and jump operators.
+
     Its dynamics given by the Lindblad master equation.
 
     Defaults to returning the Lindblad superoperator. For ODE based methods use the
-    `get_eom_ode_propagation` and `get_eom_and_gradient_ode_propagation` methods.
-
-    Attributes
-    ----------
-    hamiltonian_func : Callable[[Array], Array]
-        Hamiltonian as a function of time.
-    hamiltonian_gradient_func: Callable[[Array], tuple[Array, Array]]
-        Hamiltonian, Hamiltonian gradients as a function of time.
+    ``get_eom_ode_propagation`` and ``get_eom_gradient_ode_propagation`` methods.
     """
 
     _jump_operators: list[Array]
@@ -35,6 +28,14 @@ class MasterEquation(EquationOfMotion):
         hamiltonian_gradient_func: Callable[[Array], Array],
         jump_operators: list[Array],
     ):
+        """...
+
+        Args:
+            hamiltonian_func: Hamiltonian as a function of time.
+            hamiltonian_gradient_func: Hamiltonian gradients as a function of time.
+            jump_operators: List of jump operators (each multiplied by the sqrt
+                of their corresponding decay rates).
+        """
         super().__init__(hamiltonian_func, hamiltonian_gradient_func)
         self._jump_operators = jump_operators
         self._total_dimension = hamiltonian_func(jnp.array([0.0])).shape[1]
@@ -43,11 +44,8 @@ class MasterEquation(EquationOfMotion):
     def jump_operators(self) -> list[Array]:
         """Return a list of jump operators (each multiplied by the sqrt of their corresponding decay rates).
 
-        Returns
-        -------
-        list[Array]
-            list of jump operators
-
+        Returns:
+            List of jump operators.
         """
         return self._jump_operators
 
@@ -93,39 +91,31 @@ class MasterEquation(EquationOfMotion):
         """Return EOM for ODE propagation methods.
 
         Return the coherent part of the EOM.
-        Here the coherent part is the Hamiltonian as a function of time (w/o -1j)
-        The incoherent part is a list of jump operators and can be obtained by the `jump_operators`
-        attribute.
+        Here the coherent part is the Hamiltonian as a function of time (w/o -1j).
+        The incoherent part is a list of jump operators and can be obtained by the
+        ``jump_operators`` attribute.
 
-        Parameters
-        ----------
-        times: Array
-            Vector of time samples
+        Args:
+            times: Vector of time samples.
 
-        Returns
-        -------
-        tuple[Array, Array]
-             Hamiltonian EOM ([t, N, N] matrix) and the `m` jump operators ([m, N^2, N^2] matrix)
+        Returns:
+            Hamiltonian EOM ([t, N, N] matrix).
         """
         ham_eom = self._hamiltonian_func(times)
         return -1j * ham_eom
 
     def get_eom_gradient_ode_propagation(self, times: Array) -> Array:
-        """Return EOM for ODE propagation methods, and its gradient.
+        """Return the gradient of the EOM for ODE propagation methods.
 
         Return the coherent part of the EOM, i.e., the Hamiltonian and its gradient.
-        The incoherent part is a list of jump operators and can be obtained by the `jump_operators`
-        attribute.
+        The incoherent part is a list of jump operators and can be obtained by the
+        ``jump_operators`` attribute.
 
-        Parameters
-        ----------
-        times: Array
-            Vector of time samples
+        Args:
+            times: Vector of time samples.
 
-        Returns
-        -------
-        Array
-             Hamiltonian EOM ([t, N, N] matrix)
+        Returns:
+            Hamiltonian EOM gradient ([t, N, N] matrix).
         """
         grads = self._hamiltonian_gradient_func(times)
         return -1j * grads
@@ -134,15 +124,11 @@ class MasterEquation(EquationOfMotion):
     def get_value(self, times: Array):
         """Return the Lindblad superoperator.
 
-        Parameters
-        ----------
-        times: Array
-            Vector of time samples
+        Args:
+            times: Vector of time samples.
 
-        Returns
-        -------
-        Array
-            RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
+        Returns:
+            RHS with dimension [t, N^2, N^2] with t: time, N: Hilbert space.
         """
         return self._create_lindbladian_superop(times)
 
@@ -150,15 +136,11 @@ class MasterEquation(EquationOfMotion):
     def get_gradient(self, times: Array) -> Array:
         """Return the gradient of the Lindbladian superoperator.
 
-        Parameters
-        ----------
-        times: Array
-            Vector of time samples
+        Args:
+            times: Vector of time samples.
 
-        Returns
-        -------
-        Array
-            RHS with dimension [t, N^2, N^2]  with t: time, N: hilbert space
+        Returns:
+            RHS with dimension [t, N^2, N^2] with t: time, N: Hilbert space.
         """
         grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
         return grads

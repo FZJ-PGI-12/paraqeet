@@ -10,44 +10,32 @@ class SchroedingerEquation(EquationOfMotion):
     """Model of a closed physical system, defined by a Hamiltonian.
 
     Its dynamics is given by the Schrödinger equation.
-
     """
 
     @override
     def get_value(self, times: Array) -> Array:
-        """Computes the right hand side of the Schrödinger equation
+        """Compute the right hand side of the Schrödinger equation
         without multiplying the state.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            RHS with dimension [t, n, n]  with 't' as time
+        Returns:
+            RHS with dimension [t, n, n] with 't' as time
             and 'n' as Hilbert space dimension.
-
         """
         return -1.0j * self._hamiltonian_func(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:
-        """Compute the gradient of right hand side of the Schrödinger equation
+        """Compute the gradient of the right hand side of the Schrödinger equation
         without multiplying the state.
 
+        Args:
+            times: Array of times.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
-
-        Returns
-        -------
-        Array
-            Returns the gradient of getMatrix.
-
+        Returns:
+            The gradient of the right hand side.
         """
         eom_gradient = self._hamiltonian_gradient_func(times)
         return -1.0j * eom_gradient

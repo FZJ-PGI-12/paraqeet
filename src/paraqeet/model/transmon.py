@@ -17,17 +17,6 @@ class TransmonHamiltonian(Hamiltonian):
     """Hamiltonian of an anharmonic oscillator.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
-
-    Attributes
-    ----------
-    num_levels: int
-        Number of levels included in the modeling of the anharmonic oscillator.
-    frequency: Quantity
-        Frequency of the anharmonic oscillator.
-    anharmonicity: Quantity
-        Anharmonicity of the oscillator.
-    drives: list[Drive]
-        List of time-dependent drives of the subsystem.
     """
 
     def __init__(
@@ -37,6 +26,15 @@ class TransmonHamiltonian(Hamiltonian):
         anharmonicity: Quantity,
         drives: list[Drive] | None = None,
     ):
+        """...
+
+        Args:
+            num_levels: Number of levels included in the modeling of the
+                anharmonic oscillator.
+            frequency: Frequency of the anharmonic oscillator.
+            anharmonicity: Anharmonicity of the oscillator.
+            drives: List of time-dependent drives of the subsystem.
+        """
         super().__init__(drives=drives)
         self._num_levels = num_levels
         self.frequency = frequency
@@ -68,11 +66,8 @@ class TransmonHamiltonian(Hamiltonian):
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
-        Returns
-        -------
-        List[Quantity]
-            Returns the list of parameters of the system.
-
+        Returns:
+            The list of parameters of the system.
         """
         return self.get_drive_parameters() + [
             self.frequency,
@@ -103,18 +98,7 @@ class TransmonHamiltonian(Hamiltonian):
 
 class Transmon:
     """A system representing a transmon. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators
-
-    Attributes
-    ----------
-    hamiltonian: TransmonHamiltonian
-        The Hamiltonian of a transmon as a Duffing oscillator.
-    t1: Quantity | None
-        Energy relaxation time.
-    temp: Quantity | None
-        Temperature of the qubit.
-    t2star: Quantity | None
-        Dephasing time.
+    and get the corresponding jump operators.
     """
 
     def __init__(
@@ -124,6 +108,14 @@ class Transmon:
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
     ):
+        """...
+
+        Args:
+            hamiltonian: The Hamiltonian of a transmon as a Duffing oscillator.
+            t1: Energy relaxation time.
+            temp: Temperature of the qubit.
+            t2star: Dephasing time.
+        """
         self.hamiltonian = hamiltonian
         self.t1 = t1
         self.temp = temp
@@ -153,13 +145,10 @@ class Transmon:
         return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_jump_operators(self) -> list[Array]:
-        """
-        Return a list of jump operators for the transmon.
+        """Return a list of jump operators for the transmon.
 
-        Return
-        ------
-        list[Array]
-            List of jump operators
+        Returns:
+            List of jump operators.
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         annihilation_op = self.hamiltonian.annihilation_op

@@ -22,19 +22,6 @@ class Coupling(Optimizable, Differentiable):
     while if True it adds a term
 
     \|g\| exp(i phi) * O + h.c.
-
-    Attributes
-    ----------
-    coupling_op: Array
-        The coupling operator. It needs to match the dimension of the
-        composite system it is associated with.
-    g_abs: Quantity
-        Absolute value of the coupling coefficient.
-    g_phase: Quantity=Quantity(0.0, 0.0, 2 * np.pi)
-        Phase of the coupling coefficient.
-    add_hermitian: bool=False
-        A boolean that determines whether the Hermitian conjugate of the coupling
-        is added or not.
     """
 
     def __init__(
@@ -44,6 +31,16 @@ class Coupling(Optimizable, Differentiable):
         g_phase: Quantity = Quantity(0.0, 0.0, 2 * jnp.pi),
         add_hermitian: bool = False,
     ):
+        """...
+
+        Args:
+            coupling_op: The coupling operator. It needs to match the dimension
+                of the composite system it is associated with.
+            g_abs: Absolute value of the coupling coefficient.
+            g_phase: Phase of the coupling coefficient.
+            add_hermitian: Whether the Hermitian conjugate of the coupling is
+                added or not.
+        """
         self.coupling_op = coupling_op
         self.g_abs = g_abs
         self.g_phase = g_phase
@@ -53,9 +50,7 @@ class Coupling(Optimizable, Differentiable):
     def g_coefficient(self) -> Array:
         """Compute the coupling coefficient.
 
-        Returns
-        -------
-        Array
+        Returns:
             The coupling coefficient which is complex in general.
         """
         return self.g_abs.get_value() * jnp.exp(1j * self.g_phase.get_value())
@@ -66,20 +61,6 @@ class Coupling(Optimizable, Differentiable):
 
     @override
     def get_value(self, times: Array) -> Array:
-        """Return the matrix representation of the coupling. For now the couplings
-        are time-independent so it returns n_times copies of the same coupling operator
-
-        Parameters
-        ----------
-        times: Array
-            Array of times.
-
-        Returns
-        -------
-        Array
-            Matrix of shape [n_times, n, n]  with n_times as the number of times
-            and 'n' as the Hilbert space dimension.
-        """
         g_array = self.g_coefficient * jnp.ones((*times.shape, 1, 1))
         coupling_value = g_array * self.coupling_op
         coupling_value += jnp.where(self.add_hermitian, jnp.conjugate(g_array) * self.coupling_op.conj().T, 0.0)

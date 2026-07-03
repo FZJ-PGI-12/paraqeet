@@ -20,13 +20,6 @@ class EquationOfMotion(Differentiable):
     Hamiltonian function this needs to be passed together with a function
     that returns its gradient. The get_value and get_gradient methods
     should return the value and the gradient of A(t).
-
-    Attributes
-    ----------
-    _hamiltonian_func: Callable
-        Function that returns the a Hamiltonian at different times.
-    _hamiltonian_gradient_func: Callable
-        Function that returns the gradient of the Hamiltonian at different times.
     """
 
     _hamiltonian_func: Callable[[Array], Array]
@@ -37,5 +30,13 @@ class EquationOfMotion(Differentiable):
         hamiltonian_func: Callable[[Array], Array],
         hamiltonian_gradient_func: Callable[[Array], Array],
     ):
+        """...
+
+        Args:
+            hamiltonian_func: Function that returns the Hamiltonian at different
+                times.
+            hamiltonian_gradient_func: Function that returns the gradient of the
+                Hamiltonian at different times.
+        """
         self._hamiltonian_func = hamiltonian_func
         self._hamiltonian_gradient_func = hamiltonian_gradient_func

@@ -18,13 +18,6 @@ class QubitHamiltonian(Hamiltonian):
     system that is compatible with the projection of a higher-dimensional
     as ground state and :math:`|1\rangle` = [0 1]^T as excited state. Hence, the Hamiltonian
     should be taken with a minus sign.
-
-    Attributes
-    ----------
-    frequency: Quantity
-        Frequency for characterizing the qubit.
-    drives: list[Drive] | None
-        List of time-dependent drives.
     """
 
     def __init__(
@@ -32,6 +25,12 @@ class QubitHamiltonian(Hamiltonian):
         frequency: Quantity,
         drives: list[Drive] | None = None,
     ):
+        """...
+
+        Args:
+            frequency: Frequency of the qubit.
+            drives: List of time-dependent drives.
+        """
         super().__init__(drives)
         self.frequency = frequency
         self._sigma_minus = sigma_minus()
@@ -43,11 +42,8 @@ class QubitHamiltonian(Hamiltonian):
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of the system.
 
-        Returns
-        -------
-        int
+        Returns:
             Hilbert space dimension.
-
         """
         return 2
 
@@ -80,11 +76,8 @@ class QubitHamiltonian(Hamiltonian):
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
-        Returns
-        -------
-        list[Quantity]
-            Returns the list of parameters of the system.
-
+        Returns:
+            The list of parameters of the system.
         """
         return self.get_drive_parameters() + [self.frequency]
 
@@ -108,18 +101,7 @@ class QubitHamiltonian(Hamiltonian):
 
 class Qubit:
     """A system representing a qubit. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators
-
-    Attributes
-    ----------
-    hamiltonian: QubitHamiltonian
-        The Hamiltonian of the qubit.
-    t1: Quantity | None
-        Energy relaxation time.
-    temp: Quantity | None
-        Temperature of the qubit.
-    t2star: Quantity | None
-        Dephasing time.
+    and get the corresponding jump operators.
     """
 
     def __init__(
@@ -129,6 +111,14 @@ class Qubit:
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
     ):
+        """...
+
+        Args:
+            hamiltonian: The Hamiltonian of the qubit.
+            t1: Energy relaxation time.
+            temp: Temperature of the qubit.
+            t2star: Dephasing time.
+        """
         self.hamiltonian = hamiltonian
         self.t1 = t1
         self.temp = temp

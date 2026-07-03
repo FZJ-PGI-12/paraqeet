@@ -16,28 +16,24 @@ class Hamiltonian(Optimizable, Differentiable):
 
     Implementations can contain subsystems, couplings, and drive lines
     and have to take care of frame transformations.
-
-    Attributes
-    ----------
-    drives : list[Drive]
-        List of time-dependent drives.
-
     """
 
     drives: list[Drive]
 
     def __init__(self, drives: list[Drive] | None = None):
+        """...
+
+        Args:
+            drives: List of time-dependent drives.
+        """
         self.drives = [d for d in drives if d is not None] if drives else []
 
     @abstractmethod
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of the system.
 
-        Returns
-        -------
-        int
+        Returns:
             Hilbert space dimension.
-
         """
         pass
 
@@ -46,13 +42,10 @@ class Hamiltonian(Optimizable, Differentiable):
     def get_value(self, times: Array) -> Array:
         """Calculate the Hamiltonian at different times.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
         Returns:
-        ----------
             The value of the Hamiltonian matrix at different times. The dimension should be
             (n_times, dimension, dimension).
         """
@@ -63,12 +56,10 @@ class Hamiltonian(Optimizable, Differentiable):
     def get_gradient(self, times: Array) -> Array:
         """Calculate the gradient of the Hamiltonian at different times.
 
-        Parameters
-        ----------
+        Args:
             times: Array of times.
 
         Returns:
-        ----------
             The gradient of the Hamiltonian. The dimension should be
             (n_times, n_params, dimension, dimension).
         """
@@ -77,11 +68,8 @@ class Hamiltonian(Optimizable, Differentiable):
     def get_drive_parameters(self) -> list[Quantity]:
         """Return the combined list of parameters from all drives.
 
-        Returns
-        -------
-        list[Quantity]
-            Returns the combined list of parameters from all drives.
-
+        Returns:
+            The combined list of parameters from all drives.
         """
         params = []
         for d in self.drives:
@@ -94,16 +82,11 @@ class Hamiltonian(Optimizable, Differentiable):
         This function can be used be Hamiltonian implementations
         for including the drive.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the sum of all drives in matrix form.
-
+        Returns:
+            The sum of all drives in matrix form.
         """
         dim = self.dimension()
         mat = jnp.zeros((dim, dim))
@@ -117,16 +100,11 @@ class Hamiltonian(Optimizable, Differentiable):
         This function can be used by Hamiltonian implementations
         for including the drive gradients.
 
-        Parameters
-        ----------
-        times: Array
-            Array of time samples.
+        Args:
+            times: Array of time samples.
 
-        Returns
-        -------
-        Array
-            Returns the gradients of all drives.
-
+        Returns:
+            The gradients of all drives.
         """
         dim = self.dimension()
         all_grads = jnp.zeros((times.shape[0], 0, dim, dim))

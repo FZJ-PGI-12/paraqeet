@@ -22,13 +22,6 @@ class CompositeHamiltonian(Hamiltonian):
     This class takes care of the tensor products.
     The list of parameters will contain the parameters of all subsystems
     and couplings in the order they were added.
-
-    Attributes
-    ----------
-    sub_hamiltonians : list[Hamiltonian]
-        List of subsystems' Hamiltonians forming the a composite system.
-    couplings: list[Coupling], optional
-        List of couplings between the various subsystems
     """
 
     _sub_hamiltonians: list[Hamiltonian]
@@ -41,6 +34,13 @@ class CompositeHamiltonian(Hamiltonian):
         sub_hamiltonians: list[Hamiltonian],
         couplings: list[Coupling] | None = None,
     ):
+        """...
+
+        Args:
+            sub_hamiltonians: List of subsystems' Hamiltonians forming the
+                composite system.
+            couplings: List of couplings between the various subsystems.
+        """
         super().__init__()
         if couplings is None:
             couplings = []
@@ -53,11 +53,8 @@ class CompositeHamiltonian(Hamiltonian):
     def get_parameters(self) -> list[Quantity]:
         """Collect parameters from all subsystems and couplings.
 
-        Returns
-        ----------
-        list[Quantity]
-            Returns the list of parameters of the system.
-
+        Returns:
+            The list of parameters of the system.
         """
         params = []
         for sub_hamil in self._sub_hamiltonians:
@@ -73,11 +70,8 @@ class CompositeHamiltonian(Hamiltonian):
         Forward parameters to the subsystems and couplings.
         All of them should find their own parameters in the list.
 
-        Parameters
-        ----------
-        params : list[Quantity]
-            Input list of parameters to be set.
-
+        Args:
+            params: Input list of parameters to be set.
         """
         for sub_hamil in self._sub_hamiltonians:
             sub_hamil.set_optimizable_parameters(params)
@@ -88,21 +82,16 @@ class CompositeHamiltonian(Hamiltonian):
     def dimension(self) -> int:
         """Return the dimension of the system.
 
-        Returns
-        -------
-        int
+        Returns:
             Dimension of the system.
-
         """
         return self._total_dimension
 
     def get_subsystem_dimensions(self) -> list[int]:
         """Return a list of dimensions of each subsystem in the composite Hamiltonian.
 
-        Returns
-        -------
-        list[int]
-            list of dimension of each subsystem.
+        Returns:
+            List of dimension of each subsystem.
         """
         return self._dimensions
 
@@ -122,13 +111,10 @@ class CompositeHamiltonian(Hamiltonian):
     def get_gradient(self, times: Array) -> Array:
         """Calculate the gradient of the composite Hamiltonian.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
         Returns:
-        ----------
             The gradient of shape (n_times, n_params, dimension, dimension) with
             n_times the number of times, n_params the number of optimizable parameters
             and dimension the dimension of the Hilbert space of the composite system.

@@ -67,19 +67,13 @@ def matrix_sqrt_psd(a_mat):
 def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]):
     """Trace out all subsystems except those whose indices are in `keep`.
 
-    Parameters
-    ----------
-    rho : Array
-        Density matrix, shape (D, D) with D = prod(dims).
-    dims : tuple[int, ...]
-        Tuple of subsystem dimensions.
-    keep : tuple[int, ...]
-        Tuple of subsystem indices to keep. Counting starts from 0.
+    Args:
+        rho: Density matrix, shape (D, D) with D = prod(dims).
+        dims: Tuple of subsystem dimensions.
+        keep: Tuple of subsystem indices to keep. Counting starts from 0.
 
-    Returns
-    -------
-    _type_
-        _description_
+    Returns:
+        The reduced density matrix after tracing out the specified subsystems.
     """
     n = len(dims)
     # Row axes 0..n-1, column axes n..2n-1.
@@ -114,17 +108,12 @@ def construct_creation_op(dim: int):
 def construct_basis_state(dim: int, index: int) -> Array:
     r"""Generate pure basis state for a single system.
 
-    Parameters
-    ----------
-    dim : int
-        Dimension of the system.
-    index : int
-        Index of the state, for e.g., for fock state :math:`|0\rangle`, index = 0.
-        Max index = dim - 1.
+    Args:
+        dim: Dimension of the system.
+        index: Index of the state, for e.g., for fock state :math:`|0\rangle`, index = 0.
+            Max index = dim - 1.
 
-    Returns
-    -------
-    Array
+    Returns:
         Basis state corresponding to the dimension and index.
     """
     if index >= dim:
@@ -138,12 +127,9 @@ def construct_basis_state(dim: int, index: int) -> Array:
 def construct_composite_basis_state(dims: tuple[int, ...], index: tuple[int, ...]) -> Array:
     """Generate pure Basis state of a composite system based on the index.
 
-    Parameters
-    ----------
-        dims : tuple[int, int]
-            Subsystem dimensions as a tuple
-        index : tuple[int, int]
-            Index of the subsystem states as a tuple
+    Args:
+        dims: Subsystem dimensions as a tuple.
+        index: Index of the subsystem states as a tuple.
     """
     if len(dims) != len(index):
         raise Exception("Length of dims and index must be same")
@@ -189,18 +175,12 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
 
     The dimensions are assumed to be the same as the subsystems.
 
-    Parameters
-    ----------
-    mat_list : List[Array]
-        List of Matrices for tensor product
-    n : list[int]
-        List of indices for the each mat_list_i
+    Args:
+        mat_list: List of Matrices for tensor product.
+        n: List of indices for the each mat_list_i.
 
-    Returns
-    -------
-    Array
+    Returns:
         Tensor product of mat_list_i's with I's.
-
     """
     # Create identity matrices for all subsystems and
     # fill in mat_list at the corresponding indices
@@ -224,12 +204,12 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
 def np_func_to_jax_func(ham_func: Callable):
     """Convert a Numpy Hamiltonian function to JAX compatible function.
 
-    Adds `vmap` capabilities to vectorize the computation over a batch of times (first variable).
+    Adds `vmap` capabilities to vectorize the computation over a batch of times
+    (first variable).
 
-    Parameters
-    ----------
-    ham_func : Callable
-        Numpy based Hamiltonian function to convert to JAX and vmap compatible function.
+    Args:
+        ham_func: Numpy based Hamiltonian function to convert to JAX and vmap
+            compatible function.
     """
 
     def _jax_wrapper(times: Array, *args, **kwargs):
@@ -243,10 +223,8 @@ def np_func_to_jax_func(ham_func: Callable):
 def qobj_to_array(qobj):
     """Convert a QuTiP-JAX object to a JAX array.
 
-    Parameters
-    ----------
-    qobj : Qobj
-        QuTiP object.
+    Args:
+        qobj: QuTiP object.
     """
     return qobj.data._jxa
 
@@ -254,12 +232,12 @@ def qobj_to_array(qobj):
 def qt_func_to_jax_func(ham_func: Callable):
     """Convert a QuTiP-JAX Hamiltonian function to JAX compatible function.
 
-    Adds `vmap` capabilities to vectorize the computation over a batch of times (first variable).
+    Adds `vmap` capabilities to vectorize the computation over a batch of times
+    (first variable).
 
-    Parameters
-    ----------
-    ham_func : Callable
-        QuTiP based Hamiltonian function to convert to JAX and vmap compatible function.
+    Args:
+        ham_func: QuTiP based Hamiltonian function to convert to JAX and vmap
+            compatible function.
     """
 
     def _jax_wrapper(times: Array, *args, **kwargs):
