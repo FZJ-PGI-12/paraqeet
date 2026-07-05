@@ -25,6 +25,9 @@ extensions = [
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
 autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented"
+
+autoclass_content = "class" # to not have repeated documentation for a class and its init
 
 # Make external types (numpy, scipy, jax, python builtins) clickable in the
 # rendered API documentation.
