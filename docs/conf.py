@@ -70,8 +70,8 @@ html_theme_options = {
     "logo": {
         "alt_text": "ParaQeet",
         "text": "ParaQeet",
-        "image_light": "../logo.png",
-        "image_dark": "../logo.png",
+        "image_light": "_static/logo.png",
+        "image_dark": "_static/logo_dark.png",
     },
     "icon_links": [
         {
@@ -105,7 +105,7 @@ html_theme_options = {
 
 html_title = f"{project} v{release}"
 htmlhelp_basename = "paraqeet"
-html_favicon = "../logo.png"
+html_favicon = "_static/logo.png"
 
 # Disable “View page source” link for index page
 html_show_sourcelink = False

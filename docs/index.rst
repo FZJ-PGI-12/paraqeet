@@ -2,6 +2,13 @@
    :align: center
    :width: 90%
    :alt: logo
+   :class: only-light
+
+.. image:: _static/big_logo_dark.png
+   :align: center
+   :width: 90%
+   :alt: logo
+   :class: only-dark
 
 ===================================================================================
 ParaQeet -  A quantum optimal control toolkit with simple parameter management
