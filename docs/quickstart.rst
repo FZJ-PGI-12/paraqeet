@@ -16,7 +16,7 @@ Define the control signal
 
 Every pulse is built from :class:`~paraqeet.signal.waveform.Waveform` components.
 Here a constant envelope is mixed with a local oscillator by an IQ mixer. All
-tunable values are :class:`~paraqeet.quantity.Quantity` objects — bounded,
+tunable values are :class:`~paraqeet.quantity.Quantity` objects: bounded,
 unit-aware parameters that any optimizer can adjust:
 
 .. code-block:: python
@@ -93,8 +93,8 @@ optimizer:
    result = opt.optimize(times=t_final)
 
 ``result.value`` is the final infidelity, and the optimized values are already
-written back into the ``Quantity`` objects — print ``amplitude`` or ``lo_freq``
-to see them.
+written back into the ``Quantity`` objects by the ``OptimizationMap``;
+print ``amplitude`` or ``lo_freq`` to see them.
 
 Where to go next
 ----------------
