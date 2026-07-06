@@ -21,11 +21,9 @@
    {% block functions %}
    {% if functions %}
    .. rubric:: {{ _('Functions') }}
-
-   .. autosummary::
-      :toctree:                                          
+                                          
    {% for item in functions %}
-      {{ item }}
+   .. autofunction::   {{ fullname }}.{{ item }}
    {%- endfor %}
    {% endif %}
    {% endblock %}
