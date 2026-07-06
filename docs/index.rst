@@ -46,6 +46,12 @@ optimization methods:
 
       Notebooks from single-qubit gates to bosonic state preparation.
 
+   .. grid-item-card:: Code design
+      :link: code_design
+      :link-type: doc
+
+      Extend ParaQeet by subclassing its layer templates (ABCs).
+
    .. grid-item-card:: API Reference
       :link: api
       :link-type: doc
@@ -61,6 +67,7 @@ Getting Started
    installation
    quickstart
    Concepts <concepts>
+   Code design <code_design>
 
 Examples
 ========
@@ -87,9 +94,3 @@ API Reference
 
    contributing
    changelog
-
-More
-====
-
-- :doc:`contributing`
-- :doc:`changelog`
