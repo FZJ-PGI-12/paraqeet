@@ -27,8 +27,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
     _pwc_generator: PWCGenerator
 
     def __init__(self, pwc_generator: PWCGenerator):
-        """...
-
+        """
         Args:
             pwc_generator: The generator from which we extract the pulse.
         """

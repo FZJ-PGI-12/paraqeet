@@ -37,8 +37,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         gate: Array,
         basis_states: Array | None = None,
     ):
-        """...
-
+        """
         Args:
             propagation_func: Function that evaluates the propagation of some
                 initial state. Expected to be of the form

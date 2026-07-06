@@ -45,8 +45,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         target_state: Array,
         overlap: Callable[[Array, Array], Array],
     ):
-        """...
-
+        """
         Args:
             propagation_func: Function that evaluates the propagation of some
                 initial state. Expected to be of the form

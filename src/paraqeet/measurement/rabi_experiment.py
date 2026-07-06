@@ -15,8 +15,7 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
     _freq: Quantity
 
     def __init__(self, qubit_freq: float) -> None:
-        """...
-
+        """
         Args:
             qubit_freq: Resonance of the single qubit.
         """

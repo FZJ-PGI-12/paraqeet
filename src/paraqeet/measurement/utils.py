@@ -1,3 +1,5 @@
+"""Helper functions for measurement module."""
+
 import jax.numpy as jnp
 from jax import jit, vjp, vmap
 

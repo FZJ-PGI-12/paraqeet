@@ -44,7 +44,7 @@ class Propagation(ABC):
         a propagator in matrix form.
 
         Args:
-            time: Array of times.
+            times: Array of times.
 
         Returns:
             Array: Returns the solution of the equations of motion.
