@@ -1,6 +1,7 @@
 import os
 from importlib.metadata import version
 
+from sphinx.domains.python import PyObject
 from sphinx_pyproject import SphinxConfig
 
 project = "ParaQeet"
@@ -25,11 +26,18 @@ extensions = [
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
 autodoc_typehints = "description"
-autodoc_typehints_description_target = "documented" # Removes repeated class definition in __init__
+autodoc_typehints_description_target = "documented"  # Removes repeated class definition in __init__
 
-add_module_names = False
+add_module_names = False  # For cleaner documentation with shorter headings
 
-autoclass_content = "class" # to not have repeated documentation for a class and its init
+# For documentation of class attributes (similar to arguments)
+napoleon_use_ivar = True
+# The :ivar: fields render under a hardcoded "Variables" heading — relabel it to "Attributes".
+for field in PyObject.doc_field_types:
+    if "ivar" in field.names:
+        field.label = "Attributes"
+
+autoclass_content = "class"  # to not have repeated documentation for a class and its init
 
 # Make external types (numpy, scipy, jax, python builtins) clickable in the
 # rendered API documentation.

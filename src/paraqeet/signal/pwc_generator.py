@@ -28,24 +28,16 @@ class PWCGenerator(Generator):
 
     [Krantz2019] Krantz et al., “A Quantum Engineer’s Guide to Superconducting Qubits.” Applied Physics Reviews 6(2019).
 
-    _envs: list[Waveform]
-        List of Envelopes
-    _tlist: Array
-        Left time points for discretization. These can be used for propagation and optimization.
-    _time_grid: Array
-        Time grid used to discretize the pulse. These are shifted from tlist by dt, and doesn't include zero time.
-    _max_amplitude: float
-        Maximum amplitude of the drive
-    _inphase: Quantity
-        The in-phase component of the pulse
-    _outofphase: Quantity
-        The out-of-phase component of the pulse
-    _optimizable_parameters: list[Quantity]
-        List of own parameters that would be optimized by the optimizer.
-    _multiply_flat_top: bool
-        Flag to multiply flat-top-Gaussain pulse to the signal to ensure it
-        starts and ends at zero.
-
+    Attributes:
+        _envs: List of Envelopes
+        _tlist: Left time points for discretization. These can be used for propagation and optimization.
+        _time_grid: Time grid used to discretize the pulse.
+            These are shifted from tlist by dt, and doesn't include zero time.
+        _max_amplitude: Maximum amplitude of the drive
+        _inphase: The in-phase component of the pulse
+        _outofphase: The out-of-phase component of the pulse
+        _optimizable_parameters: List of own parameters that would be optimized by the optimizer.
+        _multiply_flat_top: Flag to multiply flat-top-Gaussain pulse to the signal to ensure it starts and ends at zero.
     """
 
     _envs: list[Waveform]

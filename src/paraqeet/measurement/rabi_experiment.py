@@ -41,7 +41,8 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         Gives the result of a general Rabi oscillation,
         depending of drive frequency, amplitude and time.
 
-        *Note: Returns the measurement value at the last time point.*
+        Note:
+            Returns the measurement value at the last time point.
 
         Returns:
             Result of a general Rabi oscillation.

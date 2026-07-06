@@ -11,27 +11,67 @@ from paraqeet.quantity import Array
 
 
 def sigma_x():
-    """Return the Pauli-X operator."""
+    r"""Return the Pauli-X operator.
+    
+    .. math::
+
+        \begin{bmatrix}
+        0 & 1 \\
+        1 & 0
+        \end{bmatrix}
+    """
     return np.array([[0.0, 1.0], [1.0, 0.0]])
 
 
 def sigma_y():
-    """Return the Pauli-Y operator."""
+    r"""Return the Pauli-Y operator.
+    
+    .. math::
+
+        \begin{bmatrix}
+        0 & -i \\
+        i & 0
+        \end{bmatrix}
+    """
     return np.array([[0.0, -1.0j], [1.0j, 0.0]])
 
 
 def sigma_z():
-    """Return the Pauli-Z operator."""
+    r"""Return the Pauli-Z operator.
+    
+    .. math::
+
+        \begin{bmatrix}
+        1 & 0 \\
+        0 & -1
+        \end{bmatrix}
+    """
     return np.array([[1.0, 0.0], [0.0, -1.0]])
 
 
 def sigma_minus():
-    """Return the Pauli minus operator in the quantum information convention."""
+    r"""Return the Pauli minus operator in the quantum information convention.
+    
+    .. math::
+
+        \begin{bmatrix}
+        0 & 1 \\
+        0 & 0
+        \end{bmatrix}
+    """
     return np.array([[0.0, 1.0], [0.0, 0.0]])
 
 
 def sigma_plus():
-    """Return the Pauli plus operator in the quantum information convention."""
+    r"""Return the Pauli plus operator in the quantum information convention.
+
+    .. math::
+
+        \begin{bmatrix}
+        0 & 0 \\
+        1 & 0
+        \end{bmatrix}
+    """
     return np.array([[0.0, 0.0], [1.0, 0.0]])
 
 
@@ -41,7 +81,7 @@ def identity_operator(dim: int):
 
 
 def dagger(op: Array):
-    """Return transpose conjugate of an operator."""
+    r"""Return transpose conjugate of an operator :math:`O^\dagger = (O^T)^{*}`."""
     return op.T.conj()
 
 
@@ -51,7 +91,10 @@ def matrix_sqrt(op: Array):
     This works for any general matrix with positive eigenvalues.
 
     Uses jax.scipy.lingalg.sqrtm for the implementation.
-    *NOTE - This function does not support automatic-differentiation.*
+
+    Note:
+        This function does not support automatic-differentiation (AD).
+        Use `matrix_sqrt_psd` for positive semi-definite matrices for using AD.
     """
     return sqrtm(op)
 

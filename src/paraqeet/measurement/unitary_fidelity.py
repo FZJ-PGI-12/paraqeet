@@ -88,7 +88,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
 
     @override
     def get_value_and_gradient(self, times: Array) -> tuple[Float, Array]:
-        """Get the analytic expression for the gradient.
+        """Get the analytic expression for the measurement value and its gradient.
 
         Args:
             times: Array of times.

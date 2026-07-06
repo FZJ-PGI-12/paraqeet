@@ -475,13 +475,15 @@ class DCRABEnvelope(Envelope):
     The dCRAB pulse is given as a sum of sinusoidal components as [Müller2022]
 
     .. math::
-        f(t) = g(t)( 1 + \sum_{i=1}^{N_c / 2} c_{2i} \frac{\cos(\omega_{2i} t)}{\Lambda(t)}
-        + \sum_{i = 1} ^ {N_c/2} c_{2i + 1} \frac{\sin(\omega_{2i + 1} t)}{\Lambda(t)} )
+        f(t) = g(t)  \left( 1 + \sum_{i=1}^{N_c / 2} c_{2i} \frac{\cos(\omega_{2i} t)}{\Lambda(t)}
+        + \sum_{i = 1} ^ {N_c/2} c_{2i + 1} \frac{\sin(\omega_{2i + 1} t)}{\Lambda(t)} \right)
 
     Here we consider :math:`g(t) = \Lambda(t) = 1` for simplicity.
     Further, even components are for cosine and odd components are for sine.
-    *Note - The function is designed to work well for even total number of components.
-    For odd total number it may not work as expected.*
+
+    Note:
+        The function is designed to work well for even total number of components.
+        For odd total number it may not work as expected.
 
     [Müller2022] Müller et al. "One decade of quantum optimal control in the chopped random basis"
 

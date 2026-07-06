@@ -54,6 +54,11 @@ class Differentiable(ABC):
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Calculate the value and the gradient of the object.
 
+        Note:
+            The default implementation here gathers the value and the gradient separately.
+            For cases where the value can be obtained during the gradient calculation,
+            this method is overwritten for efficiency.
+
         Returns:
             The value and the gradient of the object.
         """

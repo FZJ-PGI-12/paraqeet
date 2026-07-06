@@ -53,7 +53,8 @@ class NormalizableMeasurement(Measurement):
 class DifferentiableNormalizableMeasurement(Protocol):
     """Protocol for a class that is both NormalizableMeasurement and Differentiable.
 
-    *Note - Only used for type-hinting, not to be used as a base class.*
+    Note:
+        Only used for type-hinting, not to be used as a base class.
     """
 
     def get_value(self, times: Array) -> Array | Float:

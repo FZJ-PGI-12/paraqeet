@@ -77,11 +77,12 @@ class Waveform(Optimizable, Differentiable):
     def _evaluate(self, *args, **kwargs) -> Array:
         """Evaluate the output of the system.
 
-        *Note- It is recommended to make this function a 'pure' JAX function supporting JIT.*
-        *The arguments are supposed to be arranged as (parameters, t), i.e., time after parameters.*
-        *The type of arguments should be jax.Array.*
-        *The output has to be a scalar for a scalar time input to support AD.*
-        *Use jax.squeeze() to remove extra dimensions.*
+        Note:
+            It is recommended to make this function a 'pure' JAX function supporting JIT.
+            The arguments are supposed to be arranged as (parameters, t), i.e., time after parameters.
+            The type of arguments should be jax.Array.
+            The output has to be a scalar for a scalar time input to support AD.
+            Use jax.squeeze() to remove extra dimensions.
         """
         pass
 
@@ -97,14 +98,15 @@ class Waveform(Optimizable, Differentiable):
     def get_gradient(self, times: Array) -> Array:
         """Compute the gradient of the `_evaluate` method.
 
-        Uses Automatic differentiation as a fallback.
-        The `_evaluate` method should be a `pure` function (should take the
-        optimizable parameters as function arguments and doesn't depend on
-        global variables).
-        Refer to https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
-        for functionally `pure` functions.
-        To implement analytical gradients / other methods for gradient
-        computation overwrite this method in the inherited class.
+        Note:
+            This uses Automatic differentiation as a fallback.
+            The `_evaluate` method should be a **pure** function (should take the
+            optimizable parameters as function arguments and doesn't depend on
+            global variables).
+            Refer to https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
+            for functionally `pure` functions.
+            To implement analytical gradients / other methods for gradient
+            computation overwrite this method in the inherited class.
 
         Args:
             times: Array of times.
@@ -145,14 +147,18 @@ class Waveform(Optimizable, Differentiable):
     def get_time_and_parameter_gradient(self, times: Array | float) -> Array:
         r"""Compute the double derivative with respect to parameter and time.
 
-        This function computes $\\frac{\\partial^2 \\Omega}{\\partial t \\partial \alpha}$
-        for a pulse $\\Omega(t)$ and parameter $\\alpha$.
+        This function computes
+
+        .. math::
+            \frac{\partial^2 \Omega}{\partial t \partial \alpha}
+
+        for a pulse :math:`\Omega(t)` and parameter :math:`\alpha`.
 
         Args:
             times: Array of times.
 
         Returns:
-            An array of signals time derivative.
+            An array of signal's time derivative.
 
         """
         params = self.get_parameters()
@@ -388,7 +394,9 @@ class FlatTopGaussianFilter(Waveform):
     """A shape filter that forces the pulse to smoothly start and end at zero.
     This filter multiplies the input pulse with a flat-top Gaussian pulse.
 
-    *Note - Use filters before the generators. Else Automatic differentiation does not work.*
+    Note:
+        Use filters before the generators.
+        Otherwise, automatic differentiation does not work in the current setup.
 
     This is similar to `PWCGenerator.multiply_flat_top = True`.
     """

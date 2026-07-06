@@ -14,14 +14,16 @@ jax.config.update("jax_enable_x64", True)
 
 class Coupling(Optimizable, Differentiable):
     r"""Represents a coupling term between two subsystems. Denoting by O
-    the coupling operator and g = \|g\| exp(i phi) the coupling coefficient,
-    if add_hermitian = False this adds a term
+    the coupling operator and :math:`g = |g| \exp(i \phi)` the coupling coefficient,
+    if `add_hermitian = False` this adds a term
 
-    \|g\| exp(i phi) * O
+    .. math::
+        |g| e^{i \phi} \times O
 
-    while if True it adds a term
+    while if `True` it adds a term
 
-    \|g\| exp(i phi) * O + h.c.
+    .. math::
+        |g| e^{i \phi} \times O + \text{h.c.}
     """
 
     def __init__(
