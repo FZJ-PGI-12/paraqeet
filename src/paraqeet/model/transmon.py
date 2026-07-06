@@ -26,8 +26,7 @@ class TransmonHamiltonian(Hamiltonian):
         anharmonicity: Quantity,
         drives: list[Drive] | None = None,
     ):
-        """...
-
+        """
         Args:
             num_levels: Number of levels included in the modeling of the
                 anharmonic oscillator.
@@ -108,8 +107,7 @@ class Transmon:
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
     ):
-        """...
-
+        """
         Args:
             hamiltonian: The Hamiltonian of a transmon as a Duffing oscillator.
             t1: Energy relaxation time.

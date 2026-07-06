@@ -22,8 +22,7 @@ class ScipyOptimizer(Optimizer):
     _num_iterations: int = 0
 
     def __init__(self, measure_func: Callable[[Array], Float], optimization_map: OptimizationMap) -> None:
-        """...
-
+        """
         Args:
             measure_func: Function implementing measurement of observables
                 to be minimized.

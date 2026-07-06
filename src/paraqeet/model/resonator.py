@@ -25,8 +25,7 @@ class ResonatorHamiltonian(Hamiltonian):
         frequency: Quantity,
         drives: list[Drive] | None = None,
     ):
-        """...
-
+        """
         Args:
             num_fock: Number of Fock states included in the numerical
                 representation of the operators.
@@ -92,8 +91,7 @@ class Resonator:
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
     ):
-        """...
-
+        """
         Args:
             hamiltonian: The Hamiltonian of a resonator in the Fock basis.
             t1: Photon decay time.

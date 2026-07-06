@@ -17,8 +17,7 @@ class Drive(Optimizable, Differentiable):
     """
 
     def __init__(self, drive_op: Array, generator: Generator, add_hermitian: bool = False) -> None:
-        """...
-
+        """
         Args:
             drive_op: The drive operator. It needs to match the dimension of the
                 system it is associated with.

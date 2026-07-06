@@ -37,8 +37,7 @@ class CMAEsOptimizer(Optimizer):
         logger: Logger | None = None,
         callback=None,
     ):
-        """...
-
+        """
         Args:
             measure_func: Function implementing measurement of observables
                 to be minimized.

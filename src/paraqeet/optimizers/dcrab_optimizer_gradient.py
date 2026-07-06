@@ -66,8 +66,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         super_iteration_tol: float = 1e-7,
         seed: int | None = None,
     ):
-        """...
-
+        """
         Args:
             measure_and_gradient_func: Function implementing measurement of
                 observables to be minimized, returning (value, gradient).

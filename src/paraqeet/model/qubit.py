@@ -25,8 +25,7 @@ class QubitHamiltonian(Hamiltonian):
         frequency: Quantity,
         drives: list[Drive] | None = None,
     ):
-        """...
-
+        """
         Args:
             frequency: Frequency of the qubit.
             drives: List of time-dependent drives.
@@ -111,8 +110,7 @@ class Qubit:
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
     ):
-        """...
-
+        """
         Args:
             hamiltonian: The Hamiltonian of the qubit.
             t1: Energy relaxation time.

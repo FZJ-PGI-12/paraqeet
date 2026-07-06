@@ -83,8 +83,7 @@ class Optimizer(ABC):
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
     ):
-        """...
-
+        """
         Args:
             measure_func: Function implementing measurement of observables
                 to be minimized.

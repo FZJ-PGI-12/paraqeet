@@ -31,8 +31,7 @@ class BayesianOptimizer(Optimizer):
         initial_samples=10,
         iterations=100,
     ):
-        """...
-
+        """
         Args:
             measure_func: Function implementing measurement of observables
                 to be minimized.

@@ -34,8 +34,7 @@ class CompositeHamiltonian(Hamiltonian):
         sub_hamiltonians: list[Hamiltonian],
         couplings: list[Coupling] | None = None,
     ):
-        """...
-
+        """
         Args:
             sub_hamiltonians: List of subsystems' Hamiltonians forming the
                 composite system.

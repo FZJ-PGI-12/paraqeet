@@ -27,8 +27,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
     def __init__(
         self, measure_and_gradient_func: Callable[[Array], tuple[Float, Array]], optimization_map: OptimizationMap
     ) -> None:
-        """...
-
+        """
         Args:
             measure_and_gradient_func: Function implementing measurement of
                 observables to be minimized, returning (value, gradient).

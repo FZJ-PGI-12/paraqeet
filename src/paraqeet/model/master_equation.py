@@ -28,8 +28,7 @@ class MasterEquation(EquationOfMotion):
         hamiltonian_gradient_func: Callable[[Array], Array],
         jump_operators: list[Array],
     ):
-        """...
-
+        """
         Args:
             hamiltonian_func: Hamiltonian as a function of time.
             hamiltonian_gradient_func: Hamiltonian gradients as a function of time.

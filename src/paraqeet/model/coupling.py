@@ -31,8 +31,7 @@ class Coupling(Optimizable, Differentiable):
         g_phase: Quantity = Quantity(0.0, 0.0, 2 * jnp.pi),
         add_hermitian: bool = False,
     ):
-        """...
-
+        """
         Args:
             coupling_op: The coupling operator. It needs to match the dimension
                 of the composite system it is associated with.
