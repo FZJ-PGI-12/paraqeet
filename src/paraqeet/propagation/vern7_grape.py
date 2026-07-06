@@ -26,9 +26,6 @@ class Vern7GRAPE(Vern7, Differentiable):
     Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
-    The `eom_func` function is required in addition to `eom_gradient_func` as a computationally
-    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
-
     The state propagations are done by the `Vern7 ODE` method.
 
     Attributes:

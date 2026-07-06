@@ -1,4 +1,4 @@
-"""Class definition of the unitary fidelity model."""
+"""Class definition of the unitary fidelity."""
 
 from collections.abc import Callable
 from typing import override
@@ -14,20 +14,14 @@ jax.config.update("jax_enable_x64", True)
 
 
 class UnitaryFidelity(NormalizableMeasurement, Differentiable):
-    """Unitary fidelity measurement model.
+    """Fidelity measure that compares overlap of unitary matrices.
 
-    Fidelity measure that compares the propagator with a desired gate
-    by way of L2 norm.
-
-    The `propagation_func` function is required in addition to `propagation_gradient_func` as a computationally
-    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
-    and evaluation of `measure` function.
+    It compares the propagator with a desired gate by using the L2 norm.
     """
 
     _basis_states: Array | None
     _target_costates: Array
     _propagation_func: Callable[[Array], Array]
-
     _propagation_gradient_func: Callable[[Array], Array]
 
     def __init__(

@@ -25,10 +25,6 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     of the form `fid(overlap: Array, *args, **kwargs) -> float`.
 
     The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
-
-    The `propagation_func` function is required in addition to `propagation_gradient_func` as a computationally
-    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
-    and evaluation of `measure` function.
     """
 
     _target_state: Array
