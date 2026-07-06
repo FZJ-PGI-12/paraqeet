@@ -25,7 +25,9 @@ extensions = [
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
 autodoc_typehints = "description"
-autodoc_typehints_description_target = "documented"
+autodoc_typehints_description_target = "documented" # Removes repeated class definition in __init__
+
+add_module_names = False
 
 autoclass_content = "class" # to not have repeated documentation for a class and its init
 
