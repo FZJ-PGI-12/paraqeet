@@ -53,7 +53,7 @@ class ScipyOptimizer(Optimizer):
         self._options.update(opts)
 
     def update_option(self, key, val):
-        """Updates one option for the system."""
+        """Update one option for the system."""
         self._options[key] = val
 
     @property

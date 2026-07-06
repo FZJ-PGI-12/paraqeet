@@ -1,3 +1,5 @@
+"""Piecewise-constant (PWC) pulse generator used for GRAPE-style optimization."""
+
 from functools import partial
 from typing import override
 

@@ -23,7 +23,7 @@ class Coupling(Optimizable, Differentiable):
     while if `True` it adds a term
 
     .. math::
-        |g| e^{i \phi} \times O + \text{h.c.}
+        |g| e^{i \phi} \times O + \text{h.c.}.
     """
 
     def __init__(

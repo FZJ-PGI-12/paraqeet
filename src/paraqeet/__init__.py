@@ -1,4 +1,20 @@
-"""paraqeet: A quantum optimal control toolkit with simple parameter management."""
+"""**ParaQeet: A quantum optimal control toolkit with simple parameter management.**
+
+Choose a pulse parametrization, simulate a quantum system, and optimize.
+The package is organized in layers, each interacting only with the layer
+above it in the hierarchy:
+
+- ``signal``: pulse parametrizations (envelopes, generators, mixers).
+- ``model``: Hamiltonians, drives, and equations of motion.
+- ``propagation``: solvers of the equation of motion.
+- ``measurement``: fidelities and other goal functions.
+- ``optimizers``: optimization algorithms (gradient based and gradient free).
+
+All tunable values are represented by `Quantity` objects. The parameters to
+optimize are collected in an `OptimizationMap`, which is handed to an
+optimizer together with a goal function.
+
+"""
 
 import jax
 

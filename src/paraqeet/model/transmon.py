@@ -48,17 +48,17 @@ class TransmonHamiltonian(Hamiltonian):
 
     @property
     def annihilation_op(self) -> Array:
-        """Return the annihilation operator"""
+        """Return the annihilation operator."""
         return self._annihilation_op
 
     @property
     def num_op(self) -> Array:
-        """Return the Fock number operator"""
+        """Return the Fock number operator."""
         return self._num_op
 
     @property
     def anharmonic_term(self) -> Array:
-        """Return the anharmonic_term"""
+        """Return the anharmonic_term."""
         return self._anharmonic_term
 
     @override

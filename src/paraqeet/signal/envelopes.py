@@ -1,4 +1,4 @@
-"""Class definition for the Envelopes."""
+"""Signal envelope shapes (constant, Gaussian, flat-top Gaussian, dCRAB) for pulse parametrization."""
 
 import time
 from functools import partial
@@ -85,7 +85,11 @@ class Envelope(Waveform):
 
 
 class ConstantEnvelope(Envelope):
-    """A constant envelope tone with a fixed length."""
+    """A constant envelope tone with a fixed length.
+
+    The envelope has the value of the amplitude for all times up to `t_final`
+    and is zero afterwards.
+    """
 
     @override
     @partial(jit, static_argnums=(0,))
@@ -156,7 +160,7 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_time: Quantity | None = None,
         t_final: Quantity | None = None,
     ):
-        """Initialize the flat-top Gaussian envelope.
+        """Initialize the flat-top Gaussian envelope (a constant section framed by error-function shaped ramps).
 
         Args:
             amplitude: The amplitude of the envelope.
@@ -214,7 +218,7 @@ class FlatTopGaussianEnvelope(Envelope):
     @override
     @partial(jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
-        """Compute the output of the device.
+        """Evaluate the flat-top Gaussian envelope.
 
         Explicitly depends on the optimizable parameters.
 
@@ -241,7 +245,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
-        """Compute the output of the device.
+        """Evaluate the time derivative of the envelope.
 
         Explicitly depends on the optimizable parameters.
 
@@ -253,8 +257,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The output of the device that explicitly depends
-            on the optimizable parameters.
+            The time derivative of the envelope at the given timestamps.
 
         """
         ramp_up = 1 + erf((times - t_up) / ramp_time)
@@ -271,7 +274,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_t_up_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
-        """Compute the output of the device.
+        """Evaluate the gradient of the envelope with respect to `t_up`.
 
         Explicitly depends on the optimizable parameters.
 
@@ -283,8 +286,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The output of the device that explicitly depends
-            on the optimizable parameters.
+            The gradient of the envelope with respect to `t_up`.
 
         """
         ramp_up_dir = FlatTopGaussianEnvelope._dir_erf((times - t_up) / ramp_time)
@@ -294,7 +296,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_t_down_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
-        """Compute the output of the device.
+        """Evaluate the gradient of the envelope with respect to `t_down`.
 
         Explicitly depends on the optimizable parameters.
 
@@ -306,8 +308,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The output of the device that explicitly depends
-            on the optimizable parameters.
+            The gradient of the envelope with respect to `t_down`.
 
         """
         ramp_up = 1 + erf((times - t_up) / ramp_time)
@@ -317,7 +318,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_ramp_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
-        """Compute the output of the device.
+        """Evaluate the gradient of the envelope with respect to `ramp_time`.
 
         Explicitly depends on the optimizable parameters.
 
@@ -329,8 +330,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The output of the device that explicitly depends
-            on the optimizable parameters.
+            The gradient of the envelope with respect to `ramp_time`.
 
         """
         ramp_up = 1 + erf((times - t_up) / ramp_time)
@@ -347,13 +347,13 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @override
     def get_value(self, times: Array) -> Array:
-        """Get the output of the device on time stamps.
+        """Compute the flat-top Gaussian envelope at the given timestamps.
 
         Args:
             times: Array of times.
 
         Returns:
-            The output of the device.
+            The envelope evaluated at the given timestamps.
 
         """
         amp = self._amplitude.get_value()
@@ -411,26 +411,28 @@ class FlatTopGaussianEnvelope(Envelope):
 
 
 class GaussEnvelope(Envelope):
-    """Create a simple Gauss envelope.
+    """A simple Gaussian envelope.
 
-    _amplitude: Quantity
-        The amplitude of the envelope.
-    _t_final: Quantity
-        The length in time of the envelope.
+    The Gaussian is centered at `t_final / 2` with a standard deviation of
+    `t_final / 8`.
+
+    Attributes:
+        _amplitude: The amplitude of the envelope.
+        _t_final: The length in time of the envelope.
 
     """
 
     @override
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_final: Array, times: Array) -> Array:  # type: ignore
-        """Calculate the unscaled gaussian signal.
+        """Calculate the gaussian signal.
 
         Args:
             t_final: Duration of the signal to calculate the center of the gaussian from.
             times: Array of times.
 
         Returns:
-            The unscaled gaussian signal.
+            The gaussian signal.
         """
         sigma = t_final / 8
         env = amp * jnp.exp(-(1 / 2) * (times - t_final / 2) ** 2 / sigma**2)
@@ -438,14 +440,14 @@ class GaussEnvelope(Envelope):
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate_time_gradient(self, amp: Array, t_final: Array, times: Array) -> Array:
-        """Calculate the unscaled gaussian signal.
+        """Calculate the gaussian signal.
 
         Args:
             t_final: Duration of the signal to calculate the center of the gaussian from.
             times: Array of times.
 
         Returns:
-            The unscaled gaussian signals time derivative.
+            The gaussian signals time derivative.
         """
         sigma = t_final / 8
         time_grad = self._evaluate(amp, t_final, times) * -1.0 * (times - t_final / 2) / sigma**2
@@ -487,15 +489,12 @@ class DCRABEnvelope(Envelope):
 
     [Müller2022] Müller et al. "One decade of quantum optimal control in the chopped random basis"
 
-    _total_num_components: int
-        Total number of components in the current dCRAB basis. This is the number of coefficients
-        or the number of frequencies present. NOT the sum of them.
-    _real_coefficients: list[Quantity]
-        Vector quantity as a list of amplitudes of individual sinusoidal components.
-    _real_frequencies: list[Quantity]
-        Vector quantity as a list of frequencies of individual sinusoidal components.
-    _real_phases: list[Quantity]
-        Vector quantity as a list of phases of individual sinusoidal components.
+    Attributes:
+        _total_num_components: Total number of components in the current dCRAB basis. This is the number of coefficients
+            or the number of frequencies present. NOT the sum of them.
+        _real_coefficients: Vector quantity as a list of amplitudes of individual sinusoidal components.
+        _real_frequencies: Vector quantity as a list of frequencies of individual sinusoidal components.
+        _real_phases: Vector quantity as a list of phases of individual sinusoidal components.
     """
 
     _amplitude: Quantity
@@ -527,9 +526,10 @@ class DCRABEnvelope(Envelope):
             t_final: The length in time of the envelope.
             num_components: Number of components added each iteration to the dCRAB basis. Defaults to 2.
                 Advised to be an even number.
-            min_frequency: Minimum frequency for the dCRAB basis.
-            max_frequency: Maximum frequency for the dCRAB basis.
-            seed: Seed for the random number generator.
+            min_frequency: Minimum frequency of the randomized sinusoidal components.
+            max_frequency: Maximum frequency of the randomized sinusoidal components.
+            seed: Seed for the randomized coefficients, frequencies, and phases.
+                If None, a seed is derived from the current time.
         """
         self._amplitude = amplitude or Quantity(
             1.55e8,

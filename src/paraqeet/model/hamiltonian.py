@@ -78,7 +78,7 @@ class Hamiltonian(Optimizable, Differentiable):
     def get_drive_matrix(self, times: Array) -> Array:
         """Return the sum of all drives in matrix form.
 
-        This function can be used be Hamiltonian implementations
+        This function can be used by Hamiltonian implementations
         for including the drive.
 
         Args:

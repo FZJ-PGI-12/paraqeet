@@ -1,4 +1,4 @@
-"""Class definition for the Quantity model."""
+"""Physical quantities with bounds and units, stored in an optimizer-friendly representation."""
 
 from __future__ import annotations  # necessary for type hints
 
@@ -71,6 +71,29 @@ class Quantity:
             IncompatibleQuantityException: If misconfigured by the user,
                 e.g., bounds are not given or the wrong shape.
 
+        Examples:
+
+            .. code-block:: python
+
+                >>> from paraqeet import Quantity
+                >>> freq = Quantity(4.8e9, min_value=4e9, max_value=6e9, unit="Hz", name="frequency")
+                >>> float(freq)
+                4800000000.0
+                >>> freq.set_value(5e9)
+                >>> float(freq)
+                5000000000.0
+
+            A quantity can also be derived from other quantities via a relation and
+            is updated automatically when its dependencies change. Note that the
+            derived quantity inherits the bounds of its dependencies, so the relation
+            must map into that range:
+
+            .. code-block:: python
+
+                >>> detuned = Quantity.relational(freq, lambda f: f - 1e9)
+                >>> float(detuned)
+                4000000000.0
+
         """
         if value is None or max_value is None or min_value is None:
             raise IncompatibleQuantityException("value, minimum, and maximum must be not null")
@@ -121,9 +144,9 @@ class Quantity:
 
     @staticmethod
     def _fix_parameter_types(param: Array | float) -> Array:
-        """
-        Makes sure that the parameter is a jax numpy array of type jnp.float64. Primitive floats are wrapped into a
-        1d-array
+        """Make sure that the parameter is a jax numpy array of type jnp.float64.
+
+        Primitive floats are wrapped into a 1d-array
         """
         p = jnp.array([param]) if np.shape(param) == () else jnp.array(param)
         return p.astype(jnp.float64)
@@ -152,7 +175,7 @@ class Quantity:
         using this quantity, returns an empty list.
 
         Returns:
-            List of parameter dependencies.
+            List of parameter dependents.
         """
         return self._dependents
 
@@ -401,8 +424,13 @@ class Quantity:
     def set_value_and_limits(self, value: Array | float, min_value: Array | float, max_value: Array | float) -> None:
         """Set the value and the limits to new values at the same time.
 
-        This function does not raise an exception if the new value is outside
-        of the old limits.
+        Unlike `set_value`, this function does not raise an exception if the
+        new value is outside of the old limits.
+
+        Args:
+            value: New value of the quantity.
+            min_value: New minimum this quantity is allowed to take.
+            max_value: New maximum this quantity is allowed to take.
         """
         value_fixed = self._fix_parameter_types(value)
         min_value_fixed = self._fix_parameter_types(min_value)
@@ -415,10 +443,11 @@ class Quantity:
         self._set_value(value_fixed)
 
     def get_name(self) -> str:
-        """Return the symbol or description or this quantity.
+        """Return the symbol or description of this quantity.
 
-        Note that this does not have to be unique.
-        For uniquely identifying a quantity, use :meth:`get_name`.
+        Note:
+            The name does not have to be unique.
+            For uniquely identifying a quantity, use :meth:`get_name`.
 
         Returns:
             Value of the name attribute.
@@ -426,7 +455,7 @@ class Quantity:
         return self._name
 
     def set_name(self, name: str) -> None:
-        """Assigns a new name to this quantity."""
+        """Assign a new name to this quantity."""
         self._name = name
 
     def get_unit(self) -> str:
@@ -725,10 +754,17 @@ class Quantity:
     def to_dict(self) -> dict:
         """Create a dictionary representation of this quantity that can be stored.
 
-        The returned dict is compatible with the from_dict function, i.e. the
+        The returned dict is compatible with the `from_dict` function, i.e. the
         quantity can be fully restored including its bounds, name, unit, etc.
         Higher dimensional quantities (tensors) will be flattened into a list
         but their proper shape is stored as well.
+
+        Returns:
+            dict: Dictionary with the unit, shape, two_pi flag, value, and bounds
+            of this quantity.
+
+        Raises:
+            UserWarning: If this is a dependent quantity, which cannot be serialized yet.
         """
         if self.dependent:
             raise UserWarning("Saving of dependent quantities is not supported yet")
@@ -743,11 +779,15 @@ class Quantity:
         }
 
     def from_dict(self, data: dict) -> None:
-        """Loads the quantity from a dictionary.
+        """Load the quantity from a dictionary.
 
-        The dictionary must have the same form as the one created by the to_dict
+        The dictionary must have the same form as the one created by the `to_dict`
         function. All properties of this quantity (value, name, etc.) will be
         overwritten.
+
+        Args:
+            data: Dictionary representation of a quantity, as created by `to_dict`.
+
         """
         self._unit = data["unit"]
         self._shape = data["shape"]

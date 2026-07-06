@@ -1,4 +1,4 @@
-"""Class definition for the Optimizable model."""
+"""Interface for classes that expose optimizable parameters to the optimizer."""
 
 from abc import ABC, abstractmethod
 
@@ -47,7 +47,7 @@ class Optimizable(ABC):
 
     @property
     def optimizable_parameters(self) -> list[Quantity]:
-        """Get the optimizable parameters
+        """Get the optimizable parameters.
 
         Returns:
             The list of optimizable parameters associated with the object.
@@ -56,7 +56,7 @@ class Optimizable(ABC):
 
     @property
     def all_optimizable_parameters(self) -> list[Quantity]:
-        """Get the optimizable parameters
+        """Get the optimizable parameters.
 
         Returns:
             The list of all the optimizable parameters considered in the

@@ -1,4 +1,4 @@
-"""Class definition of the Weighted Sum Goal model."""
+"""GOAT-over-GRAPE measurement combining GRAPE propagation with analytic GOAT gradients."""
 
 from typing import override
 

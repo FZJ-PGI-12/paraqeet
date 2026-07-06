@@ -2,6 +2,7 @@
 [Heeres2017], in particular Eqs. 21 of the supplementary material.
 
 References
+----------
 [Heeres2017] R. Heeres et al., Nat. Comm. 8, 94 (2017)
 """
 
@@ -91,7 +92,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         opt_params = self._pwc_generator.all_optimizable_parameters
 
         def get_partial_derivative(n, vec):
-            """Derivatives of the smoothness measure for 3 cases: starting point, center and end point.
+            """Compute the derivatives of the smoothness measure for 3 cases: starting point, center and end point.
 
             Args:
                 n: Location in the piecewise constant vector.

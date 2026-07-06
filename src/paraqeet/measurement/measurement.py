@@ -1,4 +1,4 @@
-"""Class definition of the Measurement model."""
+"""Abstract measurement interfaces whose values serve as optimization goal functions."""
 
 from abc import ABC, abstractmethod
 from typing import Protocol

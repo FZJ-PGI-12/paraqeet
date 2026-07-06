@@ -87,7 +87,7 @@ def dagger(op: Array):
 
 @jit
 def matrix_sqrt(op: Array):
-    """Returns matrix square root using jax based implementation.
+    """Return the matrix square root using jax based implementation.
     This works for any general matrix with positive eigenvalues.
 
     Uses jax.scipy.lingalg.sqrtm for the implementation.
@@ -144,7 +144,7 @@ def construct_annihilation_op(dim: int):
 
 
 def construct_creation_op(dim: int):
-    """Create bosonic creation operator for a system with dimensions `dim`"""
+    """Create bosonic creation operator for a system with dimensions `dim`."""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=-1)
 
 
@@ -191,7 +191,7 @@ def convert_state_to_dm(state: Array):
 
 @jit
 def tensor(op_a: Array, op_b: Array) -> Array:
-    """Tensor product of two operators"""
+    """Tensor product of two operators."""
     return jnp.kron(op_a, op_b)
 
 

@@ -1,18 +1,19 @@
-"""Class definition of Serializer."""
+"""Interface for serializers that read and write configurations to a persistent format."""
 
 from abc import ABC, abstractmethod
 
 
 class Serializer(ABC):
-    """
-    Interface for any class that can read and write configurations to a persistent format, e.g. a file. This can be used
-    for the state of an optimization or the setup of the layers.
+    """Interface for any class that can read and write configurations to a persistent format, e.g. a file.
+
+    This can be used for the state of an optimization or the setup of the layers.
     """
 
     @abstractmethod
     def save(self, data: dict, comment: str | None = None) -> None:
-        """
-        Saves data to a persistent format. The actual format depends on the implementation.
+        """Saves data to a persistent format.
+
+        The actual format depends on the implementation.
 
         Args:
             data: the data to be exported
@@ -23,13 +24,14 @@ class Serializer(ABC):
 
     @abstractmethod
     def load(self) -> dict:
-        """Loads and returns data that was previously saved."""
+        """Load and return data that was previously saved."""
         pass
 
     @abstractmethod
     def load_comment(self) -> str | None:
-        """Loads and returns the comment, if any, that was previously saved with the data. Returns None if no comment
-        was saved.
+        """Load and return the comment, if any, that was previously saved with the data.
+
+        Returns None if no comment was saved.
 
         Returns:
             The comment, or None if no comment was saved.

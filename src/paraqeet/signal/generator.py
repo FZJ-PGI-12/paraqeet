@@ -1,4 +1,4 @@
-"""Class definition of the Generator model."""
+"""Abstract base class for the signal generation stack that produces the control signal."""
 
 from abc import abstractmethod
 from typing import override

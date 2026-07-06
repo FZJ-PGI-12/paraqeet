@@ -1,4 +1,4 @@
-"""Class definition of an open system."""
+"""Lindblad master equation of motion for open quantum systems."""
 
 from collections.abc import Callable
 from typing import override

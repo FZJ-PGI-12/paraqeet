@@ -1,4 +1,4 @@
-"""Class definition of the optimizable model."""
+"""Abstract equation of motion of the form dx/dt = A(t) x, e.g. Schrödinger or Lindblad equations."""
 
 from collections.abc import Callable
 
@@ -7,9 +7,10 @@ from paraqeet.quantity import Array
 
 
 class EquationOfMotion(Differentiable):
-    """Represents the equation of motion of a system, assumed to be of the form
+    r"""Represents the equation of motion of a system, assumed to be of the form
 
-    d x /d t = A(t) x
+    .. math::
+        \frac{d x}{d t} = A(t) x
 
     with x a vector or more generally a matrix characterizing the system, and A(t)
     another time-dependent matrix.

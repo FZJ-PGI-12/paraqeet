@@ -11,7 +11,7 @@ from paraqeet.quantity import Array
 
 @jit
 def convert_dm_to_vec(state_dm: Array) -> jnp.ndarray:
-    """Helper function to convert a density matrix to vectorized form."""
+    """Convert a density matrix to vectorized form."""
     dim = state_dm.shape[1]
     vec = jnp.reshape(jnp.transpose(state_dm), (-1, dim**2, 1))
     if vec.shape[0] == 1:
@@ -21,7 +21,7 @@ def convert_dm_to_vec(state_dm: Array) -> jnp.ndarray:
 
 @jit
 def convert_vec_to_dm(state_vec: Array) -> jnp.ndarray:
-    """Helper function to convert a Vectorized density matrix to matrix form."""
+    """Convert a vectorized density matrix to matrix form."""
     dim = math.isqrt(state_vec.shape[0])
     dm = jnp.reshape(state_vec, (-1, dim, dim))
     if dm.shape[0] == 1:
@@ -80,7 +80,7 @@ def grape_operator_sandwich_function_closed(ham_grads, fwd_prop_states, rev_prop
     r"""
     Operator sandwich function for GRAPE for closed system implementing
         .. math::
-            \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+            \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle.
     """
     fwd_multiply = vmap(jnp.matmul, in_axes=(0, 0))(ham_grads, fwd_prop_states)
     grad = vmap(jnp.matmul, in_axes=(0, 0))(rev_prop_states, fwd_multiply)
@@ -92,7 +92,7 @@ def grape_operator_sandwich_function_open(ham_grads, fwd_prop_states, rev_prop_s
     r"""
     Operator sandwich function for GRAPE for open system implementing
         .. math::
-            \text{Tr}(\sigma(t) [H, \rho(t)])
+            \text{Tr}(\sigma(t) [H, \rho(t)]).
     """
     fwd_multiply = vmap(commutator, in_axes=(0, 0))(ham_grads, fwd_prop_states)
     grad = vmap(jnp.matmul, in_axes=(0, 0))(rev_prop_states, fwd_multiply)

@@ -1,4 +1,4 @@
-"""Helper functions for measurement module."""
+"""Utility functions for measurements, such as state overlaps and Jacobian helpers."""
 
 import jax.numpy as jnp
 from jax import jit, vjp, vmap
@@ -43,7 +43,7 @@ def overlap_vectorized_density_matrix_mixed_states(final_state: Array, target_st
 
 
 def vjp_jacobian(f):
-    """Returns a function that computes the Jacobian of f w.r.t. its first arg via vjp."""
+    """Return a function that computes the Jacobian of f w.r.t. its first arg via vjp."""
 
     @jit
     def jac_fn(x, *args, **kwargs):

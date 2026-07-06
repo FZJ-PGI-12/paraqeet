@@ -1,4 +1,4 @@
-"""Class definition of a closed model."""
+"""Schrödinger equation of motion for closed quantum systems."""
 
 from typing import override
 

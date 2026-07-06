@@ -21,7 +21,21 @@ extensions = [
     "sphinx.ext.intersphinx",  # Cross-link to NumPy/SciPy/JAX/Python docs
     "myst_parser",  #  Include md in html
     "sphinx.ext.linkcode",  # To add a source button to each class
+    "sphinx_design",  # Grid cards on the landing page
+    "sphinx_copybutton",  # Copy-to-clipboard buttons on code blocks
+    "sphinxext.opengraph",  # Social media / description metadata
 ]
+
+# Strip console and doctest prompts when copying code blocks
+copybutton_prompt_text = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp = True
+
+# OpenGraph metadata for link previews
+ogp_site_url = "https://paraqeet.readthedocs.io/en/latest/"
+ogp_image = "https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/raw/main/big_logo.png"
+ogp_description_length = 200
+ogp_site_name = "ParaQeet - A quantum optimal control toolkit with simple parameter management"
+
 
 # Automatically extract typehints when specified and place them in
 # descriptions of the relevant function/method.
@@ -77,13 +91,13 @@ html_theme_options = {
     },
     "navbar_start": ["navbar-logo", "version-switcher"],
     "navbar_center": ["navbar-nav"],
-    "navbar_end": ["search-field.html", "theme-switcher", "navbar-icon-links"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "show_nav_level": 1,
     "show_toc_level": 1,
     "show_prev_next": True,  # Enable prev/next buttons
     "collapse_navigation": True,
-    "header_links_before_dropdown": 4,
-    "navbar_persistent": [],
+    "header_links_before_dropdown": 5,
+    "navbar_persistent": ["search-button"],
     "show_version_warning_banner": True,
     "secondary_sidebar_items": ["page-toc"],  # show subheadings in sidebar
 }
@@ -91,6 +105,7 @@ html_theme_options = {
 
 html_title = f"{project} v{release}"
 htmlhelp_basename = "paraqeet"
+html_favicon = "../logo.png"
 
 # Disable “View page source” link for index page
 html_show_sourcelink = False

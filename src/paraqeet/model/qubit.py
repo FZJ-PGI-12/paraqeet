@@ -48,27 +48,27 @@ class QubitHamiltonian(Hamiltonian):
 
     @property
     def sigma_minus(self) -> Array:
-        """Return the sigma minus operator"""
+        """Return the sigma minus operator."""
         return self._sigma_minus
 
     @property
     def sigma_plus(self) -> Array:
-        """Return the sigme plus operator"""
+        """Return the sigme plus operator."""
         return self._sigma_minus.T
 
     @property
     def sigma_x(self) -> Array:
-        """Return the Pauli X operator"""
+        """Return the Pauli X operator."""
         return self._sigma_x
 
     @property
     def sigma_y(self) -> Array:
-        """Return the Pauli Y operator"""
+        """Return the Pauli Y operator."""
         return self._sigma_y
 
     @property
     def sigma_z(self) -> Array:
-        """Return the Pauli Z operator"""
+        """Return the Pauli Z operator."""
         return self._sigma_z
 
     @override

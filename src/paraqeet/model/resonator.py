@@ -44,12 +44,12 @@ class ResonatorHamiltonian(Hamiltonian):
 
     @property
     def annihilation_op(self) -> Array:
-        """Return the annihilation operator"""
+        """Return the annihilation operator."""
         return self._annihilation_op
 
     @property
     def num_op(self) -> Array:
-        """Return the Fock number operator"""
+        """Return the Fock number operator."""
         return self._num_op
 
     @override

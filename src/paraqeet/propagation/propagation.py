@@ -1,4 +1,4 @@
-"""Class definition of the Propagation model."""
+"""Abstract base class for solvers that propagate the equation of motion in time."""
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable

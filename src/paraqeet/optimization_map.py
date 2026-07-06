@@ -1,4 +1,4 @@
-"""Class definition for the Optimizable Map model."""
+"""Map that collects the parameters to optimize and traces them back to their Optimizable objects."""
 
 from collections.abc import Callable
 
@@ -15,6 +15,18 @@ class OptimizationMap:
     interface. With this class, Quantities can be traced back to the
     Optimizable to which they belong. Before optimization, an instance of this
     class needs to be filled and passed to the optimizer.
+
+    Examples:
+
+    .. code-block:: python
+
+        >>> from paraqeet import OptimizationMap
+        >>> from paraqeet.signal.envelopes import ConstantEnvelope
+        >>> envelope = ConstantEnvelope()
+        >>> optmap = OptimizationMap()
+        >>> optmap.add(envelope, [envelope.amplitude])
+        >>> len(optmap.get_all_parameters())
+        1
 
     """
 

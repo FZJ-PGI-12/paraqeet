@@ -62,7 +62,7 @@ pre-commit install
   ```
   Update the requirements.in and then 
   ```bash
-    pip-compile requirements.in > requirements.txt
+    pip-compile --no-strip-extras --output-file=requirements.txt requirements.in
   ```
 
 ## Changelog

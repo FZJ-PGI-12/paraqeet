@@ -7,44 +7,56 @@
 ParaQeet -  A quantum optimal control toolkit with simple parameter management
 ===================================================================================
 
-You can find quick information on :ref:`installation <install>` and contributing in the `README`_ and `CONTRIBUTING`_ documents.
-
 Choose a pulse parametrization, simulate a quantum system, and optimize.
 
-Combining Quantum Optimal Control methods with automatic differentiation with JAX.
-Aimed at resource efficient computation.
-
-We use a top-down approach to make the codebase modular.
-Each module interacts only with the module above it in hierarchy.
-
-.. _README: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/README.md
-.. _CONTRIBUTING: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/blob/main/CONTRIBUTING.md
-
-.. image:: layers.png
-   :align: center
-   :width: 60%
-   :alt: layers
-
-
-Currently implemented optimization methods
+ParaQeet combines quantum optimal control methods with automatic differentiation
+via JAX, aimed at resource efficient computation. Currently implemented
+optimization methods:
 
 - GRAPE: Gradient Ascent Pulse Engineering
 - GOAT: Gradient Optimization of Analytic conTrols
 - dCRAB: (Gradient based) dressed Chopped RAndom Basis
 - GOAToverGRAPE: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
 
-Usage
-============
+.. grid:: 1 2 2 4
+   :gutter: 3
+
+   .. grid-item-card:: Installation
+      :link: installation
+      :link-type: doc
+
+      Install ParaQeet from PyPI or set up a development environment.
+
+   .. grid-item-card:: Quickstart
+      :link: quickstart
+      :link-type: doc
+
+      Your first optimization in five minutes: a qubit flip with GOAT.
+
+   .. grid-item-card:: Examples
+      :link: notebooks/index
+      :link-type: doc
+
+      Notebooks from single-qubit gates to bosonic state preparation.
+
+   .. grid-item-card:: API Reference
+      :link: api
+      :link-type: doc
+
+      Full documentation of every module, class, and function.
+
+Getting Started
+===============
+
 .. toctree::
    :maxdepth: 1
-   
-   installation
-   contributing
 
+   installation
+   quickstart
+   Concepts <concepts>
 
 Examples
 ========
-We introduce the usage of the package with some examples. These are also available as interactive notebooks.
 
 .. toctree::
    :maxdepth: 1
@@ -52,20 +64,25 @@ We introduce the usage of the package with some examples. These are also availab
    notebooks/index
 
 
-API Documentation
-=================
+API Reference
+=============
 
-.. autosummary::
-   :toctree: _autosummary
-   :template: custom-module-template.rst
-   :recursive:
+.. toctree::
+   :maxdepth: 1
 
-   paraqeet
+   API <api>
 
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 1
+   :caption: Project
+   :hidden:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   contributing
+   changelog
+
+More
+====
+
+- :doc:`contributing`
+- :doc:`changelog`

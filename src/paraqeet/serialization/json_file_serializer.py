@@ -16,7 +16,7 @@ class JSONFileSerializer(Serializer):
         self._file = file
 
     def save(self, data: dict, comment: str | None = None) -> None:
-        """Saves the data and the optional comment to the JSON file that was specified in the constructor."""
+        """Save the data and the optional comment to the JSON file that was specified in the constructor."""
         # The comment is simply stored in the same dict
         if comment:
             data[self._COMMENT_KEY] = comment
@@ -24,7 +24,7 @@ class JSONFileSerializer(Serializer):
             json.dump(data, f)
 
     def load(self) -> dict:
-        """Loads and returns the data from JSON file."""
+        """Load and return the data from JSON file."""
         with open(self._file) as f:
             data = json.load(f)
             if not isinstance(data, dict):
@@ -35,7 +35,7 @@ class JSONFileSerializer(Serializer):
             return data
 
     def load_comment(self) -> str | None:
-        """Loads and returns the comment from the JSON file."""
+        """Load and return the comment from the JSON file."""
         with open(self._file) as f:
             data = json.load(f)
             return data[self._COMMENT_KEY] if self._COMMENT_KEY in data else None

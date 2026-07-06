@@ -1,4 +1,4 @@
-"""Class definition for the Device model."""
+"""Waveform base class and signal components such as local oscillators, DRAG mixers, and filters."""
 
 from abc import abstractmethod
 from collections.abc import Callable

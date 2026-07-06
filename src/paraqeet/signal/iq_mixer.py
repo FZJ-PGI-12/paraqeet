@@ -1,4 +1,4 @@
-"""Class definition for the Sinusoidal generator model."""
+"""IQ mixer that combines envelopes with a local oscillator into a complex control signal."""
 
 from typing import override
 
@@ -17,7 +17,7 @@ class ComplexIQMixer(Generator):
 
     Args:
         envelopes : List[Waveform]
-            List of input devices.
+            List of input envelope waveforms.
         frequency : Quantity | None
             Frequency of local oscillator.
         phase : Quantity | None
@@ -115,7 +115,7 @@ class ComplexIQMixer(Generator):
         return self._complex_signal(times)
 
     def _complex_signal_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        r"""Collect and returns the gradients from all devices.
+        r"""Collect and returns the gradients from all envelope waveforms.
 
         Since the
 
@@ -180,14 +180,14 @@ class ComplexIQMixer(Generator):
 
 
 class IQMixer(ComplexIQMixer):
-    """Control signal generation.
+    """Real IQ signal generation.
 
     Waveforms of envelopes (low bandwidth) are mixed with a local oscillator
     (high bandwidth) to apply a desired real control field to the system.
 
     Args:
         envelopes : List[Waveform]
-            List of input devices.
+            List of input envelope waveforms.
         frequency : Quantity | None
             Frequency of local oscillator.
         phase : Quantity | None
