@@ -17,8 +17,8 @@ from paraqeet.quantity import Array, Float, Quantity
 jax.config.update("jax_enable_x64", True)
 
 
-class Waveform(Optimizable, Differentiable):
-    """Classical electronics."""
+class Signal(Optimizable, Differentiable):
+    """Classical electronics for signal generation."""
 
     # AC: the following annotation does not seem needed / correct.
     _partial_grads_function: Callable | None = None
@@ -174,7 +174,7 @@ class Waveform(Optimizable, Differentiable):
         return jnp.squeeze(grads, axis=-1)
 
 
-class LocalOscillator(Waveform):
+class LocalOscillator(Signal):
     """A local oscillators carrier signal."""
 
     _lo_freq: Quantity
@@ -256,7 +256,7 @@ class LocalOscillator(Waveform):
         return 1j * times * self._evaluate(freq, times)  # type: ignore
 
 
-class DRAGMixer(Waveform):
+class DRAGMixer(Signal):
     """A DRAG mixed waveform signal.
 
     The DRAG component is calculated for a set of envelopes and added in
@@ -266,7 +266,7 @@ class DRAGMixer(Waveform):
 
     def __init__(
         self,
-        envelopes: Waveform | list[Waveform],
+        envelopes: Signal | list[Signal],
         deltas: list[Quantity] | None = None,
     ):
         """
@@ -286,12 +286,12 @@ class DRAGMixer(Waveform):
             params += [DRAGMixer._get_tone_delta(tone)]
         return params
 
-    def get_envelopes(self) -> list[Waveform]:
+    def get_envelopes(self) -> list[Signal]:
         """Return envelopes from the DRAGMixer."""
         return self._envs
 
     @staticmethod
-    def _add_deltas(envelope_tones: list[Waveform], deltas: list[Quantity] | None) -> None:
+    def _add_deltas(envelope_tones: list[Signal], deltas: list[Quantity] | None) -> None:
         """Add a DRAG delta parameter Quantity to each envelope Tone.
 
         Args:
@@ -317,7 +317,7 @@ class DRAGMixer(Waveform):
             )
 
     @staticmethod
-    def _get_tone_delta(tone: Waveform) -> Any:
+    def _get_tone_delta(tone: Signal) -> Any:
         """Return a list of deltas for each tone.
 
         Args:
@@ -390,7 +390,7 @@ class DRAGMixer(Waveform):
         return jnp.array(gradients)
 
 
-class FlatTopGaussianFilter(Waveform):
+class FlatTopGaussianFilter(Signal):
     """A shape filter that forces the pulse to smoothly start and end at zero.
     This filter multiplies the input pulse with a flat-top Gaussian pulse.
 
@@ -401,10 +401,10 @@ class FlatTopGaussianFilter(Waveform):
     This is similar to `PWCGenerator.multiply_flat_top = True`.
     """
 
-    _envs: list[Waveform]
+    _envs: list[Signal]
     _t_final: Quantity
 
-    def __init__(self, envelopes: Waveform | list[Waveform], t_final: Quantity):
+    def __init__(self, envelopes: Signal | list[Signal], t_final: Quantity):
         """
         Args:
             envelopes: The list of shape defining signal envelops.
@@ -420,7 +420,7 @@ class FlatTopGaussianFilter(Waveform):
             params += tone.get_parameters()
         return params
 
-    def get_envelopes(self) -> list[Waveform]:
+    def get_envelopes(self) -> list[Signal]:
         """Return envelopes from the FlatTopGaussianFilter."""
         return self._envs
 

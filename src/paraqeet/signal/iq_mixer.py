@@ -6,7 +6,7 @@ import jax.numpy as jnp
 
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
-from paraqeet.signal.waveform import LocalOscillator, Waveform
+from paraqeet.signal.signal import LocalOscillator, Signal
 
 
 class ComplexIQMixer(Generator):
@@ -24,13 +24,13 @@ class ComplexIQMixer(Generator):
             Phase of local oscillator.
     """
 
-    _envs: list[Waveform]
+    _envs: list[Signal]
     _phase: Quantity
     _optimizable_parameters: list[Quantity] = []
 
     def __init__(
         self,
-        envelopes: list[Waveform] | None,
+        envelopes: list[Signal] | None,
         frequency: Quantity | None = None,
         phase: Quantity | None = None,
     ):

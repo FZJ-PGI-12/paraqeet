@@ -16,7 +16,7 @@ from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.signal.waveform import FlatTopGaussianFilter
+from paraqeet.signal.signal import FlatTopGaussianFilter
 
 T_FINAL = 20e-9
 TLIST = np.linspace(0, T_FINAL, 40)

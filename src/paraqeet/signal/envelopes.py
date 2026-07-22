@@ -10,12 +10,12 @@ from jax import jit
 from jax.scipy.special import erf
 
 from paraqeet.quantity import Array, Quantity
-from paraqeet.signal.waveform import Waveform
+from paraqeet.signal.signal import Signal
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Envelope(Waveform):
+class Envelope(Signal):
     """Classical Signal Envelope class."""
 
     _amplitude: Quantity

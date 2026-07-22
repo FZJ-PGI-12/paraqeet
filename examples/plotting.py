@@ -13,7 +13,7 @@ from paraqeet.propagation.propagation import Propagation
 from paraqeet.propagation.utils import convert_vec_to_dm
 from paraqeet.quantity import Array
 from paraqeet.signal.generator import Generator
-from paraqeet.signal.waveform import Waveform
+from paraqeet.signal.signal import Signal
 
 matplotlib_inline.backend_inline.set_matplotlib_formats("png")
 
@@ -130,7 +130,7 @@ def plot_signal_and_dynamics(
 
 
 def plot_signal(
-    device: Generator | Waveform,
+    device: Generator | Signal,
     times: Array,
     axes=None,
     linestyle: str = "-",

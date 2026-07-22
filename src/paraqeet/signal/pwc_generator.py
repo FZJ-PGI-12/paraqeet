@@ -9,7 +9,7 @@ from jax.scipy.special import erf
 
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
-from paraqeet.signal.waveform import Waveform
+from paraqeet.signal.signal import Signal
 
 
 class PWCGenerator(Generator):
@@ -42,7 +42,7 @@ class PWCGenerator(Generator):
         _multiply_flat_top: Flag to multiply flat-top-Gaussain pulse to the signal to ensure it starts and ends at zero.
     """
 
-    _envs: list[Waveform]
+    _envs: list[Signal]
     _tlist: Array
     _time_grid: Array
     _max_amplitude: float
@@ -53,7 +53,7 @@ class PWCGenerator(Generator):
 
     def __init__(
         self,
-        envelopes: list[Waveform] | None,
+        envelopes: list[Signal] | None,
         tlist: Array,
         max_amplitude: float | None = None,
     ):
@@ -133,7 +133,7 @@ class PWCGenerator(Generator):
         self._setup_inphase_and_outofphase()
 
     @property
-    def envs(self) -> list[Waveform]:
+    def envs(self) -> list[Signal]:
         """Gets the list of envelopes.
 
         Returns:
