@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from paraqeet.differentiable import Differentiable
+from paraqeet.eom.master_equation import MasterEquation
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.transmon import Transmon, TransmonHamiltonian
-from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.transmon import Transmon, TransmonHamiltonian
+from paraqeet.propagation.expm import Expm
 from paraqeet.propagation.utils import convert_dm_to_vec, lindblad_step
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
@@ -99,7 +99,7 @@ def expm(open_transmon):
     init_dm = np.matmul(init, init.T)
     init_dm_vec = convert_dm_to_vec(init_dm)
 
-    prop = ScipyExpm(open_transmon.get_value, resolution=100e9, initial_state=init_dm_vec)
+    prop = Expm(open_transmon.get_value, resolution=100e9, initial_state=init_dm_vec)
     return prop
 
 

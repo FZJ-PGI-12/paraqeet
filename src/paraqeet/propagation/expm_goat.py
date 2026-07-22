@@ -14,12 +14,12 @@ from jax.lax import scan
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.expm import Expm
 from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array, Float
 
 
-class ScipyExpmGOAT(ScipyExpm, Differentiable):
+class ExpmGOAT(Expm, Differentiable):
     """Solve EOMs by piecewise exponentiation via Scipy using GOAT."""
 
     _eom_gradient_func: Callable[[Array], Array]
@@ -87,7 +87,7 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
     def _propagate_gradient(self, n_params, psis_t, eom, grads, steps_arr):
         def propagate_body(psis_t, index):
             goat_ham = self._create_goat_ham(n_params, eom[index], grads[index])
-            psis_t = ScipyExpm._propagate_psi(goat_ham, psis_t)
+            psis_t = Expm._propagate_psi(goat_ham, psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from scipy.stats import unitary_group
 
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.quantity import Quantity
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 

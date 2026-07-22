@@ -5,9 +5,9 @@ from typing import override
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.model.utils import sigma_minus, sigma_x, sigma_y, sigma_z
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.utils import sigma_minus, sigma_x, sigma_y, sigma_z
 from paraqeet.quantity import Array, Quantity
 
 

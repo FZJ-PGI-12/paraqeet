@@ -1,4 +1,4 @@
-"""Class definition of the Transmon Hamiltonian model."""
+"""Class definition of the Resonator Hamiltonian model."""
 
 from typing import override
 
@@ -6,45 +6,41 @@ import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
-class TransmonHamiltonian(Hamiltonian):
-    """Hamiltonian of an anharmonic oscillator.
+class ResonatorHamiltonian(Hamiltonian):
+    """Hamiltonian of a harmonic oscillator.
 
-    Optimizable parameters are the ground frequency and the anharmonicity.
+    The only optimizable parameter is the frequency.
     """
 
     def __init__(
         self,
-        num_levels: int,
+        num_fock: int,
         frequency: Quantity,
-        anharmonicity: Quantity,
         drives: list[Drive] | None = None,
     ):
         """
         Args:
-            num_levels: Number of levels included in the modeling of the
-                anharmonic oscillator.
-            frequency: Frequency of the anharmonic oscillator.
-            anharmonicity: Anharmonicity of the oscillator.
+            num_fock: Number of Fock states included in the numerical
+                representation of the operators.
+            frequency: Frequency of the harmonic oscillator.
             drives: List of time-dependent drives of the subsystem.
         """
         super().__init__(drives=drives)
-        self._num_levels = num_levels
+        self._num_fock = num_fock
         self.frequency = frequency
-        self.anharmonicity = anharmonicity
-        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, num_levels, dtype=jnp.float64), k=1))
-        self._num_op = self._annihilation_op.T @ self._annihilation_op
-        self._anharmonic_term = 0.5 * self._num_op @ (self._num_op - jnp.eye(num_levels))
+        self._annihilation_op = jnp.sqrt(jnp.diag(jnp.arange(1, num_fock, dtype=jnp.float64), k=1))
+        self._num_op = self._annihilation_op.conj().T @ self._annihilation_op
 
     @override
     def dimension(self) -> int:
-        return self._num_levels
+        return self._num_fock
 
     @property
     def annihilation_op(self) -> Array:
@@ -56,11 +52,6 @@ class TransmonHamiltonian(Hamiltonian):
         """Return the Fock number operator."""
         return self._num_op
 
-    @property
-    def anharmonic_term(self) -> Array:
-        """Return the anharmonic_term."""
-        return self._anharmonic_term
-
     @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
@@ -68,16 +59,11 @@ class TransmonHamiltonian(Hamiltonian):
         Returns:
             The list of parameters of the system.
         """
-        return self.get_drive_parameters() + [
-            self.frequency,
-            self.anharmonicity,
-        ]
+        return self.get_drive_parameters() + [self.frequency]
 
     @override
     def get_value(self, times: Array) -> Array:
-        hamil_0 = (
-            self.frequency.get_value() * self._num_op + self.anharmonicity.get_value() * self._anharmonic_term
-        ) * jnp.ones((*times.shape, 1, 1))
+        hamil_0 = self.frequency.get_value() * self._num_op * jnp.ones((*times.shape, 1, 1))
         hamil = hamil_0 + self.get_drive_matrix(times)
         return hamil
 
@@ -86,31 +72,29 @@ class TransmonHamiltonian(Hamiltonian):
         # Fetch the gradient of the drive
         derivatives = self.get_drive_gradients(times)
 
+        # Combine with the derivative wrt the frequency
         if self._is_optimized(self.frequency):
-            hamil = self._num_op * jnp.ones([*times.shape, 1, 1, 1])
-            derivatives = jnp.append(derivatives, hamil, axis=1)
-        if self._is_optimized(self.anharmonicity):
-            hamil = self._anharmonic_term * jnp.ones([*times.shape, 1, 1, 1])
-            derivatives = jnp.append(derivatives, hamil, axis=1)
+            grad = self._num_op * jnp.ones([*times.shape, 1, 1, 1])
+            derivatives = jnp.append(derivatives, grad, axis=1)
         return derivatives
 
 
-class Transmon:
-    """A system representing a transmon. It allows to store information about relaxation and dephasing times
+class Resonator:
+    """A system representing a resonator. It allows to store information about relaxation and dephasing times
     and get the corresponding jump operators.
     """
 
     def __init__(
         self,
-        hamiltonian: TransmonHamiltonian,
+        hamiltonian: ResonatorHamiltonian,
         t1: Quantity | None = None,
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
     ):
         """
         Args:
-            hamiltonian: The Hamiltonian of a transmon as a Duffing oscillator.
-            t1: Energy relaxation time.
+            hamiltonian: The Hamiltonian of a resonator in the Fock basis.
+            t1: Photon decay time.
             temp: Temperature of the qubit.
             t2star: Dephasing time.
         """
@@ -129,21 +113,13 @@ class Transmon:
 
         hbar_over_kb = 7.638232582257738e-12
         beta = hbar_over_kb / (self.temp.get_value())
-
-        freq = self.hamiltonian.frequency.get_value()
-        anharm = self.hamiltonian.anharmonicity.get_value()
-        dimension = self.hamiltonian.dimension()
-        if dimension > 2:
-            freq_diff = jnp.diag(jnp.array([freq + n * anharm for n in range(dimension)]), k=0)
-            nbar = jnp.exp(-beta * freq_diff)
-        else:
-            nbar = jnp.exp(-beta * freq)
+        nbar = jnp.exp(-beta * self.hamiltonian.frequency.get_value())
         gamma_temp = gamma * nbar
         gamma_t1 = gamma * (nbar + 1)
         return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_jump_operators(self) -> list[Array]:
-        """Return a list of jump operators for the transmon.
+        """Return a list of jump operators for the resonator.
 
         Returns:
             List of jump operators.

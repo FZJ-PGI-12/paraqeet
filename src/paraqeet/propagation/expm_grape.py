@@ -18,13 +18,13 @@ from jax.scipy.linalg import expm, expm_frechet
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.expm import Expm
 from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpmGRAPE(ScipyExpm, Differentiable):
+class ExpmGRAPE(Expm, Differentiable):
     """Solve EOMs by piecewise exponentiation via Scipy using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
@@ -265,7 +265,7 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
 
         eom = self._eom_func(time_grid) * dt
 
-        us = vmap(ScipyExpmGRAPE._exponentiate, in_axes=(0,))(eom)
+        us = vmap(ExpmGRAPE._exponentiate, in_axes=(0,))(eom)
 
         psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
@@ -315,9 +315,9 @@ class ScipyExpmGRAPE(ScipyExpm, Differentiable):
         dim = hams.shape[-2]
 
         if self._schirmer_derivative:
-            exponentiating_function = ScipyExpmGRAPE._exponentiate_schirmer
+            exponentiating_function = ExpmGRAPE._exponentiate_schirmer
         else:
-            exponentiating_function = ScipyExpmGRAPE._exponentiate_frechet
+            exponentiating_function = ExpmGRAPE._exponentiate_frechet
 
         for i in range(n_params):
             us, d_us = vmap(exponentiating_function, in_axes=(None, 0, 0))(dim, hams, dh_dps[:, i, ...])

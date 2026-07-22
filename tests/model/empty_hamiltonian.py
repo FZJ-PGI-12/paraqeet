@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 

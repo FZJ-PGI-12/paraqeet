@@ -2,7 +2,7 @@
 
 from typing import override
 
-from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.hamiltonian.equation_of_motion import EquationOfMotion
 from paraqeet.quantity import Array
 
 

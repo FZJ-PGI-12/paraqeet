@@ -5,7 +5,8 @@ The package is organized in layers, each interacting only with the layer
 above it in the hierarchy:
 
 - ``signal``: pulse parametrizations (envelopes, generators, mixers).
-- ``model``: Hamiltonians, drives, and equations of motion.
+- ``hamiltonain``: Hamiltonian, composite Hamiltonian, and drive Hamiltonians.
+- ``eom``: different equations of motion.
 - ``propagation``: solvers of the equation of motion.
 - ``measurement``: fidelities and other goal functions.
 - ``optimizers``: optimization algorithms (gradient based and gradient free).
@@ -18,16 +19,16 @@ optimizer together with a goal function.
 
 import jax
 
+from paraqeet.eom.master_equation import MasterEquation
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity, StateTransferFidelityGRAPE
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.scipy_expm import ScipyExpm
-from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.expm_goat import ExpmGOAT
+from paraqeet.propagation.expm_grape import ExpmGRAPE
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
@@ -45,9 +46,9 @@ __all__ = [
     "SchroedingerEquation",
     "SchrEq",
     "MasterEquation",
-    "ScipyExpm",
-    "ScipyExpmGOAT",
-    "ScipyExpmGRAPE",
+    "Expm",
+    "ExpmGOAT",
+    "ExpmGRAPE",
     "StateTransferFidelity",
     "StateTransferFidelityGRAPE",
     "UnitaryFidelity",

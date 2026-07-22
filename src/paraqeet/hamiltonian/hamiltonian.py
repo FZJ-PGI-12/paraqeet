@@ -6,7 +6,7 @@ from typing import override
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.model.drive import Drive
+from paraqeet.hamiltonian.drive import Drive
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Quantity
 

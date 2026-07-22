@@ -3,17 +3,17 @@
 import numpy as np
 import pytest
 
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.logger import Logger
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.utils import overlap_state_vector
-from paraqeet.model.drive import Drive
-from paraqeet.model.qubit import QubitHamiltonian
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
 from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.expm_goat import ExpmGOAT
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import ConstantEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -40,9 +40,7 @@ MODEL = SchroedingerEquation(
     hamiltonian_gradient_func=QUBIT_HAMILTONIAN.get_gradient,
 )
 
-PROP = ScipyExpmGOAT(
-    eom_func=MODEL.get_value, eom_gradient_func=MODEL.get_gradient, resolution=100e9, initial_state=INIT
-)
+PROP = ExpmGOAT(eom_func=MODEL.get_value, eom_gradient_func=MODEL.get_gradient, resolution=100e9, initial_state=INIT)
 
 
 ZEROONE = StateTransferFidelity(

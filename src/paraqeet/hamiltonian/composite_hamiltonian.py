@@ -10,9 +10,9 @@ from typing import override
 import jax.numpy as jnp
 import numpy as np
 
-from paraqeet.model.coupling import Coupling
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.model.utils import tensor_product_with_identity
+from paraqeet.hamiltonian.coupling import Coupling
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.utils import tensor_product_with_identity
 from paraqeet.quantity import Array, Quantity
 
 

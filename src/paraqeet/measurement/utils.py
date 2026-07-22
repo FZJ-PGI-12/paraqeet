@@ -3,7 +3,7 @@
 import jax.numpy as jnp
 from jax import jit, vjp, vmap
 
-from paraqeet.model.utils import matrix_sqrt_psd
+from paraqeet.hamiltonian.utils import matrix_sqrt_psd
 from paraqeet.propagation.utils import convert_vec_to_dm
 from paraqeet.quantity import Array
 

@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from paraqeet.model.utils import (
+from paraqeet.hamiltonian.utils import (
     construct_annihilation_op,
     construct_composite_basis_state,
     construct_creation_op,

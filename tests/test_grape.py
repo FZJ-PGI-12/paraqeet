@@ -3,17 +3,17 @@
 import numpy as np
 import pytest
 
+from paraqeet.eom.master_equation import MasterEquation
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.measurement.state_transfer_fidelity import (
     StateTransferFidelityGRAPE,
 )
 from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
-from paraqeet.model.drive import Drive
-from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.qubit import Qubit, QubitHamiltonian
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.expm_grape import ExpmGRAPE
 from paraqeet.propagation.utils import (
     convert_dm_to_vec,
     grape_operator_sandwich_function_closed,
@@ -112,7 +112,7 @@ def states(model, mode, solver):
         operator_sandwich_func = grape_operator_sandwich_function_open
 
     if solver == "expm":
-        prop_method = ScipyExpmGRAPE(
+        prop_method = ExpmGRAPE(
             eom_func=model.get_value,
             eom_gradient_func=model.get_gradient,
             resolution=1 / DELTAT,

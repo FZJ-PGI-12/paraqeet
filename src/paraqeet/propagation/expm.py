@@ -15,7 +15,7 @@ from paraqeet.quantity import Array
 jax.config.update("jax_enable_x64", True)
 
 
-class ScipyExpm(StatePropagation):
+class Expm(StatePropagation):
     """Piecewise matrix exponential propagation system.
 
     Solve the equation of motion by piecewise exponentiation with the
@@ -45,7 +45,7 @@ class ScipyExpm(StatePropagation):
         """
 
         def propagate_body(psis_t, index):
-            psis_t = ScipyExpm._propagate_psi(eom[index], psis_t)
+            psis_t = Expm._propagate_psi(eom[index], psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)

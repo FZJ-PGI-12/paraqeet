@@ -6,7 +6,7 @@ from typing import override
 import jax.numpy as jnp
 from jax import vmap
 
-from paraqeet.model.equation_of_motion import EquationOfMotion
+from paraqeet.hamiltonian.equation_of_motion import EquationOfMotion
 from paraqeet.quantity import Array
 
 

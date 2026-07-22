@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.euler import Euler
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 from tests.propagation.test_common_propagation import check_propagation
