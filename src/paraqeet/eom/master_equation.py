@@ -27,7 +27,7 @@ class MasterEquation(EquationOfMotion):
         hamiltonian_func: Callable[[Array], Array],
         hamiltonian_gradient_func: Callable[[Array], Array],
         jump_operators: list[Array],
-    ):
+    ) -> None:
         """
         Args:
             hamiltonian_func: Hamiltonian as a function of time.
@@ -49,7 +49,7 @@ class MasterEquation(EquationOfMotion):
         return self._jump_operators
 
     @jump_operators.setter
-    def jump_operators(self, jump_ops: list[Array]):
+    def jump_operators(self, jump_ops: list[Array]) -> None:
         """Set a list of jump operators (each multiplied by the sqrt of their corresponding decay rates)."""
         self._jump_operators = jump_ops
 

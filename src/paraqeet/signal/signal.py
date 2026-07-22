@@ -1,4 +1,4 @@
-"""Waveform base class and signal components such as local oscillators, DRAG mixers, and filters."""
+"""Signal base class and signal components such as local oscillators, DRAG mixers, and filters."""
 
 from abc import abstractmethod
 from collections.abc import Callable
@@ -27,7 +27,7 @@ class Signal(Optimizable, Differentiable):
 
     def _compute_gradient_function(
         self, signal_function: Callable, argnums: tuple[int, ...], vmap_axes: tuple[int | None, ...]
-    ):
+    ) -> None:
         """Return a compute gradient function from the signal function.
 
         Args:
@@ -179,7 +179,7 @@ class LocalOscillator(Signal):
 
     _lo_freq: Quantity
 
-    def __init__(self, frequency: Quantity | None = None):
+    def __init__(self, frequency: Quantity | None = None) -> None:
         """
         Args:
             frequency: Frequency of the local oscillator.
@@ -257,7 +257,7 @@ class LocalOscillator(Signal):
 
 
 class DRAGMixer(Signal):
-    """A DRAG mixed waveform signal.
+    """A DRAG correction applied to signal envelope.
 
     The DRAG component is calculated for a set of envelopes and added in
     orthogonal direction in the x-y plane.
@@ -268,10 +268,10 @@ class DRAGMixer(Signal):
         self,
         envelopes: Signal | list[Signal],
         deltas: list[Quantity] | None = None,
-    ):
+    ) -> None:
         """
         Args:
-            envelopes: The list of shape defining signal envelops.
+            envelopes: The list of shape defining signal envelopes.
             deltas: The delta parameter by which to shift the frequency of the DRAG
                 component.
         """
@@ -321,7 +321,7 @@ class DRAGMixer(Signal):
         """Return a list of deltas for each tone.
 
         Args:
-            tone: The waveform that generates the signal.
+            tone: The signal envelope.
 
         Returns:
             List of delta values for each tone.
@@ -404,7 +404,7 @@ class FlatTopGaussianFilter(Signal):
     _envs: list[Signal]
     _t_final: Quantity
 
-    def __init__(self, envelopes: Signal | list[Signal], t_final: Quantity):
+    def __init__(self, envelopes: Signal | list[Signal], t_final: Quantity) -> None:
         """
         Args:
             envelopes: The list of shape defining signal envelops.

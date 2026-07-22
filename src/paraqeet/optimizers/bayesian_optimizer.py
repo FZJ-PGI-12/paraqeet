@@ -30,7 +30,7 @@ class BayesianOptimizer(Optimizer):
         optimization_map: OptimizationMap,
         initial_samples=10,
         iterations=100,
-    ):
+    ) -> None:
         """
         Args:
             measure_func: Function implementing measurement of observables

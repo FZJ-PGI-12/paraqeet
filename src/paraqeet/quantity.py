@@ -12,7 +12,7 @@ import jax.numpy as jnp
 import jaxtyping
 import numpy as np
 
-from paraqeet.exceptions import IncompatibleQuantityException
+from paraqeet.exceptions import ConfigurationException, IncompatibleQuantityException
 
 type Array = np.typing.NDArray[np.float64] | np.typing.NDArray[np.complexfloating] | jax.Array
 type Float = float | jaxtyping.Float[jaxtyping.Array, ""]  # noqa F722
@@ -55,7 +55,7 @@ class Quantity:
         unit: str = "",
         name: str = "",
         two_pi: bool = False,
-    ):
+    ) -> None:
         """Represent any physical quantity used in model or pulse specification.
 
         Args:
@@ -308,12 +308,16 @@ class Quantity:
         for qty in self._dependencies:
             qty._dependents.append(self)
 
-    def update(self):
+    def update(self) -> None:
         """Update value of the parameter.
 
         Update function that is called if a value that this quantity
         is dependent on is changed.
         """
+        if self._relation is None:
+            raise ConfigurationException(
+                "Cannot update an independent Quantity. Call add_relation to make it depend on other Quantities."
+            )
         self._set_value(self._relation(*[qty.get_value() for qty in self._dependencies]))
 
     def get_value(self) -> Array:
@@ -627,7 +631,7 @@ class Quantity:
         """Magic method for representation into array."""
         return jnp.array(self.get_value())
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Magic method for calculation of length."""
         return self._length
 
@@ -645,7 +649,7 @@ class Quantity:
         """Magic method for absolute value calculation."""
         return abs(self.get_value())
 
-    def __float__(self):
+    def __float__(self) -> float:
         """Magic method for float conversion.
 
         Raises:
@@ -656,15 +660,15 @@ class Quantity:
             raise NotImplementedError
         return float(np.squeeze(self.get_value()))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Magic method for human readable representation."""
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Human readable representation of the parameters set to optimize."""
         return self._to_string(self.get_value())
 
-    def _to_string(self, val: Array):
+    def _to_string(self, val: Array) -> str:
         """Represent parameter as custom defined string value."""
         ret = ""
         if len(val) > 1:

@@ -60,7 +60,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         reverse_step_function: Callable,
         operator_sandwich_function: Callable,
         jump_operators: list[Array] | None = None,
-    ):
+    ) -> None:
         r"""
         Args:
             eom_func: Equation of motion (EOM) as a function of time.
@@ -109,7 +109,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         return self._reverse_step_function
 
     @reverse_step_function.setter
-    def reverse_step_function(self, reverse_step_func: Callable):
+    def reverse_step_function(self, reverse_step_func: Callable) -> None:
         """Set the step function for solving the backward propagation of the target state."""
         self._reverse_step_function = reverse_step_func
 
@@ -128,7 +128,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         return self._operator_sandwich_function
 
     @operator_sandwich_function.setter
-    def operator_sandwich_function(self, operator_sandwich_func: Callable):
+    def operator_sandwich_function(self, operator_sandwich_func: Callable) -> None:
         """Set the step function for solving the backward propagation of the target state."""
         self._operator_sandwich_function = operator_sandwich_func
 

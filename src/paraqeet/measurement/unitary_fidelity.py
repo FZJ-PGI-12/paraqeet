@@ -30,7 +30,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         propagation_gradient_func: Callable[[Array], Array],
         gate: Array,
         basis_states: Array | None = None,
-    ):
+    ) -> None:
         """
         Args:
             propagation_func: Function that evaluates the propagation of some
@@ -118,7 +118,7 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         _, grad = self.get_value_and_gradient(times)
         return grad
 
-    def set_ideal_gate(self, gate: Array):
+    def set_ideal_gate(self, gate: Array) -> None:
         """Compute target states for the L2 norm.
 
         Args:

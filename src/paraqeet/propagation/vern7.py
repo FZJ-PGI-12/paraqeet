@@ -32,7 +32,7 @@ class Vern7(StatePropagation):
         initial_state: Array,
         step_function: Callable,
         jump_operators: list[Array] | None = None,
-    ):
+    ) -> None:
         """
         Args:
             eom_func: Equation of motion (EOM) as a function of time.
@@ -52,7 +52,7 @@ class Vern7(StatePropagation):
         return self._step_function
 
     @step_function.setter
-    def step_function(self, step_func: Callable):
+    def step_function(self, step_func: Callable) -> None:
         """Set the step function for solving the EOM."""
         self._step_function = step_func
 
@@ -62,7 +62,7 @@ class Vern7(StatePropagation):
         return self._jump_operators
 
     @jump_operators.setter
-    def jump_operators(self, jump_ops: list[Array] | None):
+    def jump_operators(self, jump_ops: list[Array] | None) -> None:
         """Set the jump operators added to the EOM."""
         if jump_ops is not None:
             self._jump_operators = jump_ops

@@ -12,7 +12,7 @@ class JSONFileSerializer(Serializer):
     _COMMENT_KEY = "_comment"
     _file: str
 
-    def __init__(self, file: str):
+    def __init__(self, file: str) -> None:
         self._file = file
 
     def save(self, data: dict, comment: str | None = None) -> None:

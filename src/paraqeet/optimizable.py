@@ -64,11 +64,11 @@ class Optimizable(ABC):
         """
         return self._all_optimizable_parameters
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Magic method for human readable representation."""
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Magic method for human readable string representation."""
         return self._name or str(self.__class__)
 

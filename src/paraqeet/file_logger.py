@@ -27,7 +27,7 @@ class FileLogger(Logger):
         return self._logdir
 
     @logdir.setter
-    def logdir(self, logdir: str):
+    def logdir(self, logdir: str) -> None:
         """Set the destination log directory.
 
         Stores both the log and the result files.
@@ -41,11 +41,11 @@ class FileLogger(Logger):
         if not os.path.isdir(self._logdir):
             os.makedirs(self._logdir)
 
-    def start(self):
+    def start(self) -> None:
         """Start logging."""
         super().start()
 
-    def log(self, params: list[Quantity], infidelity: float):
+    def log(self, params: list[Quantity], infidelity: float) -> None:
         """Write the formatted parameters and the goal to the log file.
 
         Args:
@@ -64,7 +64,7 @@ class FileLogger(Logger):
             log.write("\n")
             log.flush()
 
-    def stop(self, result_message: str | None = None):
+    def stop(self, result_message: str | None = None) -> None:
         """Stop logging and end the log file with the run information.
 
         Args:

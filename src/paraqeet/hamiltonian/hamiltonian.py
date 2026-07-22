@@ -20,7 +20,7 @@ class Hamiltonian(Optimizable, Differentiable):
 
     drives: list[Drive]
 
-    def __init__(self, drives: list[Drive] | None = None):
+    def __init__(self, drives: list[Drive] | None = None) -> None:
         """
         Args:
             drives: List of time-dependent drives.

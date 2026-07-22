@@ -36,7 +36,7 @@ class CMAEsOptimizer(Optimizer):
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
         callback=None,
-    ):
+    ) -> None:
         """
         Args:
             measure_func: Function implementing measurement of observables

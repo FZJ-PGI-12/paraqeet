@@ -32,14 +32,14 @@ class OptimizationMap:
 
     _optimizable_to_parameter_map: dict[Optimizable, list[Quantity]]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._optimizable_to_parameter_map = {}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Magic method for human readable representation."""
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Human readable representation of the parameters set to optimize."""
         om_str = ""
         for key, val in self._optimizable_to_parameter_map.items():
@@ -52,7 +52,7 @@ class OptimizationMap:
         self,
         optimizable: Optimizable,
         optimizable_quantities: Quantity | list[Quantity] | None = None,
-    ):
+    ) -> None:
         """Add an optimizable object and a list of its quantities to the map.
 
         The list contains all parameters of the optimizable object that shall
@@ -80,7 +80,7 @@ class OptimizationMap:
         self,
         optimizable: Optimizable,
         optimizable_quantities: Quantity | list[Quantity] | None = None,
-    ):
+    ) -> None:
         """Append an optimizable object and a list of its quantities to the map.
 
         This method is similar to the `add` method, but instead of overwriting the
@@ -107,7 +107,7 @@ class OptimizationMap:
         if len(self._optimizable_to_parameter_map[optimizable]) < 1:
             self._optimizable_to_parameter_map.pop(optimizable)
 
-    def remove(self, optimizable: Optimizable, params: Quantity | list[Quantity] | None = None):
+    def remove(self, optimizable: Optimizable, params: Quantity | list[Quantity] | None = None) -> None:
         """Remove the given optimizable or parameter(s) from the optimization map.
 
         If params is None, it removes the optimizable from the optimization map.

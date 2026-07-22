@@ -30,7 +30,7 @@ class MakhlinFunctional(Measurement):
         self,
         propagation_func: Callable[[Array], Array],
         ideal_invariants: Array | None = None,
-    ):
+    ) -> None:
         """
         Args:
             propagation_func: Function that evaluates the propagation of some

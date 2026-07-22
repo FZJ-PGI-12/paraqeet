@@ -14,7 +14,7 @@ class Propagation(ABC):
     _eom_func: Callable[[Array], Array]
     _resolution: float
 
-    def __init__(self, eom_func: Callable[[Array], Array], resolution: float):
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float) -> None:
         """
         Args:
             eom_func: A function that gives the equation of motion.
@@ -61,7 +61,7 @@ class StatePropagation(Propagation):
 
     _initial_state: Array
 
-    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array):
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array) -> None:
         """
         Args:
             eom_func: A function that gives the equation of motion.
@@ -78,7 +78,7 @@ class StatePropagation(Propagation):
         return self._initial_state
 
     @initial_state.setter
-    def initial_state(self, state: Array):
+    def initial_state(self, state: Array) -> None:
         """Set initial state."""
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._initial_state = jnp.array(state, dtype=jnp.complex128)

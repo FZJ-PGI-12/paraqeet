@@ -48,11 +48,11 @@ class ScipyOptimizer(Optimizer):
         """
         self._method = method
 
-    def set_options(self, opts: dict):
+    def set_options(self, opts: dict) -> None:
         """Set the options for the system."""
         self._options.update(opts)
 
-    def update_option(self, key, val):
+    def update_option(self, key, val) -> None:
         """Update one option for the system."""
         self._options[key] = val
 
@@ -70,7 +70,7 @@ class ScipyOptimizer(Optimizer):
         """
         self._callback = cbfun
 
-    def _default_callback(self, intermediate_result):
+    def _default_callback(self, intermediate_result) -> None:
         self._num_iterations += 1
         fun = intermediate_result.fun if hasattr(intermediate_result, "fun") else None
         if self._num_iterations % 10 == 0:

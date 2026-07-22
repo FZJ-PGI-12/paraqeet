@@ -30,7 +30,7 @@ class ExpmGOAT(Expm, Differentiable):
         eom_gradient_func: Callable[[Array], Array],
         resolution: float,
         initial_state: Array,
-    ):
+    ) -> None:
         """
         Args:
             eom_func: A function that gives the equation of motion.

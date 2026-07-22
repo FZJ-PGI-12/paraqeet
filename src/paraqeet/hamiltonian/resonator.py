@@ -24,7 +24,7 @@ class ResonatorHamiltonian(Hamiltonian):
         num_fock: int,
         frequency: Quantity,
         drives: list[Drive] | None = None,
-    ):
+    ) -> None:
         """
         Args:
             num_fock: Number of Fock states included in the numerical
@@ -90,7 +90,7 @@ class Resonator:
         t1: Quantity | None = None,
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
-    ):
+    ) -> None:
         """
         Args:
             hamiltonian: The Hamiltonian of a resonator in the Fock basis.

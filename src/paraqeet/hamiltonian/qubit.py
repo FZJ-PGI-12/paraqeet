@@ -24,7 +24,7 @@ class QubitHamiltonian(Hamiltonian):
         self,
         frequency: Quantity,
         drives: list[Drive] | None = None,
-    ):
+    ) -> None:
         """
         Args:
             frequency: Frequency of the qubit.
@@ -109,7 +109,7 @@ class Qubit:
         t1: Quantity | None = None,
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
-    ):
+    ) -> None:
         """
         Args:
             hamiltonian: The Hamiltonian of the qubit.

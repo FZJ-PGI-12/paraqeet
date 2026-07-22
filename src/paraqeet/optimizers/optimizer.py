@@ -46,14 +46,14 @@ class OptimizationResult:
     # The raw result from the underlying algorithm.
     raw_result: Any | None = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Magic method for human-readable printable representation.
 
         Represents the Optimizer object as a dictionary with status,
         value, and iterations. If a message has been added, adds that
         to the dict too.
         """
-        as_dict = {
+        as_dict: dict[str, Any] = {
             "status": self.status,
             "value": self.value,
             "iterations": self.iterations,
@@ -82,7 +82,7 @@ class Optimizer(ABC):
         measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
-    ):
+    ) -> None:
         """
         Args:
             measure_func: Function implementing measurement of observables
@@ -102,7 +102,7 @@ class Optimizer(ABC):
         return self._logger
 
     @logger.setter
-    def logger(self, logger: Logger):
+    def logger(self, logger: Logger) -> None:
         """Set the logger for the optimizer object.
 
         Args:
@@ -152,7 +152,7 @@ class Optimizer(ABC):
         """
         pass
 
-    def _build_optimizable_index_list(self):
+    def _build_optimizable_index_list(self) -> None:
         """Build the optimizable index list.
 
         Register optimizables and their length to keep track of vector

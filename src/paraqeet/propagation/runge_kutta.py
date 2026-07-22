@@ -19,7 +19,7 @@ class RungeKutta(StatePropagation):
 
     _initial_time_step: float
 
-    def __init__(self, eom_func, resolution, initial_state):
+    def __init__(self, eom_func, resolution, initial_state) -> None:
         """
         Args:
             eom_func: A function that gives the equation of motion.
@@ -30,7 +30,7 @@ class RungeKutta(StatePropagation):
         super().__init__(eom_func, resolution, initial_state)
         self._initial_time_step = 1 / resolution
 
-    def set_initial_state(self, state: Array):
+    def set_initial_state(self, state: Array) -> None:
         """Set the initial state for the propagation.
 
         Subclasses can access the state in the _initial_state field.

@@ -27,7 +27,7 @@ class MixedStateTransferFidelity(Measurement):
         self,
         propagation_func: Callable[[Array], Array],
         target_state: Array,
-    ):
+    ) -> None:
         """
         Args:
             propagation_func: Function that evaluates the propagation of some

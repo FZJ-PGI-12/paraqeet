@@ -33,7 +33,7 @@ class CompositeHamiltonian(Hamiltonian):
         self,
         sub_hamiltonians: list[Hamiltonian],
         couplings: list[Coupling] | None = None,
-    ):
+    ) -> None:
         """
         Args:
             sub_hamiltonians: List of subsystems' Hamiltonians forming the

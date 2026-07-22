@@ -13,7 +13,7 @@ from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.quantity import Array, Float, Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
-from paraqeet.signal.waveform import DRAGMixer
+from paraqeet.signal.signal import DRAGMixer
 
 warnings.simplefilter("once")
 
@@ -65,7 +65,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         fallback_optimization: Optimizer | None = None,
         super_iteration_tol: float = 1e-7,
         seed: int | None = None,
-    ):
+    ) -> None:
         """
         Args:
             measure_and_gradient_func: Function implementing measurement of
@@ -148,7 +148,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
 
         self._minimize_infidelity(init)
 
-    def _callback_function(self, intermediate_result):
+    def _callback_function(self, intermediate_result) -> None:
         if self._num_iteration % self._num_print_every == 0:
             print(f"Iteration number = {self._num_iteration} \t  Infidelity  = {intermediate_result.fun:.3e}")
 

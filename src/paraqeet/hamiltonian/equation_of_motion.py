@@ -30,7 +30,7 @@ class EquationOfMotion(Differentiable):
         self,
         hamiltonian_func: Callable[[Array], Array],
         hamiltonian_gradient_func: Callable[[Array], Array],
-    ):
+    ) -> None:
         """
         Args:
             hamiltonian_func: Function that returns the Hamiltonian at different

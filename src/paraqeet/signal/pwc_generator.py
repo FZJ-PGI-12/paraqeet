@@ -56,7 +56,7 @@ class PWCGenerator(Generator):
         envelopes: list[Signal] | None,
         tlist: Array,
         max_amplitude: float | None = None,
-    ):
+    ) -> None:
         """
         Args:
             envelopes: List of Envelopes
@@ -137,7 +137,7 @@ class PWCGenerator(Generator):
         """Gets the list of envelopes.
 
         Returns:
-            The list of waveforms associated with the generator.
+            The list of signals associated with the generator.
         """
         return self._envs
 

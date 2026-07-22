@@ -27,7 +27,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         measurement: StateTransferFidelityGRAPE,
         generators: PWCGenerator | list[PWCGenerator],
         propagation_resolution: int,
-    ):
+    ) -> None:
         """
         Args:
             measurement: A StateTransferFidelityGRAPE measurement.

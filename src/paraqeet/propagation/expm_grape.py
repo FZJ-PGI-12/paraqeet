@@ -54,7 +54,7 @@ class ExpmGRAPE(Expm, Differentiable):
         initial_state: Array,
         target_state: Array,
         operator_sandwich_function: Callable,
-    ):
+    ) -> None:
         """
         Args:
             eom_func: A function that gives the equation of motion.
@@ -100,7 +100,7 @@ class ExpmGRAPE(Expm, Differentiable):
         return self._operator_sandwich_function
 
     @operator_sandwich_function.setter
-    def operator_sandwich_function(self, operator_sandwich_func: Callable):
+    def operator_sandwich_function(self, operator_sandwich_func: Callable) -> None:
         """Set the step function for solving the backward propagation of the target state."""
         self._operator_sandwich_function = operator_sandwich_func
 

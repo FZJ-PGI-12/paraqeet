@@ -25,7 +25,7 @@ class Envelope(Signal):
         self,
         amplitude: Quantity | None = None,
         t_final: Quantity | None = None,
-    ):
+    ) -> None:
         """Initialize the envelope.
 
         Args:
@@ -138,7 +138,7 @@ class ConstantEnvelope(Envelope):
 class ZeroEnvelope(ConstantEnvelope):
     """Shorthand implementation of a zero signal envelope."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.amplitude.set_value(0.0)
 
@@ -159,7 +159,7 @@ class FlatTopGaussianEnvelope(Envelope):
         t_down: Quantity | None = None,
         ramp_time: Quantity | None = None,
         t_final: Quantity | None = None,
-    ):
+    ) -> None:
         """Initialize the flat-top Gaussian envelope (a constant section framed by error-function shaped ramps).
 
         Args:
@@ -518,7 +518,7 @@ class DCRABEnvelope(Envelope):
         min_frequency: float = 0.0,
         max_frequency: float = 2 * jnp.pi * 5.0,
         seed: int | None = None,
-    ):
+    ) -> None:
         """Initialize the dCRAB pulse envelope.
 
         Args:

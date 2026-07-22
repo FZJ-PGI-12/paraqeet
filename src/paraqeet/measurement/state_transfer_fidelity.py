@@ -40,7 +40,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         propagation_gradient_func: Callable[[Array], Array],
         target_state: Array,
         overlap: Callable[[Array, Array], Array],
-    ):
+    ) -> None:
         """
         Args:
             propagation_func: Function that evaluates the propagation of some

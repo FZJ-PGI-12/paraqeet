@@ -25,7 +25,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
         measurements: list[DifferentiableNormalizableMeasurement],
         weights: Array,
         sum_of_squares_options: dict | None = None,
-    ):
+    ) -> None:
         """
         Args:
             measurements: List of measurements.
