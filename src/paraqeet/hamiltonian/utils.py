@@ -106,7 +106,8 @@ def matrix_sqrt_psd(a_mat: Array) -> Array:
     w, v_mat = jnp.linalg.eigh(a_mat)
     w_sqrt = jnp.sqrt(jnp.clip(w, min=0.0))  # clip tiny negatives from roundoff
     v_dag: Array = dagger(v_mat)
-    return (v_mat * w_sqrt) @ v_dag
+    # ignoring mypy due to jit
+    return (v_mat * w_sqrt) @ v_dag  # type: ignore
 
 
 def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]) -> Array:

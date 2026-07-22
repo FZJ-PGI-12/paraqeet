@@ -265,7 +265,7 @@ class Quantity:
         return qty
 
     @property
-    def dependent(self):
+    def dependent(self) -> bool:
         """The dependency status of the quantity.
 
         If True:
@@ -475,49 +475,49 @@ class Quantity:
         return self._length > 1 and len(self._shape) == 1
 
     # Python specific magic functions that enalble the use of e.g., binary math operators
-    def __add__(self, other) -> Quantity:
+    def __add__(self, other: Array | float) -> Quantity:
         """Magic method for addition by operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(self.get_value() + other)
         return out_val
 
-    def __radd__(self, other) -> Quantity:
+    def __radd__(self, other: Array | float) -> Quantity:
         """Magic method for addition by right-hand operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(self.get_value() + other)
         return out_val
 
-    def __sub__(self, other) -> Quantity:
+    def __sub__(self, other: Array | float) -> Quantity:
         """Magic method for subtraction by operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(self.get_value() - other)
         return out_val
 
-    def __rsub__(self, other) -> Quantity:
+    def __rsub__(self, other: Array | float) -> Quantity:
         """Magic method for subtraction by right-hand operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(other - self.get_value())
         return out_val
 
-    def __mul__(self, other) -> Quantity:
+    def __mul__(self, other: Array | float) -> Quantity:
         """Magic method for multiplication by operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(self.get_value() * other)
         return out_val
 
-    def __rmul__(self, other) -> Quantity:
+    def __rmul__(self, other: Array | float) -> Quantity:
         """Magic method for multiplication by right-hand operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(self.get_value() * other)
         return out_val
 
-    def __pow__(self, other) -> Quantity:
+    def __pow__(self, other: Array | float) -> Quantity:
         """Magic method for exponentiation by operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(jnp.float_power(self.get_value(), other))
         return out_val
 
-    def __rpow__(self, other) -> Quantity:
+    def __rpow__(self, other: Array | float) -> Quantity:
         """Magic method for exponentiation by right-hand operand."""
         out_val = copy.deepcopy(self)
         out_val.set_value(jnp.float_power(other, self.get_value()))
@@ -623,11 +623,11 @@ class Quantity:
             raise IncompatibleQuantityException("Ordering operators are only usable with scalar quantities")
         return bool(self.get_value().item() > other.get_value().item())
 
-    def __array__(self):
+    def __array__(self) -> np.ndarray:
         """Magic method for representation into array."""
         return np.array(self.get_value())
 
-    def __jax_array__(self):
+    def __jax_array__(self) -> jax.Array:
         """Magic method for representation into array."""
         return jnp.array(self.get_value())
 
@@ -635,7 +635,7 @@ class Quantity:
         """Magic method for calculation of length."""
         return self._length
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int | slice) -> Array:
         """Magic method for selection of item.
 
         Args:
@@ -700,7 +700,7 @@ class Quantity:
         return ret
 
     @staticmethod
-    def _make_human_readable(val, use_prefix: bool = True) -> str:
+    def _make_human_readable(val: float, use_prefix: bool = True) -> str:
         """Convert to human readable string in engineering notation.
 
         Args:

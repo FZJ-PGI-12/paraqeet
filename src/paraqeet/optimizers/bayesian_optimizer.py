@@ -28,8 +28,8 @@ class BayesianOptimizer(Optimizer):
         self,
         measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
-        initial_samples=10,
-        iterations=100,
+        initial_samples: int = 10,
+        iterations: int = 100,
     ) -> None:
         """
         Args:

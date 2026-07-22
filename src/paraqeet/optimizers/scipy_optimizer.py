@@ -1,10 +1,11 @@
 """Class definition of the Scipy optimizer model."""
 
 from collections.abc import Callable
+from typing import Any
 
 import jax.numpy as jnp
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import OptimizeResult, minimize
 
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.optimizer import OptimizationResult, Optimizer
@@ -52,7 +53,7 @@ class ScipyOptimizer(Optimizer):
         """Set the options for the system."""
         self._options.update(opts)
 
-    def update_option(self, key, val) -> None:
+    def update_option(self, key: str, val: Any) -> None:
         """Update one option for the system."""
         self._options[key] = val
 
@@ -70,7 +71,7 @@ class ScipyOptimizer(Optimizer):
         """
         self._callback = cbfun
 
-    def _default_callback(self, intermediate_result) -> None:
+    def _default_callback(self, intermediate_result: OptimizeResult) -> None:
         self._num_iterations += 1
         fun = intermediate_result.fun if hasattr(intermediate_result, "fun") else None
         if self._num_iterations % 10 == 0:
@@ -129,7 +130,7 @@ class ScipyOptimizer(Optimizer):
             raw_result=opt_res,
         )
 
-    def _set_parameters_and_measure(self, values) -> Float:
+    def _set_parameters_and_measure(self, values: Array) -> Float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.

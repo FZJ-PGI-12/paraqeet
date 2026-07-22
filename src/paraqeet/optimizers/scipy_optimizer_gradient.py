@@ -97,7 +97,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             raw_result=result,
         )
 
-    def _set_parameters_and_measure(self, values) -> float:
+    def _set_parameters_and_measure(self, values: Array) -> float:
         """Update the parameter values and return measurement result.
 
         Returns the measurement result including gradient.
@@ -126,7 +126,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             self._logger.log(log, float(infid))
         return float(1 - fun)
 
-    def _lookup_jac(self, values) -> Array:
+    def _lookup_jac(self, values: Array) -> Array:
         """Update the parameter values.
 
         Return the gradient of a measurement result.

@@ -35,7 +35,7 @@ class CMAEsOptimizer(Optimizer):
         measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
-        callback=None,
+        callback: Callable | None = None,
     ) -> None:
         """
         Args:
@@ -62,7 +62,7 @@ class CMAEsOptimizer(Optimizer):
         return self._options
 
     @options.setter
-    def options(self, opts) -> None:
+    def options(self, opts: dict) -> None:
         """Set options for the system."""
         self._options.update(opts)
 
@@ -72,7 +72,7 @@ class CMAEsOptimizer(Optimizer):
         return self._callback
 
     @callback.setter
-    def callback(self, cbfun: Callable) -> None:
+    def callback(self, cbfun: Callable | None) -> None:
         """Set the callback function for the optimizer.
 
         Args:
@@ -183,7 +183,7 @@ class CMAEsOptimizer(Optimizer):
             raw_result=es.result,
         )
 
-    def _set_parameters_and_measure(self, values) -> float:
+    def _set_parameters_and_measure(self, values: Array) -> float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.

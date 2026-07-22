@@ -92,7 +92,8 @@ class Signal(Optimizable, Differentiable):
         param_values = [param.get_value() for param in params]
         t_arr = jnp.array(times, ndmin=1)
         value = jit(self._evaluate)(*param_values, t_arr)
-        return value
+        # ignoring mypy due to jit
+        return value  # type: ignore
 
     @override
     def get_gradient(self, times: Array) -> Array:
@@ -129,7 +130,7 @@ class Signal(Optimizable, Differentiable):
     def get_value_and_gradient(self, times) -> tuple:
         return self.get_value(times), self.get_gradient(times)
 
-    def get_time_gradient(self, times: Array | float) -> Array:
+    def get_time_gradient(self, times: Array) -> Array:
         """Compute a signal envelopes time derivative.
 
         Args:
@@ -144,7 +145,7 @@ class Signal(Optimizable, Differentiable):
         env_time_grad = vmap(env_time_grad_fun, in_axes=(0,))(t_arr)
         return jnp.squeeze(env_time_grad)
 
-    def get_time_and_parameter_gradient(self, times: Array | float) -> Array:
+    def get_time_and_parameter_gradient(self, times: Array) -> Array:
         r"""Compute the double derivative with respect to parameter and time.
 
         This function computes

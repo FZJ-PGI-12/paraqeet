@@ -6,7 +6,7 @@ from typing import Any
 
 import jax.numpy as jnp
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import OptimizeResult, minimize
 
 from paraqeet.exceptions import ConfigurationException, IncompatibleOptimizationMap
 from paraqeet.optimization_map import OptimizationMap
@@ -46,7 +46,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
     _old_parameters_dict: dict[int, list[Quantity]]
     _old_opt_idxs_dict: dict[int, list[int]]
 
-    best_params: list[float]
+    best_params: Array | list[float]
     best_fid: float = 99999
 
     _previous_fid: float = 99999
@@ -149,7 +149,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
 
         self._minimize_infidelity(init)
 
-    def _callback_function(self, intermediate_result) -> None:
+    def _callback_function(self, intermediate_result: OptimizeResult) -> None:
         if self._num_iteration % self._num_print_every == 0:
             print(f"Iteration number = {self._num_iteration} \t  Infidelity  = {intermediate_result.fun:.3e}")
 
@@ -197,7 +197,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
             self._super_iteration_since = 0
             self._dcrab_super_iteration()
 
-    def set_parameters(self, values):
+    def set_parameters(self, values: Array | list[float]) -> list[Quantity]:
         """Update the parameter values.
 
         This method is derived from the ``ScipyOptimizerGradient`` class and
@@ -249,7 +249,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
                 log.append(params[index])
         return log
 
-    def _set_parameters_and_measure(self, values) -> float:
+    def _set_parameters_and_measure(self, values: Array) -> float:
         """Update the parameter values and return measurement result.
 
         Args:
@@ -268,7 +268,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
             self._logger.log(log, float(infid))
         return float(1 - fun)
 
-    def _minimize_infidelity(self, init):
+    def _minimize_infidelity(self, init: list[Array]) -> OptimizeResult:
         result = minimize(
             fun=self._set_parameters_and_measure,
             jac=self._lookup_jac,
