@@ -6,9 +6,9 @@ from typing import override
 import jax
 import jax.numpy as jnp
 
+from paraqeet.autograd_utils import get_jacobian_func
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.measurement.utils import vjp_jacobian
 from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
@@ -56,8 +56,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         self._propagation_gradient_func = propagation_gradient_func
         self._target_state = jnp.array(target_state, dtype=jnp.complex128)
         self._overlap = overlap
-        self._overlap_grad = vjp_jacobian(self._overlap)
-        self._fid_grad = vjp_jacobian(self._fid)
+        self._overlap_grad = get_jacobian_func(self._overlap)
+        self._fid_grad = get_jacobian_func(self._fid)
 
     @staticmethod
     def _fid(overlap: Array) -> Float:

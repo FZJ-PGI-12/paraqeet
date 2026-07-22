@@ -1,6 +1,7 @@
 """Utilities for model construction."""
 
 from collections.abc import Callable
+from typing import Any
 
 import jax.numpy as jnp
 import numpy as np
@@ -10,7 +11,7 @@ from jax.scipy.linalg import sqrtm
 from paraqeet.quantity import Array
 
 
-def sigma_x():
+def sigma_x() -> Array:
     r"""Return the Pauli-X operator.
     
     .. math::
@@ -23,7 +24,7 @@ def sigma_x():
     return np.array([[0.0, 1.0], [1.0, 0.0]])
 
 
-def sigma_y():
+def sigma_y() -> Array:
     r"""Return the Pauli-Y operator.
     
     .. math::
@@ -36,7 +37,7 @@ def sigma_y():
     return np.array([[0.0, -1.0j], [1.0j, 0.0]])
 
 
-def sigma_z():
+def sigma_z() -> Array:
     r"""Return the Pauli-Z operator.
     
     .. math::
@@ -49,7 +50,7 @@ def sigma_z():
     return np.array([[1.0, 0.0], [0.0, -1.0]])
 
 
-def sigma_minus():
+def sigma_minus() -> Array:
     r"""Return the Pauli minus operator in the quantum information convention.
     
     .. math::
@@ -62,7 +63,7 @@ def sigma_minus():
     return np.array([[0.0, 1.0], [0.0, 0.0]])
 
 
-def sigma_plus():
+def sigma_plus() -> Array:
     r"""Return the Pauli plus operator in the quantum information convention.
 
     .. math::
@@ -75,18 +76,18 @@ def sigma_plus():
     return np.array([[0.0, 0.0], [1.0, 0.0]])
 
 
-def identity_operator(dim: int):
+def identity_operator(dim: int) -> Array:
     """Return the identity operator for the specified dimensions."""
     return np.eye(dim)
 
 
-def dagger(op: Array):
+def dagger(op: Array) -> Array:
     r"""Return transpose conjugate of an operator :math:`O^\dagger = (O^T)^{*}`."""
     return op.T.conj()
 
 
 @jit
-def matrix_sqrt(op: Array):
+def matrix_sqrt(op: Array) -> Array:
     """Return the matrix square root using jax based implementation.
     This works for any general matrix with positive eigenvalues.
 
@@ -100,14 +101,15 @@ def matrix_sqrt(op: Array):
 
 
 @jit
-def matrix_sqrt_psd(a_mat):
+def matrix_sqrt_psd(a_mat: Array) -> Array:
     """Matrix square root of a Hermitian positive semi-definite matrix like a density matrix."""
     w, v_mat = jnp.linalg.eigh(a_mat)
     w_sqrt = jnp.sqrt(jnp.clip(w, min=0.0))  # clip tiny negatives from roundoff
-    return (v_mat * w_sqrt) @ dagger(v_mat)
+    v_dag: Array = dagger(v_mat)
+    return (v_mat * w_sqrt) @ v_dag
 
 
-def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]):
+def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]) -> Array:
     """Trace out all subsystems except those whose indices are in `keep`.
 
     Args:
@@ -138,12 +140,12 @@ def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]):
     return out.reshape(d_keep, d_keep)
 
 
-def construct_annihilation_op(dim: int):
+def construct_annihilation_op(dim: int) -> Array:
     """Create bosonic annihilation operator for a system with dimensions `dim`."""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=1)
 
 
-def construct_creation_op(dim: int):
+def construct_creation_op(dim: int) -> Array:
     """Create bosonic creation operator for a system with dimensions `dim`."""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=-1)
 
@@ -184,7 +186,7 @@ def construct_composite_basis_state(dims: tuple[int, ...], index: tuple[int, ...
     return np.reshape(ntensor(individual_states), (-1, 1))
 
 
-def convert_state_to_dm(state: Array):
+def convert_state_to_dm(state: Array) -> Array:
     """Convert a pure state into a density matrix by taking the outer product."""
     return state @ state.T.conj()
 
@@ -244,7 +246,7 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
 # Numpy
 
 
-def np_func_to_jax_func(ham_func: Callable):
+def np_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
     """Convert a Numpy Hamiltonian function to JAX compatible function.
 
     Adds `vmap` capabilities to vectorize the computation over a batch of times
@@ -255,7 +257,7 @@ def np_func_to_jax_func(ham_func: Callable):
             compatible function.
     """
 
-    def _jax_wrapper(times: Array, *args, **kwargs):
+    def _jax_wrapper(times: Array, *args: Any, **kwargs: Any) -> Array:
         one_time_func = lambda t: jnp.array(ham_func(t, *args, **kwargs))
         return vmap(one_time_func)(times)
 
@@ -263,16 +265,17 @@ def np_func_to_jax_func(ham_func: Callable):
 
 
 # QuTiP
-def qobj_to_array(qobj):
+def qobj_to_array(qobj: Any) -> Array:
     """Convert a QuTiP-JAX object to a JAX array.
 
     Args:
         qobj: QuTiP object.
     """
-    return qobj.data._jxa
+    arr: Array = qobj.data._jxa
+    return arr
 
 
-def qt_func_to_jax_func(ham_func: Callable):
+def qt_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
     """Convert a QuTiP-JAX Hamiltonian function to JAX compatible function.
 
     Adds `vmap` capabilities to vectorize the computation over a batch of times
@@ -283,8 +286,9 @@ def qt_func_to_jax_func(ham_func: Callable):
             compatible function.
     """
 
-    def _jax_wrapper(times: Array, *args, **kwargs):
+    def _jax_wrapper(times: Array, *args: Any, **kwargs: Any) -> Array:
         one_time_func = lambda t: ham_func(t, *args, **kwargs).data._jxa
-        return vmap(one_time_func)(times)
+        values: Array = vmap(one_time_func)(times)
+        return values
 
     return _jax_wrapper

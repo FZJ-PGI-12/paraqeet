@@ -74,7 +74,7 @@ class Signal(Optimizable, Differentiable):
             self._gradient_function = None
 
     @abstractmethod
-    def _evaluate(self, *args, **kwargs) -> Array:
+    def _evaluate(self, *args: Any, **kwargs: Any) -> Array:
         """Evaluate the output of the system.
 
         Note:
@@ -328,7 +328,7 @@ class DRAGMixer(Signal):
         """
         return tone.__getattribute__("_delta")
 
-    def _evaluate(self, times: Array, *deltas) -> Array:
+    def _evaluate(self, times: Array, *deltas: Array) -> Array:
         """Compute the DRAG Envelope using deltas.
 
         Explicit function depending on deltas to compute gradients using AD.

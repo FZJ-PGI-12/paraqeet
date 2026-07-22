@@ -2,6 +2,7 @@
 
 import warnings
 from collections.abc import Callable
+from typing import Any
 
 import jax.numpy as jnp
 import numpy as np
@@ -19,7 +20,7 @@ warnings.simplefilter("once")
 
 
 # Replace the default formatwarning
-def custom_formatwarning(msg, *args, **kwargs):
+def custom_formatwarning(msg: Warning | str, *args: Any, **kwargs: Any) -> str:
     """Prettier warning statements."""
     return str(msg) + "\n"
 

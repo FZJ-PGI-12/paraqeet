@@ -1,7 +1,7 @@
 """Utility functions for measurements, such as state overlaps and Jacobian helpers."""
 
 import jax.numpy as jnp
-from jax import jit, vjp, vmap
+from jax import jit
 
 from paraqeet.hamiltonian.utils import matrix_sqrt_psd
 from paraqeet.propagation.utils import convert_vec_to_dm
@@ -40,24 +40,3 @@ def overlap_vectorized_density_matrix_mixed_states(final_state: Array, target_st
     target_state = convert_vec_to_dm(target_state)
     final_state = convert_vec_to_dm(final_state)
     return jnp.linalg.trace(matrix_sqrt_psd(jnp.matmul(target_state, final_state))) ** 2
-
-
-def vjp_jacobian(f):
-    """Return a function that computes the Jacobian of f w.r.t. its first arg via vjp."""
-
-    @jit
-    def jac_fn(x, *args, **kwargs):
-        # Fix all the values except the first
-        f_first = lambda x_: f(x_, *args, **kwargs)
-        y, vjp_fn = vjp(f_first, x)
-
-        # For scalar outputs
-        if y.ndim == 0:
-            return vjp_fn(jnp.ones_like(y))[0]
-
-        # For Array outputs
-        x = jnp.eye(y.size, dtype=y.dtype).reshape((y.size,) + y.shape)
-        jac_flat = vmap(vjp_fn)(x)[0]
-        return jac_flat.reshape(y.shape + x.shape)
-
-    return jac_fn
