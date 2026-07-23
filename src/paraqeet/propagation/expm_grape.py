@@ -71,7 +71,7 @@ class ExpmGRAPE(Expm, Differentiable):
         self._operator_sandwich_function = operator_sandwich_function
 
     @property
-    def target_state(self):
+    def target_state(self) -> Array:
         """Return target state."""
         return self._target_state
 
@@ -86,7 +86,7 @@ class ExpmGRAPE(Expm, Differentiable):
         self._target_state = target_state
 
     @property
-    def operator_sandwich_function(self):
+    def operator_sandwich_function(self) -> Callable:
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
@@ -189,18 +189,19 @@ class ExpmGRAPE(Expm, Differentiable):
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
-    def _exponentiate_frechet(dim: int, ham: Array, dh_dp: Array):
+    def _exponentiate_frechet(dim: int, ham: Array, dh_dp: Array) -> tuple[Array, Array]:
         r"""Exponentiate and also calculate the frechet derivative.
 
         Args:
             ham: -iHdt
             dh_dp: -i\frac{\partial H}{\partial u} dt
         """
-        return expm_frechet(ham, dh_dp)
+        propagator_and_derivative: tuple[Array, Array] = expm_frechet(ham, dh_dp)
+        return propagator_and_derivative
 
     @staticmethod
     @partial(jit, static_argnums=(0,))
-    def _exponentiate_schirmer(dim, ham: Array, dh_dp: Array):
+    def _exponentiate_schirmer(dim: int, ham: Array, dh_dp: Array) -> tuple[Array, Array]:
         r"""Exponentiate an auxiliary matrix to compute U and dU.
 
         Args:
@@ -214,7 +215,7 @@ class ExpmGRAPE(Expm, Differentiable):
 
     @staticmethod
     @jit
-    def _exponentiate(ham):
+    def _exponentiate(ham: Array) -> Array:
         r"""Exponentiate EOM using Expm.
 
         Args:
@@ -223,7 +224,8 @@ class ExpmGRAPE(Expm, Differentiable):
         Returns:
             The expontial of -i H dt.
         """
-        return expm(ham)
+        exponentiated: Array = expm(ham)
+        return exponentiated
 
     @partial(jit, static_argnums=(0,))
     def _propagate_in_time(

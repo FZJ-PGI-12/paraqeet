@@ -48,7 +48,7 @@ def dagger(op: Array) -> Array:
     return op.conj().T
 
 
-def lindblad_step(state: Array, h: Array, cols: list[Array], *args: Any, **kwargs: Any) -> Array:
+def lindblad_step(state: Array, h: Array, cols: Array, *args: Any, **kwargs: Any) -> Array:
     """Step function for ODE propagation methods, such as Vern7, for the Lindblad master equation."""
     del_rho: Array = commutator(h, state)
     for col in cols:
@@ -67,7 +67,7 @@ def reverse_schrodinger_step(state: Array, h: Array, *args: Any, **kwargs: Any) 
     return jnp.matmul(state, h)
 
 
-def reverse_lindblad_step(state: Array, h: Array, cols: list[Array], *args: Any, **kwargs: Any) -> Array:
+def reverse_lindblad_step(state: Array, h: Array, cols: Array, *args: Any, **kwargs: Any) -> Array:
     """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Lindblad master equation."""
     del_rho: Array = commutator(h, state)
     for col in cols:

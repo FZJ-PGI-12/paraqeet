@@ -25,7 +25,7 @@ class Expm(StatePropagation):
 
     @staticmethod
     @jit
-    def _propagate_in_time(psis_t: Array, eom: Array, steps_arr: Array):
+    def _propagate_in_time(psis_t: Array, eom: Array, steps_arr: Array) -> Array:
         """Propagate the system in time.
 
         Iteratively propagate state/states (psis_t) according
@@ -54,7 +54,7 @@ class Expm(StatePropagation):
 
     @staticmethod
     @jit
-    def _propagate_psi(eom_matrix: Array, psis_t: Array):
+    def _propagate_psi(eom_matrix: Array, psis_t: Array) -> Array:
         """Propagate the state/states (psis_t).
 
         Args:
@@ -65,7 +65,8 @@ class Expm(StatePropagation):
             Array: Returns the evolved state.
 
         """
-        return expm(eom_matrix) @ psis_t
+        propagated: Array = expm(eom_matrix) @ psis_t
+        return propagated
 
     @override
     def get_value(self, times: Array) -> Array:

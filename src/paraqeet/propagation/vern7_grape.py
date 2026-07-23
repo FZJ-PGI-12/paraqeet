@@ -89,7 +89,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         self._operator_sandwich_function = operator_sandwich_function
 
     @property
-    def target_state(self):
+    def target_state(self) -> Array:
         """Return target state."""
         return self._target_state
 
@@ -104,7 +104,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         self._target_state = target_state
 
     @property
-    def reverse_step_function(self):
+    def reverse_step_function(self) -> Callable:
         """Return the reverse step function for solving the backward propagation of the target state."""
         return self._reverse_step_function
 
@@ -114,7 +114,7 @@ class Vern7GRAPE(Vern7, Differentiable):
         self._reverse_step_function = reverse_step_func
 
     @property
-    def operator_sandwich_function(self):
+    def operator_sandwich_function(self) -> Callable:
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
@@ -226,7 +226,7 @@ class Vern7GRAPE(Vern7, Differentiable):
                 psi_t,
                 lamda_t,
                 eom * dt,
-                jnp.array(self._jump_operators) * jnp.sqrt(dt),
+                self._jump_operators * jnp.sqrt(dt),
                 jnp.arange(0, len(time_grid), 1),
             )
 

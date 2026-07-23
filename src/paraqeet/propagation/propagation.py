@@ -73,7 +73,7 @@ class StatePropagation(Propagation):
         self.initial_state = initial_state
 
     @property
-    def initial_state(self):
+    def initial_state(self) -> Array:
         """Return initial state."""
         return self._initial_state
 

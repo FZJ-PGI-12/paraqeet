@@ -23,7 +23,7 @@ class Vern7(StatePropagation):
     """
 
     _step_function: Callable
-    _jump_operators: list[Array]
+    _jump_operators: Array
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class Vern7(StatePropagation):
         self.jump_operators = jump_operators
 
     @property
-    def step_function(self):
+    def step_function(self) -> Callable:
         """Return the step function for solving the EOM."""
         return self._step_function
 
@@ -57,7 +57,7 @@ class Vern7(StatePropagation):
         self._step_function = step_func
 
     @property
-    def jump_operators(self):
+    def jump_operators(self) -> Array:
         """Return the jump operators used for solving the EOM."""
         return self._jump_operators
 
@@ -65,12 +65,12 @@ class Vern7(StatePropagation):
     def jump_operators(self, jump_ops: list[Array] | None) -> None:
         """Set the jump operators added to the EOM."""
         if jump_ops is not None:
-            self._jump_operators = jump_ops
+            self._jump_operators = jnp.array(jump_ops)
         else:
             self._jump_operators = jnp.empty((0,) + self._eom_func(jnp.array([0.0])).shape)
 
     @staticmethod
-    def _interpolate_time(times, dt):
+    def _interpolate_time(times: Array, dt: Array | float) -> Array:
         times_interp = jnp.concatenate(
             [
                 times,
@@ -199,7 +199,7 @@ class Vern7(StatePropagation):
             state_t = self._propagate_in_time(
                 state_t,
                 eom * dt,
-                jnp.array(self._jump_operators) * jnp.sqrt(dt),
+                self._jump_operators * jnp.sqrt(dt),
                 jnp.arange(0, len(step_times), 1),
             )
             states.append(state_t)
