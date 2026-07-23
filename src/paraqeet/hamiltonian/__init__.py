@@ -1,1 +1,1 @@
-"""Base model module."""
+"""Hamiltonian module."""

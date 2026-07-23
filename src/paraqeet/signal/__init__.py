@@ -1,1 +1,1 @@
-"""Signal generation model module."""
+"""Signal generation module."""
