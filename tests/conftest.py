@@ -140,7 +140,10 @@ def random_quantity(random_quantity_for_values):
 
     def _method(n: int, unit: str = ""):
         magnitude = np.power(10.0, np.random.randint(-10, 10))
-        values = (2 * np.random.random(n) - 1) * magnitude
+        # Keeping the values in above 1e-14.
+        # Values arbitrarily close to zero can result in underflow error.
+        signs = np.random.choice([-1.0, 1.0], size=n)
+        values = signs * (1e-4 + (1.0 - 1e-4) * np.random.random(n)) * magnitude
         return random_quantity_for_values(values, unit)
 
     return _method
