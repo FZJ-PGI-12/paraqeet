@@ -13,10 +13,10 @@ class Euler(StatePropagation):
     Solves the equation of motion d/dt psi(t) = F(psi(t), t)
     with a finite step size d as psi(t+d) = psi(t) + F(psi(t), t).
     The step size can be variable and is calculated from the time array that is
-    passed to the propagate function.
+    passed to the `get_value` function.
     """
 
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Calculate the first order Euler propagation.
 
         Performs the actual propagation calculation.
@@ -29,7 +29,7 @@ class Euler(StatePropagation):
 
         """
         if len(times) < 2:
-            raise ValueError("Euler.propagate needs at least two time points.")
+            raise ValueError("Euler.get_value needs at least two time points.")
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")

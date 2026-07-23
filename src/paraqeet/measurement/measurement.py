@@ -14,7 +14,7 @@ class Measurement(ABC):
     """
 
     @abstractmethod
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Measure the observable and returns the value.
 
         Args:
@@ -67,10 +67,6 @@ class DifferentiableNormalizableMeasurement(Protocol):
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Return the value and the gradient of the measurement."""
-        ...
-
-    def measure(self, times: Array) -> Array | Float:
-        """Usually the same as get_value."""
         ...
 
     def calculate_normalized_scalar(self, times: Array | Float) -> Float:

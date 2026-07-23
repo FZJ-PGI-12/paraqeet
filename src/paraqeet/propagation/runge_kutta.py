@@ -42,7 +42,7 @@ class RungeKutta(StatePropagation):
         self._initial_state = np.reshape(state, (-1,))
 
     @override
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
         Args:
@@ -59,7 +59,7 @@ class RungeKutta(StatePropagation):
             raise ConfigurationException("Initial state is not set")
 
         if len(times) < 2:
-            raise ValueError("RungeKutta.propagate needs at least two time steps")
+            raise ValueError("RungeKutta.get_value needs at least two time steps")
 
         def callback(time, state):
             column_state = np.reshape(state, (-1, 1))

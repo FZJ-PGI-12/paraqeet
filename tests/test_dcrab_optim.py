@@ -78,7 +78,7 @@ def fid(prop):
     target = np.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,

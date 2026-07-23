@@ -46,6 +46,6 @@ def test_state_dimension_vector(random_state, expm, ts):
         dim = np.random.randint(2, 10)
         state = random_state(dim)
         propagation = expm(dim, resolution=3, initial_state=state)
-        propagated_states = propagation.propagate(ts)
+        propagated_states = propagation.get_value(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape

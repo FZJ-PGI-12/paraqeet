@@ -18,7 +18,7 @@ class RandomMeasurement(NormalizableMeasurement):
         """
         self._propagation = propagation
 
-    def measure(self, times: Array) -> Array | float:
+    def get_value(self, times: Array) -> Array | float:
         return self.calculate_normalized_scalar(times=times)
 
     def calculate_normalized_scalar(self, times: Array | float) -> float:

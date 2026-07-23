@@ -89,7 +89,7 @@ def plot_signal_and_dynamics(
                 pops = jnp.abs(states) ** 2
         return pops
 
-    states = propagation.propagate(times)
+    states = propagation.get_value(times)
     sig = generator.get_value(times) / 1e6 / (2 * np.pi)
 
     if axes is None:

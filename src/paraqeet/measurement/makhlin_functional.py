@@ -42,7 +42,7 @@ class MakhlinFunctional(Measurement):
         self._propagation_func = propagation_func
         self._ideal_invariants = ideal_invariants
 
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Measure distance of the propagator to a perfect entangler.
 
         Args:

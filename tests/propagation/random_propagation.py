@@ -30,8 +30,8 @@ class RandomPropagation(Propagation, Differentiable):
         Args:
             dimension: Hilbert space size for the generated states.
             generate_matrices: Whether to generate matrices instead of vectors. Defaults to False.
-            auto_update: Whether to return a new random state at every call of propagate.
-                If false, propagate will return the same state until update was called.
+            auto_update: Whether to return a new random state at every call of `get_value`.
+                If false, `get_value` will return the same state until update was called.
                 Defaults to True.
         """
         sys = EmptyHamiltonian(0)
@@ -42,13 +42,10 @@ class RandomPropagation(Propagation, Differentiable):
         self._auto_update = auto_update
         self.update()
 
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         if self._auto_update:
             self.update()
         return jnp.array([self._state] * len(times))
-
-    def get_value(self, times: Array) -> Array:
-        return self.propagate(times)
 
     def get_gradient(self, times: Array) -> Array:
         # Returns an empty gradient because the class has 0 parameters
@@ -70,7 +67,7 @@ class RandomPropagation(Propagation, Differentiable):
     def update(self) -> None:
         """Update the state on propagation.
 
-        Makes sure that the next call to propagate will return a
+        Makes sure that the next call to `get_value` will return a
         new random state.
 
         """

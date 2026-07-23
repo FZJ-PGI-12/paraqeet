@@ -28,9 +28,6 @@ class ConstantMeasurement(NormalizableMeasurement, Differentiable):
     def get_value(self, times: Array) -> Array:
         return self._value
 
-    def measure(self, times: Array) -> Array:
-        return self.get_value(times)
-
     def calculate_normalized_scalar(self, times: Array) -> Array:
         return self.get_value(times)
 

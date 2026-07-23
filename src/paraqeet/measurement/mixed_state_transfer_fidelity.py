@@ -42,7 +42,7 @@ class MixedStateTransferFidelity(Measurement):
         self._target_state_sqrt = sclin.sqrtm(self._target_state)
 
     @override
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Measure overlap between initial and final state of density matrices.
 
         Returns:

@@ -19,7 +19,7 @@ from jax.scipy.linalg import expm, expm_frechet
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.expm import Expm
-from paraqeet.quantity import Array, Float
+from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
@@ -250,7 +250,7 @@ class ExpmGRAPE(Expm, Differentiable):
         return psis_list
 
     @override
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Loop over all desired times in time at set resolution."""
         if len(times) < 2:
             raise ValueError("ScipyExpmGRAPE.propagate needs at least two time points.")
@@ -270,10 +270,6 @@ class ExpmGRAPE(Expm, Differentiable):
         psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         return jnp.array(psis)
-
-    @override
-    def get_value(self, times: Array) -> Float | Array:
-        return self.propagate(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:

@@ -165,7 +165,7 @@ def test_decay_expm(expm):
     t_final = 20e-9
     ts = np.linspace(0, t_final, 101)
 
-    states = expm.propagate(ts)
+    states = expm.get_value(ts)
     final_state = states[-1]
 
     # Check if final state is density matrix
@@ -182,7 +182,7 @@ def test_decay_ode(ode):
     t_final = 20e-9
     ts = np.linspace(0, t_final, 101)
 
-    states = ode.propagate(ts)
+    states = ode.get_value(ts)
     final_state = states[-1]
 
     # Check if final state is density matrix

@@ -66,10 +66,6 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         return 1.0 - jnp.sum(vmap_get_squared_difference(indices)) / norm_coeff
 
     @override
-    def measure(self, times: Array) -> Float:
-        return self.get_value(times)
-
-    @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         return self.get_value(times)
 

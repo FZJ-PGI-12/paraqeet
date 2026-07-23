@@ -70,10 +70,6 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         return self._fid(self._overlap(final_state, self._target_state))
 
     @override
-    def measure(self, times: Array) -> Float:
-        return self.get_value(times=times)
-
-    @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure overlap between initial and target state. To be used with an optimizer.
         For NormalizableMeasurement objects that are also Differentiable this coincide

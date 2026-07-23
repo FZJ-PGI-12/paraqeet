@@ -35,7 +35,7 @@ class Propagation(ABC):
         self._resolution = resolution
 
     @abstractmethod
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
         The first dimension of the result will always be the time.

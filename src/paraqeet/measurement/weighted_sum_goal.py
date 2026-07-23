@@ -98,13 +98,13 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
         return self._measurements_in_sum_of_squares
 
     @override
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Sum of plain weighted measurements.
 
         Returns:
             Returns the plain weighted sum.
         """
-        values = [m.measure(times=times) for m in self._measurements]
+        values = [m.get_value(times=times) for m in self._measurements]
         sum_meas: Array | float = 0.0
         for ii, w in enumerate(self._weights):
             sum_meas += w * values[ii]
@@ -121,30 +121,6 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         return self.get_value(times)
-
-    @override
-    def get_value(self, times: Array) -> Float:
-        """Sum of weighted measurements from normalized measurements.
-
-        Args:
-            times: Array of times.
-
-        Returns:
-            Returns the normalized weighted sum.
-        """
-        values = [m.calculate_normalized_scalar(times=times) for m in self._measurements]
-        sum_meas = 0.0
-        for ii, w in enumerate(self._weights):
-            sum_meas += w * values[ii]
-        if self._sum_of_squares_options is not None:
-            values_in_sum_of_squares = [
-                val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
-            ]
-            sum_square_diff: Float = 0.0
-            for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
-                sum_square_diff += (meas_a - meas_b) ** 2
-            sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
-        return sum_meas
 
     @override
     def get_gradient(self, times: Array) -> Array:

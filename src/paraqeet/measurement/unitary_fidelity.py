@@ -70,11 +70,6 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         return self._fid(jnp.asarray(overlaps))
 
     @override
-    def measure(self, times: Array) -> Float:
-        """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar(times=times)
-
-    @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 

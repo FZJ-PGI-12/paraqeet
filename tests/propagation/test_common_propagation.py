@@ -10,4 +10,4 @@ def check_propagation(propagation: StatePropagation, dimension: int):
     state = state / np.sqrt(np.vdot(state, state))
     state = np.expand_dims(state, axis=1)
     propagation.initial_state = state
-    propagation.propagate(random_time_vector)
+    propagation.get_value(random_time_vector)

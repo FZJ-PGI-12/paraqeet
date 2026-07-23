@@ -31,7 +31,7 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """
         return [self._amp, self._freq]
 
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 

@@ -25,7 +25,7 @@ def random_meas(random_unitary_matrix):
         propagation.set_initial_state(gate)
         cz = np.identity(4)
         cz[-1, -1] = -1.0
-        meas_list.append(UnitaryFidelity(propagation.propagate, propagation.get_value_and_gradient, cz))
+        meas_list.append(UnitaryFidelity(propagation.get_value, propagation.get_value_and_gradient, cz))
     return meas_list
 
 
@@ -35,7 +35,7 @@ def test_weighted_sum_goal(random_meas):
     weights /= sum(weights)
     goal = WeightedSumGoal(measurements=random_meas, weights=weights)
     times = np.array([1.0])
-    assert goal.measure(times=times) >= 0
+    assert goal.get_value(times=times) >= 0
     # Rounding errors might cause the value to be slightly larger than 1
     assert 0 <= np.round(goal.calculate_normalized_scalar(times=times), 8) <= 1
 
@@ -66,7 +66,7 @@ def test_weighted_sum_goal_sum_of_squares(random_meas):
     sum_of_squares_options = {"weight": weight_sum_of_squares, "meas_bool": meas_list_bool}
     goal = WeightedSumGoal(measurements=random_meas, weights=weights, sum_of_squares_options=sum_of_squares_options)
     times = np.array([1.0])
-    values = [m.measure(times=times) for m in random_meas]
+    values = [m.get_value(times=times) for m in random_meas]
     sum_meas: Array | float = 0.0
     for ii, w in enumerate(weights):
         sum_meas += w * values[ii]
@@ -75,7 +75,7 @@ def test_weighted_sum_goal_sum_of_squares(random_meas):
     for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
         sum_square_diff += (meas_a - meas_b) ** 2
     sum_meas += sum_of_squares_options["weight"] * sum_square_diff
-    assert np.abs(goal.measure(times=times) - sum_meas) <= 1e-8
+    assert np.abs(goal.get_value(times=times) - sum_meas) <= 1e-8
 
 
 def test_weighted_sum_goal_sum_of_squares_gradient():

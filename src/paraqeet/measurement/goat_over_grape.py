@@ -86,11 +86,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
 
         interp_times, _ = self._construct_interpolated_times(times)
 
-        return grape.measure(times=interp_times)
-
-    @override
-    def measure(self, times: Array) -> Float:
-        return self.get_value(times=times)
+        return grape.get_value(times=interp_times)
 
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:

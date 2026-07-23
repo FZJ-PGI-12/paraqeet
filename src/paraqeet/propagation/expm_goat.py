@@ -16,7 +16,7 @@ from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.expm import Expm
 from paraqeet.propagation.utils import construct_times
-from paraqeet.quantity import Array, Float
+from paraqeet.quantity import Array
 
 
 class ExpmGOAT(Expm, Differentiable):
@@ -92,10 +92,6 @@ class ExpmGOAT(Expm, Differentiable):
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
-
-    @override
-    def get_value(self, times: Array) -> Array | Float:
-        return self.propagate(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:

@@ -68,7 +68,7 @@ class Expm(StatePropagation):
         return expm(eom_matrix) @ psis_t
 
     @override
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
         Loop over all desired times in time at set resolution.
@@ -84,7 +84,7 @@ class Expm(StatePropagation):
 
         """
         if len(times) < 2:
-            raise ValueError("ScipyExpm.propagate needs at least two time points.")
+            raise ValueError("ScipyExpm.get_value needs at least two time points.")
 
         psis = [self._initial_state]
 

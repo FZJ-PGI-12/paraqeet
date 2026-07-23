@@ -124,7 +124,7 @@ def fid(prop):
     target = jnp.array([[0.0], [1.0]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         overlap=overlap_state_vector,
         target_state=target,
@@ -146,7 +146,7 @@ def opt_grad(tone, fid, gen, prop):
 def test_can_measure(fid, gen, prop):
     fid = GOATOverGRAPE(fid, generators=[gen], propagation_resolution=prop.resolution)
     val, grad = fid.get_value_and_gradient(times=TLIST)
-    assert 0 <= fid.measure(times=TLIST)
+    assert 0 <= fid.get_value(times=TLIST)
     assert 0 <= val <= 1
 
     value = fid.calculate_normalized_scalar(times=TLIST)

@@ -28,11 +28,8 @@ class IdentityPropagation(Propagation, Differentiable):
         """
         self._state = state
 
-    def propagate(self, times: Array) -> Array:
-        return jnp.array([self._state] * len(times))
-
     def get_value(self, times: Array) -> Array:
-        return self.propagate(times)
+        return jnp.array([self._state] * len(times))
 
     def get_gradient(self, times: Array) -> Array:
         # Returns an empty gradient because the class has 0 parameters
