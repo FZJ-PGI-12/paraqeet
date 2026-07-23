@@ -8,7 +8,7 @@ Hamiltonian is defined in the rotating frame of drive.
 
 from collections.abc import Callable
 from functools import partial
-from typing import override
+from typing import Any, override
 
 import jax
 import jax.numpy as jnp
@@ -121,11 +121,11 @@ class ExpmGRAPE(Expm, Differentiable):
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation(
         self,
-        us,
-        psis_t,
-        lamdas_t,
-        steps_arr,
-    ):
+        us: Array,
+        psis_t: Array,
+        lamdas_t: Array,
+        steps_arr: Array,
+    ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
@@ -138,11 +138,11 @@ class ExpmGRAPE(Expm, Differentiable):
             steps_arr: Array from 0 to the length of the List of times, in steps
         """
 
-        def forward_propagation(psis_t, index):
+        def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:
             psis_t = us[index] @ psis_t
             return psis_t, psis_t
 
-        def backward_propagation(lamdas_t, index):
+        def backward_propagation(lamdas_t: Array, index: Any) -> tuple[Array, Array]:
             lamdas_t = lamdas_t @ us[-index - 1]
             return lamdas_t, lamdas_t
 
@@ -154,12 +154,12 @@ class ExpmGRAPE(Expm, Differentiable):
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation_open(
         self,
-        us,
-        us_rev,
-        psis_t,
-        lamdas_t,
-        steps_arr,
-    ):
+        us: Array,
+        us_rev: Array,
+        psis_t: Array,
+        lamdas_t: Array,
+        steps_arr: Array,
+    ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
@@ -174,11 +174,11 @@ class ExpmGRAPE(Expm, Differentiable):
                 of 1 representing the iteration index.
         """
 
-        def forward_propagation(psis_t, index):
+        def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:
             psis_t = us[index] @ psis_t
             return psis_t, psis_t
 
-        def backward_propagation(lamdas_t, index):
+        def backward_propagation(lamdas_t: Array, index: Any) -> tuple[Array, Array]:
             lamdas_t = us_rev[index] @ lamdas_t
             return lamdas_t, lamdas_t
 
@@ -230,10 +230,10 @@ class ExpmGRAPE(Expm, Differentiable):
     @partial(jit, static_argnums=(0,))
     def _propagate_in_time(
         self,
-        us,
-        psis_t,
-        steps_arr,
-    ):
+        us: Array,
+        psis_t: Array,
+        steps_arr: Array,
+    ) -> Array:
         """Propagate Full time.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
@@ -244,7 +244,7 @@ class ExpmGRAPE(Expm, Differentiable):
             steps_arr: Array from 0 to the length of the List of times, in steps
         """
 
-        def forward_propagation(psis_t, index):
+        def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:
             psis_t = us[index] @ psis_t
             return psis_t, psis_t
 

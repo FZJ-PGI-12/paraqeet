@@ -1,5 +1,6 @@
 """Class definition for the Runge-Kutta Scipy propagation model."""
 
+from collections.abc import Callable
 from typing import override
 
 import numpy as np  # Using regular numpy for scipy interface
@@ -19,7 +20,7 @@ class RungeKutta(StatePropagation):
 
     _initial_time_step: float
 
-    def __init__(self, eom_func, resolution, initial_state) -> None:
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array) -> None:
         """
         Args:
             eom_func: A function that gives the equation of motion.
@@ -61,7 +62,7 @@ class RungeKutta(StatePropagation):
         if len(times) < 2:
             raise ValueError("RungeKutta.get_value needs at least two time steps")
 
-        def callback(time, state):
+        def callback(time: float, state: Array) -> Array:
             column_state = np.reshape(state, (-1, 1))
             return np.reshape(
                 self._eom_func(np.array([time])) @ column_state,

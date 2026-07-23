@@ -1,6 +1,6 @@
 """Class definition of the Scipy piecewise exponential propagation model."""
 
-from typing import override
+from typing import Any, override
 
 import jax
 import jax.numpy as jnp
@@ -44,7 +44,7 @@ class Expm(StatePropagation):
 
         """
 
-        def propagate_body(psis_t, index):
+        def propagate_body(psis_t: Array, index: Any) -> tuple[Array, Array]:
             psis_t = Expm._propagate_psi(eom[index], psis_t)
             return psis_t, psis_t
 

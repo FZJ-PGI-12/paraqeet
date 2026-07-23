@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from functools import partial
-from typing import override
+from typing import Any, override
 
 import jax
 import jax.numpy as jnp
@@ -135,12 +135,12 @@ class Vern7GRAPE(Vern7, Differentiable):
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation(
         self,
-        psis_t,
-        lamdas_t,
-        eom,
-        col,
-        steps_arr,
-    ):
+        psis_t: Array,
+        lamdas_t: Array,
+        eom: Array,
+        col: Array,
+        steps_arr: Array,
+    ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
@@ -150,7 +150,7 @@ class Vern7GRAPE(Vern7, Differentiable):
             lamdas_t: Backward propagated state
         """
 
-        def forward_propagation(psis_t, index):
+        def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:
             psis_t = self._vern7_one_step(
                 psis_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
@@ -158,7 +158,7 @@ class Vern7GRAPE(Vern7, Differentiable):
             )
             return psis_t, psis_t
 
-        def backward_propagation(lamdas_t, index):
+        def backward_propagation(lamdas_t: Array, index: Any) -> tuple[Array, Array]:
             lamdas_t = self._vern7_one_step(
                 lamdas_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),

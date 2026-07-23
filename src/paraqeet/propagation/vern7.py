@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -88,7 +89,7 @@ class Vern7(StatePropagation):
         return jnp.sort(times_interp)
 
     @partial(jit, static_argnums=(0,))
-    def _vern7_one_step(self, state, h, col):
+    def _vern7_one_step(self, state: Array, h: Array, col: Array) -> Array:
         k1 = self._step_function(state, h[0], col)
         k2 = self._step_function(state + (1 / 200) * k1, h[1], col)
         k3 = self._step_function(state + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
@@ -137,7 +138,7 @@ class Vern7(StatePropagation):
             h[8],
             col,
         )
-        state_new = (
+        state_new: Array = (
             state
             + (117807213929927 / 2640907728177740) * k1
             + (4758744518816629500000 / 17812069906509312711137) * k4
@@ -153,13 +154,13 @@ class Vern7(StatePropagation):
         return state_new
 
     @partial(jit, static_argnums=(0,))
-    def _propagate_in_time(self, state_t, eom, col, steps_arr):
+    def _propagate_in_time(self, state_t: Array, eom: Array, col: Array, steps_arr: Array) -> Array:
         """
         Propagate from `time[ti] to time[ti+1]`.
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
         """
 
-        def propagate_body(state_t, index):
+        def propagate_body(state_t: Array, index: Any) -> tuple[Array, Array]:
             state_t = self._vern7_one_step(
                 state_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),

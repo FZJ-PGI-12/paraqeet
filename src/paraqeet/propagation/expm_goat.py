@@ -6,7 +6,7 @@ Uses the GOAT optimization method.
 
 from collections.abc import Callable
 from functools import partial
-from typing import override
+from typing import Any, override
 
 import jax.numpy as jnp
 from jax import jit
@@ -58,7 +58,7 @@ class ExpmGOAT(Expm, Differentiable):
         psi_t = jnp.concatenate(super_state)
         return psi_t
 
-    def _create_goat_ham(self, n_params: int, eom: Array, grads: Array):
+    def _create_goat_ham(self, n_params: int, eom: Array, grads: Array) -> Array:
         """Create a Hamiltonian for the GOAT optimization method.
 
         Args:
@@ -84,8 +84,8 @@ class ExpmGOAT(Expm, Differentiable):
         return jnp.block(goat_ham_list)
 
     @partial(jit, static_argnums=(0, 1))
-    def _propagate_gradient(self, n_params, psis_t, eom, grads, steps_arr):
-        def propagate_body(psis_t, index):
+    def _propagate_gradient(self, n_params: int, psis_t: Array, eom: Array, grads: Array, steps_arr: Array) -> Array:
+        def propagate_body(psis_t: Array, index: Any) -> tuple[Array, Array]:
             goat_ham = self._create_goat_ham(n_params, eom[index], grads[index])
             psis_t = Expm._propagate_psi(goat_ham, psis_t)
             return psis_t, psis_t
