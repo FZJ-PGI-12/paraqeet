@@ -31,7 +31,7 @@ class ScipyOptimizer(Optimizer):
                 that can be optimized.
         """
         super().__init__(measure_func, optimization_map)
-        self._options = {"disp": True}
+        self._options = {}
         self._method = "L-BFGS-B"
         self._callback = self._default_callback
 
