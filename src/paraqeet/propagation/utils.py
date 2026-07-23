@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax import jit, vmap
 
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 @jit
@@ -100,7 +100,7 @@ def grape_operator_sandwich_function_open(ham_grads: Array, fwd_prop_states: Arr
     return jnp.linalg.trace(grad)
 
 
-def construct_times(times: Array, ti: int, resolution: float) -> tuple:
+def construct_times(times: Array, ti: int, resolution: float) -> tuple[Array, Float]:
     """Construct one-dimensional vector of time.
 
     Interpolate the user-specified times to match the propagation resolution.

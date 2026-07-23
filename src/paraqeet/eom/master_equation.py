@@ -53,7 +53,7 @@ class MasterEquation(EquationOfMotion):
         """Set a list of jump operators (each multiplied by the sqrt of their corresponding decay rates)."""
         self._jump_operators = jump_ops
 
-    def _create_hamiltonian_superop(self, t) -> Array:
+    def _create_hamiltonian_superop(self, t: Array) -> Array:
         """Create the Hamiltonian superoperator for one time point `t`."""
         identityop = jnp.eye(self._total_dimension)
         ham = self._hamiltonian_func(jnp.array(t, ndmin=1)).squeeze(axis=0)
@@ -70,13 +70,13 @@ class MasterEquation(EquationOfMotion):
             superop -= jnp.kron(identityop, jnp.matmul(jump_op.conj().T, jump_op)) / 2
         return superop
 
-    def _create_lindbladian_superop(self, t) -> Array:
+    def _create_lindbladian_superop(self, t: Array) -> Array:
         """Create the Lindbladian superoperator for one time point `t`."""
         ham_super_op = vmap(self._create_hamiltonian_superop)(t)
         col_super_op = self._create_jump_superop()
         return ham_super_op + col_super_op
 
-    def _create_hamiltonian_grad_superop(self, timestep: float):
+    def _create_hamiltonian_grad_superop(self, timestep: float) -> Array:
         """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
         identityop = jnp.eye(self._total_dimension)
         ham_grad = self._hamiltonian_gradient_func(jnp.array(timestep, ndmin=1))
@@ -120,7 +120,7 @@ class MasterEquation(EquationOfMotion):
         return -1j * grads
 
     @override
-    def get_value(self, times: Array):
+    def get_value(self, times: Array) -> Array:
         """Return the Lindblad superoperator.
 
         Args:
@@ -141,5 +141,5 @@ class MasterEquation(EquationOfMotion):
         Returns:
             RHS with dimension [t, N^2, N^2] with t: time, N: Hilbert space.
         """
-        grads = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
+        grads: Array = vmap(self._create_hamiltonian_grad_superop)(times)  # type: ignore
         return grads

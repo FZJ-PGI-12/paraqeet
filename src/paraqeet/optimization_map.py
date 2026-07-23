@@ -209,21 +209,21 @@ class OptimizationMap:
             (k, v) for k, v in self._optimizable_to_parameter_map.items() if len(v) > 0
         )
 
-    def filter_by_name(self, name: str):
+    def filter_by_name(self, name: str) -> None:
         """Filter parameters by name of parameter.
 
         Args:
             name: Name of parameter to be filtered with.
         """
-        return self.filter_parameters(lambda quantity: quantity.get_name() == name)
+        self.filter_parameters(lambda quantity: quantity.get_name() == name)
 
-    def remove_by_name(self, name: str):
+    def remove_by_name(self, name: str) -> None:
         """Remove parameters by name of parameter.
 
         Args:
             name: Name of parameter to be filtered with.
         """
-        return self.filter_parameters(lambda quantity: name not in quantity.get_name())
+        self.filter_parameters(lambda quantity: name not in quantity.get_name())
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of the optimization map.

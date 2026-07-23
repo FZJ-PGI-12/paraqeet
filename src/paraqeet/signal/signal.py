@@ -87,7 +87,7 @@ class Signal(Optimizable, Differentiable):
         pass
 
     @override
-    def get_value(self, times) -> Float | Array:
+    def get_value(self, times: Array) -> Float | Array:
         params = self.get_parameters()
         param_values = [param.get_value() for param in params]
         t_arr = jnp.array(times, ndmin=1)
@@ -127,7 +127,7 @@ class Signal(Optimizable, Differentiable):
         return grads
 
     @override
-    def get_value_and_gradient(self, times) -> tuple:
+    def get_value_and_gradient(self, times: Array) -> tuple:
         return self.get_value(times), self.get_gradient(times)
 
     def get_time_gradient(self, times: Array) -> Array:
@@ -439,15 +439,16 @@ class FlatTopGaussianFilter(Signal):
             tone.set_optimizable_parameters(params)
 
     @partial(jit, static_argnums=(0,))
-    def _compute_flat_top_envelope(self, t):
+    def _compute_flat_top_envelope(self, t: Array) -> Array:
         t_final = self._t_final.get_value()
         ramp_time = t_final / 25
         ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
         ramp_down = 1 + erf((-t + 18 * t_final / 20) / ramp_time)
         return ramp_up * ramp_down / 4
 
-    def _evaluate(self, t):
-        return self._compute_flat_top_envelope(t)
+    def _evaluate(self, t: Array) -> Array:
+        envelope: Array = self._compute_flat_top_envelope(t)
+        return envelope
 
     @override
     def get_value(self, times: Array) -> Array:

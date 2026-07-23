@@ -24,12 +24,12 @@ class MakhlinFunctional(Measurement):
     """
 
     _propagation_func: Callable[[Array], Array]
-    _ideal_invariants: Array | None
+    _ideal_invariants: tuple[Array, Array, Array] | None
 
     def __init__(
         self,
         propagation_func: Callable[[Array], Array],
-        ideal_invariants: Array | None = None,
+        ideal_invariants: tuple[Array, Array, Array] | None = None,
     ) -> None:
         """
         Args:
@@ -63,7 +63,7 @@ class MakhlinFunctional(Measurement):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self._makhlin_invariants(u)
         if self._ideal_invariants is not None:
-            return jnp.array(jnp.linalg.norm(gs - self._ideal_invariants))
+            return jnp.array(jnp.linalg.norm(jnp.array(gs) - jnp.array(self._ideal_invariants)))
         else:
             return jnp.abs(gs[2] * jnp.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 

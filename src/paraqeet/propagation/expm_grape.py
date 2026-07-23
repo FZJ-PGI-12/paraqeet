@@ -279,7 +279,7 @@ class ExpmGRAPE(Expm, Differentiable):
         return gradient
 
     @override
-    def get_value_and_gradient(self, times: Array) -> tuple:
+    def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Compute gradients using GRAPE.
 
         Compute the forward propagation of the initial state and

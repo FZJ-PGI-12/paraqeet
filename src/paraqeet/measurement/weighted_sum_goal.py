@@ -105,11 +105,11 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
             Returns the plain weighted sum.
         """
         values = [m.get_value(times=times) for m in self._measurements]
-        sum_meas: Array | float = 0.0
+        sum_meas: Array | Float = 0.0
         for ii, w in enumerate(self._weights):
             sum_meas += w * values[ii]
         if self._sum_of_squares_options is not None:
-            sum_square_diff: Array | float = 0.0
+            sum_square_diff: Array | Float = 0.0
             values_in_sum_of_squares = [
                 val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
             ]
@@ -120,7 +120,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
-        return self.get_value(times)
+        return jnp.array(self.get_value(times))
 
     @override
     def get_gradient(self, times: Array) -> Array:

@@ -37,6 +37,7 @@ class Hamiltonian(Optimizable, Differentiable):
         pass
 
     @override
+    @abstractmethod
     def get_value(self, times: Array) -> Array:
         """Calculate the Hamiltonian at different times.
 
@@ -50,6 +51,7 @@ class Hamiltonian(Optimizable, Differentiable):
         pass
 
     @override
+    @abstractmethod
     def get_gradient(self, times: Array) -> Array:
         """Calculate the gradient of the Hamiltonian at different times.
 

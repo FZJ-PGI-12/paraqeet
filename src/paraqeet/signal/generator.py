@@ -1,5 +1,6 @@
 """Abstract base class for the signal generation stack that produces the control signal."""
 
+from abc import abstractmethod
 from typing import override
 
 from paraqeet.differentiable import Differentiable
@@ -19,5 +20,6 @@ class Generator(Optimizable, Differentiable):
     """
 
     @override
+    @abstractmethod
     def get_value(self, times: Array) -> Array:
         pass

@@ -53,7 +53,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
         norm_coeff = (num_pwc - 1) * (2 * self._pwc_generator.max_amplitude) ** 2
 
-        def get_squared_difference(index):
+        def get_squared_difference(index: Array) -> Array:
             """Squared difference between two consecutive bins in PWC pulse.
 
             Args:
@@ -87,7 +87,7 @@ class Smoothness(NormalizableMeasurement, Differentiable):
         opt_pwc_params = self._pwc_generator.optimizable_parameters
         opt_params = self._pwc_generator.all_optimizable_parameters
 
-        def get_partial_derivative(n, vec):
+        def get_partial_derivative(n: Array, vec: Array) -> Array:
             """Compute the derivatives of the smoothness measure for 3 cases: starting point, center and end point.
 
             Args:

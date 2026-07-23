@@ -50,7 +50,7 @@ class Envelope(Signal):
         )
 
     @override
-    def get_parameters(self):
+    def get_parameters(self) -> list[Quantity]:
         return [self._amplitude, self._t_final]
 
     @property
@@ -212,12 +212,12 @@ class FlatTopGaussianEnvelope(Envelope):
         )
 
     @override
-    def get_parameters(self):
+    def get_parameters(self) -> list[Quantity]:
         return [self._amplitude, self._t_up, self._t_down, self._ramp_time]
 
     @override
     @partial(jit, static_argnums=(0,))
-    def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
+    def _evaluate(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
         """Evaluate the flat-top Gaussian envelope.
 
         Explicitly depends on the optimizable parameters.
@@ -240,11 +240,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @staticmethod
     @jit
-    def _dir_erf(x: Array):
+    def _dir_erf(x: Array) -> Array:
         return 2 / jnp.sqrt(jnp.pi) * jnp.exp(-(x**2))
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
+    def _evaluate_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
         """Evaluate the time derivative of the envelope.
 
         Explicitly depends on the optimizable parameters.
@@ -270,10 +270,11 @@ class FlatTopGaussianEnvelope(Envelope):
 
         prod_dir = ramp_up * ramp_down_t_dir + ramp_up_t_dir * ramp_down
 
-        return amp * prod_dir / 4
+        grad: Array = amp * prod_dir / 4
+        return grad
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate_t_up_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
+    def _evaluate_t_up_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
         """Evaluate the gradient of the envelope with respect to `t_up`.
 
         Explicitly depends on the optimizable parameters.
@@ -292,10 +293,11 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_up_dir = FlatTopGaussianEnvelope._dir_erf((times - t_up) / ramp_time)
         ramp_up_dir /= -ramp_time
         ramp_down = 1 + erf((-times + t_down) / ramp_time)
-        return amp * ramp_up_dir * ramp_down / 4
+        grad: Array = amp * ramp_up_dir * ramp_down / 4
+        return grad
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate_t_down_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
+    def _evaluate_t_down_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
         """Evaluate the gradient of the envelope with respect to `t_down`.
 
         Explicitly depends on the optimizable parameters.
@@ -314,10 +316,11 @@ class FlatTopGaussianEnvelope(Envelope):
         ramp_up = 1 + erf((times - t_up) / ramp_time)
         ramp_down_dir = FlatTopGaussianEnvelope._dir_erf((-times + t_down) / ramp_time)
         ramp_down_dir /= ramp_time
-        return amp * ramp_up * ramp_down_dir / 4
+        grad: Array = amp * ramp_up * ramp_down_dir / 4
+        return grad
 
     @partial(jit, static_argnums=(0,))
-    def _evaluate_ramp_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array):
+    def _evaluate_ramp_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
         """Evaluate the gradient of the envelope with respect to `ramp_time`.
 
         Explicitly depends on the optimizable parameters.
@@ -343,7 +346,8 @@ class FlatTopGaussianEnvelope(Envelope):
 
         prod_dir = ramp_up * ramp_down_dir + ramp_up_dir * ramp_down
 
-        return amp * prod_dir / 4
+        grad: Array = amp * prod_dir / 4
+        return grad
 
     @override
     def get_value(self, times: Array) -> Array:
@@ -648,7 +652,7 @@ class DCRABEnvelope(Envelope):
         self._total_num_components = self._num_components
 
     @override
-    def get_parameters(self):
+    def get_parameters(self) -> list[Quantity]:
         """Return the parameters of the CRAB signal.
 
         The parameters are arranged as follows,

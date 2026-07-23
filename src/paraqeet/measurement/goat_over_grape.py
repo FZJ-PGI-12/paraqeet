@@ -3,7 +3,6 @@
 from typing import override
 
 import jax.numpy as jnp
-import numpy as np
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
@@ -52,15 +51,15 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
             Return padded gradient vector.
         """
         num_pixels, num_params = grad.shape
-        padded_grad = np.zeros((0, num_params))
+        padded_grad = jnp.zeros((0, num_params))
         for i in range(len(self._gens)):
             if i == gen_num:
-                padded_grad = np.append(padded_grad, grad, axis=0)
+                padded_grad = jnp.append(padded_grad, grad, axis=0)
             else:
-                padded_grad = np.append(padded_grad, np.zeros((num_pixels, num_params)), axis=0)
-        return jnp.array(padded_grad)
+                padded_grad = jnp.append(padded_grad, jnp.zeros((num_pixels, num_params)), axis=0)
+        return padded_grad
 
-    def _construct_interpolated_times(self, times: Array):
+    def _construct_interpolated_times(self, times: Array) -> tuple[Array, Float]:
         # Construct the same time grid as propagation to evaluate control gradients
         interp_times = jnp.array([])
         for ti in range(1, len(times)):

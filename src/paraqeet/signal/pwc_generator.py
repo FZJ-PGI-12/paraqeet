@@ -82,7 +82,7 @@ class PWCGenerator(Generator):
         self._t_final = self._time_grid[-1]
 
     @partial(jit, static_argnums=(0,))
-    def _compute_envelope(self, t):
+    def _compute_envelope(self, t: Array) -> Array:
         t_final = self._t_final
         ramp_time = t_final / 25
         ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
@@ -197,7 +197,7 @@ class PWCGenerator(Generator):
             name="out-of-phase",
         )
 
-    def _get_partial_derivatives(self, times) -> Array:
+    def _get_partial_derivatives(self, times: Array) -> Array:
         env_grads = []
         for dev in self._envs:
             _, grad = dev.get_value_and_gradient(times)
