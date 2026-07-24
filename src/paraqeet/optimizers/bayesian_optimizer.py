@@ -37,8 +37,8 @@ class BayesianOptimizer(Optimizer):
                 to be minimized.
             optimization_map: All optimizable parameters via the optimization
                 map.
-            initial_samples: Number of iterations before the exploration
-                starts the exploration for the maximum.
+            initial_samples: Number of initial samples explored before the
+                search for the maximum starts.
             iterations: Number of iterations where the method attempts to
                 find the maximum value.
         """

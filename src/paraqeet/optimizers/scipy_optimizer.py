@@ -139,7 +139,7 @@ class ScipyOptimizer(Optimizer):
             values: Parameter values for the update.
 
         Returns:
-            The measurement result.
+            The infidelity, i.e. one minus the measurement result (the optimizer minimizes this).
         """
         log = []
         params = self._optimization_map.get_all_parameters()

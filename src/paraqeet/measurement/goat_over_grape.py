@@ -71,13 +71,13 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
 
     @override
     def get_value(self, times: Array) -> Float:
-        """Sum of plain weighted measurements.
+        """Evaluate the underlying GRAPE measurement on the interpolated propagation time grid.
 
         Args:
             times: Array of times
 
         Returns:
-            Returns the plain weighted sum.
+            The fidelity from the underlying GRAPE measurement.
         """
         grape = self._measurement
         for gen in self._gens:

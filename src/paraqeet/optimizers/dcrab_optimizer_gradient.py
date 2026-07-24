@@ -256,7 +256,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
             values: Parameter values for the update.
 
         Returns:
-            The inverse of the fidelity.
+            The infidelity, i.e. one minus the fidelity (the optimizer minimizes this).
         """
         log = self.set_parameters(values)
 

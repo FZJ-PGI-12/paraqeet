@@ -110,7 +110,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             values: Parameter values for the update.
 
         Returns:
-            The inverse of the fidelity.
+            The infidelity, i.e. one minus the fidelity (the optimizer minimizes this).
         """
         log = []
         params = self._optimization_map.get_all_parameters()

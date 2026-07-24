@@ -382,7 +382,7 @@ class Quantity:
             qty.update()
 
     def set_reduced_value(self, value: Array | float) -> None:
-        """Set reduced value limit for parameter."""
+        """Set the value of the parameter in the reduced representation."""
         value_fixed = self._fix_parameter_types(value)
         if value_fixed.shape != self._shape:
             raise IncompatibleQuantityException(

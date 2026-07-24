@@ -95,7 +95,7 @@ class Resonator:
         Args:
             hamiltonian: The Hamiltonian of a resonator in the Fock basis.
             t1: Photon decay time.
-            temp: Temperature of the qubit.
+            temp: Temperature of the resonator.
             t2star: Dephasing time.
         """
         self.hamiltonian = hamiltonian

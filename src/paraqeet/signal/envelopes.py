@@ -444,9 +444,10 @@ class GaussEnvelope(Envelope):
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate_time_gradient(self, amp: Array, t_final: Array, times: Array) -> Array:
-        """Calculate the gaussian signal.
+        """Calculate the time derivative of the gaussian signal.
 
         Args:
+            amp: Amplitude of the gaussian.
             t_final: Duration of the signal to calculate the center of the gaussian from.
             times: Array of times.
 
@@ -656,7 +657,8 @@ class DCRABEnvelope(Envelope):
         """Return the parameters of the CRAB signal.
 
         The parameters are arranged as follows,
-        ``[amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]``
+        ``[amplitude, t_final, real coefficients, real frequencies, real phases,
+        imag coefficients, imag frequencies, imag phases]``
 
         """
         params = [self.amplitude, self._t_final]
@@ -669,7 +671,7 @@ class DCRABEnvelope(Envelope):
         return params
 
     def get_coefficients_frequencies_and_phases(self) -> list[Quantity]:
-        """Return all the coefficients and frequencies used in the CRAB signal."""
+        """Return all the coefficients, frequencies and phases used in the CRAB signal."""
         return (
             self._real_coefficients
             + self._real_frequencies

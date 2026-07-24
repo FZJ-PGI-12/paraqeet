@@ -111,7 +111,7 @@ class Transmon:
         Args:
             hamiltonian: The Hamiltonian of a transmon as a Duffing oscillator.
             t1: Energy relaxation time.
-            temp: Temperature of the qubit.
+            temp: Temperature of the transmon.
             t2star: Dephasing time.
         """
         self.hamiltonian = hamiltonian

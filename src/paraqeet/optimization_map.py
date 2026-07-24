@@ -157,7 +157,7 @@ class OptimizationMap:
         return set(self._optimizable_to_parameter_map.keys())
 
     def get_parameters(self, optimizable: Optimizable) -> list[Quantity] | None:
-        """Return all quantities associated with the given parameter.
+        """Return all quantities associated with the given optimizable.
 
         Args:
             optimizable: Input optimizable object.

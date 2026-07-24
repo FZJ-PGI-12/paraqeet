@@ -12,12 +12,11 @@ from paraqeet.quantity import Array, Quantity
 
 
 class QubitHamiltonian(Hamiltonian):
-    r"""Hamiltonian of a single qubit -frequency / 2 * pauli_z.
+    r"""Hamiltonian of a single qubit, -frequency / 2 * pauli_z + drive.
 
     The implementation uses the quantum information convention of having :math:`|0\rangle` = [1 0]^T
-    system that is compatible with the projection of a higher-dimensional
-    as ground state and :math:`|1\rangle` = [0 1]^T as excited state. Hence, the Hamiltonian
-    should be taken with a minus sign.
+    as ground state and :math:`|1\rangle` = [0 1]^T as excited state, compatible with the projection
+    of a higher-dimensional system. Hence, the Hamiltonian should be taken with a minus sign.
     """
 
     def __init__(
@@ -53,7 +52,7 @@ class QubitHamiltonian(Hamiltonian):
 
     @property
     def sigma_plus(self) -> Array:
-        """Return the sigme plus operator."""
+        """Return the sigma plus operator."""
         return self._sigma_minus.T
 
     @property

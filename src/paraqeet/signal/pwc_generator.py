@@ -34,7 +34,7 @@ class PWCGenerator(Generator):
         _envs: List of Envelopes
         _tlist: Left time points for discretization. These can be used for propagation and optimization.
         _time_grid: Time grid used to discretize the pulse.
-            These are shifted from tlist by dt, and doesn't include zero time.
+            These are shifted from tlist by dt/2, and doesn't include zero time.
         _max_amplitude: Maximum amplitude of the drive
         _inphase: The in-phase component of the pulse
         _outofphase: The out-of-phase component of the pulse

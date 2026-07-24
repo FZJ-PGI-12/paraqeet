@@ -15,7 +15,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 class StateTransferFidelity(NormalizableMeasurement, Differentiable):
-    """Fidelity measure that compares overlap of the initial and final state.
+    """Fidelity measure that compares the overlap of the propagated final state and the target state.
 
     This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``.
     The overlap function is assumed to be a JAX jit compatible functionally pure function.
@@ -71,7 +71,8 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
-        """Measure overlap between initial and target state. To be used with an optimizer.
+        """Measure the fidelity between the propagated final state and the target state. To be used with an optimizer.
+
         For NormalizableMeasurement objects that are also Differentiable this coincide
         with the get_value method.
 
@@ -79,7 +80,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
             times: One-dimensional vector of timestamps.
 
         Returns:
-            Overlap between initial and target state in a bare Float.
+            Fidelity between the final and target state as a bare Float.
         """
         return self.get_value(times)
 
@@ -105,7 +106,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
 
 
 class StateTransferFidelityGRAPE(StateTransferFidelity):
-    """Fidelity measure that compares overlap of the initial and final state.
+    """Fidelity measure that compares the overlap of the propagated final state and the target state.
 
     For GRAPE the optimizable parameters are vector quantities given by the PWC bins of the pulse.
 

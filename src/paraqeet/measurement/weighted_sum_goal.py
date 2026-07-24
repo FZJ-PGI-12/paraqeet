@@ -50,7 +50,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
         self._sum_of_squares_options = sum_of_squares_options
         if len(measurements) != len(weights):
             raise ConfigurationException(
-                f"Incompatible number of measurements {len(measurements)} and weights {{len(weights)}}"
+                f"Incompatible number of measurements {len(measurements)} and weights {len(weights)}"
             )
         if sum_of_squares_options is not None:
             expected_keys = ["weight", "meas_bool"]

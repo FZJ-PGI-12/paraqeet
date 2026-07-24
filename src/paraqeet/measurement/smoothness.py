@@ -36,17 +36,18 @@ class Smoothness(NormalizableMeasurement, Differentiable):
 
     @override
     def get_value(self, times: Array) -> Float:
-        """Return the normalized sum of consecutive square differences of the pulse.
+        """Return the pulse smoothness as one minus the normalized sum of consecutive square differences.
 
-        As the maximums difference is twice the maximum amplitude, the normalization
+        As the maximum difference is twice the maximum amplitude, the normalization
         factor is the number of piecewise constants minus 1 times the maximum
-        difference squared.
+        difference squared. The returned value is 1 for a perfectly flat pulse and
+        decreases as the pulse becomes less smooth.
 
         Args:
             times: Array of times.
 
         Returns:
-            The normalized sum of consecutive square differences in the pulse.
+            One minus the normalized sum of consecutive square differences in the pulse.
         """
         pulse = self._pwc_generator.get_value(times)
         num_pwc = jnp.shape(pulse)[0]
