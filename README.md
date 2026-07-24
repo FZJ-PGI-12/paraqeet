@@ -31,6 +31,8 @@ Currently implemented optimization methods
 - GRAPE: Gradient Ascent Pulse Engineering
 - GOAT: Gradient Optimization of Analytic conTrols
 - dCRAB : (Gradient based) dressed Chopped RAndom Basis
+- GOAToverGRAPE: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
+
 
 ## Installation from PyPi
 Install with `pip install paraqeet`.

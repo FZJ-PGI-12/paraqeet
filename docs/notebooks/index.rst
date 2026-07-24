@@ -8,20 +8,16 @@ New users are recommended to start with :doc:`01A_OptimizationMap`, :doc:`01B_Gr
 Fundamentals
 ------------
 
-- :doc:`01A_OptimizationMap` — How parameters (``Quantity``) and the ``OptimizationMap`` connect a model to an optimizer.
+- :doc:`01A_OptimizationMap` — How parameters (``Quantity``) and the ``OptimizationMap`` work in ParaQeet.
 - :doc:`01B_Gradient_evaluation` - A walkthrough over gradient computation across the package.
 
-Single-qubit control
---------------------
+Single-qubit control using various pulse parametrization
+--------------------------------------------------------
 
 - :doc:`02A_Single_qubit_state_preparation` — State preparation of a single spin by tuning a cosine drive.
 - :doc:`02B_Single_qubit_gate` — Gradient-descent optimization of a single-qubit gate.
 - :doc:`02C_Qubit-bayesian-optimization` — Gradient-free Bayesian optimization of a single-qubit gate.
 - :doc:`03_DRAG_pulses` — DRAG correction of a Gaussian pulse to suppress leakage.
-
-GRAPE
------
-
 - :doc:`04A_GRAPE_TLS` — GRAPE on a two-level system.
 - :doc:`04B_Single_qubit_gate_GRAPE` — Single-qubit gate optimization with GRAPE.
 
@@ -44,8 +40,8 @@ Building custom models
 - :doc:`07A_Custom_Hamiltonian` — Plug a user-defined Hamiltonian function into ParaQeet.
 - :doc:`07B_Modeling_using_QuTiP` — Build the Hamiltonian using function and plug it into ParaQeet for optimization.
 
-Bosonic systems and smoothness
-------------------------------
+Optimization of bosonic systems
+-------------------------------
 
 - :doc:`08A_Smoothness_measure` — Constrain piece-wise-constant pulses to vary smoothly.
 - :doc:`08B_Bosonic_grape_state_preparation` — Arbitrary bosonic state preparation using GRAPE.

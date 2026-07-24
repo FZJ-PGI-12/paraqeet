@@ -24,6 +24,7 @@ extensions = [
     "sphinx_design",  # Grid cards on the landing page
     "sphinx_copybutton",  # Copy-to-clipboard buttons on code blocks
     "sphinxext.opengraph",  # Social media / description metadata
+    "sphinxcontrib.bibtex",  # bibliography
 ]
 
 # Strip console and doctest prompts when copying code blocks
@@ -61,6 +62,11 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "jax": ("https://docs.jax.dev/en/latest/", None),
 }
+
+# Bibliography configurations
+bibtex_bibfiles = ["./refs.bib"]  # required; path relative to the source dir
+bibtex_default_style = "unsrt"  # or "plain", "alpha", "unsrtalpha"
+bibtex_reference_style = "label"  # or "label" (default), "super", "foot"
 
 exclude_patterns = ["**.ipynb_checkpoints"]
 

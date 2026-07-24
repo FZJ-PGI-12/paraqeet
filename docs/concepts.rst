@@ -6,15 +6,15 @@ Concepts and architecture
 ParaQeet is organized as a stack of layers. Each layer interacts only with the
 layer above it in the hierarchy, which keeps the codebase modular: you can swap
 a pulse parametrization, a propagator, or an optimizer without touching the
-rest of the setup.
+rest of the setup. The codebase follows the modular structure shown below:
 
-.. image:: ./layers.svg
+.. image:: ./layers.png
    :align: center
-   :width: 100%
+   :width: 80%
    :alt: The ParaQeet layer stack
 
-The layers
-----------
+The modules
+-----------
 
 **Signal** (:mod:`paraqeet.signal`)
    Pulse parametrizations. Envelope shapes such as
@@ -25,20 +25,25 @@ The layers
    (piecewise-constant bins for GRAPE) into the control signal seen by the
    system.
 
-**Model** (:mod:`paraqeet.model`)
+**Hamiltonian** (:mod:`paraqeet.hamiltonian`)
    The physical system: Hamiltonians for qubits, transmons, and resonators,
    couplings and drives, composed with
-   :class:`~paraqeet.model.composite_hamiltonian.CompositeHamiltonian`. The
-   model layer turns a Hamiltonian into an equation of motion — the
+   :class:`~paraqeet.hamiltonian.composite_hamiltonian.CompositeHamiltonian`.
+   Define your own Hamiltonian by following the :class:`~paraqeet.hamiltonian.hamiltonian.Hamiltonian`
+   class structure.
+   
+**Equation of motion (EOM)** (:mod:`paraqeet.eom`)
+   The eom layer turns a Hamiltonian into an equation of motion — the
    :class:`~paraqeet.model.schroedinger_equation.SchroedingerEquation` for
    closed systems or the Lindblad
    :class:`~paraqeet.model.master_equation.MasterEquation` for open systems.
 
 **Propagation** (:mod:`paraqeet.propagation`)
    Solvers of the equation of motion, from piecewise matrix exponentials
-   (:class:`~paraqeet.propagation.scipy_expm.ScipyExpm` and its GOAT/GRAPE
+   (:class:`~paraqeet.propagation.expm.Expm` and its GOAT/GRAPE
    variants) to Runge-Kutta and Verner ODE integrators. The GOAT and GRAPE
-   variants propagate gradients alongside the state.
+   variants propagate gradients alongside the state to provide analytical gradient
+   values.
 
 **Measurement** (:mod:`paraqeet.measurement`)
    Goal functions: state transfer and unitary fidelities, the Makhlin
@@ -47,13 +52,12 @@ The layers
 
 **Optimizers** (:mod:`paraqeet.optimizers`)
    Gradient-based (:class:`~paraqeet.optimizers.scipy_optimizer_gradient.ScipyOptimizerGradient`)
-   and gradient-free (CMA-ES, Bayesian) algorithms, plus a dCRAB driver that
-   grows the pulse basis between runs.
+   and gradient-free (CMA-ES, Bayesian) algorithms, including a gradient-based dCRAB optimizer. 
 
 Parameters: ``Quantity`` and ``OptimizationMap``
 ------------------------------------------------
 
-Two classes connect the layers to the optimizer:
+Fundamental classes that connect the various modules across the package:
 
 - A :class:`~paraqeet.quantity.Quantity` represents every tunable value —
   amplitude, frequency, coupling strength — together with its bounds and unit.
@@ -61,10 +65,17 @@ Two classes connect the layers to the optimizer:
   well-conditioned values regardless of physical magnitude. Quantities can be
   derived from other quantities via relations and update automatically.
 
+- An :class:`~paraqeet.optimizable.Optimizable` class that represents classes that
+  contain parameters that can be optimized. In case an
+  :class:`~paraqeet.optimizable.Optimizable` class is also 
+  :class:`~paraqeet.differentiable.Differentiable` it also provides gradients with 
+  repspect to its own parameters.
+
 - An :class:`~paraqeet.optimization_map.OptimizationMap` collects which
-  quantities of which objects are optimized in a given run. This makes the
-  choice of optimization variables explicit and independent of the model
-  definition: the same setup can optimize two parameters or twenty.
+  quantities from :class:`~paraqeet.optimizable.Optimizable` classes that 
+  are optimized in a given run. This makes the choice of optimization variables
+  explicit and independent of the model definition: the same setup can optimize 
+  two parameters or twenty.
 
 Choosing an optimization method
 -------------------------------
@@ -89,10 +100,6 @@ Choosing an optimization method
      - Analytic envelopes, propagated piecewise
      - Chain rule of GOAT through GRAPE
      - :doc:`notebooks/04C_Single_qubit_gate_GOAToverGRAPE`
-   * - dCRAB
-     - Randomized sinusoidal basis, grown iteratively
-     - Gradient-based per iteration
-     - :doc:`notebooks/02E_GOAToverGRAPE_dCRAB`
    * - Gradient-free
      - Any
      - None (CMA-ES, Bayesian)
@@ -100,9 +107,8 @@ Choosing an optimization method
 
 As a rule of thumb: use GOAT when a few physical pulse parameters should stay
 interpretable, GRAPE when you want maximum pulse flexibility per time bin, and
-GOAToverGRAPE/dCRAB when you want smooth analytic pulses with the propagation
+GOAToverGRAPE when you want smooth analytic pulses with the propagation
 efficiency of GRAPE. Gradient-free methods are a fallback for measures without
 gradients, e.g. when optimizing directly against an experiment.
 
-See the :doc:`quickstart` for a complete GOAT example, or the
-:doc:`example gallery <notebooks/index>` for all of the above.
+Refer to the :doc:`example gallery <notebooks/index>` for examples on all of the above.

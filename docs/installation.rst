@@ -42,3 +42,5 @@ nbstripout run on every commit):
 
    $ pip install pre-commit
    $ pre-commit install
+
+Follow our :ref:`contribute <contributing>` guide for code consistency.

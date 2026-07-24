@@ -5,8 +5,7 @@ Quickstart
 
 This page walks through a complete optimization in about forty lines: preparing
 the excited state of a qubit by tuning the amplitude and frequency of a drive.
-It is the same example that ships (and is tested) as the package docstring of
-:mod:`paraqeet`.
+
 
 If you have not installed ParaQeet yet, see :ref:`installation <install>` — in
 short, ``pip install paraqeet``.
@@ -14,9 +13,10 @@ short, ``pip install paraqeet``.
 Define the control signal
 -------------------------
 
-Every pulse is built from :class:`~paraqeet.signal.waveform.Waveform` components.
-Here a constant envelope is mixed with a local oscillator by an IQ mixer. All
-tunable values are :class:`~paraqeet.quantity.Quantity` objects: bounded,
+In ParaQeet, the signal stack is designed to model the signal stack in experimental setups.
+Every pulse is built from :class:`~paraqeet.signal.signal.Signal` components.
+In this example, a constant envelope is mixed with a local oscillator by an IQ mixer. 
+All tunable values are :class:`~paraqeet.quantity.Quantity` objects: bounded,
 unit-aware parameters that any optimizer can adjust:
 
 .. code-block:: python
@@ -59,8 +59,8 @@ Propagate and define the goal
 -----------------------------
 
 A propagator solves the equation of motion, and a fidelity measure turns the
-final state into a scalar goal function. ``ScipyExpmGOAT`` also propagates the
-analytic gradients (GOAT), so the optimizer receives exact derivatives:
+final state into a scalar goal function. :class:`~paraqeet.propagation.expm_goat.ExpmGOAT` also propagates the
+analytic gradients (using the GOAT method :cite:p:`machnes2018tunable`), so the optimizer receives exact derivatives:
 
 .. code-block:: python
 
@@ -93,16 +93,16 @@ optimizer:
    result = opt.optimize(times=t_final)
 
 ``result.value`` is the final infidelity, and the optimized values are already
-written back into the ``Quantity`` objects by the ``OptimizationMap``;
+written back into the :class:`~paraqeet.quantity.Quantity` objects by the :class:`~paraqeet.optimization_map.OptimizationMap`;
 print ``amplitude`` or ``lo_freq`` to see them.
 
 Where to go next
 ----------------
 
-- :doc:`notebooks/01A_OptimizationMap` — how ``Quantity`` and
-  ``OptimizationMap`` connect a model to an optimizer.
+- :doc:`concepts` — read about the layered architecture and how to choose an optimization
+  method.
+- :doc:`notebooks/01A_OptimizationMap` — how :class:`~paraqeet.quantity.Quantity` and
+  :class:`~paraqeet.optimization_map.OptimizationMap` connect a model to an optimizer.
 - :doc:`notebooks/01B_Gradient_evaluation` — how gradients flow through the
   package.
-- :doc:`concepts` — the layered architecture and how to choose an optimization
-  method.
 - The full :doc:`example gallery <notebooks/index>` and the API reference.

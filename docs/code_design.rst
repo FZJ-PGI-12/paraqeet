@@ -4,9 +4,10 @@ Code design: extending ParaQeet
 ===============================
 
 ParaQeet is built to be extended by subclassing. Every layer of the package —
-``signal``, ``model``, ``propagation``, ``measurement``, ``optimizer`` — is defined by a small
-*abstract base class*. To plug in your own pulse shape, Hamiltonian,
-solver, goal function, or optimizer, subclass the corresponding base class and
+``signal``, ``hamiltonian``, ``eom``, ``propagation``, ``measurement``, ``optimizer``
+— is defined by a small *abstract base class*. 
+To plug in your own pulse shape, Hamiltonian, solver, goal function, or optimizer,
+subclass the corresponding base class and
 implement its handful of abstract methods; the new component then drops into the
 existing pipeline without changes anywhere else.
 
@@ -18,7 +19,7 @@ There are two fundamental base classes in ParaQeet, the ``Differentiable``
 and the ``Optimizable`` base class. 
 
 :class:`~paraqeet.differentiable.Differentiable`
-   Anything that can be differentiated to obtain *its gradient* with respect to some
+   Anything that can be differentiated to obtain *its gradient* with respect to its
    optimizable parameters. Subclasses implement:
 
    - ``get_value(times) -> Array | Float``
@@ -59,9 +60,13 @@ A note on the gradient computation,
 - The module ``autodiff_utils`` provides easy to use wrappers around JAX vjp and jvp
   methods that can be used by the user to construct their own ``get_value_and_gradient`` methods.
 
+- Refer to :doc:`notebooks/01B_Gradient_evaluation` for how gradients are computed 
+  in each module of the package.
+
 
 Finally, we recommend the reader to refer to Example :doc:`notebooks/07A_Custom_Hamiltonian` 
-for creating their own models by inheriting from the provided base classes.
+for creating their own models by inheriting from the provided base classes, and 
+:doc:`notebooks/07B_Modeling_using_QuTiP` for using QuTiP :cite:p:`lambert2026qutip` based models with ParaQeet. 
 
 
 .. _99-autodiff-as-fallback: https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/tree/99-autodiff-as-fallback

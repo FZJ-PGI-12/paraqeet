@@ -20,10 +20,10 @@ ParaQeet combines quantum optimal control methods with automatic differentiation
 via JAX, aimed at resource efficient computation. Currently implemented
 optimization methods:
 
-- GRAPE: Gradient Ascent Pulse Engineering
-- GOAT: Gradient Optimization of Analytic conTrols
-- dCRAB: (Gradient based) dressed Chopped RAndom Basis
-- GOAToverGRAPE: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
+- GRAPE :cite:p:`khaneja2005optimal`: Gradient Ascent Pulse Engineering
+- GOAT :cite:p:`machnes2018tunable`: Gradient Optimization of Analytic conTrols
+- dCRAB :cite:p:`rach2015dressing`: (Gradient based) dressed Chopped RAndom Basis
+- GOAToverGRAPE: A variant of GROUP :cite:p:`sorensen2018quantum` that optimizes continuous pulse parameters with GRAPE inside.
 
 .. grid:: 1 2 2 4
    :gutter: 3
@@ -38,19 +38,19 @@ optimization methods:
       :link: quickstart
       :link-type: doc
 
-      Your first optimization in five minutes: a qubit flip with GOAT.
+      Quickly setup of an optimization problem with ParaQeet.
 
    .. grid-item-card:: Examples
       :link: notebooks/index
       :link-type: doc
 
-      Notebooks from single-qubit gates to bosonic state preparation.
+      A walkthrough of the capabilities of ParaQeet with physically motivated problems.
 
    .. grid-item-card:: Code design
       :link: code_design
       :link-type: doc
 
-      Extend ParaQeet by subclassing its layer templates (ABCs).
+      Want to implement your own methods? Use our template base classes for an easy setup.
 
    .. grid-item-card:: API Reference
       :link: api
@@ -58,39 +58,18 @@ optimization methods:
 
       Full documentation of every module, class, and function.
 
-Getting Started
-===============
-
-.. toctree::
-   :maxdepth: 1
-
-   installation
-   quickstart
-   Concepts <concepts>
-   Code design <code_design>
-
-Examples
-========
-
-.. toctree::
-   :maxdepth: 1
-
-   notebooks/index
-
-
-API Reference
-=============
-
-.. toctree::
-   :maxdepth: 1
-
-   API <api>
-
 
 .. toctree::
    :maxdepth: 1
    :caption: Project
    :hidden:
 
+   installation
+   quickstart
+   Concepts <concepts>
+   Code design <code_design>
+   notebooks/index
+   API <api>
    contributing
    changelog
+   references
