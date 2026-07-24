@@ -1,4 +1,4 @@
-"""Class definition of the Scipy piecewise exponential propagation model.
+"""Class definition of the JAX piecewise exponential propagation model.
 
 Uses the GOAT optimization method.
 
@@ -20,7 +20,7 @@ from paraqeet.quantity import Array
 
 
 class ExpmGOAT(Expm, Differentiable):
-    """Solve EOMs by piecewise exponentiation via Scipy using GOAT."""
+    """Solve EOMs by piecewise exponentiation via JAX using GOAT."""
 
     _eom_gradient_func: Callable[[Array], Array]
 
@@ -106,11 +106,12 @@ class ExpmGOAT(Expm, Differentiable):
             times: Array of times.
 
         Returns:
-            tuple[Array, Array]: First dimension is time, second dimension is the parameter.
+            A tuple ``(value, gradient)``. ``value`` holds the propagated states with time along the first
+            dimension. ``gradient`` has time along the first dimension and the parameter along the second.
 
         """
         if len(times) < 2:
-            raise ValueError("ScipyExpmGOAT.get_value_and_gradient needs at least two time points.")
+            raise ValueError("ExpmGOAT.get_value_and_gradient needs at least two time points.")
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")

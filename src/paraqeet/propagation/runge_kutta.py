@@ -52,7 +52,7 @@ class RungeKutta(StatePropagation):
         Returns:
             The solution of the equations of motion.
 
-        Raises
+        Raises:
             ConfigurationException: If the initial state is not set.
             ValueError: If the propagation needs at least two time steps.
         """

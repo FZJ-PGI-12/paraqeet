@@ -183,7 +183,7 @@ class Vern7(StatePropagation):
             The solution of the equations of motion.
 
         Raises:
-            ConfigurationException: If the initial state is not set.
+            ValueError: If fewer than two time points are given.
         """
         if len(times) < 2:
             raise ValueError("Vern7.get_value needs at least two time points.")

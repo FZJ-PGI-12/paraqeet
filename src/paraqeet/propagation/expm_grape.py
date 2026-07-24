@@ -1,4 +1,4 @@
-"""Class definition of the Scipy piecewise exponential propagation model.
+"""Class definition of the JAX piecewise exponential propagation model.
 
 Uses the GRAPE optimization method.
 Assumes that the signal is piecewise constant (PWC) without an LO and the
@@ -25,18 +25,18 @@ jax.config.update("jax_enable_x64", True)
 
 
 class ExpmGRAPE(Expm, Differentiable):
-    """Solve EOMs by piecewise exponentiation via Scipy using GRAPE.
+    """Solve EOMs by piecewise exponentiation via JAX using GRAPE.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
     GRAPE. Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
-    The state propagations are done by the `ScipyExpm` method.
+    The state propagations are done by the `Expm` class.
 
     Attributes:
         _resolution (float): Simulation resolution.
-        _initial_state (Array, optional): Initial state for forward propagation. Defaults to None.
-        _target_state (Array, optional): Target state for backward propagation. Defaults to None.
+        _initial_state (Array): Initial state for forward propagation.
+        _target_state (Array): Target state for backward propagation.
         _schirmer_derivative (bool): If true, compute the gradient by Schirmer Derivative/Method of auxiliary
             matrix exponential. If false, use frechet derivative. Defaults to False.
     """
@@ -132,10 +132,10 @@ class ExpmGRAPE(Expm, Differentiable):
 
         Args:
             us: Unitaries at different times.
-            psis_t: Forward propagated state
-            lamdas_t: Backward propagated state
+            psis_t: Forward propagated state.
+            lamdas_t: Backward propagated state.
+            steps_arr: Array from 0 to the length of the list of times, in steps
                 of 1 representing the iteration index.
-            steps_arr: Array from 0 to the length of the List of times, in steps
         """
 
         def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:
@@ -165,7 +165,6 @@ class ExpmGRAPE(Expm, Differentiable):
         JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
 
         Args:
-
             us: Unitaries at different times.
             us_rev: Inverse of the unitaries at different times.
             psis_t: Forward propagated state.
@@ -193,8 +192,13 @@ class ExpmGRAPE(Expm, Differentiable):
         r"""Exponentiate and also calculate the frechet derivative.
 
         Args:
+            dim: Hilbert space dimension. Unused here; present only so this method shares a signature with
+                ``_exponentiate_schirmer`` for the interchangeable dispatch in ``get_value_and_gradient``.
             ham: -iHdt
             dh_dp: -i\frac{\partial H}{\partial u} dt
+
+        Returns:
+            A tuple ``(expm(ham), frechet derivative)``.
         """
         propagator_and_derivative: tuple[Array, Array] = expm_frechet(ham, dh_dp)
         return propagator_and_derivative
@@ -205,8 +209,13 @@ class ExpmGRAPE(Expm, Differentiable):
         r"""Exponentiate an auxiliary matrix to compute U and dU.
 
         Args:
+            dim: Hilbert space dimension. Used to slice the propagator ``U`` and its derivative ``dU``
+                out of the exponentiated block matrix.
             ham: -iHdt
             dh_dp: -i\frac{\partial H}{\partial u} dt
+
+        Returns:
+            A tuple ``(U, dU)``.
         """
         zeros = jnp.zeros_like(ham)
         h_extended = jnp.block([[ham, dh_dp], [zeros, ham]])
@@ -253,9 +262,24 @@ class ExpmGRAPE(Expm, Differentiable):
 
     @override
     def get_value(self, times: Array) -> Array:
-        """Loop over all desired times in time at set resolution."""
+        """Return the forward-propagated states for a piecewise-constant (PWC) pulse.
+
+        Assumes a uniform time grid, so the step ``dt`` is taken from the first
+        two time points and ``self._resolution`` is not used. Each piece is
+        exponentiated once and the states are propagated in a single scan.
+
+        Args:
+            times: Array of times.
+
+        Returns:
+            The forward-propagated states, with time along the first dimension.
+
+        Raises:
+            ValueError: If fewer than two time points are given.
+            ConfigurationException: If the initial state is not set.
+        """
         if len(times) < 2:
-            raise ValueError("ScipyExpmGRAPE.propagate needs at least two time points.")
+            raise ValueError("ExpmGRAPE.get_value needs at least two time points.")
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
@@ -293,7 +317,7 @@ class ExpmGRAPE(Expm, Differentiable):
         # TODO: Test if this get_value_and_gradient method also works for open systems.
 
         if len(times) < 2:
-            raise ValueError("ScipyExpmGRAPE.get_value_and_gradient needs at least two time points.")
+            raise ValueError("ExpmGRAPE.get_value_and_gradient needs at least two time points.")
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
         target_state = jnp.array(self._target_state, dtype=jnp.complex128)

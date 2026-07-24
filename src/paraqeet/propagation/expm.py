@@ -1,4 +1,4 @@
-"""Class definition of the Scipy piecewise exponential propagation model."""
+"""Class definition of the JAX piecewise exponential propagation model."""
 
 from typing import Any, override
 
@@ -19,7 +19,7 @@ class Expm(StatePropagation):
     """Piecewise matrix exponential propagation system.
 
     Solve the equation of motion by piecewise exponentiation with the
-    Scipy package.
+    JAX package.
 
     """
 
@@ -81,11 +81,11 @@ class Expm(StatePropagation):
             The solution of the equations of motion.
 
         Raises:
-            ConfigurationException: If the initial state is not set.
+            ValueError: If fewer than two time points are given.
 
         """
         if len(times) < 2:
-            raise ValueError("ScipyExpm.get_value needs at least two time points.")
+            raise ValueError("Expm.get_value needs at least two time points.")
 
         psis = [self._initial_state]
 

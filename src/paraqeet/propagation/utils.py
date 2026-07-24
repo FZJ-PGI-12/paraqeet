@@ -107,12 +107,12 @@ def construct_times(times: Array, ti: int, resolution: float) -> tuple[Array, Fl
 
     Args:
         times: Array of times.
-        ti: Snapshot of the time at a current step.
+        ti: Index of the current step into ``times``; the interval [times[ti - 1], times[ti]) is interpolated.
         resolution: Time steps resolution.
 
     Returns:
         Array: Array of timestamps in specified resolution.
-        int: Difference in time step.
+        Float: Difference between two consecutive time steps.
 
     """
     t0 = times[ti - 1]
