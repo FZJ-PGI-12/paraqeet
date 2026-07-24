@@ -30,8 +30,8 @@ class Expm(StatePropagation):
 
         Iteratively propagate state/states (psis_t) according
         to the equation of motion (eom). The eom is exponentiated using
-        `jax.scipy.linalg.expm` to compute the propagators.
-        The iterations use `jax.lax.scan` to avoid compilation overhead.
+        ``jax.scipy.linalg.expm`` to compute the propagators.
+        The iterations use ``jax.lax.scan`` to avoid compilation overhead.
 
         Args:
             psis_t: State/states at time 't'.

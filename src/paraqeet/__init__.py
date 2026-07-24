@@ -11,8 +11,8 @@ above it in the hierarchy:
 - ``measurement``: fidelities and other goal functions.
 - ``optimizers``: optimization algorithms (gradient based and gradient free).
 
-All tunable values are represented by `Quantity` objects. The parameters to
-optimize are collected in an `OptimizationMap`, which is handed to an
+All tunable values are represented by ``Quantity`` objects. The parameters to
+optimize are collected in an ``OptimizationMap``, which is handed to an
 optimizer together with a goal function.
 
 """

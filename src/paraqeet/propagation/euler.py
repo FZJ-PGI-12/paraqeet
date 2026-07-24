@@ -13,7 +13,7 @@ class Euler(StatePropagation):
     Solves the equation of motion d/dt psi(t) = F(psi(t), t)
     with a finite step size d as psi(t+d) = psi(t) + F(psi(t), t).
     The step size can be variable and is calculated from the time array that is
-    passed to the `get_value` function.
+    passed to the ``get_value`` function.
     """
 
     def get_value(self, times: Array) -> Array:

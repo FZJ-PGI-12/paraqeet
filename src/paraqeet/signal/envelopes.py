@@ -87,7 +87,7 @@ class Envelope(Signal):
 class ConstantEnvelope(Envelope):
     """A constant envelope tone with a fixed length.
 
-    The envelope has the value of the amplitude for all times up to `t_final`
+    The envelope has the value of the amplitude for all times up to ``t_final``
     and is zero afterwards.
     """
 
@@ -167,8 +167,8 @@ class FlatTopGaussianEnvelope(Envelope):
             t_up: The start time of constant section of the envelope.
             t_down: The end time of constant section of the envelope.
             ramp_time: The rate of ramp up and ramp down of the envelope.
-            t_final: The length in time of the envelope. Used only if any of `t_up`, `t_down`,
-                and `ramp_time` are none.
+            t_final: The length in time of the envelope. Used only if any of ``t_up``, ``t_down``,
+                and ``ramp_time`` are none.
         """
         self._amplitude = amplitude or Quantity(
             1.55e8,
@@ -275,7 +275,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_t_up_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
-        """Evaluate the gradient of the envelope with respect to `t_up`.
+        """Evaluate the gradient of the envelope with respect to ``t_up``.
 
         Explicitly depends on the optimizable parameters.
 
@@ -287,7 +287,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The gradient of the envelope with respect to `t_up`.
+            The gradient of the envelope with respect to ``t_up``.
 
         """
         ramp_up_dir = FlatTopGaussianEnvelope._dir_erf((times - t_up) / ramp_time)
@@ -298,7 +298,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_t_down_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
-        """Evaluate the gradient of the envelope with respect to `t_down`.
+        """Evaluate the gradient of the envelope with respect to ``t_down``.
 
         Explicitly depends on the optimizable parameters.
 
@@ -310,7 +310,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The gradient of the envelope with respect to `t_down`.
+            The gradient of the envelope with respect to ``t_down``.
 
         """
         ramp_up = 1 + erf((times - t_up) / ramp_time)
@@ -321,7 +321,7 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @partial(jit, static_argnums=(0,))
     def _evaluate_ramp_time_grad(self, amp: Array, t_up: Array, t_down: Array, ramp_time: Array, times: Array) -> Array:
-        """Evaluate the gradient of the envelope with respect to `ramp_time`.
+        """Evaluate the gradient of the envelope with respect to ``ramp_time``.
 
         Explicitly depends on the optimizable parameters.
 
@@ -333,7 +333,7 @@ class FlatTopGaussianEnvelope(Envelope):
             times: Array of times.
 
         Returns:
-            The gradient of the envelope with respect to `ramp_time`.
+            The gradient of the envelope with respect to ``ramp_time``.
 
         """
         ramp_up = 1 + erf((times - t_up) / ramp_time)
@@ -417,8 +417,8 @@ class FlatTopGaussianEnvelope(Envelope):
 class GaussEnvelope(Envelope):
     """A simple Gaussian envelope.
 
-    The Gaussian is centered at `t_final / 2` with a standard deviation of
-    `t_final / 8`.
+    The Gaussian is centered at ``t_final / 2`` with a standard deviation of
+    ``t_final / 8``.
 
     Attributes:
         _amplitude: The amplitude of the envelope.
@@ -656,7 +656,7 @@ class DCRABEnvelope(Envelope):
         """Return the parameters of the CRAB signal.
 
         The parameters are arranged as follows,
-        `[amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]`
+        ``[amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ...]``
 
         """
         params = [self.amplitude, self._t_final]
@@ -680,7 +680,7 @@ class DCRABEnvelope(Envelope):
         )
 
     def add_new_components(self, seed: int | None = None) -> None:
-        """Add `self._num_components` number of new randomized components to the optimization."""
+        """Add ``self._num_components`` number of new randomized components to the optimization."""
         if seed is None:
             seed = int(1e7 * time.time())
 

@@ -14,8 +14,8 @@ def get_value_and_jacobian(
 ) -> Callable[..., tuple[Array, Array | tuple[Array, ...]]]:
     """Compute Jacobian of f w.r.t. specified arguments via vjp (reverse-mode AD).
 
-    The function `f` has be jax `jit` and `grad` compatible.
-    Returns a `get_value_and_gradient` that returns the value and the gradients w.r.t. argnums.
+    The function ``f`` has be jax ``jit`` and ``grad`` compatible.
+    Returns a ``get_value_and_gradient`` that returns the value and the gradients w.r.t. argnums.
 
     It supports functions with complex + vector valued inputs, and complex + vector valued outputs.
 
@@ -26,8 +26,8 @@ def get_value_and_jacobian(
 
     Returns:
         A function that returns (value, gradient) for the given arguments.
-        The gradient is a single Array if `argnums` is an int, and a tuple with one Array
-        per entry of `argnums` if it is a tuple.
+        The gradient is a single Array if ``argnums`` is an int, and a tuple with one Array
+        per entry of ``argnums`` if it is a tuple.
     """
     if isinstance(argnums, int):
         argnums_is_int = True
@@ -72,7 +72,7 @@ def get_value_and_jacobian(
 def get_jacobian_func(f: Callable) -> Callable[..., Array]:
     """Return a function that computes the Jacobian of f w.r.t. its **first** arg via vjp.
 
-    Note: This function has limited functionality. Use `get_value_and_jacobian` for wider scope.
+    Note: This function has limited functionality. Use ``get_value_and_jacobian`` for wider scope.
     """
 
     @jit

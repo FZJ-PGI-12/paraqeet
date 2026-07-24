@@ -111,7 +111,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
                     relevant_optimizables.append(opt)  # type:ignore
                 except Exception as e:
                     raise ConfigurationException(
-                        "Optimizable is not a `DCRABEnvelope` nor does it have a `get_envelope` method.\n"
+                        "Optimizable is not a ``DCRABEnvelope`` nor does it have a ``get_envelope`` method.\n"
                         + f"Raised exception {e}"
                     )
 
@@ -124,7 +124,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
                     seed = None
                 env.add_new_components(seed=seed)
             except Exception as e:
-                raise ConfigurationException(f"Non-`DCRABEnvelope` encountered. \n Raised exception {e}")
+                raise ConfigurationException(f"Non-``DCRABEnvelope`` encountered. \n Raised exception {e}")
 
         # Add new parameters to optmap
         new_coeffs_freqs_and_phases = [env.get_coefficients_frequencies_and_phases() for env in dcrab_envs]
@@ -313,7 +313,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         try:
             result = self._minimize_infidelity(init)
         except Exception as e:
-            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument `g`" in str(e):
+            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument ``g``" in str(e):
                 raise IncompatibleOptimizationMap(
                     "Number of quantities in optMap differ from number of" + f" gradients computed. \n {e}"
                 )

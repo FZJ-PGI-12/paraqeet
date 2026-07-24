@@ -156,8 +156,8 @@ class Vern7(StatePropagation):
     @partial(jit, static_argnums=(0,))
     def _propagate_in_time(self, state_t: Array, eom: Array, col: Array, steps_arr: Array) -> Array:
         """
-        Propagate from `time[ti] to time[ti+1]`.
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        Propagate from ``time[ti]`` to ``time[ti+1]``.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
         """
 
         def propagate_body(state_t: Array, index: Any) -> tuple[Array, Array]:

@@ -428,7 +428,7 @@ class Quantity:
     def set_value_and_limits(self, value: Array | float, min_value: Array | float, max_value: Array | float) -> None:
         """Set the value and the limits to new values at the same time.
 
-        Unlike `set_value`, this function does not raise an exception if the
+        Unlike ``set_value``, this function does not raise an exception if the
         new value is outside of the old limits.
 
         Args:
@@ -758,7 +758,7 @@ class Quantity:
     def to_dict(self) -> dict:
         """Create a dictionary representation of this quantity that can be stored.
 
-        The returned dict is compatible with the `from_dict` function, i.e. the
+        The returned dict is compatible with the ``from_dict`` function, i.e. the
         quantity can be fully restored including its bounds, name, unit, etc.
         Higher dimensional quantities (tensors) will be flattened into a list
         but their proper shape is stored as well.
@@ -785,12 +785,12 @@ class Quantity:
     def from_dict(self, data: dict) -> None:
         """Load the quantity from a dictionary.
 
-        The dictionary must have the same form as the one created by the `to_dict`
+        The dictionary must have the same form as the one created by the ``to_dict``
         function. All properties of this quantity (value, name, etc.) will be
         overwritten.
 
         Args:
-            data: Dictionary representation of a quantity, as created by `to_dict`.
+            data: Dictionary representation of a quantity, as created by ``to_dict``.
 
         """
         self._unit = data["unit"]

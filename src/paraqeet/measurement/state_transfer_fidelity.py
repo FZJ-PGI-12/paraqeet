@@ -17,14 +17,14 @@ jax.config.update("jax_enable_x64", True)
 class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     """Fidelity measure that compares overlap of the initial and final state.
 
-    This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
+    This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``.
     The overlap function is assumed to be a JAX jit compatible functionally pure function.
 
-    The fidelity function has a default implementation of `abs(overlap)^2`.
+    The fidelity function has a default implementation of ``abs(overlap)^2``.
     The user can replace the fidelity function with a JAX jit compatible function
-    of the form `fid(overlap: Array, *args, **kwargs) -> float`.
+    of the form ``fid(overlap: Array, *args, **kwargs) -> float``.
 
-    The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
+    The gradient of the ``_overlap`` and the ``_fid`` functions are computed by automatic differentiation.
     """
 
     _target_state: Array
@@ -109,14 +109,14 @@ class StateTransferFidelityGRAPE(StateTransferFidelity):
 
     For GRAPE the optimizable parameters are vector quantities given by the PWC bins of the pulse.
 
-    This class takes the overlap function as input, in the form `overlap(final_state, target_state, *args, **kwargs)`.
+    This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``.
     The overlap function is assumed to be a JAX jit compatible functionally pure function.
 
-    The fidelity function has a default implementation of `abs(overlap)^2`.
+    The fidelity function has a default implementation of ``abs(overlap)^2``.
     The user can replace the fidelity function with a JAX jit compatible function
-    of the form `fid(overlap: Array, *args, **kwargs) -> float`.
+    of the form ``fid(overlap: Array, *args, **kwargs) -> float``.
 
-    The gradient of the `_overlap` and the `_fid` functions are computed by automatic differentiation.
+    The gradient of the ``_overlap`` and the ``_fid`` functions are computed by automatic differentiation.
     """
 
     @override

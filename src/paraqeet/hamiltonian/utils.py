@@ -95,7 +95,7 @@ def matrix_sqrt(op: Array) -> Array:
 
     Note:
         This function does not support automatic-differentiation (AD).
-        Use `matrix_sqrt_psd` for positive semi-definite matrices for using AD.
+        Use ``matrix_sqrt_psd`` for positive semi-definite matrices for using AD.
     """
     return sqrtm(op)
 
@@ -111,7 +111,7 @@ def matrix_sqrt_psd(a_mat: Array) -> Array:
 
 
 def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]) -> Array:
-    """Trace out all subsystems except those whose indices are in `keep`.
+    """Trace out all subsystems except those whose indices are in ``keep``.
 
     Args:
         rho: Density matrix, shape (D, D) with D = prod(dims).
@@ -142,12 +142,12 @@ def partial_trace(rho: Array, dims: tuple[int, ...], keep: tuple[int, ...]) -> A
 
 
 def construct_annihilation_op(dim: int) -> Array:
-    """Create bosonic annihilation operator for a system with dimensions `dim`."""
+    """Create bosonic annihilation operator for a system with dimensions ``dim``."""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=1)
 
 
 def construct_creation_op(dim: int) -> Array:
-    """Create bosonic creation operator for a system with dimensions `dim`."""
+    """Create bosonic creation operator for a system with dimensions ``dim``."""
     return jnp.diag(jnp.sqrt(jnp.arange(1, dim, dtype=jnp.complex128)), k=-1)
 
 
@@ -163,7 +163,7 @@ def construct_basis_state(dim: int, index: int) -> Array:
         Basis state corresponding to the dimension and index.
     """
     if index >= dim:
-        raise Exception(f"`index` has to be less than `dim`. Got dim={dim}, index={index}.")
+        raise Exception(f"``index`` has to be less than ``dim``. Got dim={dim}, index={index}.")
 
     state = np.zeros(dim)
     state[index] = 1
@@ -212,7 +212,7 @@ def ntensor(ops: list[Array]) -> Array:
 
 
 def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list[int]) -> Array:
-    r"""Put the matrices mat_list into a tensor product at positions `n`.
+    r"""Put the matrices mat_list into a tensor product at positions ``n``.
 
     All other positions are identity matrices:
         .. math::
@@ -250,7 +250,7 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
 def np_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
     """Convert a Numpy Hamiltonian function to JAX compatible function.
 
-    Adds `vmap` capabilities to vectorize the computation over a batch of times
+    Adds ``vmap`` capabilities to vectorize the computation over a batch of times
     (first variable).
 
     Args:
@@ -279,7 +279,7 @@ def qobj_to_array(qobj: Any) -> Array:
 def qt_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
     """Convert a QuTiP-JAX Hamiltonian function to JAX compatible function.
 
-    Adds `vmap` capabilities to vectorize the computation over a batch of times
+    Adds ``vmap`` capabilities to vectorize the computation over a batch of times
     (first variable).
 
     Args:

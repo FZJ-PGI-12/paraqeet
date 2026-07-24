@@ -15,7 +15,7 @@ from paraqeet.signal.signal import Signal
 class PWCGenerator(Generator):
     """Convert a complex envelope to PWC pulse.
 
-    This sets the pulse parameters to the `tlist` points.
+    This sets the pulse parameters to the ``tlist`` points.
     The gradient of the pulse wrt the PWC bins is 1 at that time point and zero
     everywhere else.
 

@@ -31,7 +31,7 @@ class ExpmGRAPE(Expm, Differentiable):
     GRAPE. Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
-    The state propagations are done by the `Expm` class.
+    The state propagations are done by the ``Expm`` class.
 
     Attributes:
         _resolution (float): Simulation resolution.
@@ -128,7 +128,7 @@ class ExpmGRAPE(Expm, Differentiable):
     ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
 
         Args:
             us: Unitaries at different times.
@@ -162,7 +162,7 @@ class ExpmGRAPE(Expm, Differentiable):
     ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
 
         Args:
             us: Unitaries at different times.
@@ -245,7 +245,7 @@ class ExpmGRAPE(Expm, Differentiable):
     ) -> Array:
         """Propagate Full time.
 
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
 
         Args:
             us: Unitaries at different times.

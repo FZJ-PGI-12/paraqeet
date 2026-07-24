@@ -97,15 +97,15 @@ class Signal(Optimizable, Differentiable):
 
     @override
     def get_gradient(self, times: Array) -> Array:
-        """Compute the gradient of the `_evaluate` method.
+        """Compute the gradient of the ``_evaluate`` method.
 
         Note:
             This uses Automatic differentiation as a fallback.
-            The `_evaluate` method should be a **pure** function (should take the
+            The ``_evaluate`` method should be a **pure** function (should take the
             optimizable parameters as function arguments and doesn't depend on
             global variables).
             Refer to https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
-            for functionally `pure` functions.
+            for functionally **pure** functions.
             To implement analytical gradients / other methods for gradient
             computation overwrite this method in the inherited class.
 
@@ -113,7 +113,7 @@ class Signal(Optimizable, Differentiable):
             times: Array of times.
 
         Returns:
-            The gradient array of the `_evaluate` method.
+            The gradient array of the ``_evaluate`` method.
 
         """
         params = self.get_parameters()
@@ -356,7 +356,7 @@ class DRAGMixer(Signal):
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimized.
 
-        Also add the indices to `_grad_arg_nums` to compute the gradients.
+        Also add the indices to ``_grad_arg_nums`` to compute the gradients.
 
         Args:
             params: Input list of parameters to be set.
@@ -399,7 +399,7 @@ class FlatTopGaussianFilter(Signal):
         Use filters before the generators.
         Otherwise, automatic differentiation does not work in the current setup.
 
-    This is similar to `PWCGenerator.multiply_flat_top = True`.
+    This is similar to ``PWCGenerator.multiply_flat_top = True``.
     """
 
     _envs: list[Signal]
@@ -428,7 +428,7 @@ class FlatTopGaussianFilter(Signal):
     def set_optimizable_parameters(self, params: list[Quantity]) -> None:
         """Set specified parameters to be optimized.
 
-        Also add the indices to `_grad_arg_nums` to compute the gradients.
+        Also add the indices to ``_grad_arg_nums`` to compute the gradients.
 
         Args:
             params: Input list of parameters to be set.

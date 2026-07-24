@@ -83,7 +83,7 @@ class OptimizationMap:
     ) -> None:
         """Append an optimizable object and a list of its quantities to the map.
 
-        This method is similar to the `add` method, but instead of overwriting the
+        This method is similar to the ``add`` method, but instead of overwriting the
         existing entries, this appends the specified list of quantities to the
         already existing quantities.
 

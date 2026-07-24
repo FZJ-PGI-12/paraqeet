@@ -54,7 +54,7 @@ class MasterEquation(EquationOfMotion):
         self._jump_operators = jump_ops
 
     def _create_hamiltonian_superop(self, t: Array) -> Array:
-        """Create the Hamiltonian superoperator for one time point `t`."""
+        """Create the Hamiltonian superoperator for one time point ``t``."""
         identityop = jnp.eye(self._total_dimension)
         ham = self._hamiltonian_func(jnp.array(t, ndmin=1)).squeeze(axis=0)
         superop = -1j * jnp.kron(identityop, ham) + 1j * jnp.kron(ham.T, identityop)
@@ -71,13 +71,13 @@ class MasterEquation(EquationOfMotion):
         return superop
 
     def _create_lindbladian_superop(self, t: Array) -> Array:
-        """Create the Lindbladian superoperator for one time point `t`."""
+        """Create the Lindbladian superoperator for one time point ``t``."""
         ham_super_op = vmap(self._create_hamiltonian_superop)(t)
         col_super_op = self._create_jump_superop()
         return ham_super_op + col_super_op
 
     def _create_hamiltonian_grad_superop(self, timestep: float) -> Array:
-        """Create the Gradient of Hamiltonian superoperator for one time point `timestep`."""
+        """Create the Gradient of Hamiltonian superoperator for one time point ``timestep``."""
         identityop = jnp.eye(self._total_dimension)
         ham_grad = self._hamiltonian_gradient_func(jnp.array(timestep, ndmin=1))
         ham_grad = ham_grad.squeeze(axis=0)

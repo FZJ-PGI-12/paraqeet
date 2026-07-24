@@ -26,7 +26,7 @@ class Vern7GRAPE(Vern7, Differentiable):
     Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
-    The state propagations are done by the `Vern7 ODE` method.
+    The state propagations are done by the ``Vern7 ODE`` method.
 
     Attributes:
         _eom_and_gradient_func: Function that returns EOM and its gradient for an array of times.
@@ -143,7 +143,7 @@ class Vern7GRAPE(Vern7, Differentiable):
     ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
 
         Args:
             psis_t: Forward propagated state

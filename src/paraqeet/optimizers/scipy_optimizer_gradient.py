@@ -79,7 +79,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
                 callback=self._callback,
             )
         except Exception as e:
-            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument `g`" in str(e):
+            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument ``g``" in str(e):
                 raise IncompatibleOptimizationMap(
                     "Number of quantities in optMap differ from number of" + f" gradients computed. \n {e}"
                 )
