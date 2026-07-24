@@ -34,9 +34,9 @@ The modules
    
 **Equation of motion (EOM)** (:mod:`paraqeet.eom`)
    The eom layer turns a Hamiltonian into an equation of motion — the
-   :class:`~paraqeet.model.schroedinger_equation.SchroedingerEquation` for
+   :class:`~paraqeet.eom.schroedinger_equation.SchroedingerEquation` for
    closed systems or the Lindblad
-   :class:`~paraqeet.model.master_equation.MasterEquation` for open systems.
+   :class:`~paraqeet.eom.master_equation.MasterEquation` for open systems.
 
 **Propagation** (:mod:`paraqeet.propagation`)
    Solvers of the equation of motion, from piecewise matrix exponentials

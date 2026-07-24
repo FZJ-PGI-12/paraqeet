@@ -27,8 +27,8 @@ unit-aware parameters that any optimizer can adjust:
        ScipyExpmGOAT, ScipyOptimizer, StateTransferFidelity,
    )
    from paraqeet.measurement.utils import overlap_state_vector
-   from paraqeet.model.drive import Drive
-   from paraqeet.model.qubit import QubitHamiltonian
+   from paraqeet.hamiltonian.drive import Drive
+   from paraqeet.hamiltonian.qubit import QubitHamiltonian
    from paraqeet.signal.envelopes import ConstantEnvelope
    from paraqeet.signal.iq_mixer import IQMixer
 

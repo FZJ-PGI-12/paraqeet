@@ -53,7 +53,7 @@ A note on the gradient computation,
   JAX autodiff. Note that ordering of the parameters as an input to ``_evaluate`` 
   should **always** be the same as the ``get_parameters`` method.
 
-- A similar fallback to automatic differentiation for the ``model`` and ``propagation``
+- A similar fallback to automatic differentiation for the ``hamiltonian`` and ``propagation``
   module is a work in progress (refer to branch `99-autodiff-as-fallback`_ 
   as a reference), and would soon be added in a future release.
 
