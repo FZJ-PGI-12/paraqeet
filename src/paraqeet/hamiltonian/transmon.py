@@ -14,7 +14,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 class TransmonHamiltonian(Hamiltonian):
-    """Hamiltonian of an anharmonic oscillator.
+    """Hamiltonian of an anharmonic (Duffing) oscillator, as used to model a transmon qubit :cite:p:`koch2007charge`.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
     """

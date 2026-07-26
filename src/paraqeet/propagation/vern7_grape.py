@@ -20,7 +20,8 @@ jax.config.update("jax_enable_x64", True)
 
 class Vern7GRAPE(Vern7, Differentiable):
     r"""
-    Solve EOMs by 7th order ODE method and compute gradients using GRAPE.
+    Solve EOMs by 7th order ODE method :cite:p:`verner2010numerically` and compute gradients
+    using GRAPE :cite:p:`khaneja2005optimal`.
 
     Compute the gradients of a quantum system for PWC pulses by using GRAPE.
     Here, we use forward propagation of the initial state and backward

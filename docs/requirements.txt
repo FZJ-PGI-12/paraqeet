@@ -36,8 +36,10 @@ docutils==0.21.2
     # via
     #   myst-parser
     #   nbsphinx
+    #   pybtex-docutils
     #   pydata-sphinx-theme
     #   sphinx
+    #   sphinxcontrib-bibtex
 dom-toml==2.3.0
     # via sphinx-pyproject
 domdf-python-tools==3.10.0
@@ -78,6 +80,8 @@ jupyter-core==5.9.1
     #   nbformat
 jupyterlab-pygments==0.3.0
     # via nbconvert
+latexcodec==3.0.1
+    # via pybtex
 markdown-it-py==4.0.0
     # via
     #   mdit-py-plugins
@@ -127,6 +131,12 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
+pybtex==0.26.1
+    # via
+    #   pybtex-docutils
+    #   sphinxcontrib-bibtex
+pybtex-docutils==1.0.3
+    # via sphinxcontrib-bibtex
 pydata-sphinx-theme==0.16.1
     # via -r requirements.in
 pygments==2.19.2
@@ -140,7 +150,9 @@ pygments==2.19.2
 python-dateutil==2.9.0.post0
     # via jupyter-client
 pyyaml==6.0.3
-    # via myst-parser
+    # via
+    #   myst-parser
+    #   pybtex
 pyzmq==27.1.0
     # via jupyter-client
 referencing==0.37.0
@@ -167,6 +179,7 @@ sphinx==8.1.3
     #   pydata-sphinx-theme
     #   sphinx-copybutton
     #   sphinx-design
+    #   sphinxcontrib-bibtex
     #   sphinxext-opengraph
 sphinx-copybutton==0.5.2
     # via -r requirements.in
@@ -178,6 +191,8 @@ sphinxcontrib-applehelp==2.0.0
     # via
     #   -r requirements.in
     #   sphinx
+sphinxcontrib-bibtex==2.7.0
+    # via -r requirements.in
 sphinxcontrib-devhelp==2.0.0
     # via
     #   -r requirements.in

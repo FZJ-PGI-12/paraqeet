@@ -24,11 +24,9 @@ class PWCGenerator(Generator):
     frame of drive.
 
     This Generator converts the input complex pulse to the 'in-phase' and
-    'out-of-phase' components. This naming convention is used by following [Krantz2019].
+    'out-of-phase' components. This naming convention is used by following :cite:p:`krantz2019quantum`.
     In the literature of signal processing these are also called 'in-phase' and 'quadrature'
     components (refer to https://en.wikipedia.org/wiki/In-phase_and_quadrature_components).
-
-    [Krantz2019] Krantz et al., “A Quantum Engineer’s Guide to Superconducting Qubits.” Applied Physics Reviews 6(2019).
 
     Attributes:
         _envs: List of Envelopes

@@ -20,7 +20,7 @@ from paraqeet.quantity import Array
 
 
 class ExpmGOAT(Expm, Differentiable):
-    """Solve EOMs by piecewise exponentiation via JAX using GOAT."""
+    """Solve EOMs by piecewise exponentiation via JAX using GOAT :cite:p:`machnes2018tunable`."""
 
     _eom_gradient_func: Callable[[Array], Array]
 

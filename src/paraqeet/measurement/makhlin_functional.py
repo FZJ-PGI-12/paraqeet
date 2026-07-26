@@ -15,8 +15,8 @@ from paraqeet.quantity import Array, Float
 class MakhlinFunctional(Measurement):
     """Class definition of the Makhlin Functional invariants.
 
-    Measures the distance of a propagator to a perfect entangler
-    using Makhlin invariants.
+    Measures the distance of a propagator to a perfect entangler :cite:p:`zhang2005generation,watts2015optimizing`
+    using Makhlin invariants :cite:p:`makhlin2002nonlocal`.
     If a list of ideal Makhlin invariants is given,
     the distance is measured as the Euclidean distance between
     the actual and ideal invariants.

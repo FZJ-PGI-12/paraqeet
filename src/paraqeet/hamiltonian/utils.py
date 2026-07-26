@@ -267,7 +267,7 @@ def np_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
 
 # QuTiP
 def qobj_to_array(qobj: Any) -> Array:
-    """Convert a QuTiP-JAX object to a JAX array.
+    """Convert a QuTiP-JAX :cite:p:`lambert2026qutip` object to a JAX array.
 
     Args:
         qobj: QuTiP object.

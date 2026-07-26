@@ -1,9 +1,7 @@
-"""Class definition of the pulse smoothness. It follows the definition in
-[Heeres2017], in particular Eqs. 21 of the supplementary material.
+"""Class definition of the pulse smoothness.
 
-References
-----------
-[Heeres2017] R. Heeres et al., Nat. Comm. 8, 94 (2017)
+It follows the definition in :cite:p:`heeres2017implementing`, in particular
+Eqs. 21, 23, and 24 of the supplementary material.
 """
 
 from typing import override
@@ -20,8 +18,9 @@ jax.config.update("jax_enable_x64", True)
 
 
 class Smoothness(NormalizableMeasurement, Differentiable):
-    """Smoothness of a pulse. It follows the definition in
-    Heeres et al., https://arxiv.org/abs/1608.02430 (2017), in particular
+    """Smoothness of a pulse.
+
+    It follows the definition in :cite:p:`heeres2017implementing`, in particular
     Eqs. 23 and 24 of the supplementary material.
     """
 

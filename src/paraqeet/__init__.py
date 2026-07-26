@@ -15,6 +15,9 @@ All tunable values are represented by ``Quantity`` objects. The parameters to
 optimize are collected in an ``OptimizationMap``, which is handed to an
 optimizer together with a goal function.
 
+The package borrows ideas of semi-automatic differentiation from :cite:p:`goerz2022quantum`,
+and combines automatic differentiation with analytic quantum optimal control gradients.
+
 """
 
 import jax

@@ -12,7 +12,7 @@ from paraqeet.quantity import Array, Float
 
 
 class BayesianOptimizer(Optimizer):
-    """Minimize the outcome of a measurement using Bayesian optimization.
+    """Minimize the outcome of a measurement using Bayesian optimization :cite:p:`shahriari2016taking`.
 
     This is useful if the evaluation of the measurement is costly.
     This class is mostly a wrapper around the implementing package, see

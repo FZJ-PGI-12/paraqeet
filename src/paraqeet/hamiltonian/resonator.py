@@ -16,6 +16,7 @@ jax.config.update("jax_enable_x64", True)
 class ResonatorHamiltonian(Hamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
+    Models, e.g., a resonator or microwave cavity mode in circuit QED :cite:p:`blais2021circuit`.
     The only optimizable parameter is the frequency.
     """
 

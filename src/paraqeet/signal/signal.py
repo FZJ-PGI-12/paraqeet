@@ -258,7 +258,7 @@ class LocalOscillator(Signal):
 
 
 class DRAGMixer(Signal):
-    """A DRAG correction applied to signal envelope.
+    """A DRAG correction :cite:p:`motzoi2009simple` applied to signal envelope.
 
     The DRAG component is calculated for a set of envelopes and added in
     orthogonal direction in the x-y plane.

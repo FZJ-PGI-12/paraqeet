@@ -25,7 +25,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 class ExpmGRAPE(Expm, Differentiable):
-    """Solve EOMs by piecewise exponentiation via JAX using GRAPE.
+    """Solve EOMs by piecewise exponentiation via JAX using GRAPE :cite:p:`khaneja2005optimal`.
 
     Compute the gradients of a closed quantum system for PWC pulses by using
     GRAPE. Here, we use forward propagation of the initial state and backward
@@ -38,7 +38,8 @@ class ExpmGRAPE(Expm, Differentiable):
         _initial_state (Array): Initial state for forward propagation.
         _target_state (Array): Target state for backward propagation.
         _schirmer_derivative (bool): If true, compute the gradient by Schirmer Derivative/Method of auxiliary
-            matrix exponential. If false, use frechet derivative. Defaults to False.
+            matrix exponential :cite:p:`goodwin2015auxiliary,floether2012robust`. If false, use frechet
+            derivative :cite:p:`al2009computing`. Defaults to False.
     """
 
     _eom_gradient_func: Callable[[Array], Array]

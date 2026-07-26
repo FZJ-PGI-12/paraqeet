@@ -20,7 +20,7 @@ class Vern7(StatePropagation):
     """
     Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
-    Implements Vern7 ODE Solver algorithm non adaptive (fixed time-step) version.
+    Implements Vern7 ODE Solver algorithm :cite:p:`verner2010numerically` non adaptive (fixed time-step) version.
     """
 
     _step_function: Callable

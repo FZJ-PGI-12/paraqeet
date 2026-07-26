@@ -13,7 +13,7 @@ from paraqeet.quantity import Array, Float
 
 
 class CMAEsOptimizer(Optimizer):
-    """Wrapper for the pycma implementation of CMA-Es.
+    """Wrapper for the pycma implementation of CMA-Es :cite:p:`hansen2003reducing,hansen2016cma`.
 
     The following custom options are available for optimization:
 

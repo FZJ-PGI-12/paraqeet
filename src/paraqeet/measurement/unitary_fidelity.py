@@ -16,7 +16,8 @@ jax.config.update("jax_enable_x64", True)
 class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     """Fidelity measure that compares overlap of unitary matrices.
 
-    It compares the propagator with a desired gate by using the L2 norm.
+    It compares the propagator with a desired gate by using the L2 norm, based on the
+    average gate fidelity formula :cite:p:`nielsen2002simple`.
     """
 
     _basis_states: Array | None

@@ -15,7 +15,11 @@ from paraqeet.signal.pwc_generator import PWCGenerator
 
 
 class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
-    """Combine GRAPE propagation with analytic gradients of GOAT via chain rule."""
+    """Combine GRAPE :cite:p:`khaneja2005optimal` propagation with analytic gradients of
+    GOAT :cite:p:`machnes2018tunable` via chain rule.
+
+    This is similar to the GROUP method :cite:p:`sorensen2018quantum`.
+    """
 
     _measurement: StateTransferFidelityGRAPE
     _gens: list[PWCGenerator]

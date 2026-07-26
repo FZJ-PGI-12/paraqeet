@@ -479,7 +479,7 @@ class GaussEnvelope(Envelope):
 class DCRABEnvelope(Envelope):
     r"""Create a dCRAB pulse envelope.
 
-    The dCRAB pulse is given as a sum of sinusoidal components as [Müller2022]
+    The dCRAB pulse is given as a sum of sinusoidal components as :cite:p:`rach2015dressing,muller2022one`
 
     .. math::
         f(t) = g(t)  \left( 1 + \sum_{i=1}^{N_c / 2} c_{2i} \frac{\cos(\omega_{2i} t)}{\Lambda(t)}
@@ -491,8 +491,6 @@ class DCRABEnvelope(Envelope):
     Note:
         The function is designed to work well for even total number of components.
         For odd total number it may not work as expected.
-
-    [Müller2022] Müller et al. "One decade of quantum optimal control in the chopped random basis"
 
     Attributes:
         _total_num_components: Total number of components in the current dCRAB basis. This is the number of coefficients
