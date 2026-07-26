@@ -46,7 +46,7 @@ parameters, ``Differentiable`` for their value/gradient).
 
 A note on the gradient computation, 
 
-- **Signal.** :class:`~paraqeet.signal.waveform.Waveform` automates gradient 
+- **Signal.** :class:`~paraqeet.signal.signal.Signal` automates gradient 
   evaluation: implement the ``_evaluate`` method as a *pure JAX function* (arguments
   ordered as ``(parameters…, t)``, returning a scalar for scalar ``t``) and the base
   class derives ``get_value`` and the parameter gradients automatically through
