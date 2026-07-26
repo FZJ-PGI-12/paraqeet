@@ -1,17 +1,22 @@
 Single qubit gate optimization using GOAT over GRAPE
 ====================================================
 
+This example optimizes a single-qubit gate with the GOAT-over-GRAPE
+method, which combines GOAT :cite:p:`machnes2018tunable` and GRAPE
+:cite:p:`khaneja2005optimal` as a gradient-based variant of the GROUP
+method :cite:p:`sorensen2018quantum`.
+
 .. code:: ipython3
 
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import TransmonHamiltonian
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.transmon import TransmonHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.pwc_generator import PWCGenerator
-    from paraqeet.signal.waveform import DRAGMixer, FlatTopGaussianFilter
+    from paraqeet.signal.signal import DRAGMixer, FlatTopGaussianFilter
 
 Setup
 -----
@@ -125,7 +130,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.expm_grape import ExpmGRAPE
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0], [0]])  # |0>
@@ -133,7 +138,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     
     times = np.array([0.0, t_final])
     
-    prop = ScipyExpmGRAPE(
+    prop = ExpmGRAPE(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=1e9,
@@ -144,7 +149,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     prop.use_schirmer_derivative = True
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -175,7 +180,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -233,7 +238,7 @@ Optimization
 
 .. parsed-literal::
 
-    ==== <class 'paraqeet.signal.waveform.FlatTopGaussianFilter'> ====
+    ==== <class 'paraqeet.signal.signal.FlatTopGaussianFilter'> ====
     [Amplitude: 4.19e+07, t_up: 1e-09, t_down: 2.4e-08, ramp_time: 2e-09, Delta: -100 MHz x 2pi]
 
 
@@ -249,16 +254,11 @@ Optimization
     Iteration   10 | Infid = 2.888190e-03
 
 
-.. parsed-literal::
-
-    Iteration   20 | Infid = 2.645565e-03
-
-
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0026421876646713915, 'iterations': 75, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.0026468690799831274, 'iterations': 46, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -279,3 +279,17 @@ Optimization
 
 .. image:: 04C_Single_qubit_gate_GOAToverGRAPE_files/04C_Single_qubit_gate_GOAToverGRAPE_19_1.png
 
+
+References
+----------
+
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).
+- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+  efficient optimization of control pulses for practical qubits,”
+  *Physical Review Letters* **120**, 150401 (2018).
+- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+  optimal control in a chopped basis: Applications in control of
+  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).

@@ -8,17 +8,17 @@ Gradient-based optimization of a cross-resonance gate between two transmons
     import matplotlib.pyplot as plt
     import numpy as np
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.composite_hamiltonian import CompositeHamiltonian
+    from paraqeet.hamiltonian.coupling import Coupling
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.transmon import TransmonHamiltonian
+    from paraqeet.hamiltonian.utils import sigma_x, sigma_y, sigma_z
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-    from paraqeet.model.coupling import Coupling
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import TransmonHamiltonian
-    from paraqeet.model.utils import sigma_x, sigma_y, sigma_z
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.propagation.propagation import Propagation
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -28,18 +28,19 @@ Gradient-based optimization of a cross-resonance gate between two transmons
 System Setup
 ------------
 
-The system consists of two coupled transmons with three levels each. We
-fix the transmon frequency and anharmonicity to values that don’t have
-any unwanted frequency collisions. The coupling strength is fixed as
-well. These parameters have to be specified as Quantities with a range,
-but we will not pass them to the optimized in order to keep them fixed.
-Additionally, the first transmon is driven at the frequency of the
-second one to apply a cross-resonance (CR) gate. The second transmon is
-driven to fix the phases of the gate.
+The system consists of two coupled transmons :cite:p:`koch2007charge`
+with three levels each. We fix the transmon frequency and anharmonicity
+to values that don’t have any unwanted frequency collisions. The
+coupling strength is fixed as well. These parameters have to be
+specified as Quantities with a range, but we will not pass them to the
+optimized in order to keep them fixed. Additionally, the first transmon
+is driven at the frequency of the second one to apply a cross-resonance
+(CR) gate :cite:p:`sheldon2016procedure`. The second transmon is driven
+to fix the phases of the gate.
 
 Here the tone values are set such that the optimization process is fast.
-Generally with a lot of parameters ``ScipyExpmGOAT`` (in its current
-form), can take considerably long time.
+Generally with a lot of parameters ``ExpmGOAT`` (in its current form),
+can take considerably long time.
 
 .. code:: ipython3
 
@@ -303,7 +304,7 @@ configure CR as a target gate.
     
     times = np.array([0.0, t_final])
     
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=100e9,
@@ -311,11 +312,11 @@ configure CR as a target gate.
     )
     
     gate_fid = UnitaryFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         gate=cr_gate,
     )
-    gate_fid.measure(times)
+    gate_fid.get_value(times)
 
 
 
@@ -336,7 +337,7 @@ configure CR as a target gate.
     
         signal1 = generator1.get_value(tlist)
         signal2 = generator2.get_value(tlist)
-        states = propagation.propagate(tlist)
+        states = propagation.get_value(tlist)
     
         _, ax = plt.subplots(3, figsize=(4, 6), sharex=True)
         ax[0].plot(tlist / 1e-9, signal1)
@@ -384,7 +385,7 @@ configure CR as a target gate.
     
     def plot_pauli():
         """Plot the Pauli operators."""
-        states = prop.propagate(tlist)
+        states = prop.get_value(tlist)
         sig1 = generator1.get_value(tlist)
         sig2 = generator2.get_value(tlist)
     
@@ -479,7 +480,7 @@ The only optimizable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.93624378929706, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.9362484996671709, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -500,3 +501,13 @@ The only optimizable parameter is the frequency of transmon 1.
 
 .. image:: 05_Two-qubit-cross-resonance_files/05_Two-qubit-cross-resonance_19_0.png
 
+
+References
+----------
+
+- **(Koch et al., 2007)** J. Koch et al., “Charge-insensitive qubit
+  design derived from the Cooper pair box,” *Physical Review A* **76**,
+  042319 (2007).
+- **(Sheldon et al., 2016)** S. Sheldon et al., “Procedure for
+  systematically tuning up cross-talk in the cross-resonance gate,”
+  *Physical Review A* **93**, 060302 (2016).

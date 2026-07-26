@@ -9,14 +9,14 @@ for a single spin or qubit.
     import jax.numpy as jnp
     import numpy as np
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -133,13 +133,13 @@ and configure a state transfer problem from :math:`\ket{0}` to
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=100e9, initial_state=init
     )  # implicit timestep is 1 / resolution
     times = np.array([0.0, t_simu])
     
     zeroone = StateTransferFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -173,12 +173,12 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    print(f"State fidelity: {zeroone.measure(times)}")
+    print(f"State fidelity: {zeroone.get_value(times)}")
 
 
 .. parsed-literal::
 
-    State fidelity: 0.3473607127051165
+    State fidelity: 0.34736071270511687
 
 
 Optimization
@@ -266,7 +266,7 @@ We can now run the optimization as
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 5.009326287108706e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 4.971578704271451e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 The new optimal parameters are
@@ -306,12 +306,12 @@ controls.
 
 .. code:: ipython3
 
-    print(f"State fidelity: {zeroone.measure(times)}")
+    print(f"State fidelity: {zeroone.get_value(times)}")
 
 
 .. parsed-literal::
 
-    State fidelity: 0.9999999999994991
+    State fidelity: 0.9999999999995028
 
 
 In this notebook, we focused on state preparation. In the next notebook,

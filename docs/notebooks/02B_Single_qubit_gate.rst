@@ -9,14 +9,14 @@ single-qubit gate, specifically an :math:`X`-gate.
     import matplotlib.pyplot as plt
     import numpy as np
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -111,11 +111,11 @@ identity at time :math:`0`.
 
     times = np.array([0.0, t_simu])
     
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=eom.get_value, eom_gradient_func=eom.get_gradient, resolution=100e9, initial_state=np.identity(2)
     )
     gate_fid = UnitaryFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         gate=sigma_x,
     )
@@ -145,7 +145,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    print(f"Gate fidelity: {gate_fid.measure(times)}")
+    print(f"Gate fidelity: {gate_fid.get_value(times)}")
 
 
 .. parsed-literal::
@@ -220,7 +220,7 @@ information to identify the problem.
     def plot_pauli():
         """Plot the Pauli operators."""
         ts = np.linspace(0, t_simu, 1001)
-        states = prop.propagate(ts)
+        states = prop.get_value(ts)
         sig = gen.get_value(ts) / 1e6 / (2 * np.pi)
     
         fig, ax = plt.subplots(2, figsize=(4, 4), sharex=True)
@@ -267,7 +267,7 @@ our drive to shift and include the phase parameter in the optimization.
 
     optmap = OptimizationMap()
     optmap.add(tone, [params_gen[0], params_gen[2], params_gen[3]])
-    opt = ScipyOptimizer(measure_func=gate_fid.measure, optimization_map=optmap)
+    opt = ScipyOptimizer(measure_func=gate_fid.get_value, optimization_map=optmap)
 
 .. code:: ipython3
 

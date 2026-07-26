@@ -1,11 +1,11 @@
 Using QuTiP with ParaQeet
 =========================
 
-In this example we demonstrate how QuTiP [Lambert2026] objects could be
-used for modeling a quantum system, and combined with ParaQeet for
-propagation and optimization tasks. Here we follow the same example as
-before, of a state preparation task, but use QuTiP functions for
-modeling the system.
+In this example we demonstrate how QuTiP :cite:p:`lambert2026qutip`
+objects could be used for modeling a quantum system, and combined with
+ParaQeet for propagation and optimization tasks. Here we follow the same
+example as before, of a state preparation task, but use QuTiP functions
+for modeling the system.
 
 .. code:: ipython3
 
@@ -118,7 +118,7 @@ compatible function by using the wrapper function
 
 .. code:: ipython3
 
-    from paraqeet.model.utils import qt_func_to_jax_func
+    from paraqeet.hamiltonian.utils import qt_func_to_jax_func
     
     jax_ham_func = qt_func_to_jax_func(tls_hamiltonian)
     jax_ham_func(jnp.array([0.0, 1e-9]))
@@ -147,7 +147,7 @@ when it is called.
 
 .. code:: ipython3
 
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
     
     
     def ham_grad(t):
@@ -160,16 +160,16 @@ when it is called.
 2. Define propagation method and measurement function
 -----------------------------------------------------
 
-Here we pick the standard ``ScipyExpmGOAT`` method for propagation and
+Here we pick the standard ``ExpmGOAT`` method for propagation and
 ``UnitaryFidelity`` as our measurement function. We start from the
 identity matrix with the goal to prepare the Hadamard gate.
 
 .. code:: ipython3
 
+    from paraqeet.hamiltonian.utils import qobj_to_array
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.model.utils import qobj_to_array
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     
     init_qobj = qt.basis(2, 0)  # |0>
     target_qobj = qt.basis(2, 1)  # |1>
@@ -178,13 +178,11 @@ identity matrix with the goal to prepare the Hadamard gate.
     init = qobj_to_array(init_qobj)
     target = qobj_to_array(target_qobj)
     
-    prop = ScipyExpmGOAT(
-        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init
-    )
+    prop = ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init)
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -213,7 +211,7 @@ identity matrix with the goal to prepare the Hadamard gate.
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -248,13 +246,11 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
     model = SchroedingerEquation(hamiltonian_func=jax_ham_func, hamiltonian_gradient_func=grad_tls_hamiltonian)
     
-    prop = ScipyExpmGOAT(
-        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init
-    )
+    prop = ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init)
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -262,7 +258,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -307,7 +303,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 3.774758283725532e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 5.551115123125783e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -331,7 +327,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -345,5 +341,5 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 References
 ----------
 
-[Lambert2026] Lambert, Neill, et al. “QuTiP 5: The quantum toolbox in
-Python.” Physics Reports 1153 (2026): 1-62.
+- **(Lambert et al., 2026)** N. Lambert et al., “QuTiP 5: The quantum
+  toolbox in Python,” *Physics Reports* **1153**, 1–62 (2026).

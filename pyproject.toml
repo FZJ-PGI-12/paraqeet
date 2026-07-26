@@ -133,6 +133,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"] # pydocstyle is not important in the tests
+"docs/*.py" = ["D"] # pydocstyle is not important in the docs
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

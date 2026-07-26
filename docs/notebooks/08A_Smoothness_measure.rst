@@ -1,6 +1,9 @@
 Constrain piece-wise constant pulses to vary smoothly
 =====================================================
 
+The smoothness penalty follows the definition of
+:cite:p:`heeres2017implementing`.
+
 .. code:: ipython3
 
     import matplotlib.pyplot as plt
@@ -95,7 +98,7 @@ We can check that the gradient has the correct shape
 
 .. code:: ipython3
 
-    smoothness.measure(ts)
+    smoothness.get_value(ts)
 
 
 
@@ -116,7 +119,7 @@ We can check that the gradient has the correct shape
 .. parsed-literal::
 
     (Array(1., dtype=float64),
-     Array([-1.00058440e-14,  2.15090019e-13, -1.21393926e-13, -3.56757831e-14,
+     Array([-1.00058440e-14,  2.15090019e-13, -1.21393925e-13, -3.56757831e-14,
              4.32685927e-14, -9.68587243e-14, -4.40413453e-14, -1.06365887e-14,
              1.05700111e-13, -1.52029507e-13,  4.58424060e-14, -7.35246762e-14,
             -3.52732230e-14,  7.81778245e-14,  7.35808110e-14,  8.99784498e-14,
@@ -125,7 +128,7 @@ We can check that the gradient has the correct shape
              8.99784498e-14,  7.35808110e-14,  7.81778245e-14, -3.52732230e-14,
             -7.35246762e-14,  4.58424060e-14, -1.52029507e-13,  1.05700111e-13,
             -1.06365887e-14, -4.40413453e-14, -9.68587243e-14,  4.32685927e-14,
-            -3.56757831e-14, -1.21393926e-13,  2.15090019e-13, -1.00058440e-14,
+            -3.56757831e-14, -1.21393925e-13,  2.15090019e-13, -1.00058440e-14,
             -0.00000000e+00, -0.00000000e+00, -0.00000000e+00, -0.00000000e+00,
             -0.00000000e+00, -0.00000000e+00, -0.00000000e+00, -0.00000000e+00,
             -0.00000000e+00, -0.00000000e+00, -0.00000000e+00, -0.00000000e+00,
@@ -157,3 +160,10 @@ We can check that the gradient has the correct shape
 
 
 As expected obtain a flat pulse.
+
+References
+----------
+
+- **(Heeres et al., 2017)** R. W. Heeres et al., “Implementing a
+  universal gate set on a logical qubit encoded in an oscillator,”
+  *Nature Communications* **8**, 94 (2017).

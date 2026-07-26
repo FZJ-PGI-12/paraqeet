@@ -1,9 +1,9 @@
 GRAPE on a single spin
 ======================
 
-This in an introductory example to the
-`GRAPE <10.1016/j.jmr.2004.11.004>`__ method and its implementation in
-this software package.
+This in an introductory example to the GRAPE
+:cite:p:`khaneja2005optimal` method and its implementation in this
+software package.
 
 1. Generate a PWC pulse shape
 -----------------------------
@@ -13,9 +13,9 @@ this software package.
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
@@ -76,13 +76,13 @@ As a simple toy model, we use a single spin.
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.expm_grape import ExpmGRAPE
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ScipyExpmGRAPE(
+    prop = ExpmGRAPE(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=2e9,
@@ -94,7 +94,7 @@ As a simple toy model, we use a single spin.
     times = np.array([0.0, t_final])
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -123,7 +123,7 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -210,8 +210,8 @@ Lets first reset the pulse and create a open-system model
 
     import jax.numpy as jnp
     
-    from paraqeet.model.master_equation import MasterEquation
-    from paraqeet.model.qubit import Qubit
+    from paraqeet.eom.master_equation import MasterEquation
+    from paraqeet.hamiltonian.qubit import Qubit
     
     t1 = Quantity(10e-6, 1e-6, 100e-6)
     temp = Quantity(10e-3, 1e-3, 50e-3)
@@ -258,7 +258,7 @@ Lets test GRAPE with ODE-propgation
     )
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_density_matrix,
@@ -299,7 +299,7 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -357,7 +357,7 @@ Lets test GRAPE with ODE-propgation
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -367,3 +367,11 @@ Lets test GRAPE with ODE-propgation
     Array(0.99046003, dtype=float64)
 
 
+
+References
+----------
+
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).

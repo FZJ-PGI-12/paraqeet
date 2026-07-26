@@ -9,9 +9,9 @@ Single spin Part 3: Single qubit gate optimization using GRAPE
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import TransmonHamiltonian
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.transmon import TransmonHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
@@ -53,7 +53,7 @@ Gaussian pulse
 
 Next, we setup the qubit system we want to control. We define the
 Hamiltonian in the rotating frame of drive such that the pulse
-oscillates slowly to apply GRAPE gradients.
+oscillates slowly to apply GRAPE :cite:p:`khaneja2005optimal` gradients.
 
 The Hamiltonain in the rotating frame of the drive is given by -
 
@@ -94,7 +94,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.expm_grape import ExpmGRAPE
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0], [0.0]])  # |0>
@@ -102,7 +102,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     
     times = np.array([0.0, t_final])
     
-    prop = ScipyExpmGRAPE(
+    prop = ExpmGRAPE(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=1e9,
@@ -113,7 +113,7 @@ The Hamiltonain in the rotating frame of the drive is given by -
     prop.schirmer_derivative = True
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -144,7 +144,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -185,7 +185,7 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.7638846766819825e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.7638757948977855e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -206,3 +206,11 @@ frequency, as in the state transfer example.
 
 .. image:: 04B_Single_qubit_gate_GRAPE_files/04B_Single_qubit_gate_GRAPE_17_1.png
 
+
+References
+----------
+
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).
