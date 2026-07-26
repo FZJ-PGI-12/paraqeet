@@ -53,7 +53,8 @@ Gaussian pulse
 
 Next, we setup the qubit system we want to control. We define the
 Hamiltonian in the rotating frame of drive such that the pulse
-oscillates slowly to apply GRAPE :cite:p:`khaneja2005optimal` gradients.
+oscillates slowly to apply GRAPE (Khaneja et al., 2005)
+:cite:p:`khaneja2005optimal` gradients.
 
 The Hamiltonain in the rotating frame of the drive is given by -
 

@@ -1,7 +1,7 @@
 GRAPE on a single spin
 ======================
 
-This in an introductory example to the GRAPE
+This in an introductory example to the GRAPE (Khaneja et al., 2005)
 :cite:p:`khaneja2005optimal` method and its implementation in this
 software package.
 

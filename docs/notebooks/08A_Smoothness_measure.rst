@@ -1,7 +1,7 @@
 Constrain piece-wise constant pulses to vary smoothly
 =====================================================
 
-The smoothness penalty follows the definition of
+The smoothness penalty follows the definition of (Heeres et al., 2017)
 :cite:p:`heeres2017implementing`.
 
 .. code:: ipython3

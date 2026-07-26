@@ -2,9 +2,10 @@ Optimal control of a single spin by using GOAT over GRAPE
 =========================================================
 
 In this introductory example we compute the gradients of analytic pulse
-shapes in GOAT :cite:p:`machnes2018tunable` by using the gradients of
-the time evolution from GRAPE :cite:p:`khaneja2005optimal`. This is
-performed by using chain rule -
+shapes in GOAT (Machnes et al., 2018) :cite:p:`machnes2018tunable` by
+using the gradients of the time evolution from GRAPE (Khaneja et al.,
+2005) :cite:p:`khaneja2005optimal`. This is performed by using chain
+rule -
 
 .. math:: \frac{\partial J}{\partial p} = \sum_k \frac{\partial J}{\partial c_k} \frac{\partial c_k}{\partial p}
 
@@ -14,7 +15,7 @@ where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
 :math:`\frac{\partial J}{\partial c_k}` are the gradients from GRAPE.
 
 The combination of GOAT and GRAPE gradients used here is a
-gradient-based variant of the GROUP method
+gradient-based variant of the GROUP method (Sørensen et al., 2018)
 :cite:p:`sorensen2018quantum`.
 
 1. Generate a PWC pulse shape

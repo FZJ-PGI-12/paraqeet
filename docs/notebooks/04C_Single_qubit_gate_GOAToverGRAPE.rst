@@ -2,9 +2,10 @@ Single qubit gate optimization using GOAT over GRAPE
 ====================================================
 
 This example optimizes a single-qubit gate with the GOAT-over-GRAPE
-method, which combines GOAT :cite:p:`machnes2018tunable` and GRAPE
+method, which combines GOAT (Machnes et al., 2018)
+:cite:p:`machnes2018tunable` and GRAPE (Khaneja et al., 2005)
 :cite:p:`khaneja2005optimal` as a gradient-based variant of the GROUP
-method :cite:p:`sorensen2018quantum`.
+method (Sørensen et al., 2018) :cite:p:`sorensen2018quantum`.
 
 .. code:: ipython3
 

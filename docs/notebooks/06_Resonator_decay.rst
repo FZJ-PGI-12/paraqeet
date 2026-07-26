@@ -2,7 +2,8 @@ Decay of coherent state of a resonator
 ======================================
 
 This is an example demonstrating open system simulation methods -
-exponentiation of the Lindblad :cite:p:`lindblad1976generators`
+exponentiation of the Lindblad (Lindblad, 1976)
+:cite:p:`lindblad1976generators` (Manzano, 2020)
 :cite:p:`manzano2020short` superoperator and ODE solver. We consider a
 simple model of decay of a coherent state in a resonator for this
 example.
@@ -276,8 +277,8 @@ plot coherent state populations
 .. image:: 06_Resonator_decay_files/06_Resonator_decay_15_1.png
 
 
-2. Using ``Vern7`` :cite:p:`verner2010numerically`
---------------------------------------------------
+2. Using ``Vern7`` (Verner, 2010) :cite:p:`verner2010numerically`
+-----------------------------------------------------------------
 
 Using ODE solver to compute the state
 

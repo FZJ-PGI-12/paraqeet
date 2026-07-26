@@ -23,8 +23,9 @@ First, we make the necessary imports.
 ------------------------------------------------------
 
 The GaussTone explicitly allows for the evaluation of an envelope signal
-and its time derivative which is then used to calculate the DRAG
-:cite:p:`motzoi2009simple` corrected signal in the DRAGMixer
+and its time derivative which is then used to calculate the DRAG (Motzoi
+et al., 2009) :cite:p:`motzoi2009simple` corrected signal in the
+DRAGMixer
 
 .. code:: ipython3
 

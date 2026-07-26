@@ -4,8 +4,9 @@ Arbitrary bosonic state preparation using smooth pulses : Gradient based dCRAB o
 In this example we solve the task in the previous example of preparing
 arbitrary bosonic state, but using smooth functions as the basis. Here
 we perform a gradient based dCRAB optimization, by using the
-*GOAToverGRAPE* (combining GOAT :cite:p:`machnes2018tunable` and GRAPE
-:cite:p:`khaneja2005optimal`) (or the GROUP
+*GOAToverGRAPE* (combining GOAT (Machnes et al., 2018)
+:cite:p:`machnes2018tunable` and GRAPE (Khaneja et al., 2005)
+:cite:p:`khaneja2005optimal`) (or the GROUP (Sørensen et al., 2018)
 :cite:p:`sorensen2018quantum`) method.
 
 .. code:: ipython3
@@ -31,12 +32,12 @@ we perform a gradient based dCRAB optimization, by using the
     from paraqeet.signal.pwc_generator import PWCGenerator
     from paraqeet.signal.signal import FlatTopGaussianFilter
 
-Following the dCRAB optimization :cite:p:`muller2022one`, we initialize
-our pulses in the frequency domain by using the ``DCRABEnvelope``.
-Further we use a flat-top Gaussian filter on top to ensure that the
-pulses start and end at zero. And we use a ``PWCGenerator`` to generate
-the piece-wise constant signal required for the ``GOAToverGRAPE``
-method.
+Following the dCRAB optimization (Müller et al., 2022)
+:cite:p:`muller2022one`, we initialize our pulses in the frequency
+domain by using the ``DCRABEnvelope``. Further we use a flat-top
+Gaussian filter on top to ensure that the pulses start and end at zero.
+And we use a ``PWCGenerator`` to generate the piece-wise constant signal
+required for the ``GOAToverGRAPE`` method.
 
 .. code:: ipython3
 
@@ -123,7 +124,7 @@ levels in the resonator.
     detuning_drive_res = omega_res - omega_drive_res
     detuning_drive_qubit = omega_qubit - omega_drive_qubit
 
-Similar to the previous example, following
+Similar to the previous example, following (Heeres et al., 2017)
 :cite:p:`heeres2017implementing`, we thus consider
 :math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
 and introduce a penalty when having different values of fidelities for
@@ -419,7 +420,7 @@ we can later use to plot the infidelity vs function evaluation.
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmpkrl6w9j_pq
+    Logging directory = /tmp/tmpvqxfq1yfpq
 
 
 .. code:: ipython3
@@ -504,8 +505,8 @@ we can later use to plot the infidelity vs function evaluation.
 .. parsed-literal::
 
     Setting parameters to the best values.
-    CPU times: user 4min 35s, sys: 5.96 s, total: 4min 41s
-    Wall time: 1min 1s
+    CPU times: user 4min 33s, sys: 5.09 s, total: 4min 38s
+    Wall time: 59.7 s
 
 
 
@@ -899,12 +900,12 @@ Redefine the optmap and the optimizer and rerun the optimization
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmpaifoejmipq
+    Logging directory = /tmp/tmpx0xg64ewpq
 
 
 .. parsed-literal::
 
-    Implicitly cleaning up <TemporaryDirectory '/tmp/tmpkrl6w9j_pq'>
+    Implicitly cleaning up <TemporaryDirectory '/tmp/tmpvqxfq1yfpq'>
 
 
 .. code:: ipython3
@@ -1117,8 +1118,8 @@ Redefine the optmap and the optimizer and rerun the optimization
 .. parsed-literal::
 
     Setting parameters to the best values.
-    CPU times: user 7h 34min 16s, sys: 3min 14s, total: 7h 37min 31s
-    Wall time: 7min 54s
+    CPU times: user 7h 25min 57s, sys: 3min 21s, total: 7h 29min 19s
+    Wall time: 7min 43s
 
 
 

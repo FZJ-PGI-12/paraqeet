@@ -28,15 +28,16 @@ Gradient-based optimization of a cross-resonance gate between two transmons
 System Setup
 ------------
 
-The system consists of two coupled transmons :cite:p:`koch2007charge`
-with three levels each. We fix the transmon frequency and anharmonicity
-to values that don’t have any unwanted frequency collisions. The
-coupling strength is fixed as well. These parameters have to be
-specified as Quantities with a range, but we will not pass them to the
-optimized in order to keep them fixed. Additionally, the first transmon
-is driven at the frequency of the second one to apply a cross-resonance
-(CR) gate :cite:p:`sheldon2016procedure`. The second transmon is driven
-to fix the phases of the gate.
+The system consists of two coupled transmons (Koch et al., 2007)
+:cite:p:`koch2007charge` with three levels each. We fix the transmon
+frequency and anharmonicity to values that don’t have any unwanted
+frequency collisions. The coupling strength is fixed as well. These
+parameters have to be specified as Quantities with a range, but we will
+not pass them to the optimized in order to keep them fixed.
+Additionally, the first transmon is driven at the frequency of the
+second one to apply a cross-resonance (CR) gate (Sheldon et al., 2016)
+:cite:p:`sheldon2016procedure`. The second transmon is driven to fix the
+phases of the gate.
 
 Here the tone values are set such that the optimization process is fast.
 Generally with a lot of parameters ``ExpmGOAT`` (in its current form),

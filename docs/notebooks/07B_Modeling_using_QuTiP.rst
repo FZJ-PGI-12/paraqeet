@@ -1,11 +1,11 @@
 Using QuTiP with ParaQeet
 =========================
 
-In this example we demonstrate how QuTiP :cite:p:`lambert2026qutip`
-objects could be used for modeling a quantum system, and combined with
-ParaQeet for propagation and optimization tasks. Here we follow the same
-example as before, of a state preparation task, but use QuTiP functions
-for modeling the system.
+In this example we demonstrate how QuTiP (Lambert et al., 2026)
+:cite:p:`lambert2026qutip` objects could be used for modeling a quantum
+system, and combined with ParaQeet for propagation and optimization
+tasks. Here we follow the same example as before, of a state preparation
+task, but use QuTiP functions for modeling the system.
 
 .. code:: ipython3
 

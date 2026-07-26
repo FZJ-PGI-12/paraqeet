@@ -2,12 +2,14 @@ Gradient based dCRAB optimization of a single spin
 ==================================================
 
 In this example, we solve the optimization task in the `previous
-example <02D_GOAToverGRAPE_TLS.ipynb>`__ by using the dCRAB
-:cite:p:`rach2015dressing` :cite:p:`muller2022one` optimization method.
-Here we implement a gradient based dCRAB algorithm by using the
-GOAToverGRAPE method, which combines GOAT :cite:p:`machnes2018tunable`
-and GRAPE :cite:p:`khaneja2005optimal` as a gradient-based variant of
-the GROUP method :cite:p:`sorensen2018quantum`.
+example <02D_GOAToverGRAPE_TLS.ipynb>`__ by using the dCRAB (Rach et
+al., 2015) :cite:p:`rach2015dressing` (Müller et al., 2022)
+:cite:p:`muller2022one` optimization method. Here we implement a
+gradient based dCRAB algorithm by using the GOAToverGRAPE method, which
+combines GOAT (Machnes et al., 2018) :cite:p:`machnes2018tunable` and
+GRAPE (Khaneja et al., 2005) :cite:p:`khaneja2005optimal` as a
+gradient-based variant of the GROUP method (Sørensen et al., 2018)
+:cite:p:`sorensen2018quantum`.
 
 1. Generate a PWC pulse shape
 -----------------------------

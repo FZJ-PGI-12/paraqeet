@@ -3,18 +3,19 @@ Arbitrary bosonic state preparation using GRAPE
 
 In this notebook, we implement a standard application of GRAPE, namely
 the preparation of an arbitrary state of a bosonic mode, such a resonant
-mode of a microwave cavity. In the notebook, we use GRAPE
-:cite:p:`khaneja2005optimal` and mostly follow the optimization strategy
-of :cite:p:`heeres2017implementing`. The parameters are taken from
-:cite:p:`eickbusch2022fast` Table S1, without considering the
-anharmonicity for simplicity and with the exception of the dispersive
-shift taken to be :math:`10` times larger for simulation purposes. Our
-starting point is the well-known Jaynes-Cummings Hamiltonian in the
-dispersive regime, which describes an interaction of a qubit with a
-single bosonic mode when the characteristic qubit frequency
-:math:`\omega_{q}` is far detuned from the one of the resonator
-:math:`\omega_{r}` (see for instance :cite:p:`blais2021circuit` for more
-details)
+mode of a microwave cavity. In the notebook, we use GRAPE (Khaneja et
+al., 2005) :cite:p:`khaneja2005optimal` and mostly follow the
+optimization strategy of (Heeres et al., 2017)
+:cite:p:`heeres2017implementing`. The parameters are taken from
+(Eickbusch et al., 2022) :cite:p:`eickbusch2022fast` Table S1, without
+considering the anharmonicity for simplicity and with the exception of
+the dispersive shift taken to be :math:`10` times larger for simulation
+purposes. Our starting point is the well-known Jaynes-Cummings
+Hamiltonian in the dispersive regime, which describes an interaction of
+a qubit with a single bosonic mode when the characteristic qubit
+frequency :math:`\omega_{q}` is far detuned from the one of the
+resonator :math:`\omega_{r}` (see for instance (Blais et al., 2021)
+:cite:p:`blais2021circuit` for more details)
 
 .. math::
 
@@ -192,8 +193,8 @@ Due to the infinite-dimensional nature of the Hilbert space of the
 resonator, it is necessary to introduce a Fock state truncation number
 :math:`N_{\mathrm{T}}`. This creates the problem that given certain
 pulses :math:`\mathcal{F}` depends on the choice of
-:math:`N_{\mathrm{T}}`. Following :cite:p:`heeres2017implementing`, we
-thus consider
+:math:`N_{\mathrm{T}}`. Following (Heeres et al., 2017)
+:cite:p:`heeres2017implementing`, we thus consider
 :math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
 and introduce a penalty when having different values of fidelities for
 different truncation numbers. Thus, we create different systems, and
@@ -307,10 +308,11 @@ numbers.
         n_fock_truncation_list, fock_target
     )
 
-Furthermore, following :cite:p:`heeres2017implementing` we also
-introduce a penalty for non-smooth pulses. In particular, we consider
-the (normalized) sum of consecutive square differences of the pulse
-pixels as cost function (see Eqs. 21 in the supplementary material of
+Furthermore, following (Heeres et al., 2017)
+:cite:p:`heeres2017implementing` we also introduce a penalty for
+non-smooth pulses. In particular, we consider the (normalized) sum of
+consecutive square differences of the pulse pixels as cost function (see
+Eqs. 21 in the supplementary material of (Heeres et al., 2017)
 :cite:p:`heeres2017implementing`) for both the resonator and the qubit
 pulses:
 
@@ -565,8 +567,8 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    CPU times: user 4min 5s, sys: 2.96 s, total: 4min 8s
-    Wall time: 46 s
+    CPU times: user 4min 7s, sys: 3.52 s, total: 4min 11s
+    Wall time: 47.7 s
 
 
 
@@ -825,8 +827,8 @@ truncation numbers
 
 .. parsed-literal::
 
-    CPU times: user 4h 10s, sys: 1min 49s, total: 4h 1min 59s
-    Wall time: 4min 8s
+    CPU times: user 4h 41s, sys: 1min 49s, total: 4h 2min 30s
+    Wall time: 4min 7s
 
 
 

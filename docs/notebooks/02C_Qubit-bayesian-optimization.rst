@@ -2,8 +2,8 @@ Single spin: Bayesian optimization of a gate
 ============================================
 
 This is similar to the O2B_Single_qubit_gate example, except that it
-uses Bayesian optimization :cite:p:`shahriari2016taking` instead of
-gradient descent.
+uses Bayesian optimization (Shahriari et al., 2016)
+:cite:p:`shahriari2016taking` instead of gradient descent.
 
 .. code:: ipython3
 
@@ -304,6 +304,10 @@ to collect all samples that the optimizer takes
 
     | [35m47       [39m | [35m0.9247866[39m | [35m0.8027911[39m | [35m0.0301315[39m | [35m-0.485857[39m |
     | [39m48       [39m | [39m0.1162966[39m | [39m-0.455283[39m | [39m0.0556825[39m | [39m-0.294502[39m |
+
+
+.. parsed-literal::
+
     | [39m49       [39m | [39m0.0005492[39m | [39m-0.896720[39m | [39m-0.199863[39m | [39m-0.487141[39m |
 
 
@@ -343,10 +347,6 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m59       [39m | [39m0.2922228[39m | [39m0.9356930[39m | [39m0.1417109[39m | [39m0.5855986[39m |
-
-
-.. parsed-literal::
-
     | [39m60       [39m | [39m0.7454913[39m | [39m0.9328742[39m | [39m0.0904889[39m | [39m-0.391478[39m |
 
 
@@ -393,10 +393,6 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m73       [39m | [39m0.1059564[39m | [39m0.6089376[39m | [39m-0.119924[39m | [39m-0.588921[39m |
-
-
-.. parsed-literal::
-
     | [39m74       [39m | [39m0.5234386[39m | [39m0.5791422[39m | [39m0.0552139[39m | [39m-0.637371[39m |
 
 
@@ -479,6 +475,10 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m95       [39m | [39m0.0776399[39m | [39m0.5006620[39m | [39m-0.185180[39m | [39m-0.817513[39m |
+
+
+.. parsed-literal::
+
     | [39m96       [39m | [39m0.2675017[39m | [39m0.8040816[39m | [39m-0.159214[39m | [39m-0.860836[39m |
 
 
@@ -504,17 +504,17 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m104      [39m | [39m0.8174814[39m | [39m0.8789252[39m | [39m-0.043038[39m | [39m-0.618030[39m |
+
+
+.. parsed-literal::
+
     | [39m105      [39m | [39m0.7748375[39m | [39m1.0      [39m | [39m0.0417764[39m | [39m-0.621004[39m |
-
-
-.. parsed-literal::
-
     | [39m106      [39m | [39m0.0628136[39m | [39m-0.231786[39m | [39m-0.098097[39m | [39m-0.206950[39m |
-    | [39m107      [39m | [39m0.0144301[39m | [39m0.7975162[39m | [39m0.2655924[39m | [39m0.9053020[39m |
 
 
 .. parsed-literal::
 
+    | [39m107      [39m | [39m0.0144301[39m | [39m0.7975162[39m | [39m0.2655924[39m | [39m0.9053020[39m |
     | [39m108      [39m | [39m-.685e-05[39m | [39m-0.454330[39m | [39m0.6388374[39m | [39m-0.363639[39m |
     | [39m109      [39m | [39m0.0194496[39m | [39m1.0      [39m | [39m0.1289968[39m | [39m0.2124224[39m |
 
