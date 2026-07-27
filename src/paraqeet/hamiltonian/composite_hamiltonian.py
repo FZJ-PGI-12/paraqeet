@@ -17,7 +17,7 @@ from paraqeet.quantity import Array, Quantity
 
 
 class CompositeHamiltonian(Hamiltonian):
-    """A hamiltonian that consists of subsystems and couplings.
+    """A Hamiltonian that consists of subsystems and couplings.
 
     This class takes care of the tensor products.
     The list of parameters will contain the parameters of all subsystems

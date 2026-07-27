@@ -115,7 +115,7 @@ class ComplexIQMixer(Generator):
         return self._complex_signal(times)
 
     def _complex_signal_and_gradient(self, times: Array) -> tuple[Array, Array]:
-        r"""Collect and returns the gradients from all envelope signals.
+        r"""Collect and return the gradients from all envelope signals.
 
         Since the
 

@@ -7,7 +7,7 @@ from paraqeet.serialization.serializer import Serializer
 
 
 class JSONFileSerializer(Serializer):
-    """Writes data into and read data from JSON files in a human-readable format."""
+    """Write data into and read data from JSON files in a human-readable format."""
 
     _COMMENT_KEY = "_comment"
     _file: str

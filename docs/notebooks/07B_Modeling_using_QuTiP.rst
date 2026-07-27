@@ -112,8 +112,8 @@ with :math:`u(A, \omega_d, t) = A\cos(\omega_d t)`.
 
 
 We can see that the output of the tls_hamiltonian is a ``Qobj``. For
-working with ParaQeet we convert the Hamiltonian function to a jax
-compatible function by using the wrapper function
+working with ParaQeet we convert the Hamiltonian function to a
+JAX-compatible function by using the wrapper function
 ``qt_func_to_jax_func``.
 
 .. code:: ipython3
@@ -140,10 +140,10 @@ The ``jax_ham_func`` now works with a batch of time points and returns
 the Hamiltonian as a JAX ``Array`` for each time point.
 
 Similar to the previous example, for cases where the gradients of the
-Hamiltonian are not required, for e.g., for state propagation and
-gradient-free optimization the ``hamiltonian_and_gradient_func`` can be
-defined by any function. Here we define a function that raises exception
-when it is called.
+Hamiltonian are not required, e.g., for state propagation and
+gradient-free optimization, the ``hamiltonian_and_gradient_func`` can be
+defined by any function. Here we define a function that raises an
+exception when it is called.
 
 .. code:: ipython3
 

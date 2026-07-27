@@ -21,8 +21,8 @@ example.
     from paraqeet.signal.envelopes import ZeroEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
 
-1. Using ``ScipyExmp``
-----------------------
+1. Using ``Expm``
+-----------------
 
 Exponentiating the full Lindbladian super-operator
 
@@ -168,7 +168,7 @@ Exponentiating the full Lindbladian super-operator
     
     coherent_state = generate_coherent_state(num_fock, 1.5, dm=True)
 
-plot coherent state populations
+Plot coherent state populations
 
 .. code:: ipython3
 

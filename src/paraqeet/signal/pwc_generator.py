@@ -24,20 +24,20 @@ class PWCGenerator(Generator):
     frame of drive.
 
     This Generator converts the input complex pulse to the 'in-phase' and
-    'out-of-phase' components. This naming convention is used by following :cite:p:`krantz2019quantum`.
-    In the literature of signal processing these are also called 'in-phase' and 'quadrature'
+    'out-of-phase' components. This naming convention follows :cite:p:`krantz2019quantum`.
+    In the signal processing literature, these are also called 'in-phase' and 'quadrature'
     components (refer to https://en.wikipedia.org/wiki/In-phase_and_quadrature_components).
 
     Attributes:
         _envs: List of Envelopes
         _tlist: Left time points for discretization. These can be used for propagation and optimization.
         _time_grid: Time grid used to discretize the pulse.
-            These are shifted from tlist by dt/2, and doesn't include zero time.
+            These are shifted from tlist by dt/2 and do not include zero time.
         _max_amplitude: Maximum amplitude of the drive
         _inphase: The in-phase component of the pulse
         _outofphase: The out-of-phase component of the pulse
         _optimizable_parameters: List of own parameters that would be optimized by the optimizer.
-        _multiply_flat_top: Flag to multiply flat-top-Gaussain pulse to the signal to ensure it starts and ends at zero.
+        _multiply_flat_top: Flag to multiply flat-top-Gaussian pulse to the signal to ensure it starts and ends at zero.
     """
 
     _envs: list[Signal]
@@ -175,7 +175,7 @@ class PWCGenerator(Generator):
         return env
 
     def _setup_inphase_and_outofphase(self) -> None:
-        """Generate inphase and outphase Quantities using tlist."""
+        """Generate in-phase and out-of-phase Quantities using tlist."""
         env = self._compute_shape()
 
         # max_abs = jnp.max(jnp.abs(env))
@@ -245,7 +245,7 @@ class PWCGenerator(Generator):
 
         Args:
             inphase: 1-D vector of step values of real part of the PWC signal.
-            outofphase: 1-D vector of step values of complex part of the PWC signal.
+            outofphase: 1-D vector of step values of imaginary part of the PWC signal.
             dt: Time step.
             times: Array of times.
 

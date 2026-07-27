@@ -1,4 +1,4 @@
-"""optimize a dCRAB pulse by a Scipy gradient based optimizer."""
+"""Optimize a dCRAB pulse by a Scipy gradient based optimizer."""
 
 import warnings
 from collections.abc import Callable
@@ -31,7 +31,7 @@ warnings.formatwarning = custom_formatwarning  # type: ignore
 class DCRABOptimizerGradient(ScipyOptimizerGradient):
     """A dCRAB optimization method :cite:p:`rach2015dressing,muller2022one`.
 
-    Implements dCRAB optimization involving super-iterations that adds additional
+    Implements dCRAB optimization involving super-iterations that add additional
     optimization components to the dCRAB envelope and freezes the older parameters.
 
     Note:

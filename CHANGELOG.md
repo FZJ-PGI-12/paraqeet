@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved documentation with collapsible output cells
 - New pages (concepts, code design) to the online documentation
 - New dark theme logos
+- References in online documentation, including citations in code and notebooks
+- Expiry date (of 1 week) to all artifacts during CI/CD
+- Missing type annotation and mypy fixes
 
 
 
@@ -33,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Propagation, measurement that inherit from Differentiable expect eom and gradient separately.
 - Numpy to google docstring format for maintainability. 
 - Updated documentation across the package.
+- Rename classes ``ScipyExpm`` -> ``Expm``, ``ScipyExpmGOAT``/``ScipyExpmGRAPE`` -> ``ExpmGOAT``/``ExpmGRAPE``, ``Waveform`` -> ``Signal``
+- ``Model`` module split into ``Hamiltonian`` and ``EOM`` modules
+- Renamed methods ``propagate`` and ``measure`` -> ``get_value`` for consistency
 
 
 ### Removed

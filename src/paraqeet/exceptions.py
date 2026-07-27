@@ -2,7 +2,7 @@
 
 
 class IncompatibleLayersException(Exception):
-    """Raise when incompatible layers transmission.
+    """Raised when incompatible layers are connected.
 
     Raised when a layer can not handle the form of the result of the
     previous layer. For example, a unitary fidelity will throw this if the
@@ -13,7 +13,7 @@ class IncompatibleLayersException(Exception):
 
 
 class ConfigurationException(Exception):
-    """Raise when configuration issue.
+    """Raised when there is a configuration issue.
 
     Raised when a layer implementation was not properly configured before
     running it.
@@ -23,7 +23,7 @@ class ConfigurationException(Exception):
 
 
 class IncompatibleQuantityException(Exception):
-    """Raise when incompatible quantity shape.
+    """Raised when a quantity has an incompatible shape.
 
     Raised when a quantity has an unexpected shape, e.g. a vector quantity
     if a scalar was expected.
@@ -33,7 +33,7 @@ class IncompatibleQuantityException(Exception):
 
 
 class IncompatibleOptimizationMap(Exception):
-    """Raise when incorrect number of quantities are specified.
+    """Raised when an incorrect number of quantities is specified.
 
     Raised when the number of quantities specified in optimization map
     doesn't match the number of gradients computed.

@@ -38,7 +38,7 @@ class ExpmGRAPE(Expm, Differentiable):
         _initial_state (Array): Initial state for forward propagation.
         _target_state (Array): Target state for backward propagation.
         _schirmer_derivative (bool): If true, compute the gradient by Schirmer Derivative/Method of auxiliary
-            matrix exponential :cite:p:`goodwin2015auxiliary,floether2012robust`. If false, use frechet
+            matrix exponential :cite:p:`goodwin2015auxiliary,floether2012robust`. If false, use the Frechet
             derivative :cite:p:`al2009computing`. Defaults to False.
     """
 
@@ -170,7 +170,7 @@ class ExpmGRAPE(Expm, Differentiable):
             us_rev: Inverse of the unitaries at different times.
             psis_t: Forward propagated state.
             lamdas_t: Backward propagated state.
-            steps_arr: Array from 0 to the length of the List of times, in steps
+            steps_arr: Array from 0 to the length of the list of times, in steps
                 of 1 representing the iteration index.
         """
 
@@ -190,7 +190,7 @@ class ExpmGRAPE(Expm, Differentiable):
     @staticmethod
     @partial(jit, static_argnums=(0,))
     def _exponentiate_frechet(dim: int, ham: Array, dh_dp: Array) -> tuple[Array, Array]:
-        r"""Exponentiate and also calculate the frechet derivative.
+        r"""Exponentiate and also calculate the Frechet derivative.
 
         Args:
             dim: Hilbert space dimension. Unused here; present only so this method shares a signature with
@@ -232,7 +232,7 @@ class ExpmGRAPE(Expm, Differentiable):
             ham: -i H dt.
 
         Returns:
-            The expontial of -i H dt.
+            The exponential of -i H dt.
         """
         exponentiated: Array = expm(ham)
         return exponentiated
@@ -244,14 +244,14 @@ class ExpmGRAPE(Expm, Differentiable):
         psis_t: Array,
         steps_arr: Array,
     ) -> Array:
-        """Propagate Full time.
+        """Propagate over the full time.
 
         JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
 
         Args:
             us: Unitaries at different times.
             psis_t: Forward propagated state
-            steps_arr: Array from 0 to the length of the List of times, in steps
+            steps_arr: Array from 0 to the length of the list of times, in steps
         """
 
         def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:

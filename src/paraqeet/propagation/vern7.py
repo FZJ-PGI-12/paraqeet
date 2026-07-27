@@ -20,7 +20,7 @@ class Vern7(StatePropagation):
     """
     Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
-    Implements Vern7 ODE Solver algorithm :cite:p:`verner2010numerically` non adaptive (fixed time-step) version.
+    Implements Vern7 ODE Solver algorithm :cite:p:`verner2010numerically` non-adaptive (fixed time-step) version.
     """
 
     _step_function: Callable
@@ -39,7 +39,7 @@ class Vern7(StatePropagation):
             eom_func: Equation of motion (EOM) as a function of time.
             resolution: Resolution at which to sample the EOM.
             initial_state: Initial state.
-            step_function: Step function used to that implements the right hand side of the EOM.
+            step_function: Step function that implements the right hand side of the EOM.
             jump_operators: A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
                 Defaults to None for closed system.
         """

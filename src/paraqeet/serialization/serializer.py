@@ -16,7 +16,7 @@ class Serializer(ABC):
         The actual format depends on the implementation.
 
         Args:
-            data: the data to be exported
+            data: The data to be exported.
             comment: Optional comment to be stored with the data, for example a description of the data.
                 Implementations have to decide how to store the comment.
         """

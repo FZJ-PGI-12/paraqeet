@@ -20,8 +20,8 @@ class CMAEsOptimizer(Optimizer):
     - ``noise``: Artificial noise added to a function evaluation.
     - ``init_point``: Force the use of the initial point in the first generation.
     - ``spread``: Adjust the parameter spread of the first generation cloud.
-    - ``stop_at_convergence``: Stop if the cloud shrunk for this number of generations.
-    - ``stop_at_sigma``: Stop if the cloud shrunk to this standard deviation.
+    - ``stop_at_convergence``: Stop if the cloud has shrunk for this number of generations.
+    - ``stop_at_sigma``: Stop if the cloud has shrunk to this standard deviation.
 
     See also: http://cma.gforge.inria.fr/apidocs-pycma/
     """

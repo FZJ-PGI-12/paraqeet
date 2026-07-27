@@ -96,8 +96,8 @@ class TransmonHamiltonian(Hamiltonian):
 
 
 class Transmon:
-    """A system representing a transmon. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators.
+    """A system representing a transmon. It allows storing information about relaxation and dephasing times
+    and getting the corresponding jump operators.
     """
 
     def __init__(

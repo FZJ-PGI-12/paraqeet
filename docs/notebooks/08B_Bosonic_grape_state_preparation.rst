@@ -2,10 +2,10 @@ Arbitrary bosonic state preparation using GRAPE
 ===============================================
 
 In this notebook, we implement a standard application of GRAPE, namely
-the preparation of an arbitrary state of a bosonic mode, such a resonant
-mode of a microwave cavity. In the notebook, we use GRAPE (Khaneja et
-al., 2005) :cite:p:`khaneja2005optimal` and mostly follow the
-optimization strategy of (Heeres et al., 2017)
+the preparation of an arbitrary state of a bosonic mode, such as a
+resonant mode of a microwave cavity. In the notebook, we use GRAPE
+(Khaneja et al., 2005) :cite:p:`khaneja2005optimal` and mostly follow
+the optimization strategy of (Heeres et al., 2017)
 :cite:p:`heeres2017implementing`. The parameters are taken from
 (Eickbusch et al., 2022) :cite:p:`eickbusch2022fast` Table S1, without
 considering the anharmonicity for simplicity and with the exception of
@@ -118,7 +118,7 @@ the resonator and qubit pulses, respectively.
     from paraqeet.signal.pwc_generator import PWCGenerator
 
 We initialize our pulses as simple Gaussian envelopes. Additionally, we
-require fix ranges for the minimum and maximum amplitudes.
+require fixed ranges for the minimum and maximum amplitudes.
 
 .. code:: ipython3
 
@@ -191,15 +191,15 @@ levels in the resonator.
 
 Due to the infinite-dimensional nature of the Hilbert space of the
 resonator, it is necessary to introduce a Fock state truncation number
-:math:`N_{\mathrm{T}}`. This creates the problem that given certain
-pulses :math:`\mathcal{F}` depends on the choice of
+:math:`N_{\mathrm{T}}`. This creates the problem that, given certain
+pulses, :math:`\mathcal{F}` depends on the choice of
 :math:`N_{\mathrm{T}}`. Following (Heeres et al., 2017)
-:cite:p:`heeres2017implementing`, we thus consider
-:math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
-and introduce a penalty when having different values of fidelities for
-different truncation numbers. Thus, we create different systems, and
-accordingly fidelity measures, for the different Fock truncation
-numbers.
+:cite:p:`heeres2017implementing`, we thus consider :math:`N_{\mathrm{T}}
+\in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} +
+1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`, and introduce a penalty
+when having different values of fidelities for different truncation
+numbers. Thus, we create different systems, and accordingly fidelity
+measures, for the different Fock truncation numbers.
 
 .. code:: ipython3
 
@@ -312,7 +312,7 @@ Furthermore, following (Heeres et al., 2017)
 :cite:p:`heeres2017implementing` we also introduce a penalty for
 non-smooth pulses. In particular, we consider the (normalized) sum of
 consecutive square differences of the pulse pixels as cost function (see
-Eqs. 21 in the supplementary material of (Heeres et al., 2017)
+Eq. 21 in the supplementary material of (Heeres et al., 2017)
 :cite:p:`heeres2017implementing`) for both the resonator and the qubit
 pulses:
 
@@ -327,15 +327,15 @@ pulses:
     meas_list.append(res_smoothness)
     meas_list.append(qubit_smoothness)
 
-We consider as cost function of the form
+We consider a cost function of the form
 
 .. math::
 
 
    C(\varepsilon(t) ) = w_1 \sum_{N = N_{\mathrm{T}}^{(\mathrm{min})}}^{ N_{\mathrm{T}}^{(\mathrm{max})}} \mathcal{F}_{N} (\varepsilon(t) ) + w_2 g_{\mathrm{smooth}, r} (\varepsilon(t)) + w_3 g_{\mathrm{smooth}, q} (\varepsilon(t))   - \frac{w_4}{2} \sum_{N, N' = N_{\mathrm{T}}^{(\mathrm{min})}}^{ N_{\mathrm{T}}^{(\mathrm{max})}} \left[\mathcal{F}_{N}(\varepsilon(t))- \mathcal{F}_{N'} (\varepsilon(t) ) \right]^2,
 
-that we want to maximize. This cost weighted cost function can be
-constructed using the class WeightedSumGoal.
+that we want to maximize. This weighted cost function can be constructed
+using the class WeightedSumGoal.
 
 .. code:: ipython3
 
@@ -613,7 +613,7 @@ Here we increase the system truncation to 15 and 20 levels and rerun the
 entire simulation. For more accurate results, we advise the reader to
 increase the truncation to 30 and 31 levels.
 
-*Note - The following takes about 5 mins to run on an AMD-EPYC Milan
+*Note - The following takes about 5 minutes to run on an AMD-EPYC Milan
 processor with 64 cores (might take more depending on the number of CPU
 cores available).*
 
@@ -624,7 +624,7 @@ redefine the resonator with higher truncation numbers.
 
     # in seconds (See Eickbusch et al https://arxiv.org/abs/2111.06414 S9 A)
     delta_sampling = 33e-9
-    n_pwc = 40  # number of piecewiise constants in the pulse
+    n_pwc = 40  # number of piecewise constants in the pulse
     t_final = n_pwc * delta_sampling  # for now just set up for trying
     tlist = np.linspace(0, t_final, n_pwc + 1)
     eps_res = 2 * np.pi * 1.0  # initial amplitude of the resonator (in MHz)
@@ -662,7 +662,7 @@ redefine the resonator with higher truncation numbers.
         n_fock_truncation_list, fock_target
     )
 
-lets also add the smoothness penalty to the measurement
+Let's also add the smoothness penalty to the measurement
 
 .. code:: ipython3
 

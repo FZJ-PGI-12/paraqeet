@@ -98,8 +98,8 @@ class QubitHamiltonian(Hamiltonian):
 
 
 class Qubit:
-    """A system representing a qubit. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators.
+    """A system representing a qubit. It allows storing information about relaxation and dephasing times
+    and getting the corresponding jump operators.
     """
 
     def __init__(

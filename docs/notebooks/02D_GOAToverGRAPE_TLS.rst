@@ -39,7 +39,7 @@ Define the ``FlatTopGaussianEnvelope`` and the ``PWCGenerator``. The
 computing the gradients using GRAPE.
 
 Here we also define the ``FlatTopGaussianFilter`` to ensure that the
-pulse always starts and end at zero.
+pulse always starts and ends at zero.
 
 The optimization would be performed on the ``FlatTopGaussianEnvelope``
 parameters: ``amplitude``, ``t_up``, ``t_down``, ``ramp_time``.
@@ -171,7 +171,7 @@ Using GRAPE as the method to propagate and compute the gradients
 3. Optimization
 ---------------
 
-Finally, we define the ``GOATOverGRAPE`` fideltiy that chains together
+Finally, we define the ``GOATOverGRAPE`` fidelity that chains together
 the GRAPE gradients to compute the gradient wrt the tone parameters
 
 .. code:: ipython3
@@ -200,7 +200,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
 
 
 
-For this simple example, we reach near perfect fidelity within a few
+For this simple example, we reach near-perfect fidelity within a few
 iterations.
 
 .. code:: ipython3

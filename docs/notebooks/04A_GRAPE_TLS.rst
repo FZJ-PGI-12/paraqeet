@@ -1,7 +1,7 @@
 GRAPE on a single spin
 ======================
 
-This in an introductory example to the GRAPE (Khaneja et al., 2005)
+This is an introductory example to the GRAPE (Khaneja et al., 2005)
 :cite:p:`khaneja2005optimal` method and its implementation in this
 software package.
 
@@ -21,9 +21,9 @@ software package.
     from paraqeet.signal.pwc_generator import PWCGenerator
 
 First, let’s generate a piecewise constant (PWC) pulse envelope for the
-Gaussian pulse. For GRAPE, we need to specify an anstanz for piecewise
-constant controls at a given resolution. Here, we setup a Gaussian
-initial guess, sampling at 21 points during a gate time of 20ns.
+Gaussian pulse. For GRAPE, we need to specify an ansatz for piecewise
+constant controls at a given resolution. Here, we set up a Gaussian
+initial guess, sampling at 21 points during a gate time of 20 ns.
 
 .. code:: ipython3
 
@@ -36,8 +36,8 @@ initial guess, sampling at 21 points during a gate time of 20ns.
     gen.multiply_flat_top = True
     gen.max_amplitude = 2 * 1e8
 
-We have added the option ``multiply_flat_top``, to ensure the pulse to
-start and end smoothly at 0 and ``t_final``. This acts like the
+We have added the option ``multiply_flat_top``, to ensure the pulse
+starts and ends smoothly at 0 and ``t_final``. This acts like the
 ``FlatTopGaussianFilter``, but enforced directly by the
 ``PWCGenerator``.
 
@@ -164,7 +164,7 @@ from a ``PWCGenerator`` using ``gen.tlist``.
 
 
 
-For this simple example, we reach near perfect fidelity within a few
+For this simple example, we reach near-perfect fidelity within a few
 iterations.
 
 .. code:: ipython3
@@ -188,7 +188,7 @@ iterations.
 With open system
 ----------------
 
-Lets first reset the pulse and create a open-system model
+Let's first reset the pulse and create an open-system model
 
 .. code:: ipython3
 
@@ -230,7 +230,7 @@ Lets first reset the pulse and create a open-system model
         jump_operators=open_qubit.get_jump_operators(),
     )
 
-Lets test GRAPE with ODE-propgation
+Let's test GRAPE with ODE propagation
 
 .. code:: ipython3
 

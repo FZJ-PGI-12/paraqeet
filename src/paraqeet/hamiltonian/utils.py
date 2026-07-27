@@ -91,7 +91,7 @@ def matrix_sqrt(op: Array) -> Array:
     """Return the matrix square root using jax based implementation.
     This works for any general matrix with positive eigenvalues.
 
-    Uses jax.scipy.lingalg.sqrtm for the implementation.
+    Uses jax.scipy.linalg.sqrtm for the implementation.
 
     Note:
         This function does not support automatic-differentiation (AD).
@@ -152,11 +152,11 @@ def construct_creation_op(dim: int) -> Array:
 
 
 def construct_basis_state(dim: int, index: int) -> Array:
-    r"""Generate pure basis state for a single system.
+    r"""Generate a pure basis state for a single system.
 
     Args:
         dim: Dimension of the system.
-        index: Index of the state, for e.g., for fock state :math:`|0\rangle`, index = 0.
+        index: Index of the state, e.g., for the Fock state :math:`|0\rangle`, index = 0.
             Max index = dim - 1.
 
     Returns:
@@ -171,7 +171,7 @@ def construct_basis_state(dim: int, index: int) -> Array:
 
 
 def construct_composite_basis_state(dims: tuple[int, ...], index: tuple[int, ...]) -> Array:
-    """Generate pure Basis state of a composite system based on the index.
+    """Generate a pure basis state of a composite system based on the index.
 
     Args:
         dims: Subsystem dimensions as a tuple.
@@ -222,8 +222,8 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
     The dimensions are assumed to be the same as the subsystems.
 
     Args:
-        mat_list: List of Matrices for tensor product.
-        n: List of indices for the each mat_list_i.
+        mat_list: List of matrices for the tensor product.
+        n: List of indices for each mat_list_i.
 
     Returns:
         Tensor product of mat_list_i's with I's.
@@ -248,7 +248,7 @@ def tensor_product_with_identity(mat_list: list[Array], n: list[int], dims: list
 
 
 def np_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
-    """Convert a Numpy Hamiltonian function to JAX compatible function.
+    """Convert a Numpy Hamiltonian function to a JAX compatible function.
 
     Adds ``vmap`` capabilities to vectorize the computation over a batch of times
     (first variable).
@@ -277,7 +277,7 @@ def qobj_to_array(qobj: Any) -> Array:
 
 
 def qt_func_to_jax_func(ham_func: Callable) -> Callable[..., Array]:
-    """Convert a QuTiP-JAX Hamiltonian function to JAX compatible function.
+    """Convert a QuTiP-JAX Hamiltonian function to a JAX compatible function.
 
     Adds ``vmap`` capabilities to vectorize the computation over a batch of times
     (first variable).

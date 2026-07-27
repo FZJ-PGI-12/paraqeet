@@ -81,8 +81,8 @@ class ResonatorHamiltonian(Hamiltonian):
 
 
 class Resonator:
-    """A system representing a resonator. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators.
+    """A system representing a resonator. It allows storing information about relaxation and dephasing times
+    and getting the corresponding jump operators.
     """
 
     def __init__(

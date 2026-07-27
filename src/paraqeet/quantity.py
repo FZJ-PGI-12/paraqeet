@@ -30,7 +30,7 @@ class Quantity:
     For convenience, the constructor and setter functions accept primitive floats. However, these will be converted into
     numpy arrays internally, such that scalar values are represented by arrays of shape (1,). All getter functions only
     return numpy arrays. If the value is an array and min/max are floats, the latter will be considered constant bounds
-    for all value and will be converted into constant arrays.
+    for all values and will be converted into constant arrays.
     """
 
     _unit: str
@@ -474,7 +474,7 @@ class Quantity:
         """Check if parameter is vector."""
         return self._length > 1 and len(self._shape) == 1
 
-    # Python specific magic functions that enalble the use of e.g., binary math operators
+    # Python specific magic functions that enable the use of e.g., binary math operators
     def __add__(self, other: Array | float) -> Quantity:
         """Magic method for addition by operand."""
         out_val = copy.deepcopy(self)

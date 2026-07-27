@@ -36,7 +36,7 @@ class Expm(StatePropagation):
         Args:
             psis_t: State/states at time 't'.
             eom: Equation of motion for a list of times.
-            steps_arr: Array from 0 to the length of the List of times, in steps
+            steps_arr: Array from 0 to the length of the list of times, in steps
                 of 1 representing the iteration index.
 
         Returns:

@@ -137,7 +137,7 @@ class OptimizationMap:
     ) -> None:
         """Perform an in-place substitution of the old and new parameters.
 
-        This helps to keeps the ordering of parameters the same while replacing
+        This helps to keep the ordering of parameters the same while replacing
         parameters.
         """
         old_parameters_list = old_parameters if isinstance(old_parameters, list) else [old_parameters]

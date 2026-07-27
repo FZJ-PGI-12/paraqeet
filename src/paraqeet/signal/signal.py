@@ -31,7 +31,7 @@ class Signal(Optimizable, Differentiable):
         """Return a compute gradient function from the signal function.
 
         Args:
-            signal_function: A function that generated signals.
+            signal_function: A function that generates signals.
             argnums: A tuple of ints containing a variable number of argument numbers.
             vmap_axes: A tuple of ints.
 
@@ -131,13 +131,13 @@ class Signal(Optimizable, Differentiable):
         return self.get_value(times), self.get_gradient(times)
 
     def get_time_gradient(self, times: Array) -> Array:
-        """Compute a signal envelopes time derivative.
+        """Compute a signal envelope's time derivative.
 
         Args:
             times: Array of times.
 
         Returns:
-            An array of signals time derivative.
+            An array of the signal's time derivative.
 
         """
         t_arr = jnp.array(times, ndmin=1)
@@ -159,7 +159,7 @@ class Signal(Optimizable, Differentiable):
             times: Array of times.
 
         Returns:
-            An array of signal's time derivative.
+            An array of the signal's time derivative.
 
         """
         params = self.get_parameters()
@@ -176,7 +176,7 @@ class Signal(Optimizable, Differentiable):
 
 
 class LocalOscillator(Signal):
-    """A local oscillators carrier signal."""
+    """A local oscillator's carrier signal."""
 
     _lo_freq: Quantity
 
@@ -205,7 +205,7 @@ class LocalOscillator(Signal):
 
     @frequency.setter
     def frequency(self, frequency: Quantity) -> None:
-        """Set The frequency of the constant oscillating tone.
+        """Set the frequency of the constant oscillating tone.
 
         Args:
             frequency: The frequency of the local oscillator.
@@ -243,13 +243,13 @@ class LocalOscillator(Signal):
         return grads
 
     def get_time_gradient(self, times: Array) -> Array:
-        """Compute a signals time derivative.
+        """Compute a signal's time derivative.
 
         Args:
             times: Array of times.
 
         Returns:
-            An array of signals time derivative.
+            An array of the signal's time derivative.
 
         """
         freq = self._lo_freq.get_value()
@@ -260,7 +260,7 @@ class LocalOscillator(Signal):
 class DRAGMixer(Signal):
     """A DRAG correction :cite:p:`motzoi2009simple` applied to signal envelope.
 
-    The DRAG component is calculated for a set of envelopes and added in
+    The DRAG component is calculated for a set of envelopes and added in the
     orthogonal direction in the x-y plane.
 
     """
@@ -408,7 +408,7 @@ class FlatTopGaussianFilter(Signal):
     def __init__(self, envelopes: Signal | list[Signal], t_final: Quantity) -> None:
         """
         Args:
-            envelopes: The list of shape defining signal envelops.
+            envelopes: The list of shape defining signal envelopes.
             t_final: Final time.
         """
         self._envs = envelopes if isinstance(envelopes, list) else [envelopes]

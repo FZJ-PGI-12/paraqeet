@@ -15,7 +15,7 @@ class Measurement(ABC):
 
     @abstractmethod
     def get_value(self, times: Array) -> Array | Float:
-        """Measure the observable and returns the value.
+        """Measure the observable and return the value.
 
         Args:
             times: One-dimensional vector of timestamps.

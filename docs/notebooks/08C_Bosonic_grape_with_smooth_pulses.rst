@@ -1,9 +1,9 @@
-Arbitrary bosonic state preparation using smooth pulses : Gradient based dCRAB optimization using GOAT over GRAPE method
-========================================================================================================================
+Arbitrary bosonic state preparation using smooth pulses: Gradient-based dCRAB optimization using GOAT over GRAPE method
+=======================================================================================================================
 
 In this example we solve the task in the previous example of preparing
-arbitrary bosonic state, but using smooth functions as the basis. Here
-we perform a gradient based dCRAB optimization, by using the
+an arbitrary bosonic state, but using smooth functions as the basis.
+Here we perform a gradient-based dCRAB optimization, by using the
 *GOAToverGRAPE* (combining GOAT (Machnes et al., 2018)
 :cite:p:`machnes2018tunable` and GRAPE (Khaneja et al., 2005)
 :cite:p:`khaneja2005optimal`) (or the GROUP (Sørensen et al., 2018)
@@ -34,7 +34,7 @@ we perform a gradient based dCRAB optimization, by using the
 
 Following the dCRAB optimization (Müller et al., 2022)
 :cite:p:`muller2022one`, we initialize our pulses in the frequency
-domain by using the ``DCRABEnvelope``. Further we use a flat-top
+domain by using the ``DCRABEnvelope``. Further, we use a flat-top
 Gaussian filter on top to ensure that the pulses start and end at zero.
 And we use a ``PWCGenerator`` to generate the piece-wise constant signal
 required for the ``GOAToverGRAPE`` method.
@@ -125,12 +125,12 @@ levels in the resonator.
     detuning_drive_qubit = omega_qubit - omega_drive_qubit
 
 Similar to the previous example, following (Heeres et al., 2017)
-:cite:p:`heeres2017implementing`, we thus consider
-:math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
-and introduce a penalty when having different values of fidelities for
-different truncation numbers. Thus, we create different systems, and
-accordingly fidelity measures, for the different Fock truncation
-numbers.
+:cite:p:`heeres2017implementing`, we thus consider :math:`N_{\mathrm{T}}
+\in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} +
+1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`, and introduce a penalty
+when having different values of fidelities for different truncation
+numbers. Thus, we create different systems, and accordingly fidelity
+measures, for the different Fock truncation numbers.
 
 .. code:: ipython3
 
@@ -242,15 +242,15 @@ numbers.
         n_fock_truncation_list, fock_target
     )
 
-We consider as cost function of the form
+We consider a cost function of the form
 
 .. math::
 
 
    C(\varepsilon(t) ) = w_1 \sum_{N = N_{\mathrm{T}}^{(\mathrm{min})}}^{ N_{\mathrm{T}}^{(\mathrm{max})}} \mathcal{F}_{N} (\varepsilon(t) )   - \frac{w_2}{2} \sum_{N, N' = N_{\mathrm{T}}^{(\mathrm{min})}}^{ N_{\mathrm{T}}^{(\mathrm{max})}} \left[\mathcal{F}_{N}(\varepsilon(t))- \mathcal{F}_{N'} (\varepsilon(t) ) \right]^2,
 
-that we want to maximize. This cost weighted cost function can be
-constructed using the class WeightedSumGoal.
+that we want to maximize. This weighted cost function can be constructed
+using the class WeightedSumGoal.
 
 *Note - As we consider smooth pulses as our basis function, we do not
 need to add additional smoothness cost to the goal function.*
@@ -350,7 +350,7 @@ And we compute the fidelities for the different truncation numbers
 
 which are quite poor! We now proceed with the pulse optimization.
 
-Lets define the parameters we want to optimize. Since, in this case we
+Let's define the parameters we want to optimize. Since, in this case, we
 want to optimize the smooth pulses, the parameters for the optmap would
 be the parameters of the ``DCRABEnvelope`` tone.
 
@@ -517,7 +517,7 @@ we can later use to plot the infidelity vs function evaluation.
 
 
 
-Lets set the optimization to the best parameters obtained during the run
+Let's set the optimization to the best parameters obtained during the run
 
 .. code:: ipython3
 
@@ -651,7 +651,7 @@ For this small truncation number the dynamics and fidelities do not
 match very well. This indicates the need for higher truncation numbers,
 which we demonstrate in the next section.
 
-Finally, lets plot the variation of infidelity with evaluation number.
+Finally, let's plot the variation of infidelity with evaluation number.
 
 .. code:: ipython3
 
@@ -679,7 +679,7 @@ Here we set the truncation values to 15 and 20 levels and rerun the
 entire simulation. For a more realistic simulation, we advise the reader
 to increase the truncation to 30 and 31 levels.
 
-*Note - The following takes about 15 mins to run on an AMD-EPYC Milan
+*Note - The following takes about 15 minutes to run on an AMD-EPYC Milan
 processor with 64 cores.*
 
 We first reset the generator parameters (by redefining them), and
@@ -1292,7 +1292,7 @@ And the new fidelities are
 Here the dynamics and the fidelities are very similar to one another,
 indicating no truncation artifacts.
 
-Lets plot the optimized pulses and dynamics
+Let's plot the optimized pulses and dynamics
 
 .. code:: ipython3
 
@@ -1303,7 +1303,7 @@ Lets plot the optimized pulses and dynamics
 .. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_50_0.png
 
 
-And verify the dynamics with the higher truncation looks the same
+And verify that the dynamics with the higher truncation look the same
 
 .. code:: ipython3
 
@@ -1314,7 +1314,7 @@ And verify the dynamics with the higher truncation looks the same
 .. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_52_0.png
 
 
-Finally, lets plot the variation of infidelity with evaluation number.
+Finally, let's plot the variation of infidelity with evaluation number.
 
 .. code:: ipython3
 
@@ -1335,7 +1335,7 @@ Finally, lets plot the variation of infidelity with evaluation number.
 .. image:: 08C_Bosonic_grape_with_smooth_pulses_files/08C_Bosonic_grape_with_smooth_pulses_54_1.png
 
 
-The sharp rise infidelity represents the beginning of a super-iteration
+The sharp rise in infidelity represents the beginning of a super-iteration
 
 References
 ----------

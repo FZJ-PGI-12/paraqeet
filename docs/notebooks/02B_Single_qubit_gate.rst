@@ -79,7 +79,7 @@ We can inspect the parameters with
 
 
 In this notebook, we would like to optimize the amplitude ``Amplitude``
-and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
+and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
@@ -95,7 +95,7 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as initial guess to demonstrate the
+We use some offset from these values as an initial guess to demonstrate the
 optimization procedure.
 
 .. code:: ipython3
@@ -104,7 +104,7 @@ optimization procedure.
     params_gen[2].set_value(1.01 * freq)
 
 We select a propagation method, piecewise constant exponentiation, and
-configure an :math:`X`-gate as a target gate. Also we initialize the
+configure an :math:`X`-gate as a target gate. Also, we initialize the
 identity at time :math:`0`.
 
 .. code:: ipython3

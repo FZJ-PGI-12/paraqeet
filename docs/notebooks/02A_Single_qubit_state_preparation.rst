@@ -64,7 +64,7 @@ We can inspect the pre-defined parameters with
 
 
 In this notebook, we would like to optimize the amplitude ``Amplitude``
-and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
+and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
@@ -77,7 +77,7 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as initial guess to demonstrate the
+We use some offset from these values as an initial guess to demonstrate the
 optimization procedure.
 
 .. code:: ipython3
@@ -88,7 +88,7 @@ optimization procedure.
 
 It is important to note that, although we changed the parameters of
 ``params_gen`` the corresponding parameter of ``params_tone`` also
-changes, due Python’s “Pass By Object Reference” scheme. In fact,
+changes, due to Python’s “Pass By Object Reference” scheme. In fact,
 
 .. code:: ipython3
 
@@ -116,10 +116,10 @@ controlled qubit at the time ``t_simu``:
             [-2.49345621e+08,  1.50796447e+10]]], dtype=float64), Array([], shape=(1, 0, 2, 2), dtype=float64))
 
 
-We see that in this case it is empty. This is because, we haven’t yet
+We see that in this case it is empty. This is because we haven’t yet
 defined an ``OptimizationMap`` object that defines the optimizable
 parameters. Also note that the tone parameter ``t_final`` is simply the
-time after which the pulse it is assumed to be zero and it is set by
+time after which the pulse is assumed to be zero and it is set by
 default to :math:`32 \, \mathrm{ns}`. This is not necessarily the
 simulation time, which is another parameter of our choice called
 ``t_simu`` in this case.
@@ -211,7 +211,7 @@ would not be empty, but instead
 
 
 
-This is because, the parameters have been passed, but not “registered”
+This is because the parameters have been passed, but not “registered”
 by ``optmap``. To remedy this
 
 .. code:: ipython3

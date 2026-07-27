@@ -69,7 +69,7 @@ class Vern7GRAPE(Vern7, Differentiable):
             resolution: Resolution at which to sample the EOM.
             initial_state: Initial state.
             target_state: Target state for backwards/reverse propagation for GRAPE.
-            step_function: Step function used to that implements the right hand side of the EOM.
+            step_function: Step function that implements the right hand side of the EOM.
             jump_operators: A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
                 Defaults to None for closed system.
             reverse_step_function: Reverse step function for the backwards propagation.

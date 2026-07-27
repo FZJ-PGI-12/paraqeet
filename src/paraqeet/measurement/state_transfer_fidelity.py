@@ -73,7 +73,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
     def calculate_normalized_scalar(self, times: Array) -> Float:
         """Measure the fidelity between the propagated final state and the target state. To be used with an optimizer.
 
-        For NormalizableMeasurement objects that are also Differentiable this coincide
+        For NormalizableMeasurement objects that are also Differentiable this coincides
         with the get_value method.
 
         Args:

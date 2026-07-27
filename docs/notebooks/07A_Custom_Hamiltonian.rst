@@ -14,9 +14,9 @@ In this example we demonstrate how a custom Hamiltonian function
 ---------------------------------------------------------------------
 
 Define a Hamiltonian as a function of time and optimizable parameters.
-The optimizable parameter need to be of the type ``pq.Quantity``.
+The optimizable parameters need to be of the type ``pq.Quantity``.
 
-Here we define a two level system (TLS) Hamiltonian, with a cosine drive
+Here we define a two-level system (TLS) Hamiltonian, with a cosine drive
 (with optimizable parameters Amplitude and Frequency). The cosine
 envelope function can be created by constructing the class
 ``CosEnvelope``. This can automatically provide gradient values, thus
@@ -95,10 +95,10 @@ with :math:`u(A, \omega_d, t) = A\cos(\omega_d t)`.
     sigma_x = jnp.expand_dims(jnp.array([[0j, 1], [1, 0]]), axis=0)
     sigma_z = jnp.expand_dims(jnp.diag(jnp.array([1.0, -1.0])), axis=0)
 
-For cases where the gradients of the Hamiltonian are not required, for
-e.g., for state propagation and gradient-free optimization the
+For cases where the gradients of the Hamiltonian are not required, e.g.,
+for state propagation and gradient-free optimization, the
 ``hamiltonian_and_gradient_func`` can be defined by any function. Here
-we define a function that raises exception when it is called.
+we define a function that raises an exception when it is called.
 
 .. code:: ipython3
 
@@ -161,14 +161,14 @@ Here we pick the standard ``ExpmGOAT`` method for propagation and
 3. Gradient based optimization
 ------------------------------
 
-While using the above setup one can perform gradient free optimization.
-To do a gradient based optimization, we need to provide the gradient of
+While using the above setup one can perform gradient-free optimization.
+To do a gradient-based optimization, we need to provide the gradient of
 the Hamiltonian wrt each parameter in the Hamiltonian function.
 
 These gradient functions can be written as analytical functions or
 constructed using automatic differentiation using ``jax.grad``.
 
-Here we demonstrate both the cases.
+Here we demonstrate both cases.
 
 1. Analytical functions for gradient of the Hamiltonian.
 
@@ -191,7 +191,7 @@ Here we demonstrate both the cases.
         ham_grads = jnp.stack([grad_amp(t, pulse_freq), grad_frequency(t, pulse_amp, pulse_freq)], axis=1)
         return ham_grads
 
-2. Gradient functions using Automatic differentiation
+2. Gradient functions using automatic differentiation
 
 .. code:: ipython3
 

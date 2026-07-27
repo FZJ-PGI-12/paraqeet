@@ -124,13 +124,13 @@ class ConstantEnvelope(Envelope):
 
     @override
     def get_time_gradient(self, times: Array) -> Array:
-        """Compute a signal envelopes time derivative.
+        """Compute a signal envelope's time derivative.
 
         Args:
             times: Array of times.
 
         Returns:
-            An array of signals time derivative.
+            An array of the signal's time derivative.
         """
         return jnp.zeros_like(times)
 
@@ -399,13 +399,13 @@ class FlatTopGaussianEnvelope(Envelope):
 
     @override
     def get_time_gradient(self, times: Array) -> Array:
-        """Compute a signal envelopes time derivative.
+        """Compute a signal envelope's time derivative.
 
         Args:
             times: Array of times.
 
         Returns:
-            A vector signals time derivative.
+            A vector of the signal's time derivative.
         """
         amp = self.amplitude.get_value()
         t_up = self._t_up.get_value()
@@ -429,14 +429,14 @@ class GaussEnvelope(Envelope):
     @override
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate(self, amp: Array, t_final: Array, times: Array) -> Array:  # type: ignore
-        """Calculate the gaussian signal.
+        """Calculate the Gaussian signal.
 
         Args:
-            t_final: Duration of the signal to calculate the center of the gaussian from.
+            t_final: Duration of the signal to calculate the center of the Gaussian from.
             times: Array of times.
 
         Returns:
-            The gaussian signal.
+            The Gaussian signal.
         """
         sigma = t_final / 8
         env = amp * jnp.exp(-(1 / 2) * (times - t_final / 2) ** 2 / sigma**2)
@@ -444,15 +444,15 @@ class GaussEnvelope(Envelope):
 
     @partial(jax.jit, static_argnums=(0,))
     def _evaluate_time_gradient(self, amp: Array, t_final: Array, times: Array) -> Array:
-        """Calculate the time derivative of the gaussian signal.
+        """Calculate the time derivative of the Gaussian signal.
 
         Args:
-            amp: Amplitude of the gaussian.
-            t_final: Duration of the signal to calculate the center of the gaussian from.
+            amp: Amplitude of the Gaussian.
+            t_final: Duration of the signal to calculate the center of the Gaussian from.
             times: Array of times.
 
         Returns:
-            The gaussian signals time derivative.
+            The Gaussian signal's time derivative.
         """
         sigma = t_final / 8
         time_grad = self._evaluate(amp, t_final, times) * -1.0 * (times - t_final / 2) / sigma**2
@@ -461,13 +461,13 @@ class GaussEnvelope(Envelope):
 
     @override
     def get_time_gradient(self, times: Array) -> Array:
-        """Compute a signal envelopes time derivative.
+        """Compute a signal envelope's time derivative.
 
         Args:
             times: Array of times.
 
         Returns:
-            A vector signals time derivative.
+            A vector of the signal's time derivative.
         """
         t_final = self.t_final.get_value()
         amp = self.amplitude.get_value()
@@ -489,8 +489,8 @@ class DCRABEnvelope(Envelope):
     Further, even components are for cosine and odd components are for sine.
 
     Note:
-        The function is designed to work well for even total number of components.
-        For odd total number it may not work as expected.
+        The function is designed to work well for an even total number of components.
+        For an odd total number, it may not work as expected.
 
     Attributes:
         _total_num_components: Total number of components in the current dCRAB basis. This is the number of coefficients
@@ -813,7 +813,7 @@ class DCRABEnvelope(Envelope):
     def _evaluate(self, *params: Array) -> Array:  # type: ignore
         """Compute the CRAB pulse.
 
-        Here the params is arranged as follows,
+        Here the params are arranged as follows:
             [amplitude, t_final, ... total_num coefficients ..., ... total_num frequencies ..., t]
 
         This evaluate function is written in this way to make it compatible with adding new

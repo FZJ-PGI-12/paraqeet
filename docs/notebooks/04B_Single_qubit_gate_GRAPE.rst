@@ -51,12 +51,12 @@ Gaussian pulse
 2. Define Hamiltonian in the rotating frame of drive
 ----------------------------------------------------
 
-Next, we setup the qubit system we want to control. We define the
+Next, we set up the qubit system we want to control. We define the
 Hamiltonian in the rotating frame of drive such that the pulse
 oscillates slowly to apply GRAPE (Khaneja et al., 2005)
 :cite:p:`khaneja2005optimal` gradients.
 
-The Hamiltonain in the rotating frame of the drive is given by -
+The Hamiltonian in the rotating frame of the drive is given by -
 
 .. math::  H(t) = \big(\omega_q - \omega_d\big) b^\dagger b -\frac{\alpha}{2} (b^\dagger)^2 b^2 + (\epsilon(t) b + \epsilon(t)^* b)
 

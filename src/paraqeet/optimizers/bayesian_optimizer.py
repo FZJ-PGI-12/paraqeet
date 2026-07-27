@@ -127,7 +127,7 @@ class BayesianOptimizer(Optimizer):
         )
 
     def _set_parameters_and_measure(self, **kwargs: float) -> float:
-        """Update the parameter values and returns the measurement result.
+        """Update the parameter values and return the measurement result.
 
         Internal callback.
 

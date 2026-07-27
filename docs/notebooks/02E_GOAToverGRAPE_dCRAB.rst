@@ -27,10 +27,10 @@ gradient-based variant of the GROUP method (Sørensen et al., 2018)
     from paraqeet.signal.pwc_generator import PWCGenerator
     from paraqeet.signal.signal import FlatTopGaussianFilter
 
-Similar to the previous case, lets define the pulse generator, with the
+Similar to the previous case, let's define the pulse generator, with the
 envelope being the ``DCRABEnvelope``. We use a ``FlatTopGaussianFilter``
 to ensure that the pulse always starts and ends at zero. Finally, to
-obtain GRAPE gradient we pixelate the pulse using a ``PWCGenerator``.
+obtain GRAPE gradients we pixelate the pulse using a ``PWCGenerator``.
 
 .. code:: ipython3
 
@@ -145,7 +145,7 @@ of the time grid used for discretization. In this case
 ---------------
 
 Finally, we define the ``DCRABOptimizerGradient`` that takes the
-``GOATOverGRAPE`` fideltiy to chains together the GRAPE gradients to
+``GOATOverGRAPE`` fidelity to chain together the GRAPE gradients to
 compute the gradient wrt the dCRAB envelope
 
 .. code:: ipython3
@@ -271,7 +271,7 @@ coefficients for the optimization.
 
 
 As the parameters are added with random values, the optimization may not
-succeed sometimes. If it does not reach a low value restart the
+succeed sometimes. If it does not reach a low value, restart the
 optimization. Here, we have chosen a seed that converges to the target
 fidelity.
 

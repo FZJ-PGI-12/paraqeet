@@ -159,7 +159,7 @@ We can check that the gradient has the correct shape
 .. image:: 08A_Smoothness_measure_files/08A_Smoothness_measure_12_1.png
 
 
-As expected obtain a flat pulse.
+As expected, we obtain a flat pulse.
 
 References
 ----------

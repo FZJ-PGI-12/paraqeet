@@ -9,7 +9,7 @@ from paraqeet.quantity import Array
 
 
 class Propagation(ABC):
-    """Abstract base class for solver of the equations of motion."""
+    """Abstract base class for solvers of the equations of motion."""
 
     _eom_func: Callable[[Array], Array]
     _resolution: float

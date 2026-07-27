@@ -79,7 +79,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
     @property
     def measurements(self) -> list[DifferentiableNormalizableMeasurement]:
-        """Return the list of measurement."""
+        """Return the list of measurements."""
         return self._measurements
 
     @property
@@ -94,7 +94,7 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
     @property
     def measurements_in_sum_of_squares(self) -> list[DifferentiableNormalizableMeasurement]:
-        """Return the list of measurement included in the sum of square difference cost function."""
+        """Return the list of measurements included in the sum of square difference cost function."""
         return self._measurements_in_sum_of_squares
 
     @override

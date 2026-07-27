@@ -11,7 +11,7 @@ from paraqeet.quantity import Array
 class Generator(Optimizable, Differentiable):
     """Marker class for signal generation stack.
 
-    paraqeet includes a detailed simulation of the control stack.
+    ParaQeet includes a detailed simulation of the control stack.
     Each component in the stack and its functions are
     simulated individually and combined here.
 

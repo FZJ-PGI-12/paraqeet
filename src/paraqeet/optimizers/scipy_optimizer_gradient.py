@@ -102,7 +102,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
 
         Returns the measurement result including gradient.
         The gradient is stored in a local cache for lookup.
-        This tailored for L-BFGS-B or similar algorithms that alternate
+        This is tailored for L-BFGS-B or similar algorithms that alternate
         between function and gradient calls.
         Internal callback.
 

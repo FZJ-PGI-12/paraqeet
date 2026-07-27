@@ -13,7 +13,7 @@ from paraqeet.quantity import Array
 class MasterEquation(EquationOfMotion):
     """Model of an open quantum system, defined by the Hamiltonian and jump operators.
 
-    Its dynamics given by the Lindblad master equation :cite:p:`lindblad1976generators,manzano2020short`.
+    Its dynamics is given by the Lindblad master equation :cite:p:`lindblad1976generators,manzano2020short`.
 
     Defaults to returning the Lindblad superoperator. For ODE based methods use the
     ``get_eom_ode_propagation`` and ``get_eom_gradient_ode_propagation`` methods.

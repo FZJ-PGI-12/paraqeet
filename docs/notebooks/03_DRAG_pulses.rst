@@ -133,8 +133,8 @@ DRAGMixer
 
 
 
-2. Set up ideal reference matrix to compare the pulses result to.
------------------------------------------------------------------
+2. Set up the ideal reference matrix to compare the pulse's result to.
+----------------------------------------------------------------------
 
 .. code:: ipython3
 
@@ -149,7 +149,7 @@ DRAGMixer
             dtype=np.complex128,
         )
 
-Set up measure that is optimized. In this case, the gate fidelity
+Set up the measure that is optimized. In this case, the gate fidelity
 between the propagator resulting from the pulse simulation and the ideal
 reference defined above is used.
 
@@ -162,7 +162,7 @@ reference defined above is used.
     )
 
 Plot initial pulse shape and population transfer. Target is the full
-population transfer,i.e., an X-gate.
+population transfer, i.e., an X-gate.
 
 .. code:: ipython3
 
@@ -253,7 +253,7 @@ Print all parameters that were optimized.
 
 
 Plot final pulse shape and population transfer. Target is the full
-population transfer,i.e., an X-gate.
+population transfer, i.e., an X-gate.
 
 .. code:: ipython3
 
@@ -274,7 +274,7 @@ population transfer,i.e., an X-gate.
 
 
 We can see from the plot and optimizer output that we have found better
-controls. For which the excitement to the second excited state is much
+controls, for which the excitation to the second excited state is much
 smaller than initially.
 
 .. code:: ipython3

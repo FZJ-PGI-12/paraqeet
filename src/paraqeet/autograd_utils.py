@@ -1,4 +1,4 @@
-"""Helper functions for automatic differentation."""
+"""Helper functions for automatic differentiation."""
 
 from collections.abc import Callable
 from typing import Any
@@ -14,7 +14,7 @@ def get_value_and_jacobian(
 ) -> Callable[..., tuple[Array, Array | tuple[Array, ...]]]:
     """Compute Jacobian of f w.r.t. specified arguments via vjp (reverse-mode AD).
 
-    The function ``f`` has be jax ``jit`` and ``grad`` compatible.
+    The function ``f`` has to be jax ``jit`` and ``grad`` compatible.
     Returns a ``get_value_and_gradient`` that returns the value and the gradients w.r.t. argnums.
 
     It supports functions with complex + vector valued inputs, and complex + vector valued outputs.

@@ -5,7 +5,7 @@ The package is organized in layers, each interacting only with the layer
 above it in the hierarchy:
 
 - ``signal``: pulse parametrizations (envelopes, generators, mixers).
-- ``hamiltonain``: Hamiltonian, composite Hamiltonian, and drive Hamiltonians.
+- ``hamiltonian``: Hamiltonian, composite Hamiltonian, and drive Hamiltonians.
 - ``eom``: different equations of motion.
 - ``propagation``: solvers of the equation of motion.
 - ``measurement``: fidelities and other goal functions.

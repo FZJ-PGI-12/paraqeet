@@ -26,7 +26,7 @@ class Differentiable(ABC):
             The value of the object.
             If it returns an Array then the value is calculated at the n_times and the dimension should be
             (n_times, (dimensions_of_object)). If the object is a scalar (1x1 Array)
-            the dimension of is just n_times.
+            the dimension is just n_times.
             If it returns a Float for instance it means that the object depends on the whole
             array of times. This is for instance the case of fidelities
             that are a function of an array of times.
@@ -44,7 +44,7 @@ class Differentiable(ABC):
             The gradient of the object. There are two main cases.
 
             1) The array has dimensions (n_times, n_params, (dimensions_of_object)).
-            If the object is a scalar (1x1 Array) the dimension of is just (n_times, n_params).
+            If the object is a scalar (1x1 Array) the dimension is just (n_times, n_params).
 
             2) The array has dimension (n_params, (dimensions_of_object)). This is the case for instance of fidelities
             that are a function of an array of times.

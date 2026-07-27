@@ -78,7 +78,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         """Evaluate the underlying GRAPE measurement on the interpolated propagation time grid.
 
         Args:
-            times: Array of times
+            times: Array of times.
 
         Returns:
             The fidelity from the underlying GRAPE measurement.
