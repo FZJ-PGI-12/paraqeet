@@ -1,8 +1,9 @@
 Single spin: Bayesian optimization of a gate
 ============================================
 
-This is similar to the O2B_Single_qubit_gate example, except that it
-uses Bayesian optimization instead of gradient descent.
+This is similar to the 02B_Single_qubit_gate example, except that it
+uses Bayesian optimization (Shahriari et al., 2016)
+:cite:p:`shahriari2016taking` instead of gradient descent.
 
 .. code:: ipython3
 
@@ -10,14 +11,14 @@ uses Bayesian optimization instead of gradient descent.
     import numpy as np
     from jax import Array
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.logger import Logger
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -63,7 +64,7 @@ We can inspect the pre-defined parameters with
     params_gen = gen.get_parameters()
 
 In this notebook, we would like to optimize the amplitude ``Amplitude``
-and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
+and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
@@ -78,7 +79,7 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as initial guess to demonstrate the
+We use some offset from these values as an initial guess to demonstrate the
 optimization procedure.
 
 .. code:: ipython3
@@ -87,21 +88,21 @@ optimization procedure.
     params_gen[2].set_value(1.01 * freq)
 
 We select a propagation method, piecewise constant exponentiation, and
-configure an :math:`X`-gate as a target gate. Also we initialize the
+configure an :math:`X`-gate as a target gate. Also, we initialize the
 identity at time :math:`0`.
 
 .. code:: ipython3
 
     times = np.array([0.0, t_simu])
     
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=100e9,
         initial_state=np.identity(2),
     )
     
-    gate_fid = UnitaryFidelity(propagation_func=prop.propagate, propagation_gradient_func=prop.get_gradient, gate=sigma_x)
+    gate_fid = UnitaryFidelity(propagation_func=prop.get_value, propagation_gradient_func=prop.get_gradient, gate=sigma_x)
 
 .. code:: ipython3
 
@@ -128,7 +129,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    print(f"Gate fidelity: {gate_fid.measure(times)}")
+    print(f"Gate fidelity: {gate_fid.get_value(times)}")
 
 
 .. parsed-literal::
@@ -167,7 +168,7 @@ to collect all samples that the optimizer takes
     
     optmap = OptimizationMap()
     optmap.add(gen, [params_gen[0], params_gen[2], params_gen[3]])
-    opt = BayesianOptimizer(measure_func=gate_fid.measure, optimization_map=optmap, initial_samples=10, iterations=100)
+    opt = BayesianOptimizer(measure_func=gate_fid.get_value, optimization_map=optmap, initial_samples=10, iterations=100)
     opt.logger = CustomLogger()
 
 .. code:: ipython3
@@ -183,12 +184,12 @@ to collect all samples that the optimizer takes
     | [39m2        [39m | [39m0.0001104[39m | [39m-0.395334[39m | [39m-0.706488[39m | [39m-0.815322[39m |
     | [39m3        [39m | [39m0.0003939[39m | [39m-0.627479[39m | [39m-0.308878[39m | [39m-0.206465[39m |
     | [35m4        [39m | [35m0.0094778[39m | [35m0.0776334[39m | [35m-0.161610[39m | [35m0.3704390[39m |
-    | [39m5        [39m | [39m3.085e-06[39m | [39m-0.591095[39m | [39m0.7562348[39m | [39m-0.945224[39m |
+    | [39m5        [39m | [39m-.085e-06[39m | [39m-0.591095[39m | [39m0.7562348[39m | [39m-0.945224[39m |
     | [35m6        [39m | [35m0.2028943[39m | [35m0.3409350[39m | [35m-0.165390[39m | [35m0.1173796[39m |
     | [39m7        [39m | [39m0.0007805[39m | [39m-0.719226[39m | [39m-0.603797[39m | [39m0.6014891[39m |
     | [39m8        [39m | [39m0.0434133[39m | [39m0.9365231[39m | [39m-0.373151[39m | [39m0.3846452[39m |
-    | [39m9        [39m | [39m1.729e-06[39m | [39m0.7527783[39m | [39m0.7892133[39m | [39m-0.829911[39m |
-    | [39m10       [39m | [39m3.574e-06[39m | [39m-0.921890[39m | [39m-0.660339[39m | [39m0.7562850[39m |
+    | [39m9        [39m | [39m-.729e-06[39m | [39m0.7527783[39m | [39m0.7892133[39m | [39m-0.829911[39m |
+    | [39m10       [39m | [39m-.574e-06[39m | [39m-0.921890[39m | [39m-0.660339[39m | [39m0.7562850[39m |
 
 
 .. parsed-literal::
@@ -200,18 +201,18 @@ to collect all samples that the optimizer takes
 
     | [35m12       [39m | [35m0.3210977[39m | [35m0.3995182[39m | [35m-0.075493[39m | [35m-0.066396[39m |
     | [39m13       [39m | [39m0.1647017[39m | [39m0.5639544[39m | [39m-0.194260[39m | [39m-0.341354[39m |
+
+
+.. parsed-literal::
+
     | [35m14       [39m | [35m0.3215744[39m | [35m0.5552035[39m | [35m0.1456268[39m | [35m-0.017306[39m |
-
-
-.. parsed-literal::
-
-    | [39m15       [39m | [39m7.246e-06[39m | [39m0.2755778[39m | [39m0.3197374[39m | [39m-0.141076[39m |
+    | [39m15       [39m | [39m-.246e-06[39m | [39m0.2755778[39m | [39m0.3197374[39m | [39m-0.141076[39m |
     | [39m16       [39m | [39m0.2212795[39m | [39m0.5554470[39m | [39m0.1939444[39m | [39m-0.022655[39m |
-    | [39m17       [39m | [39m0.1641519[39m | [39m0.5808638[39m | [39m-0.020411[39m | [39m-0.013947[39m |
 
 
 .. parsed-literal::
 
+    | [39m17       [39m | [39m0.1641519[39m | [39m0.5808638[39m | [39m-0.020411[39m | [39m-0.013947[39m |
     | [35m18       [39m | [35m0.3386069[39m | [35m0.3983636[39m | [35m-0.078108[39m | [35m-0.062977[39m |
 
 
@@ -230,8 +231,8 @@ to collect all samples that the optimizer takes
 
 .. parsed-literal::
 
-    | [39m24       [39m | [39m6.894e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
-    | [39m25       [39m | [39m5.132e-08[39m | [39m-0.877018[39m | [39m-0.657881[39m | [39m0.0207137[39m |
+    | [39m24       [39m | [39m-.894e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
+    | [39m25       [39m | [39m-.132e-08[39m | [39m-0.877018[39m | [39m-0.657881[39m | [39m0.0207137[39m |
     | [39m26       [39m | [39m0.0011949[39m | [39m-0.795254[39m | [39m-0.508318[39m | [39m0.9524448[39m |
 
 
@@ -278,7 +279,7 @@ to collect all samples that the optimizer takes
 
 .. parsed-literal::
 
-    | [39m40       [39m | [39m3.035e-07[39m | [39m-0.831439[39m | [39m0.3584873[39m | [39m-0.030378[39m |
+    | [39m40       [39m | [39m-.035e-07[39m | [39m-0.831439[39m | [39m0.3584873[39m | [39m-0.030378[39m |
 
 
 .. parsed-literal::
@@ -313,10 +314,6 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m50       [39m | [39m0.2695574[39m | [39m0.8031122[39m | [39m-0.066686[39m | [39m-0.485512[39m |
-
-
-.. parsed-literal::
-
     | [39m51       [39m | [39m0.4891204[39m | [39m0.7696168[39m | [39m0.0946999[39m | [39m-0.517352[39m |
 
 
@@ -338,26 +335,18 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m55       [39m | [39m0.5246147[39m | [39m0.8660061[39m | [39m0.0128609[39m | [39m0.6739320[39m |
-    | [39m56       [39m | [39m5.541e-05[39m | [39m-0.879484[39m | [39m-0.954218[39m | [39m0.7154813[39m |
+    | [39m56       [39m | [39m-.541e-05[39m | [39m-0.879484[39m | [39m-0.954218[39m | [39m0.7154813[39m |
 
 
 .. parsed-literal::
 
     | [39m57       [39m | [39m0.8529050[39m | [39m0.9997355[39m | [39m0.0692861[39m | [39m0.5637266[39m |
-
-
-.. parsed-literal::
-
     | [39m58       [39m | [39m0.3471668[39m | [39m1.0      [39m | [39m-0.039209[39m | [39m0.5793447[39m |
 
 
 .. parsed-literal::
 
     | [39m59       [39m | [39m0.2922228[39m | [39m0.9356930[39m | [39m0.1417109[39m | [39m0.5855986[39m |
-
-
-.. parsed-literal::
-
     | [39m60       [39m | [39m0.7454913[39m | [39m0.9328742[39m | [39m0.0904889[39m | [39m-0.391478[39m |
 
 
@@ -371,26 +360,18 @@ to collect all samples that the optimizer takes
 
     | [39m63       [39m | [39m0.6789449[39m | [39m0.9501645[39m | [39m-0.002108[39m | [39m-0.416996[39m |
     | [39m64       [39m | [39m0.0028832[39m | [39m0.6475185[39m | [39m-0.866986[39m | [39m0.2989424[39m |
-
-
-.. parsed-literal::
-
     | [39m65       [39m | [39m0.0003793[39m | [39m-0.712240[39m | [39m0.6268556[39m | [39m0.2073338[39m |
-    | [39m66       [39m | [39m0.0001554[39m | [39m0.5744876[39m | [39m0.9758150[39m | [39m0.6370951[39m |
 
 
 .. parsed-literal::
 
+    | [39m66       [39m | [39m0.0001554[39m | [39m0.5744876[39m | [39m0.9758150[39m | [39m0.6370951[39m |
     | [39m67       [39m | [39m0.0004002[39m | [39m0.3575027[39m | [39m-0.296749[39m | [39m-0.023575[39m |
 
 
 .. parsed-literal::
 
     | [39m68       [39m | [39m0.6433174[39m | [39m1.0      [39m | [39m0.0747461[39m | [39m0.4536843[39m |
-
-
-.. parsed-literal::
-
     | [39m69       [39m | [39m0.0719186[39m | [39m0.9819331[39m | [39m-0.005330[39m | [39m0.7978891[39m |
 
 
@@ -412,10 +393,6 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m73       [39m | [39m0.1059564[39m | [39m0.6089376[39m | [39m-0.119924[39m | [39m-0.588921[39m |
-
-
-.. parsed-literal::
-
     | [39m74       [39m | [39m0.5234386[39m | [39m0.5791422[39m | [39m0.0552139[39m | [39m-0.637371[39m |
 
 
@@ -428,10 +405,6 @@ to collect all samples that the optimizer takes
 
     | [39m76       [39m | [39m0.8322264[39m | [39m0.6351141[39m | [39m-0.030434[39m | [39m-0.747049[39m |
     | [39m77       [39m | [39m0.1196956[39m | [39m0.4775626[39m | [39m0.1868229[39m | [39m0.1878511[39m |
-
-
-.. parsed-literal::
-
     | [39m78       [39m | [39m0.8588845[39m | [39m0.8171016[39m | [39m0.0613024[39m | [39m-0.428494[39m |
 
 
@@ -454,11 +427,11 @@ to collect all samples that the optimizer takes
 
     | [39m82       [39m | [39m0.7054977[39m | [39m0.8168963[39m | [39m-0.073347[39m | [39m-0.696622[39m |
     | [39m83       [39m | [39m0.7031685[39m | [39m0.9319049[39m | [39m0.0973267[39m | [39m-0.384528[39m |
+    | [39m84       [39m | [39m0.0002128[39m | [39m-0.873608[39m | [39m-0.590417[39m | [39m-0.322908[39m |
 
 
 .. parsed-literal::
 
-    | [39m84       [39m | [39m0.0002128[39m | [39m-0.873608[39m | [39m-0.590417[39m | [39m-0.322908[39m |
     | [39m85       [39m | [39m0.0019041[39m | [39m0.5024768[39m | [39m-0.860733[39m | [39m0.3299947[39m |
 
 
@@ -513,26 +486,18 @@ to collect all samples that the optimizer takes
 
     | [39m97       [39m | [39m0.9507493[39m | [39m0.7930022[39m | [39m-0.000173[39m | [39m-0.605471[39m |
     | [39m98       [39m | [39m0.0001739[39m | [39m-0.765238[39m | [39m-0.898005[39m | [39m0.5169565[39m |
-
-
-.. parsed-literal::
-
     | [39m99       [39m | [39m0.0165422[39m | [39m-0.227062[39m | [39m-0.174050[39m | [39m0.2779688[39m |
 
 
 .. parsed-literal::
 
     | [39m100      [39m | [39m0.2512042[39m | [39m0.3942487[39m | [39m0.0544503[39m | [39m-0.736694[39m |
-
-
-.. parsed-literal::
-
     | [39m101      [39m | [39m0.6713142[39m | [39m0.4207872[39m | [39m0.0082869[39m | [39m-0.461412[39m |
-    | [39m102      [39m | [39m2.840e-06[39m | [39m-0.838311[39m | [39m0.7147163[39m | [39m-0.902185[39m |
 
 
 .. parsed-literal::
 
+    | [39m102      [39m | [39m-.840e-06[39m | [39m-0.838311[39m | [39m0.7147163[39m | [39m-0.902185[39m |
     | [39m103      [39m | [39m0.1634979[39m | [39m0.2705901[39m | [39m-0.073235[39m | [39m-0.490517[39m |
 
 
@@ -550,13 +515,13 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m107      [39m | [39m0.0144301[39m | [39m0.7975162[39m | [39m0.2655924[39m | [39m0.9053020[39m |
-    | [39m108      [39m | [39m8.685e-05[39m | [39m-0.454330[39m | [39m0.6388374[39m | [39m-0.363639[39m |
+    | [39m108      [39m | [39m-.685e-05[39m | [39m-0.454330[39m | [39m0.6388374[39m | [39m-0.363639[39m |
+    | [39m109      [39m | [39m0.0194496[39m | [39m1.0      [39m | [39m0.1289968[39m | [39m0.2124224[39m |
 
 
 .. parsed-literal::
 
-    | [39m109      [39m | [39m0.0194496[39m | [39m1.0      [39m | [39m0.1289968[39m | [39m0.2124224[39m |
-    | [39m110      [39m | [39m2.449e-06[39m | [39m0.2988408[39m | [39m-0.849121[39m | [39m0.4582089[39m |
+    | [39m110      [39m | [39m-.449e-06[39m | [39m0.2988408[39m | [39m-0.849121[39m | [39m0.4582089[39m |
     =============================================================
 
 
@@ -568,7 +533,7 @@ to collect all samples that the optimizer takes
 
 
 
-The plot shows the all the samples that the optimization took in the
+The plot shows all the samples that the optimization took in the
 two-dimensional parameter space. The red dot marks the best value.
 
 .. code:: ipython3
@@ -610,10 +575,17 @@ controls.
 
 .. code:: ipython3
 
-    print(f"Gate fidelity: {gate_fid.measure(times)}")
+    print(f"Gate fidelity: {gate_fid.get_value(times)}")
 
 
 .. parsed-literal::
 
     Gate fidelity: 0.973975731118761
 
+
+References
+----------
+
+- **(Shahriari et al., 2016)** B. Shahriari et al., “Taking the human
+  out of the loop: A review of Bayesian optimization,” *Proceedings of
+  the IEEE* **104**, 148–175 (2016).

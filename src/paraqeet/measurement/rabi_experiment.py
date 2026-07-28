@@ -8,20 +8,17 @@ from paraqeet.quantity import Array, Float, Quantity
 
 
 class RabiExperiment(NormalizableMeasurement, Optimizable):
-    """Analytic model of the general Rabi formula.
-
-    Parameters
-    ----------
-    qubit_freq : Quantity
-        Resonance of the single qubit.
-
-    """
+    """Analytic model of the general Rabi formula."""
 
     _qubit_freq: Quantity
     _amp: Quantity
     _freq: Quantity
 
     def __init__(self, qubit_freq: float) -> None:
+        """
+        Args:
+            qubit_freq: Resonance of the single qubit.
+        """
         self._qubit_freq = Quantity(qubit_freq, 0.0, 10e9)
         self._amp = Quantity(60e6, 0, 100e6, "Hz")
         self._freq = Quantity(0.6 * qubit_freq, 0, 10e9)
@@ -29,15 +26,12 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
     def get_parameters(self) -> list[Quantity]:
         """Return a list of parameters accessible in this measurement.
 
-        Returns
-        -------
-        List[Quantity]
+        Returns:
             List of parameters accessible in this measurement.
-
         """
         return [self._amp, self._freq]
 
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Return measurement in the range [0, 1]."""
         return self.calculate_normalized_scalar(times)
 
@@ -45,15 +39,13 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """Carry out a measurement operation.
 
         Gives the result of a general Rabi oscillation,
-        depending of drive frequency, amplitude and time.
+        depending on drive frequency, amplitude and time.
 
-        *Note: Returns the measumement value at the last time point.*
+        Note:
+            Returns the measurement value at the last time point.
 
-        Returns
-        -------
-        Array
+        Returns:
             Result of a general Rabi oscillation.
-
         """
         t = times if isinstance(times, float) else times[-1]
         q_freq = self._qubit_freq.get_value()

@@ -33,7 +33,7 @@ development dependencies (``pytest``, ``ruff`` and ``pre-commit``):
 
    $ git clone https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet.git
    $ cd paraqeet
-   $ pip install -e .[dev]
+   $ pip install -e ."[dev]"
 
 If you contribute changes, we recommend to install the pre-commit hooks (ruff lint, ruff-format, mypy, codespell and
 nbstripout run on every commit):
@@ -42,3 +42,5 @@ nbstripout run on every commit):
 
    $ pip install pre-commit
    $ pre-commit install
+
+Follow our :ref:`contribute <contributing>` guide for code consistency.

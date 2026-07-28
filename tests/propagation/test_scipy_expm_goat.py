@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
-from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.propagation.expm_goat import ExpmGOAT
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 
 
@@ -15,7 +15,7 @@ def expm():
     def _method(dimension, resolution, initial_state):
         sys = EmptyHamiltonian(dimension)
         schreq = SchroedingerEquation(hamiltonian_func=sys.get_value, hamiltonian_gradient_func=sys.get_gradient)
-        return ScipyExpmGOAT(
+        return ExpmGOAT(
             eom_func=schreq.get_value,
             eom_gradient_func=schreq.get_gradient,
             resolution=resolution,
@@ -46,6 +46,6 @@ def test_state_dimension_vector(random_state, expm, ts):
         dim = np.random.randint(2, 10)
         state = random_state(dim)
         propagation = expm(dim, resolution=3, initial_state=state)
-        propagated_states = propagation.propagate(ts)
+        propagated_states = propagation.get_value(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape

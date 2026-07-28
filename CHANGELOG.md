@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type Hinting for measurement, Generator classes
 - Spellchecking to pre-commit and CI/CD
 - Improved documentation with collapsible output cells
+- New pages (concepts, code design) to the online documentation
+- New dark theme logos
+- References in online documentation, including citations in code and notebooks
+- Expiry date (of 1 week) to all artifacts during CI/CD
+- Missing type annotation and mypy fixes
+
 
 
 ### Changed
@@ -28,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced system sizes in Examples 08B and 08C for faster docs compilation
 - System to Hamiltonian. Qubit, Resonator, and Transmon are now containers for the Hamiltonian and other properties.
 - Propagation, measurement that inherit from Differentiable expect eom and gradient separately.
+- Numpy to google docstring format for maintainability. 
+- Updated documentation across the package.
+- Rename classes ``ScipyExpm`` -> ``Expm``, ``ScipyExpmGOAT``/``ScipyExpmGRAPE`` -> ``ExpmGOAT``/``ExpmGRAPE``, ``Waveform`` -> ``Signal``
+- ``Model`` module split into ``Hamiltonian`` and ``EOM`` modules
+- Renamed methods ``propagate`` and ``measure`` -> ``get_value`` for consistency
 
 
 ### Removed

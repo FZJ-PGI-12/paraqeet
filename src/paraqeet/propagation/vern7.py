@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -19,11 +20,11 @@ class Vern7(StatePropagation):
     """
     Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
-    Implements Vern7 ODE Solver algorithm non adaptive (fixed time-step) version.
+    Implements Vern7 ODE Solver algorithm :cite:p:`verner2010numerically` non-adaptive (fixed time-step) version.
     """
 
     _step_function: Callable
-    _jump_operators: list[Array]
+    _jump_operators: Array
 
     def __init__(
         self,
@@ -32,51 +33,45 @@ class Vern7(StatePropagation):
         initial_state: Array,
         step_function: Callable,
         jump_operators: list[Array] | None = None,
-    ):
+    ) -> None:
         """
-        Parameters
-        ----------
-        eom_func: Callable[[Array], Array]
-            Equation of motion (EOM) as a function of time.
-        resolution: float
-            Resolution at which to sample the EOM.
-        initial_state: Array
-            Initial state.
-        step_function: Callable
-            Step function used to that implements the right hand side of the EOM.
-        jump_operators: list[Array] | None
-            A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
-            Defaults to None for closed system.
+        Args:
+            eom_func: Equation of motion (EOM) as a function of time.
+            resolution: Resolution at which to sample the EOM.
+            initial_state: Initial state.
+            step_function: Step function that implements the right hand side of the EOM.
+            jump_operators: A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
+                Defaults to None for closed system.
         """
         super().__init__(eom_func, resolution, initial_state)
         self._step_function = step_function
         self.jump_operators = jump_operators
 
     @property
-    def step_function(self):
+    def step_function(self) -> Callable:
         """Return the step function for solving the EOM."""
         return self._step_function
 
     @step_function.setter
-    def step_function(self, step_func: Callable):
+    def step_function(self, step_func: Callable) -> None:
         """Set the step function for solving the EOM."""
         self._step_function = step_func
 
     @property
-    def jump_operators(self):
+    def jump_operators(self) -> Array:
         """Return the jump operators used for solving the EOM."""
         return self._jump_operators
 
     @jump_operators.setter
-    def jump_operators(self, jump_ops: list[Array] | None):
+    def jump_operators(self, jump_ops: list[Array] | None) -> None:
         """Set the jump operators added to the EOM."""
         if jump_ops is not None:
-            self._jump_operators = jump_ops
+            self._jump_operators = jnp.array(jump_ops)
         else:
             self._jump_operators = jnp.empty((0,) + self._eom_func(jnp.array([0.0])).shape)
 
     @staticmethod
-    def _interpolate_time(times, dt):
+    def _interpolate_time(times: Array, dt: Array | float) -> Array:
         times_interp = jnp.concatenate(
             [
                 times,
@@ -94,7 +89,7 @@ class Vern7(StatePropagation):
         return jnp.sort(times_interp)
 
     @partial(jit, static_argnums=(0,))
-    def _vern7_one_step(self, state, h, col):
+    def _vern7_one_step(self, state: Array, h: Array, col: Array) -> Array:
         k1 = self._step_function(state, h[0], col)
         k2 = self._step_function(state + (1 / 200) * k1, h[1], col)
         k3 = self._step_function(state + (-4361 / 4050) * k1 + (2401 / 2025) * k2, h[2], col)
@@ -143,7 +138,7 @@ class Vern7(StatePropagation):
             h[8],
             col,
         )
-        state_new = (
+        state_new: Array = (
             state
             + (117807213929927 / 2640907728177740) * k1
             + (4758744518816629500000 / 17812069906509312711137) * k4
@@ -159,13 +154,13 @@ class Vern7(StatePropagation):
         return state_new
 
     @partial(jit, static_argnums=(0,))
-    def _propagate_in_time(self, state_t, eom, col, steps_arr):
+    def _propagate_in_time(self, state_t: Array, eom: Array, col: Array, steps_arr: Array) -> Array:
         """
-        Propagate from `time[ti] to time[ti+1]`.
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        Propagate from ``time[ti]`` to ``time[ti+1]``.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
         """
 
-        def propagate_body(state_t, index):
+        def propagate_body(state_t: Array, index: Any) -> tuple[Array, Array]:
             state_t = self._vern7_one_step(
                 state_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
@@ -176,29 +171,22 @@ class Vern7(StatePropagation):
         state_t, _ = scan(propagate_body, state_t, steps_arr)
         return state_t
 
-    def propagate(self, times: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return the solution of the equation of motion for open/closed system using vern7 ODE solver.
 
         Loop over all desired times in time at set resolution.
 
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the solution of the equations of motion.
+        Returns:
+            The solution of the equations of motion.
 
-        Raises
-        ------
-        ConfigurationException
-            If the initial state is not set.
-
+        Raises:
+            ValueError: If fewer than two time points are given.
         """
         if len(times) < 2:
-            raise ValueError("Vern7.propagate needs at least two time points.")
+            raise ValueError("Vern7.get_value needs at least two time points.")
 
         init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
 
@@ -212,7 +200,7 @@ class Vern7(StatePropagation):
             state_t = self._propagate_in_time(
                 state_t,
                 eom * dt,
-                jnp.array(self._jump_operators) * jnp.sqrt(dt),
+                self._jump_operators * jnp.sqrt(dt),
                 jnp.arange(0, len(step_times), 1),
             )
             states.append(state_t)

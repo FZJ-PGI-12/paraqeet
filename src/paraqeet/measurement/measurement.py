@@ -1,4 +1,4 @@
-"""Class definition of the Measurement model."""
+"""Abstract measurement interfaces whose values serve as optimization goal functions."""
 
 from abc import ABC, abstractmethod
 from typing import Protocol
@@ -11,32 +11,18 @@ class Measurement(ABC):
 
     The observable is measured after the propagation class
     has solved the equation of motion.
-
-    Parameters
-    ----------
-    times: Array | None, optional
-        One-dimensional vector of timestamps.
-
     """
 
     @abstractmethod
-    def measure(self, times: Array) -> Array | Float:
-        """Measure the observable and returns the value.
+    def get_value(self, times: Array) -> Array | Float:
+        """Measure the observable and return the value.
 
-        Parameters
-        ----------
-        times : Array
-            One-dimensional vector of timestamps.
-        projector : Array | None
-            The projector matrix to restrict the operator.
+        Args:
+            times: One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Array or Float
+        Returns:
             This abstract method must return an Array or a Float when
             implemented by subclasses. Might return multiple values.
-
-
         """
         pass
 
@@ -55,41 +41,34 @@ class NormalizableMeasurement(Measurement):
         Returns a single scalar value between 0 and 1.
         This function must be implemented by subclasses.
 
-        Parameters
-        ----------
-        times : Array
-            One-dimensional vector of timestamps.
-        projection : Array | None
-            The projector matrix to restrict the operator.
+        Args:
+            times: One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Float
+        Returns:
             Returns a Float if implemented by a subclass.
-
         """
         pass
 
 
 class DifferentiableNormalizableMeasurement(Protocol):
-    """Protocol for a class that is both NormalizableMeasurement and Differentiable"""
+    """Protocol for a class that is both NormalizableMeasurement and Differentiable.
+
+    Note:
+        Only used for type-hinting, not to be used as a base class.
+    """
 
     def get_value(self, times: Array) -> Array | Float:
-        """Returns the value of the measurement"""
+        """Return the value of the measurement."""
         ...
 
     def get_gradient(self, times: Array) -> Array:
-        """Returns the gradient of the measurement"""
+        """Return the gradient of the measurement."""
         ...
 
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
-        """Returns the value and the gradient of the measurement"""
-        ...
-
-    def measure(self, times: Array) -> Array | Float:
-        """Usually the same as get_value"""
+        """Return the value and the gradient of the measurement."""
         ...
 
     def calculate_normalized_scalar(self, times: Array | Float) -> Float:
-        """Usually the same as get_value"""
+        """Usually the same as get_value."""
         ...

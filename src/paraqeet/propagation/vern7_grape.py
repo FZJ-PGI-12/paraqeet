@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from functools import partial
-from typing import override
+from typing import Any, override
 
 import jax
 import jax.numpy as jnp
@@ -20,34 +20,29 @@ jax.config.update("jax_enable_x64", True)
 
 class Vern7GRAPE(Vern7, Differentiable):
     r"""
-    Solve EOMs by 7th order ODE method and compute gradients using GRAPE.
+    Solve EOMs by 7th order ODE method :cite:p:`verner2010numerically` and compute gradients
+    using GRAPE :cite:p:`khaneja2005optimal`.
 
     Compute the gradients of a quantum system for PWC pulses by using GRAPE.
     Here, we use forward propagation of the initial state and backward
     propagation of the target state to compute the gradients.
 
-    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
-    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
+    The state propagations are done by the ``Vern7 ODE`` method.
 
-    The state propagations are done by the `Vern7 ODE` method.
+    Attributes:
+        _eom_and_gradient_func: Function that returns EOM and its gradient for an array of times.
+        _target_state: Target state for backwards/reverse propagation for GRAPE.
+        _operator_sandwich_function: Operator sandwich function to compute GRAPE gradients. It evaluates
 
-    _eom_and_gradient_func: Callable[[Array], tuple[Array, Array]]
-        Function that returns EOM and its gradient for an array of times.
-    _target_state: Array
-        Target state for backwards/reverse propagation for GRAPE.
-    _operator_sandwich_function: Callable
-        Operator sandwich function to compute GRAPE gradients. It evaluates
+            1. For closed system
+                .. math::
+                    \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
 
-        1. For closed system
-            .. math::
-                \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+            2. For open system
+                .. math::
+                    \text{Tr}(\sigma(t) [H, \rho(t)])
 
-        2. For open system
-            .. math::
-                \text{Tr}(\sigma(t) [H, \rho(t)])
-
-    _reverse_step_function: Callable
-        Reverse step function for the backwards propagation.
+        _reverse_step_function: Reverse step function for the backwards propagation.
     """
 
     _eom_gradient_func: Callable[[Array], Array]
@@ -66,15 +61,36 @@ class Vern7GRAPE(Vern7, Differentiable):
         reverse_step_function: Callable,
         operator_sandwich_function: Callable,
         jump_operators: list[Array] | None = None,
-    ):
-        Vern7.__init__(self, eom_func, resolution, initial_state, step_function, jump_operators)
+    ) -> None:
+        r"""
+        Args:
+            eom_func: Equation of motion (EOM) as a function of time.
+            eom_and_gradient_func: Function that returns EOM and its gradient for an array of times.
+            resolution: Resolution at which to sample the EOM.
+            initial_state: Initial state.
+            target_state: Target state for backwards/reverse propagation for GRAPE.
+            step_function: Step function that implements the right hand side of the EOM.
+            jump_operators: A list of jump operators (each multiplied by the sqrt of the corresponding decay rate).
+                Defaults to None for closed system.
+            reverse_step_function: Reverse step function for the backwards propagation.
+            operator_sandwich_function: Operator sandwich function to compute GRAPE gradients. It evaluates
+
+                1. For closed system
+                    .. math::
+                        \langle \lambda(t) \lvert \frac{\partial H}{\partial \alpha} \rvert \psi(t) \rangle
+
+                2. For open system
+                    .. math::
+                        \text{Tr}(\sigma(t) [H, \rho(t)])
+        """
+        super().__init__(eom_func, resolution, initial_state, step_function, jump_operators)
         self._eom_gradient_func = eom_gradient_func
         self._reverse_step_function = reverse_step_function
         self._target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
 
     @property
-    def target_state(self):
+    def target_state(self) -> Array:
         """Return target state."""
         return self._target_state
 
@@ -82,26 +98,24 @@ class Vern7GRAPE(Vern7, Differentiable):
     def target_state(self, target_state: Array) -> None:
         """Set target state for backward propagation.
 
-        Parameters
-        ----------
-        target_state: Array
-            Target state.
+        Args:
+            target_state: Target state.
         """
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._target_state = target_state
 
     @property
-    def reverse_step_function(self):
+    def reverse_step_function(self) -> Callable:
         """Return the reverse step function for solving the backward propagation of the target state."""
         return self._reverse_step_function
 
     @reverse_step_function.setter
-    def reverse_step_function(self, reverse_step_func: Callable):
+    def reverse_step_function(self, reverse_step_func: Callable) -> None:
         """Set the step function for solving the backward propagation of the target state."""
         self._reverse_step_function = reverse_step_func
 
     @property
-    def operator_sandwich_function(self):
+    def operator_sandwich_function(self) -> Callable:
         r"""Return the operator sandwich function for computing the gradients.
 
         Closed system involves
@@ -115,32 +129,29 @@ class Vern7GRAPE(Vern7, Differentiable):
         return self._operator_sandwich_function
 
     @operator_sandwich_function.setter
-    def operator_sandwich_function(self, operator_sandwich_func: Callable):
+    def operator_sandwich_function(self, operator_sandwich_func: Callable) -> None:
         """Set the step function for solving the backward propagation of the target state."""
         self._operator_sandwich_function = operator_sandwich_func
 
     @partial(jit, static_argnums=(0,))
     def _forward_and_backward_propagation(
         self,
-        psis_t,
-        lamdas_t,
-        eom,
-        col,
-        steps_arr,
-    ):
+        psis_t: Array,
+        lamdas_t: Array,
+        eom: Array,
+        col: Array,
+        steps_arr: Array,
+    ) -> tuple[Array, Array]:
         """Forward propagate initial state and backward propagate target state.
 
-        JIT compiled and uses `jax.lax.scan` to avoid compilation overhead.
+        JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
 
-        Parameters
-        ----------
-        psis_t: Array
-            Forward propagated state
-        lamdas_t: Array
-            Backward propagated state
+        Args:
+            psis_t: Forward propagated state
+            lamdas_t: Backward propagated state
         """
 
-        def forward_propagation(psis_t, index):
+        def forward_propagation(psis_t: Array, index: Any) -> tuple[Array, Array]:
             psis_t = self._vern7_one_step(
                 psis_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
@@ -148,7 +159,7 @@ class Vern7GRAPE(Vern7, Differentiable):
             )
             return psis_t, psis_t
 
-        def backward_propagation(lamdas_t, index):
+        def backward_propagation(lamdas_t: Array, index: Any) -> tuple[Array, Array]:
             lamdas_t = self._vern7_one_step(
                 lamdas_t,
                 dynamic_slice_in_dim(eom, start_index=9 * index, slice_size=9, axis=0),
@@ -163,10 +174,6 @@ class Vern7GRAPE(Vern7, Differentiable):
         lamdas_t, _ = scan(backward_propagation, lamdas_t, steps_arr)
 
         return psis_t, lamdas_t
-
-    @override
-    def get_value(self, times: Array) -> Array:
-        return self.propagate(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:
@@ -220,7 +227,7 @@ class Vern7GRAPE(Vern7, Differentiable):
                 psi_t,
                 lamda_t,
                 eom * dt,
-                jnp.array(self._jump_operators) * jnp.sqrt(dt),
+                self._jump_operators * jnp.sqrt(dt),
                 jnp.arange(0, len(time_grid), 1),
             )
 

@@ -13,33 +13,17 @@ from paraqeet.quantity import Array, Float
 
 
 class CMAEsOptimizer(Optimizer):
-    """Wrapper for the pycma implementation of CMA-Es.
+    """Wrapper for the pycma implementation of CMA-Es :cite:p:`hansen2003reducing,hansen2016cma`.
 
-    The pycmi implementation has the following custom options for optimization:
+    The following custom options are available for optimization:
 
-    :param float noise: Artificial noise added to a function evaluation.
-
-    :param boolean init_point: Force the use of the initial point in the first generation.
-
-    :param float spread: Adjust the parameter spread of the first generation cloud.
-
-    :param int stop_at_convergence: Custom stopping condition. Stop if the cloud shrunk for this number of generations.
-
-    :param float stop_at_sigma: Custom stopping condition. Stop if the cloud shrunk to this standard deviation.
+    - ``noise``: Artificial noise added to a function evaluation.
+    - ``init_point``: Force the use of the initial point in the first generation.
+    - ``spread``: Adjust the parameter spread of the first generation cloud.
+    - ``stop_at_convergence``: Stop if the cloud has shrunk for this number of generations.
+    - ``stop_at_sigma``: Stop if the cloud has shrunk to this standard deviation.
 
     See also: http://cma.gforge.inria.fr/apidocs-pycma/
-
-    Parameters
-    ----------
-    measure_func: Callable[[Array], Float]
-        Function implementing measurement of observables to be minimized.
-    optimization_map: OptimizationMap
-        Optimizable interface for all parameters considered in optimization.
-    logger: FileLogger | None, default=None
-        The file logger object.
-    callback
-        Callback function for optimization.
-
     """
 
     _measure_func: Callable[[Array], Float]
@@ -51,8 +35,17 @@ class CMAEsOptimizer(Optimizer):
         measure_func: Callable[[Array], Float],
         optimization_map: OptimizationMap,
         logger: Logger | None = None,
-        callback=None,
-    ):
+        callback: Callable | None = None,
+    ) -> None:
+        """
+        Args:
+            measure_func: Function implementing measurement of observables
+                to be minimized.
+            optimization_map: Optimizable interface for all parameters
+                considered in optimization.
+            logger: The file logger object.
+            callback: Callback function for optimization.
+        """
         super().__init__(measure_func, optimization_map, logger)
         self._options = {
             "noise": 0,
@@ -69,7 +62,7 @@ class CMAEsOptimizer(Optimizer):
         return self._options
 
     @options.setter
-    def options(self, opts) -> None:
+    def options(self, opts: dict) -> None:
         """Set options for the system."""
         self._options.update(opts)
 
@@ -79,44 +72,30 @@ class CMAEsOptimizer(Optimizer):
         return self._callback
 
     @callback.setter
-    def callback(self, cbfun: Callable) -> None:
+    def callback(self, cbfun: Callable | None) -> None:
         """Set the callback function for the optimizer.
 
-        Parameters
-        ----------
-        Callable
-            The function to be set as the callback.
-
+        Args:
+            cbfun: The function to be set as the callback.
         """
         self._callback = cbfun
 
     def optimize(self, times: Array | float) -> OptimizationResult:
         """Optimize the system via the CMA-Es optimizer.
 
-        Performs the actual optimization via the following custom options:
+        Performs the actual optimization.
 
-        noise: float
-            Artificial noise added to a function evaluation.
-        init_point: boolean
-            Force the use of the initial point in the first generation.
-        spread: float
-            Adjust the parameter spread of the first generation cloud.
-        stop_at_convergence : int
-            Custom stopping condition. Stop if the cloud shrunk for this number
-            of generations.
-        stop_at_sigma: float
-            Custom stopping condition. Stop if the cloud shrunk to this
-            standard deviation.
+        Note:
+            If input ``times`` is a float, then the start time of propagation
+            is implicitly assumed to be zero. For an array of times, the first
+            time point is the start time.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
-        For an array of times, the first time point is the start time.*
+        Args:
+            times: Array of times or a float (assumed start time zero).
 
-        Returns
-        -------
-        OptimizationResult
-            Result of optimization via the OptimizationResult object.
-            (status, value, iterations and the raw result)
-
+        Returns:
+            Result of optimization (status, value, iterations, and the raw
+            result).
         """
         self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
 
@@ -204,21 +183,16 @@ class CMAEsOptimizer(Optimizer):
             raw_result=es.result,
         )
 
-    def _set_parameters_and_measure(self, values) -> float:
+    def _set_parameters_and_measure(self, values: Array) -> float:
         """Update the parameter values and return the measurement result.
 
         Internal callback.
 
-        Parameters
-        ----------
-        values: Array
-            Values for the update of the parameters.
+        Args:
+            values: Values for the update of the parameters.
 
-        Returns
-        -------
-        Array
-            Returns the inverse of the fidelity.
-
+        Returns:
+            The inverse of the fidelity.
         """
         log = []
         params = self._optimization_map.get_all_parameters()
@@ -238,16 +212,11 @@ class CMAEsOptimizer(Optimizer):
         Determines the success or failure of the optimization depending on the
         termination conditions dict of the CMAEvolutionStrategy.
 
-        Parameters
-        ----------
-        conditions: dict
-            The dictionary from the CMAEvolutionStrategy.stop().
+        Args:
+            conditions: The dictionary from the CMAEvolutionStrategy.stop().
 
-        Returns
-        -------
-        int
+        Returns:
             One of the constants in OptimizationResult.
-
         """
         if any(
             (key in conditions)

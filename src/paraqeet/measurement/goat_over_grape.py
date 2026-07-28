@@ -1,9 +1,8 @@
-"""Class definition of the Weighted Sum Goal model."""
+"""GOAT-over-GRAPE measurement combining GRAPE propagation with analytic GOAT gradients."""
 
 from typing import override
 
 import jax.numpy as jnp
-import numpy as np
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
@@ -16,14 +15,10 @@ from paraqeet.signal.pwc_generator import PWCGenerator
 
 
 class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
-    """Combine GRAPE propagation with analytic gradients of GOAT via chain rule.
+    """Combine GRAPE :cite:p:`khaneja2005optimal` propagation with analytic gradients of
+    GOAT :cite:p:`machnes2018tunable` via chain rule.
 
-    Parameters
-    ----------
-    measurement : StateTransferFidelityGRAPE
-        A StateTransferFidelityGRAPE measurement.
-    generators: PWCGenerator | list[PWCGenerator]
-        A PWCGenerator or a list of PWCGenerators that are used for propagation.
+    This is similar to the GROUP method :cite:p:`sorensen2018quantum`.
     """
 
     _measurement: StateTransferFidelityGRAPE
@@ -35,7 +30,14 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         measurement: StateTransferFidelityGRAPE,
         generators: PWCGenerator | list[PWCGenerator],
         propagation_resolution: int,
-    ):
+    ) -> None:
+        """
+        Args:
+            measurement: A StateTransferFidelityGRAPE measurement.
+            generators: A PWCGenerator or a list of PWCGenerators that are
+                used for propagation.
+            propagation_resolution: Resolution for time interpolation.
+        """
         self._measurement = measurement
         self._gens = generators if isinstance(generators, list) else [generators]
         for gen in self._gens:
@@ -45,28 +47,23 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
     def _pad_with_zeros(self, grad: Array, gen_num: int) -> Array:
         """Pad gradient with zeros depending on the subsystem number and number of PWC pixels in the pulses.
 
-        Parameters
-        ----------
-        grad : Array
-            Gradient from a subsystem.
-        gen_num : int
-            Subsystem number, also determined by the generator order.
+        Args:
+            grad: Gradient from a subsystem.
+            gen_num: Subsystem number, also determined by the generator order.
 
-        Returns
-        -------
-        Array
+        Returns:
             Return padded gradient vector.
         """
         num_pixels, num_params = grad.shape
-        padded_grad = np.zeros((0, num_params))
+        padded_grad = jnp.zeros((0, num_params))
         for i in range(len(self._gens)):
             if i == gen_num:
-                padded_grad = np.append(padded_grad, grad, axis=0)
+                padded_grad = jnp.append(padded_grad, grad, axis=0)
             else:
-                padded_grad = np.append(padded_grad, np.zeros((num_pixels, num_params)), axis=0)
-        return jnp.array(padded_grad)
+                padded_grad = jnp.append(padded_grad, jnp.zeros((num_pixels, num_params)), axis=0)
+        return padded_grad
 
-    def _construct_interpolated_times(self, times: Array):
+    def _construct_interpolated_times(self, times: Array) -> tuple[Array, Float]:
         # Construct the same time grid as propagation to evaluate control gradients
         interp_times = jnp.array([])
         for ti in range(1, len(times)):
@@ -78,18 +75,13 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
 
     @override
     def get_value(self, times: Array) -> Float:
-        """Sum of plain weighted measurements.
+        """Evaluate the underlying GRAPE measurement on the interpolated propagation time grid.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the plain weighted sum.
-
+        Returns:
+            The fidelity from the underlying GRAPE measurement.
         """
         grape = self._measurement
         for gen in self._gens:
@@ -97,11 +89,7 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
 
         interp_times, _ = self._construct_interpolated_times(times)
 
-        return grape.measure(times=interp_times)
-
-    @override
-    def measure(self, times: Array) -> Float:
-        return self.get_value(times=times)
+        return grape.get_value(times=interp_times)
 
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
@@ -117,13 +105,8 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
         """Compute gradients with GRAPE and use the chain rule
         to provide the gradients for the optimizer.
 
-        Returns
-        -------
-        Array
-            Function value.
-        Array
-            Gradients.
-
+        Returns:
+            Tuple of (function value, gradients).
         """
         grape = self._measurement
         for gen in self._gens:

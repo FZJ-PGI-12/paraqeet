@@ -1,1 +1,1 @@
-"""Measurement model module."""
+"""Measurement module."""

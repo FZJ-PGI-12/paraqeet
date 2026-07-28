@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.signal.waveform import LocalOscillator
+from paraqeet.signal.signal import LocalOscillator
 
 
 @pytest.fixture

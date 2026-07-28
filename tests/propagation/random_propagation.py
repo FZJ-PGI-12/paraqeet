@@ -1,7 +1,6 @@
 """Test the random propagation model."""
 
 from functools import partial
-from typing import override
 
 import jax.numpy as jnp
 import numpy as np
@@ -9,7 +8,7 @@ from jax import jit
 from scipy.stats import unitary_group
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 from tests.model.empty_hamiltonian import EmptyHamiltonian
@@ -19,22 +18,7 @@ class RandomPropagation(Propagation, Differentiable):
     """Mock random propagation implementation.
 
     Returns random state vectors, density matrices, or propagators.
-
-    Parameters
-    ----------
-    dimension: int
-        Hilbert space size for the generated states.
-    generate_matrices : bool, default=False
-        Whether to generate matrices instead of vectors.
-    auto_update: bool, default=True
-        Whether to return a new random state at every call of propagate.
-        If false, propagate will return the same state until update was called.
     """
-
-    _dimension: int
-    _create_matrices: bool
-    _auto_update: bool
-    _state: Array
 
     def __init__(
         self,
@@ -42,6 +26,14 @@ class RandomPropagation(Propagation, Differentiable):
         generate_matrices: bool = False,
         auto_update: bool = True,
     ):
+        """
+        Args:
+            dimension: Hilbert space size for the generated states.
+            generate_matrices: Whether to generate matrices instead of vectors. Defaults to False.
+            auto_update: Whether to return a new random state at every call of `get_value`.
+                If false, `get_value` will return the same state until update was called.
+                Defaults to True.
+        """
         sys = EmptyHamiltonian(0)
         eom = SchroedingerEquation(sys.get_value, sys.get_gradient)
         super().__init__(eom.get_value, 1e9)
@@ -50,30 +42,11 @@ class RandomPropagation(Propagation, Differentiable):
         self._auto_update = auto_update
         self.update()
 
-    @override
-    def propagate(self, times: Array) -> Array:
-        """Propagate the system through time.
-
-        Parameters
-        ----------
-        times: Array
-            Array of times.
-
-        Returns
-        -------
-        Array
-            Returns the updated state of the system.
-
-        """
+    def get_value(self, times: Array) -> Array:
         if self._auto_update:
             self.update()
         return jnp.array([self._state] * len(times))
 
-    @override
-    def get_value(self, times: Array) -> Array:
-        return self.propagate(times)
-
-    @override
     def get_gradient(self, times: Array) -> Array:
         # Returns an empty gradient because the class has 0 parameters
         empty_gradient = jnp.zeros(shape=(len(times), 0, len(self._state)))
@@ -94,7 +67,7 @@ class RandomPropagation(Propagation, Differentiable):
     def update(self) -> None:
         """Update the state on propagation.
 
-        Makes sure that the next call to propagate will return a
+        Makes sure that the next call to `get_value` will return a
         new random state.
 
         """

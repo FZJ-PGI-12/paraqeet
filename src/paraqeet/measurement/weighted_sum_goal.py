@@ -13,37 +13,7 @@ from paraqeet.quantity import Array, Float
 
 
 class WeightedSumGoal(NormalizableMeasurement, Differentiable):
-    """Combine multiple measurements into a single goal function.
-
-    Parameters
-    ----------
-    measurements : list[Measurement]
-        List of measurements.
-    weights : Array
-        List of weights.
-    sum_of_squares_options : dict | None
-        A dictionary that contains information about how to include the
-        sum of square differences in the cost function. If not None
-        then it must contain the following keys:
-
-        - weight : float
-            The weight of the sum of square differences
-        - meas_bool : list[bool]
-            A list of boolean of the same length as measurements. If
-            an element is True then the corresponding measurement is included
-            in the sum of square difference the goal function.
-    measurement_in_sum_of_squares : list[Measurement] | None
-        The list of measurements included in the sum of square difference cost
-        function. It is None if sum_of_squares_options is None
-
-    Raises
-    ------
-    ConfigurationException
-        If number of measurements and weights are incompatible.
-    UserWarning
-        If the given weights are not normalized.
-
-    """
+    """Combine multiple measurements into a single goal function."""
 
     _measurements: list[DifferentiableNormalizableMeasurement]
     _weights: Array
@@ -55,13 +25,32 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
         measurements: list[DifferentiableNormalizableMeasurement],
         weights: Array,
         sum_of_squares_options: dict | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            measurements: List of measurements.
+            weights: List of weights.
+            sum_of_squares_options: A dictionary that contains information
+                about how to include the sum of square differences in the
+                cost function. If not None then it must contain the keys:
+
+                - ``weight`` (float): The weight of the sum of square differences.
+                - ``meas_bool`` (list[bool]): A list of booleans of the same
+                  length as measurements. If an element is True, the
+                  corresponding measurement is included in the sum of square
+                  difference goal function.
+
+        Raises:
+            ConfigurationException: If number of measurements and weights
+                are incompatible.
+            UserWarning: If the given weights are not normalized.
+        """
         self._measurements = measurements
         self._weights = weights
         self._sum_of_squares_options = sum_of_squares_options
         if len(measurements) != len(weights):
             raise ConfigurationException(
-                f"Incompatible number of measurements {len(measurements)} and weights {{len(weights)}}"
+                f"Incompatible number of measurements {len(measurements)} and weights {len(weights)}"
             )
         if sum_of_squares_options is not None:
             expected_keys = ["weight", "meas_bool"]
@@ -90,40 +79,37 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
     @property
     def measurements(self) -> list[DifferentiableNormalizableMeasurement]:
-        """Returns the list of measurement"""
+        """Return the list of measurements."""
         return self._measurements
 
     @property
     def weights(self) -> Array:
-        """Returns the weights used in the weighted goal function"""
+        """Return the weights used in the weighted goal function."""
         return self._weights
 
     @property
     def sum_of_square_options(self) -> dict | None:
-        """Returns the dictionary with the options about the sum of square differences goal function"""
+        """Return the dictionary with the options about the sum of square differences goal function."""
         return self._sum_of_squares_options
 
     @property
     def measurements_in_sum_of_squares(self) -> list[DifferentiableNormalizableMeasurement]:
-        """Returns the list of measurement included in the sum of square difference cost function"""
+        """Return the list of measurements included in the sum of square difference cost function."""
         return self._measurements_in_sum_of_squares
 
     @override
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Sum of plain weighted measurements.
 
-        Returns
-        -------
-        Array
+        Returns:
             Returns the plain weighted sum.
-
         """
-        values = [m.measure(times=times) for m in self._measurements]
-        sum_meas: Array | float = 0.0
+        values = [m.get_value(times=times) for m in self._measurements]
+        sum_meas: Array | Float = 0.0
         for ii, w in enumerate(self._weights):
             sum_meas += w * values[ii]
         if self._sum_of_squares_options is not None:
-            sum_square_diff: Array | float = 0.0
+            sum_square_diff: Array | Float = 0.0
             values_in_sum_of_squares = [
                 val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
             ]
@@ -134,53 +120,17 @@ class WeightedSumGoal(NormalizableMeasurement, Differentiable):
 
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
-        return self.get_value(times)
-
-    @override
-    def get_value(self, times: Array) -> Float:
-        """Sum of weighted measurements from normalized measurements.
-
-        Parameters
-        ----------
-        times: Array
-            Array of times.
-
-        Returns
-        -------
-        Array
-            Returns the normalized weighted sum.
-
-        """
-        values = [m.calculate_normalized_scalar(times=times) for m in self._measurements]
-        sum_meas = 0.0
-        for ii, w in enumerate(self._weights):
-            sum_meas += w * values[ii]
-        if self._sum_of_squares_options is not None:
-            values_in_sum_of_squares = [
-                val for val, flag in zip(values, self._sum_of_squares_options["meas_bool"]) if flag
-            ]
-            sum_square_diff: Float = 0.0
-            for meas_a, meas_b in itertools.combinations(values_in_sum_of_squares, 2):
-                sum_square_diff += (meas_a - meas_b) ** 2
-            sum_meas += self._sum_of_squares_options["weight"] * sum_square_diff
-        return sum_meas
+        return jnp.array(self.get_value(times))
 
     @override
     def get_gradient(self, times: Array) -> Array:
         """Sum of weighted measurements from gradient-ized measurements.
 
-        Parameters
-        ----------
-        times: Array:
-            Array of times
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the weighted sum wrt to gradients.
-        Array
-            Returns the sum of gradients.
-
+        Returns:
+            The sum of gradients.
         """
         values_and_gradients = [m.get_value_and_gradient(times=times) for m in self._measurements]
         sum_meas = jnp.array(0)

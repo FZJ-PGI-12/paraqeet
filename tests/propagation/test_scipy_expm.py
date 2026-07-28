@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
-from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.propagation.expm import Expm
 from paraqeet.propagation.utils import construct_times, convert_dm_to_vec, convert_vec_to_dm
 from tests.model.empty_hamiltonian import EmptyHamiltonian
 from tests.propagation.test_common_propagation import check_propagation
@@ -19,7 +19,7 @@ def expm():
         eom = SchroedingerEquation(
             hamiltonian_func=system.get_value, hamiltonian_gradient_func=system.get_value_and_gradient
         )
-        return ScipyExpm(
+        return Expm(
             eom_func=eom.get_value,
             resolution=resolution,
             initial_state=np.eye(dimension, dtype=np.complex128),
@@ -49,7 +49,7 @@ def test_state_dimension_vector(random_state, expm, ts):
         state = random_state(dim)
         propagation = expm(dim, resolution=3)
         propagation.initial_state = state
-        propagated_states = propagation.propagate(ts)
+        propagated_states = propagation.get_value(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape
 
@@ -62,7 +62,7 @@ def test_state_dimension_rect_matrix(random_matrix, expm, ts):
         state = random_matrix(dim, basis)  # rect matrix with dim>basis
         propagation = expm(dim, resolution=3)
         propagation.initial_state = state
-        propagated_states = propagation.propagate(ts)
+        propagated_states = propagation.get_value(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape
 
@@ -75,7 +75,7 @@ def test_state_dimension_square_matrix(expm, ts):
         state = np.eye(dim, dtype=np.complex128)
         propagation = expm(dim, resolution=3)
         propagation.initial_state = state
-        propagated_states = propagation.propagate(ts)
+        propagated_states = propagation.get_value(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == state.shape
 
@@ -87,7 +87,7 @@ def test_state_dimension_matrix_open(random_matrix, expm, ts):
         state = random_matrix(dim, dim)
         propagation = expm(dim**2, resolution=3)
         propagation.initial_state = convert_dm_to_vec(state)
-        propagated_states = propagation.propagate(ts)
+        propagated_states = propagation.get_value(ts)
         assert propagated_states.shape[0] == len(ts)
         assert propagated_states.shape[1:] == convert_dm_to_vec(state).shape
         assert convert_vec_to_dm(propagated_states[-1]).shape == state.shape
@@ -104,7 +104,7 @@ def test_initial_state(eom):
     """
     dim = np.random.randint(2, 10)
     m = eom(dim)
-    propagation = ScipyExpm(eom_func=m, resolution=3, initial_state=np.eye(dim, dtype=np.complex128))
+    propagation = Expm(eom_func=m, resolution=3, initial_state=np.eye(dim, dtype=np.complex128))
 
     check_propagation(propagation, dim)
 

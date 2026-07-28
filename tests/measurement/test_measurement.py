@@ -30,7 +30,7 @@ def test_limit_projected_vectors(random_state):
             propagation = RandomPropagation(size, False)
             measurement = RandomMeasurement(propagation=propagation)
             for _ in range(20):
-                m = measurement.measure(times=times)
+                m = measurement.get_value(times=times)
                 assert 0.0 <= m <= 1.0
 
 
@@ -47,5 +47,5 @@ def test_gate_shape(random_unitary_matrix):
             propagation = RandomPropagation(size, True)
             measurement = RandomMeasurement(propagation=propagation)
             for _ in range(20):
-                m = measurement.measure(times=times)
+                m = measurement.get_value(times=times)
                 assert 0.0 <= m <= 1.0

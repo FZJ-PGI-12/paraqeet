@@ -3,10 +3,10 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-from paraqeet.model.coupling import Coupling
-from paraqeet.model.drive import Drive
-from paraqeet.model.transmon import TransmonHamiltonian
+from paraqeet.hamiltonian.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.hamiltonian.coupling import Coupling
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.transmon import TransmonHamiltonian
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer

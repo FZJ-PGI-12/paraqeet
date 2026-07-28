@@ -3,17 +3,17 @@
 import numpy as np
 import pytest
 
+from paraqeet.eom.master_equation import MasterEquation
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
-from paraqeet.model.drive import Drive
-from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.qubit import Qubit, QubitHamiltonian
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.expm_goat import ExpmGOAT
 from paraqeet.propagation.utils import convert_dm_to_vec
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -78,9 +78,7 @@ def prop(gen, mode):
             hamiltonian_func=qubit_hamiltonian.get_value,
             hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
         )
-    return ScipyExpmGOAT(
-        eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=RES, initial_state=init
-    )
+    return ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=RES, initial_state=init)
 
 
 @pytest.fixture
@@ -100,7 +98,7 @@ def states(prop, mode):
         overlap_func = overlap_vectorized_density_matrix
 
     return StateTransferFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_func,
@@ -115,7 +113,7 @@ def gates(prop, mode):
     pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
     prop.initial_state = np.identity(2)
     return UnitaryFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         gate=pauli_x,
     )

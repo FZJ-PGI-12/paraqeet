@@ -2,10 +2,14 @@ Gradient based dCRAB optimization of a single spin
 ==================================================
 
 In this example, we solve the optimization task in the `previous
-example <02D_GOAToverGRAPE_TLS.ipynb>`__ by using the
-`dCRAB <https://journals.aps.org/pra/abstract/10.1103/PhysRevA.92.062343>`__
-optimization method. Here we implement a gradient based dCRAB algorithm
-by using the GOAToverGRAPE method.
+example <02D_GOAToverGRAPE_TLS.ipynb>`__ by using the dCRAB (Rach et
+al., 2015) :cite:p:`rach2015dressing` (Müller et al., 2022)
+:cite:p:`muller2022one` optimization method. Here we implement a
+gradient based dCRAB algorithm by using the GOAToverGRAPE method, which
+combines GOAT (Machnes et al., 2018) :cite:p:`machnes2018tunable` and
+GRAPE (Khaneja et al., 2005) :cite:p:`khaneja2005optimal` as a
+gradient-based variant of the GROUP method (Sørensen et al., 2018)
+:cite:p:`sorensen2018quantum`.
 
 1. Generate a PWC pulse shape
 -----------------------------
@@ -15,18 +19,18 @@ by using the GOAToverGRAPE method.
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import DCRABEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
-    from paraqeet.signal.waveform import FlatTopGaussianFilter
+    from paraqeet.signal.signal import FlatTopGaussianFilter
 
-Similar to the previous case, lets define the pulse generator, with the
+Similar to the previous case, let's define the pulse generator, with the
 envelope being the ``DCRABEnvelope``. We use a ``FlatTopGaussianFilter``
 to ensure that the pulse always starts and ends at zero. Finally, to
-obtain GRAPE gradient we pixelate the pulse using a ``PWCGenerator``.
+obtain GRAPE gradients we pixelate the pulse using a ``PWCGenerator``.
 
 .. code:: ipython3
 
@@ -94,13 +98,13 @@ of the time grid used for discretization. In this case
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.expm_grape import ExpmGRAPE
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ScipyExpmGRAPE(
+    prop = ExpmGRAPE(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=3e9,
@@ -110,7 +114,7 @@ of the time grid used for discretization. In this case
     )
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -141,7 +145,7 @@ of the time grid used for discretization. In this case
 ---------------
 
 Finally, we define the ``DCRABOptimizerGradient`` that takes the
-``GOATOverGRAPE`` fideltiy to chains together the GRAPE gradients to
+``GOATOverGRAPE`` fidelity to chain together the GRAPE gradients to
 compute the gradient wrt the dCRAB envelope
 
 .. code:: ipython3
@@ -228,33 +232,28 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    scipy.optimize: The `disp` and `iprint` options of the L-BFGS-B solver are deprecated and will be removed in SciPy 1.18.0.
-
-
-.. parsed-literal::
-
     Iteration number = 0 	  Infidelity  = 9.999e-01
 
 
 .. parsed-literal::
 
-    Iteration number = 10 	  Infidelity  = 6.307e-05
+    Iteration number = 10 	  Infidelity  = 7.888e-06
 
 
 .. parsed-literal::
 
-    Iteration number = 20 	  Infidelity  = 2.514e-12
+    Iteration number = 20 	  Infidelity  = 3.930e-14
     
     
     ==== Decrease in infidelity less than 1e-09 ====
     ==== Starting super-iteration 1 ====
-    * Current lowest infidelity =  2.514e-12
+    * Current lowest infidelity =  3.930e-14
     * Current no. of parameters = 25
 
 
 .. parsed-literal::
 
-    Iteration number = 30 	  Infidelity  = 4.763e-06
+    Iteration number = 30 	  Infidelity  = 1.497e-05
     Setting parameters to the best values.
 
 
@@ -267,12 +266,12 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.5142110615661295e-12, 'iterations': 32, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 3.930189507173054e-14, 'iterations': 35, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
 As the parameters are added with random values, the optimization may not
-succeed sometimes. If it does not reach a low value restart the
+succeed sometimes. If it does not reach a low value, restart the
 optimization. Here, we have chosen a seed that converges to the target
 fidelity.
 
@@ -317,3 +316,23 @@ fidelity.
 .. code:: ipython3
 
     temp_dir.cleanup()
+
+References
+----------
+
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).
+- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+  efficient optimization of control pulses for practical qubits,”
+  *Physical Review Letters* **120**, 150401 (2018).
+- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+  optimal control in a chopped basis: Applications in control of
+  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).
+- **(Rach et al., 2015)** N. Rach et al., “Dressing the
+  chopped-random-basis optimization: A bandwidth-limited access to the
+  trap-free landscape,” *Physical Review A* **92**, 062343 (2015).
+- **(Müller et al., 2022)** M. M. Müller et al., “One decade of quantum
+  optimal control in the chopped random basis,” *Reports on Progress in
+  Physics* **85**, 076001 (2022).

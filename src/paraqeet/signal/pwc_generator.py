@@ -1,3 +1,5 @@
+"""Piecewise-constant (PWC) pulse generator used for GRAPE-style optimization."""
+
 from functools import partial
 from typing import override
 
@@ -7,13 +9,13 @@ from jax.scipy.special import erf
 
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.generator import Generator
-from paraqeet.signal.waveform import Waveform
+from paraqeet.signal.signal import Signal
 
 
 class PWCGenerator(Generator):
     """Convert a complex envelope to PWC pulse.
 
-    This sets the pulse parameters to the `tlist` points.
+    This sets the pulse parameters to the ``tlist`` points.
     The gradient of the pulse wrt the PWC bins is 1 at that time point and zero
     everywhere else.
 
@@ -22,38 +24,23 @@ class PWCGenerator(Generator):
     frame of drive.
 
     This Generator converts the input complex pulse to the 'in-phase' and
-    'out-of-phase' components. This naming convention is used by following [Krantz2019].
-    In the literature of signal processing these are also called 'in-phase' and 'quadrature'
+    'out-of-phase' components. This naming convention follows :cite:p:`krantz2019quantum`.
+    In the signal processing literature, these are also called 'in-phase' and 'quadrature'
     components (refer to https://en.wikipedia.org/wiki/In-phase_and_quadrature_components).
 
-    [Krantz2019] Krantz et al., “A Quantum Engineer’s Guide to Superconducting Qubits.” Applied Physics Reviews 6(2019).
-
-    _envs: list[Waveform]
-        List of Envelopes
-    _tlist: Array
-        Left time points for discretization. These can be used for propagation and optimization.
-    _time_grid: Array
-        Time grid used to discretize the pulse. These are shifted from tlist by dt, and doesn't include zero time.
-    _max_amplitude: float
-        Maximum amplitude of the drive
-    _inphase: Quantity
-        The in-phase component of the pulse
-    _outofphase: Quantity
-        The out-of-phase component of the pulse
-    _optimizable_parameters: list[Quantity]
-        List of own parameters that would be optimized by the optimizer.
-    _multiply_flat_top: bool
-        Flag to multiply flat-top-Gaussain pulse to the signal to ensure it
-        starts and ends at zero.
-
-    Parameters
-    ----------
-    envelopes : List[Waveform]
-        List of input devices.
-
+    Attributes:
+        _envs: List of Envelopes
+        _tlist: Left time points for discretization. These can be used for propagation and optimization.
+        _time_grid: Time grid used to discretize the pulse.
+            These are shifted from tlist by dt/2 and do not include zero time.
+        _max_amplitude: Maximum amplitude of the drive
+        _inphase: The in-phase component of the pulse
+        _outofphase: The out-of-phase component of the pulse
+        _optimizable_parameters: List of own parameters that would be optimized by the optimizer.
+        _multiply_flat_top: Flag to multiply flat-top-Gaussian pulse to the signal to ensure it starts and ends at zero.
     """
 
-    _envs: list[Waveform]
+    _envs: list[Signal]
     _tlist: Array
     _time_grid: Array
     _max_amplitude: float
@@ -64,10 +51,16 @@ class PWCGenerator(Generator):
 
     def __init__(
         self,
-        envelopes: list[Waveform] | None,
+        envelopes: list[Signal] | None,
         tlist: Array,
         max_amplitude: float | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            envelopes: List of Envelopes
+            tlist: Left time points for discretization. These can be used for propagation and optimization.
+            max_amplitude: Maximum amplitude of the drive.
+        """
         self._envs = envelopes or []
         self._tlist = tlist
 
@@ -87,7 +80,7 @@ class PWCGenerator(Generator):
         self._t_final = self._time_grid[-1]
 
     @partial(jit, static_argnums=(0,))
-    def _compute_envelope(self, t):
+    def _compute_envelope(self, t: Array) -> Array:
         t_final = self._t_final
         ramp_time = t_final / 25
         ramp_up = 1 + erf((t - 2 * t_final / 20) / ramp_time)
@@ -98,9 +91,7 @@ class PWCGenerator(Generator):
     def tlist(self) -> Array:
         """Get time grid discretization for generating PWC pulse.
 
-        Returns
-        -------
-        Array
+        Returns:
             Array of time points at which envelope is discretized.
         """
         return self._tlist
@@ -109,10 +100,8 @@ class PWCGenerator(Generator):
     def tlist(self, tlist: Array) -> None:
         """Set time grid discretization for generating PWC pulse.
 
-        Parameters
-        ----------
-        tlist : Array
-            Array of time points at which envelope is discretized.
+        Args:
+            tlist: Array of time points at which envelope is discretized.
         """
         self._tlist = tlist
 
@@ -126,8 +115,7 @@ class PWCGenerator(Generator):
     def max_amplitude(self) -> float:
         """Get the maximum drive amplitude.
 
-        Returns
-        -------
+        Returns:
             The value of the maximum drive amplitude.
         """
         return self._max_amplitude
@@ -136,22 +124,18 @@ class PWCGenerator(Generator):
     def max_amplitude(self, max_amplitude: float) -> None:
         """Set the maximum drive amplitude of the drive.
 
-        Parameters
-        ----------
-        max_amplitude: float
-            The value of the maximu drive amplitude.
+        Args:
+            max_amplitude: The value of the maximum drive amplitude.
         """
         self._max_amplitude = max_amplitude
         self._setup_inphase_and_outofphase()
 
     @property
-    def envs(self) -> list[Waveform]:
+    def envs(self) -> list[Signal]:
         """Gets the list of envelopes.
 
-        Returns
-        -------
-        list[Waveform]
-            The list of waveforms associated with the generator.
+        Returns:
+            The list of signals associated with the generator.
         """
         return self._envs
 
@@ -162,9 +146,7 @@ class PWCGenerator(Generator):
         This can be used to make the start and end values zeros and force the
         PWC pulse to change smoothly.
 
-        Returns
-        -------
-        multiply_flat_top: bool
+        Returns:
             Flag value for multiply_flat_top.
         """
         return self._multiply_flat_top
@@ -176,10 +158,8 @@ class PWCGenerator(Generator):
         This can be used to make the start and end values zeros and force the
         PWC pulse to change smoothly.
 
-        Parameters
-        ----------
-        multiply_flat_top : bool
-            Flag value for multiply_flat_top.
+        Args:
+            multiply_flat_top: Flag value for multiply_flat_top.
         """
         self._multiply_flat_top = multiply_flat_top
         self._setup_inphase_and_outofphase()
@@ -195,7 +175,7 @@ class PWCGenerator(Generator):
         return env
 
     def _setup_inphase_and_outofphase(self) -> None:
-        """Generate inphase and outphase Quantities using tlist."""
+        """Generate in-phase and out-of-phase Quantities using tlist."""
         env = self._compute_shape()
 
         # max_abs = jnp.max(jnp.abs(env))
@@ -215,7 +195,7 @@ class PWCGenerator(Generator):
             name="out-of-phase",
         )
 
-    def _get_partial_derivatives(self, times) -> Array:
+    def _get_partial_derivatives(self, times: Array) -> Array:
         env_grads = []
         for dev in self._envs:
             _, grad = dev.get_value_and_gradient(times)
@@ -234,9 +214,7 @@ class PWCGenerator(Generator):
 
         Return the inphase and out-of-phase as parameters.
 
-        Returns
-        -------
-        list[Quantity]
+        Returns:
             All Parameters describing the signal.
         """
         return [self._inphase, self._outofphase]
@@ -247,9 +225,8 @@ class PWCGenerator(Generator):
 
         Optimizable parameters can be inphase and out-of-phase.
 
-        Parameters
-        ----------
-        params : list[Quantity]
+        Args:
+            params: Input list of parameters to be set.
         """
         super().set_optimizable_parameters(params)
 
@@ -259,46 +236,35 @@ class PWCGenerator(Generator):
         inphase: Array,
         outofphase: Array,
         dt: Array,
-        t: Array,
+        times: Array,
     ) -> Array:
-        """Generate a signal for a single time point 't'.
+        """Generate a PWC signal.
 
         The PWC signal is generated by finding the closest time point
         and returning the corresponding amplitude value.
 
-        Parameters
-        ----------
-        inphase: Array
-            1-D vector of step values of real part of the PWC signal.
-        out-of-phase: Array
-            1-D vector of step values of complex part of the PWC signal.
-        tlist: Array
-            Time bins of the PWC pulse.
-        t: Array
-            One time point.
+        Args:
+            inphase: 1-D vector of step values of real part of the PWC signal.
+            outofphase: 1-D vector of step values of imaginary part of the PWC signal.
+            dt: Time step.
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the PWC signal value at t.
+        Returns:
+            The PWC signal value at times.
 
         """
-        index = jnp.array(t / dt, int)
+        index = jnp.array(times / dt, int)
         return inphase[index] + 1.0j * outofphase[index]
 
     @override
     def get_value(self, times: Array) -> Array:
-        """Generate the PWC signal for time(s) 't'.
+        """Generate the PWC signal.
 
-        Parameters
-        ----------
-        times: Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the signal vector.
+        Returns:
+            The signal vector.
 
         """
         time_grid = self._time_grid
@@ -319,14 +285,10 @@ class PWCGenerator(Generator):
         This returns a list of ones as the gradient of the envelope wrt a step
         is 1 for that time bin and 0 everywhere else.
 
-        Parameters
-        ----------
-        times : Array
-            Array of time steps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
+        Returns:
             PWC signal gradients.
         """
         grads = []

@@ -3,16 +3,16 @@
 import numpy as np
 import pytest
 
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.hamiltonian.composite_hamiltonian import CompositeHamiltonian
+from paraqeet.hamiltonian.coupling import Coupling
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.transmon import TransmonHamiltonian
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-from paraqeet.model.coupling import Coupling
-from paraqeet.model.drive import Drive
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
-from paraqeet.model.transmon import TransmonHamiltonian
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+from paraqeet.propagation.expm_goat import ExpmGOAT
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -134,7 +134,7 @@ def coupled_transmons(tone):
     model = SchroedingerEquation(
         hamiltonian_func=hamiltonian.get_value, hamiltonian_gradient_func=hamiltonian.get_gradient
     )
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=100e9,
@@ -148,7 +148,7 @@ def coupled_transmons(tone):
 
     cr_gate = pauli_zx @ cr_gate
     gate_fid = UnitaryFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         gate=cr_gate,
     )

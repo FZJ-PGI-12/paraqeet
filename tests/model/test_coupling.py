@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.coupling import Coupling
-from paraqeet.model.transmon import TransmonHamiltonian
+from paraqeet.hamiltonian.coupling import Coupling
+from paraqeet.hamiltonian.transmon import TransmonHamiltonian
 from paraqeet.quantity import Quantity
 
 COUPLINGSTR = 25e6 * 2 * np.pi

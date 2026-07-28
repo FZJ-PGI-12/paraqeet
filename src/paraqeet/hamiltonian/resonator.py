@@ -6,8 +6,8 @@ import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
@@ -16,17 +16,8 @@ jax.config.update("jax_enable_x64", True)
 class ResonatorHamiltonian(Hamiltonian):
     """Hamiltonian of a harmonic oscillator.
 
+    Models, e.g., a resonator or microwave cavity mode in circuit QED :cite:p:`blais2021circuit`.
     The only optimizable parameter is the frequency.
-
-    Attributes
-    ----------
-    _num_fock : int
-        Number of Fock states included in the numerical representation of
-        the operators.
-    frequency : Quantity
-        Frequency of the harmonic oscillator.
-    drives : list[Drive], optional
-        List of time-dependent drives of the subsystem.
     """
 
     def __init__(
@@ -34,7 +25,14 @@ class ResonatorHamiltonian(Hamiltonian):
         num_fock: int,
         frequency: Quantity,
         drives: list[Drive] | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            num_fock: Number of Fock states included in the numerical
+                representation of the operators.
+            frequency: Frequency of the harmonic oscillator.
+            drives: List of time-dependent drives of the subsystem.
+        """
         super().__init__(drives=drives)
         self._num_fock = num_fock
         self.frequency = frequency
@@ -47,23 +45,20 @@ class ResonatorHamiltonian(Hamiltonian):
 
     @property
     def annihilation_op(self) -> Array:
-        """Return the annihilation operator"""
+        """Return the annihilation operator."""
         return self._annihilation_op
 
     @property
     def num_op(self) -> Array:
-        """Return the Fock number operator"""
+        """Return the Fock number operator."""
         return self._num_op
 
     @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
-        Returns
-        -------
-        List[Quantity]
-            Returns the list of parameters of the system.
-
+        Returns:
+            The list of parameters of the system.
         """
         return self.get_drive_parameters() + [self.frequency]
 
@@ -86,19 +81,8 @@ class ResonatorHamiltonian(Hamiltonian):
 
 
 class Resonator:
-    """A system representing a resonator. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators
-
-    Attributes
-    ----------
-    hamiltonian: ResonatorHamiltonian
-        The Hamiltonian of a resonator in the Fock basis.
-    t1: Quantity | None
-        Photon decay time.
-    temp: Quantity | None
-        Temperature of the qubit.
-    t2star: Quantity | None
-        Dephasing time.
+    """A system representing a resonator. It allows storing information about relaxation and dephasing times
+    and getting the corresponding jump operators.
     """
 
     def __init__(
@@ -107,7 +91,14 @@ class Resonator:
         t1: Quantity | None = None,
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            hamiltonian: The Hamiltonian of a resonator in the Fock basis.
+            t1: Photon decay time.
+            temp: Temperature of the resonator.
+            t2star: Dephasing time.
+        """
         self.hamiltonian = hamiltonian
         self.t1 = t1
         self.temp = temp
@@ -129,13 +120,10 @@ class Resonator:
         return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_jump_operators(self) -> list[Array]:
-        """
-        Return a list of jump operators for the resonator.
+        """Return a list of jump operators for the resonator.
 
-        Return
-        ------
-        list[Array]
-            List of jump operators
+        Returns:
+            List of jump operators.
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         annihilation_op = self.hamiltonian.annihilation_op

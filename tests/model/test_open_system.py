@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.model.master_equation import MasterEquation
-from paraqeet.model.resonator import Resonator, ResonatorHamiltonian
+from paraqeet.eom.master_equation import MasterEquation
+from paraqeet.hamiltonian.resonator import Resonator, ResonatorHamiltonian
 from paraqeet.quantity import Quantity
 
 

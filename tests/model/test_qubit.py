@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.qubit import Qubit, QubitHamiltonian
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer

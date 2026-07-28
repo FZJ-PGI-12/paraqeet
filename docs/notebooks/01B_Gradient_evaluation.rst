@@ -2,14 +2,15 @@ Gradient evaluation in ParaQeet
 ===============================
 
 ParaQeet builds on the idea of the *semi-automatic differentiation*
-[Georz2022] and combines automatic differentiaion (AD) with analytic
-gradients from quantum optimal control methods to provide a resource
-efficient and flexible framework for optimal control. It is designed in
-a top-down modular structure, where each module can be differentiated.
-Modules providing gradient values are derived from the base class
-:math:`\texttt{Differentiable}`. All the classes deriving from
-:math:`\texttt{Differentiable}` provide a ``get_value_and_gradient``
-method that returns the value and the gradient.
+(Goerz et al., 2022) :cite:p:`goerz2022quantum` and combines automatic
+differentiation (AD) with analytic gradients from quantum optimal
+control methods to provide a resource-efficient and flexible framework
+for optimal control. It is designed in a top-down modular structure,
+where each module can be differentiated. Modules providing gradient
+values are derived from the base class :math:`\texttt{Differentiable}`.
+All the classes deriving from :math:`\texttt{Differentiable}` provide a
+``get_value_and_gradient`` method that returns the value and the
+gradient.
 
 This notebook provides an overview of the gradient computation in all
 the modules and aims to explain how gradients are chained across the
@@ -22,7 +23,7 @@ The aim here is to compute the gradients of an objective function
 :math:`(\mathcal{F})`, a :math:`\texttt{Measurement}` in ParaQeet, with
 respect to the parameters of the input pulse :math:`(\vec{\alpha})`.
 Computing this derivative for a state-transfer fidelity
-:math:`(\mathcal{F}(t) = |\phi|^2 = |\langle \lambda | \psi(t) \rangle|^2)`
+:math:`(\mathcal{F}(t) = |\phi|^2 =  |\langle \lambda | \psi(t) \rangle|^2)`
 for a pulse :math:`(u(t))` would lead to computing the terms
 
 .. math:: \frac{\partial \mathcal{F}(t) }{\partial \alpha} = \frac{\partial \mathcal{F}(t)}{\partial \phi}  \frac{\partial \phi}{\partial u} \frac{\partial u}{\partial \alpha}.
@@ -40,8 +41,9 @@ where :math:`v_k` are values of the intermediate steps, and
 Thus each module computes the gradients for its own parameters, and also
 collects the gradients propagated through the prior modules. As shown in
 the flow-chart below the gradients from the device class
-(:math:`\texttt{signal}`) is passed down to the :math:`\texttt{model}`,
-through :math:`\texttt{propagation}` and finally to the
+(:math:`\texttt{signal}`) are passed down to the
+:math:`\texttt{hamiltonian}` and :math:`\texttt{eom}`, through
+:math:`\texttt{propagation}` and finally to the
 :math:`\texttt{measurement}`.
 
 .. raw:: html
@@ -74,11 +76,11 @@ the ``_evaluate`` method to be a pure-JAX function, with arguments as
 
 The :math:`\texttt{signal}` module includes the
 :math:`\texttt{Envelopes}` class which defines the shape of a pulse.
-Lets define an example envelope of a Gaussian
+Let's define an example envelope of a Gaussian
 
 .. math:: \Omega(t) = A \, e^{-\frac{(t - \mu)^2}{2\sigma^2}}.
 
-\ And try to plot its gradients.
+\ Then we try to plot its gradients.
 
 .. code:: ipython3
 
@@ -179,10 +181,10 @@ get
 
 
 The gradients are currently empty as the ``OptimizationMap`` is not
-defined yet. Lets define the optmap and add the ``tone`` to it. We need
-to “register” the parameters using ``register_params_with_optimizables``
-method to inform the specified classes which parameters are being
-optimized.
+defined yet. Let's define the optmap and add the ``tone`` to it. We need
+to “register” the parameters using the
+``register_params_with_optimizables`` method to inform the specified
+classes which parameters are being optimized.
 
 .. code:: ipython3
 
@@ -221,7 +223,7 @@ optimized.
 Note that the shape of the gradients is (t, num_params). Here there are
 3 parameters added to the ``optmap``.
 
-Lets compare the gradients with analytical formulas
+Let's compare the gradients with the analytical formulas
 
 .. code:: ipython3
 
@@ -267,7 +269,8 @@ Lets compare the gradients with analytical formulas
 
 
 Further, the signal module includes filter functions and
-:math:`\texttt{DRAGMixer}` to modify the pulse shape. Lets include a
+:math:`\texttt{DRAGMixer}` (Motzoi et al., 2009)
+:cite:p:`motzoi2009simple` to modify the pulse shape. Let's include a
 :math:`\texttt{FlatTopGaussianFilter}`
 :math:`(\epsilon(t) = s(t) \Omega(t))` on top of this pulse and add the
 DRAG component. The final pulse would be
@@ -281,7 +284,7 @@ evaluated by
 
 .. code:: ipython3
 
-    from paraqeet.signal.waveform import DRAGMixer, FlatTopGaussianFilter
+    from paraqeet.signal.signal import DRAGMixer, FlatTopGaussianFilter
     
     drag_tone = DRAGMixer(tone)
     filtered_tone = FlatTopGaussianFilter(
@@ -298,7 +301,7 @@ evaluated by
 
 .. parsed-literal::
 
-    ==== <class 'paraqeet.signal.waveform.DRAGMixer'> ====
+    ==== <class 'paraqeet.signal.signal.DRAGMixer'> ====
     [amplitude: 2e+07, mu: 1.2e-08, sigma: 5e-09, Delta: -1.26 GHz]
 
 
@@ -316,7 +319,7 @@ evaluated by
 .. image:: 01B_Gradient_evaluation_files/01B_Gradient_evaluation_19_0.png
 
 
-Lets plot the derivative with :math:`\mu`
+Let's plot the derivative with :math:`\mu`
 
 .. code:: ipython3
 
@@ -377,28 +380,28 @@ components and returns them.
 
 
 
-Note that now that the optmap has 5 elements, the gradients generated by
+Now that the optmap has 5 elements, the number of gradients generated by
 the generator is also 5.
 
-2. The :math:`\texttt{Model}` module
-------------------------------------
+2. The :math:`\texttt{Hamiltonian}` and :math:`\texttt{EOM}` module
+-------------------------------------------------------------------
 
-:math:`\texttt{Model}` includes the Hamiltonian, Drive and coupling. Due
-to the parameter dependence are only in the coefficient of the
-operators, computing derivatives just results in multiplying the signal
-gradient with the respective operator. For a Hamiltonian of the from
-:math:`H(t) = H_0 + u(\alpha, t) H_d`, where :math:`u(\alpha, t)` is the
-drive signal
+The :math:`\texttt{hamiltonian}` module includes the system, drive and
+coupling Hamiltonians. Since the parameter dependence is only in the
+coefficients of the operators, computing derivatives just results in
+multiplying the signal gradient with the respective operator. For a
+Hamiltonian of the form :math:`H(t) = H_0 + u(\alpha, t) H_d`, where
+:math:`u(\alpha, t)` is the drive signal
 
 .. math::  \frac{\partial H(t)}{\partial \alpha} = \frac{\partial u(t)}{\partial \alpha} H_d.
 
-Note that similar operation can also be performed to compute the
-gradients with respect to the model parameters, for e.g., the the
-coupling strength between two subsystems, by adding the corresponding
-quantity to the optmap. Thus we can put the optimization of the model
-and pulse parameter on the same footing.
+Note that a similar operation can also be performed to compute the
+gradients with respect to the model parameters, e.g., the coupling
+strength between two subsystems, by adding the corresponding quantity to
+the optmap. Thus we can put the optimization of the model and pulse
+parameter on the same footing.
 
-For this example, lets define a qubit, given by the Hamiltonian
+For this example, let's define a qubit, given by the Hamiltonian
 
 .. math:: H(t)=H_\text{drift}+H_c(t)= \frac{\omega_q}{2} \sigma_z + \Omega(t)\sigma_x, 
 
@@ -406,8 +409,8 @@ and add its frequency and drive parameters to the optmap.
 
 .. code:: ipython3
 
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     
     freq_q = 4.8e9
     omega_q = 2 * np.pi * freq_q
@@ -434,7 +437,7 @@ and add its frequency and drive parameters to the optmap.
     ==== <class 'paraqeet.signal.iq_mixer.IQMixer'> ====
     [amplitude: 2e+07, mu: 1.2e-08, sigma: 5e-09, lo_freq: 4.8 GHz x 2pi, Phase: 0 rad]
     
-    ==== <class 'paraqeet.model.qubit.QubitHamiltonian'> ====
+    ==== <class 'paraqeet.hamiltonian.qubit.QubitHamiltonian'> ====
     [Qubit Freq: 30.2 GHz]
 
 
@@ -457,8 +460,8 @@ the gradient of the Hamiltonian and check the number of components.
 
 
 
-The gradients now has the shape (t, num_params, dim, dim), where dim is
-the dimension of the Hilbert space. We see that the gradients now has 6
+The gradients now have the shape (t, num_params, dim, dim), where dim is
+the dimension of the Hilbert space. We see that the gradients now have 6
 parameters as expected.
 
 Similarly the equation of motion (EOM) returns the gradients of the
@@ -466,7 +469,7 @@ right hand side of the EOM.
 
 .. code:: ipython3
 
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
     
     schrgl = SchroedingerEquation(
         hamiltonian_func=qubit_hamiltonian.get_value,
@@ -490,11 +493,13 @@ right hand side of the EOM.
 
 The :math:`\texttt{Propagation}` module computes the derivative of the
 unitary operator generated by the time-dependent Hamiltonian by using
-quantum optimal control methods like GRAPE and GOAT. These methods work
-for specific pulse ansatz, for e.g. GRAPE require a piecewise constant
-(PWC) ansatz, and GOAT requires a continuous ansatz. These methods
-provide ways to propagate the derivative of the Hamiltonian to compute
-derivative of the state-overlap and the unitary operator, respectively.
+quantum optimal control methods like GRAPE (Khaneja et al., 2005)
+:cite:p:`khaneja2005optimal` and GOAT (Machnes et al., 2018)
+:cite:p:`machnes2018tunable`. These methods work for specific pulse
+ansatzes, e.g., GRAPE requires a piecewise constant (PWC) ansatz, and
+GOAT requires a continuous ansatz. These methods provide ways to
+propagate the derivative of the Hamiltonian to compute the derivative of
+the state-overlap and the unitary operator, respectively.
 
 The gradients computed in GRAPE are computed by:
 
@@ -531,21 +536,19 @@ here we instead compute
 .. math:: \frac{\partial \ket{\psi(t)}}{\partial \alpha} = \frac{\partial U(t)}{\partial \alpha} \ket{\psi(0)}.
 
 In this example we look at the gradients computed using GOAT by using
-the propagation module :math:`\texttt{ScipyExpmGOAT}` at the initial and
-the final time points.
+the propagation module :math:`\texttt{ExpmGOAT}` at the initial and the
+final time points.
 
 .. code:: ipython3
 
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     
     times = np.array([0.0, t_final])
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ScipyExpmGOAT(
-        eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=10e9, initial_state=init
-    )
+    prop = ExpmGOAT(eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=10e9, initial_state=init)
     
     value, grads = prop.get_value_and_gradient(times)
     grads.shape
@@ -563,7 +566,7 @@ the final time points.
 ------------------------------------------
 
 Finally, the gradient of the cost function with respect to the pulse
-parameters can be compute by following the chain rule,
+parameters can be computed by following the chain rule,
 
 .. math:: \frac{\partial \mathcal{C}}{\partial \alpha} = \frac{\partial \mathcal{C}}{\partial \mathcal{F}} \frac{\partial \mathcal{F}}{\partial \Phi} \frac{\partial \Phi}{\partial \ket{\psi}} \frac{\partial \ket{\psi}}{\partial \alpha},
 
@@ -574,7 +577,7 @@ state with respect to pulse parameters can be computed using GOAT/GRAPE.
 
 The measurement class thus encodes a way to compute the two terms
 :math:`\frac{\partial \mathcal{F}}{\partial \Phi}` and
-:math:`\frac{\partial \Phi}{\partial \ket{\psi}}`, either using
+:math:`\frac{\partial \Phi}{\partial \ket{\psi}}`, either using an
 analytical method or using AD.
 
 For a state-transfer fidelity problem,
@@ -589,7 +592,7 @@ Then
     from paraqeet.measurement.utils import overlap_state_vector
     
     measure = StateTransferFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -613,6 +616,16 @@ parameters of the pulse.
 References
 ----------
 
-[Georz2022] Goerz, Michael H., Sebastián C. Carrasco, and Vladimir S.
-Malinovsky. “Quantum optimal control via semi-automatic
-differentiation.” Quantum 6 (2022): 871.
+- **(Goerz et al., 2022)** M. H. Goerz, S. C. Carrasco, and V. S.
+  Malinovsky, “Quantum optimal control via semi-automatic
+  differentiation,” *Quantum* **6**, 871 (2022).
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).
+- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+  efficient optimization of control pulses for practical qubits,”
+  *Physical Review Letters* **120**, 150401 (2018).
+- **(Motzoi et al., 2009)** F. Motzoi et al., “Simple pulses for
+  elimination of leakage in weakly nonlinear qubits,” *Physical Review
+  Letters* **103**, 110501 (2009).

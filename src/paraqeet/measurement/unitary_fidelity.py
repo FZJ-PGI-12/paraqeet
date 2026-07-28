@@ -1,4 +1,4 @@
-"""Class definition of the unitary fidelity model."""
+"""Class definition of the unitary fidelity."""
 
 from collections.abc import Callable
 from typing import override
@@ -14,39 +14,15 @@ jax.config.update("jax_enable_x64", True)
 
 
 class UnitaryFidelity(NormalizableMeasurement, Differentiable):
-    """Unitary fidelity measurement model.
+    """Fidelity measure that compares overlap of unitary matrices.
 
-    Fidelity measure that compares the propagator with a desired gate
-    by way of L2 norm.
-
-    The `propagation_func` function is required in addition to `propagation_and_gradient_func` as a computationally
-    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization,
-    and evaluation of `measure` function.
-
-    Parameters
-    ----------
-    propagation_func: Callable[[Array], Array]
-        Function that evaluates the propagation of some initial state.
-        Expected to be of the form `func(t: Array) -> states: Array`.
-    propagation_gradient_func: Callable[[Array], Array]
-        Function returning the gradients of the propagated states.
-    gate : Array
-        Matrix representation of target gate.
-    times : Array
-        List of times to compare. Should have length 2.
-        More is allowed, but only the first and last are used.
-    basis_states : Array optional
-        List of basis states.
-        If set the ideal and actual gate are applied to these states
-        and their pairwise overlap computed, equivalent to the L2 trace norm.
-        Defaults to [].
-
+    It compares the propagator with a desired gate by using the L2 norm, based on the
+    average gate fidelity formula :cite:p:`nielsen2002simple`.
     """
 
     _basis_states: Array | None
     _target_costates: Array
     _propagation_func: Callable[[Array], Array]
-
     _propagation_gradient_func: Callable[[Array], Array]
 
     def __init__(
@@ -55,7 +31,20 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         propagation_gradient_func: Callable[[Array], Array],
         gate: Array,
         basis_states: Array | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            propagation_func: Function that evaluates the propagation of some
+                initial state. Expected to be of the form
+                ``func(t: Array) -> states: Array``.
+            propagation_gradient_func: Function returning the gradients of the
+                propagated states.
+            gate: Matrix representation of target gate.
+            basis_states: List of basis states. If set the ideal and actual
+                gate are applied to these states and their pairwise overlap
+                computed, equivalent to the L2 trace norm.
+
+        """
         self._propagation_func = propagation_func
         self._propagation_gradient_func = propagation_gradient_func
         self._basis_states = basis_states if basis_states is not None else jnp.eye(gate.shape[0])
@@ -65,16 +54,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
     def _fid(overlaps: Array) -> Float:
         """Gate fidelity from state overlaps.
 
-        Parameters
-        ----------
-        Overlaps: Array
-            State overlap as a one-dimensional array.
+        Args:
+            overlaps: State overlap as a one-dimensional array.
 
-        Returns
-        -------
-        Float
+        Returns:
             Gate fidelity as a single float.
-
         """
         return (jnp.abs(jnp.average(overlaps)) ** 2).astype(float)
 
@@ -87,41 +71,26 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         return self._fid(jnp.asarray(overlaps))
 
     @override
-    def measure(self, times: Array) -> Float:
-        """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar(times=times)
-
-    @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
         """Return the L2 norm of the last time step compared to the ideal gate.
 
-        Parameters
-        ----------
-        times : Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-
-        Returns
-        -------
-        Array
+        Returns:
             L2 norm of the last time step compared to the ideal gate.
         """
         return self.get_value(times)
 
     @override
     def get_value_and_gradient(self, times: Array) -> tuple[Float, Array]:
-        """Get the analytic expression for the gradient.
+        """Get the analytic expression for the measurement value and its gradient.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
+        Returns:
             Tuple of function value and gradient of shape (n_params,).
-
         """
         states = self._propagation_func(times)
         dg_dp_list = self._propagation_gradient_func(times)  # gradient of states wrt parameters
@@ -145,14 +114,11 @@ class UnitaryFidelity(NormalizableMeasurement, Differentiable):
         _, grad = self.get_value_and_gradient(times)
         return grad
 
-    def set_ideal_gate(self, gate: Array):
+    def set_ideal_gate(self, gate: Array) -> None:
         """Compute target states for the L2 norm.
 
-        Parameters
-        ----------
-        gate : Array
-            Target state computation via this gate.
-
+        Args:
+            gate: Target state computation via this gate.
         """
         if self._basis_states is None:
             self._target_costates = gate

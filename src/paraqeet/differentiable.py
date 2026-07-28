@@ -19,18 +19,14 @@ class Differentiable(ABC):
     def get_value(self, times: Array) -> Array | Float:
         """Calculate the value of the object.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array | Float
+        Returns:
             The value of the object.
             If it returns an Array then the value is calculated at the n_times and the dimension should be
             (n_times, (dimensions_of_object)). If the object is a scalar (1x1 Array)
-            the dimension of is just n_times.
+            the dimension is just n_times.
             If it returns a Float for instance it means that the object depends on the whole
             array of times. This is for instance the case of fidelities
             that are a function of an array of times.
@@ -41,18 +37,14 @@ class Differentiable(ABC):
     def get_gradient(self, times: Array) -> Array:
         """Calculate the gradient of the object.
 
-        Parameters
-        ----------
-        times: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
+        Returns:
             The gradient of the object. There are two main cases.
 
             1) The array has dimensions (n_times, n_params, (dimensions_of_object)).
-            If the object is a scalar (1x1 Array) the dimension of is just (n_times, n_params).
+            If the object is a scalar (1x1 Array) the dimension is just (n_times, n_params).
 
             2) The array has dimension (n_params, (dimensions_of_object)). This is the case for instance of fidelities
             that are a function of an array of times.
@@ -62,8 +54,12 @@ class Differentiable(ABC):
     def get_value_and_gradient(self, times: Array) -> tuple[Array | Float, Array]:
         """Calculate the value and the gradient of the object.
 
-        Returns
-        -------
-        The value and the gradient of the object.
+        Note:
+            The default implementation here gathers the value and the gradient separately.
+            For cases where the value can be obtained during the gradient calculation,
+            this method is overwritten for efficiency.
+
+        Returns:
+            The value and the gradient of the object.
         """
         return self.get_value(times), self.get_gradient(times)

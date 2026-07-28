@@ -1,4 +1,4 @@
-"""Class definition of the optimizable model."""
+"""Abstract equation of motion of the form dx/dt = A(t) x, e.g. Schrödinger or Lindblad equations."""
 
 from collections.abc import Callable
 
@@ -7,9 +7,10 @@ from paraqeet.quantity import Array
 
 
 class EquationOfMotion(Differentiable):
-    """Represents the equation of motion of a system, assumed to be of the form
+    r"""Represents the equation of motion of a system, assumed to be of the form
 
-    d x /d t = A(t) x
+    .. math::
+        \frac{d x}{d t} = A(t) x
 
     with x a vector or more generally a matrix characterizing the system, and A(t)
     another time-dependent matrix.
@@ -20,13 +21,6 @@ class EquationOfMotion(Differentiable):
     Hamiltonian function this needs to be passed together with a function
     that returns its gradient. The get_value and get_gradient methods
     should return the value and the gradient of A(t).
-
-    Attributes
-    ----------
-    _hamiltonian_func: Callable
-        Function that returns the a Hamiltonian at different times.
-    _hamiltonian_gradient_func: Callable
-        Function that returns the gradient of the Hamiltonian at different times.
     """
 
     _hamiltonian_func: Callable[[Array], Array]
@@ -36,6 +30,13 @@ class EquationOfMotion(Differentiable):
         self,
         hamiltonian_func: Callable[[Array], Array],
         hamiltonian_gradient_func: Callable[[Array], Array],
-    ):
+    ) -> None:
+        """
+        Args:
+            hamiltonian_func: Function that returns the Hamiltonian at different
+                times.
+            hamiltonian_gradient_func: Function that returns the gradient of the
+                Hamiltonian at different times.
+        """
         self._hamiltonian_func = hamiltonian_func
         self._hamiltonian_gradient_func = hamiltonian_gradient_func

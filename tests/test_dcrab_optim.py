@@ -3,20 +3,20 @@
 import numpy as np
 import pytest
 
+from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
 from paraqeet.measurement.utils import overlap_state_vector
-from paraqeet.model.drive import Drive
-from paraqeet.model.qubit import QubitHamiltonian
-from paraqeet.model.schroedinger_equation import SchroedingerEquation
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
-from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+from paraqeet.propagation.expm_grape import ExpmGRAPE
 from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
-from paraqeet.signal.waveform import FlatTopGaussianFilter
+from paraqeet.signal.signal import FlatTopGaussianFilter
 
 T_FINAL = 20e-9
 TLIST = np.linspace(0, T_FINAL, 40)
@@ -62,7 +62,7 @@ def prop(model):
     init = np.array([[1.0], [0]])  # |0>
     target = np.array([[0.0], [1]])  # |1>
 
-    prop = ScipyExpmGRAPE(
+    prop = ExpmGRAPE(
         model.get_value,
         model.get_gradient,
         resolution=1e9,
@@ -78,7 +78,7 @@ def fid(prop):
     target = np.array([[0.0], [1]])  # |1>
 
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,

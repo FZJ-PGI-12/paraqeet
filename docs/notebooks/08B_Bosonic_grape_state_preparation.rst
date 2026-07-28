@@ -2,17 +2,20 @@ Arbitrary bosonic state preparation using GRAPE
 ===============================================
 
 In this notebook, we implement a standard application of GRAPE, namely
-the preparation of an arbitrary state of a bosonic mode, such a resonant
-mode of a microwave cavity. In the notebook, we mostly follow the
-optimization strategy of [Heeres2017]. The parameters are taken from
-[Eickbusch2022] Table S1, without considering the anharmonicity for
-simplicity and with the exception of the dispersive shift taken to be
-:math:`10` times larger for simulation purposes. Our starting point is
-the well-known Jaynes-Cummings Hamiltonian in the dispersive regime,
-which describes an interaction of a qubit with a single bosonic mode
-when the characteristic qubit frequency :math:`\omega_{q}` is far
-detuned from the one of the resonator :math:`\omega_{r}` (see for
-instance [Blais2021] for more details)
+the preparation of an arbitrary state of a bosonic mode, such as a
+resonant mode of a microwave cavity. In the notebook, we use GRAPE
+(Khaneja et al., 2005) :cite:p:`khaneja2005optimal` and mostly follow
+the optimization strategy of (Heeres et al., 2017)
+:cite:p:`heeres2017implementing`. The parameters are taken from
+(Eickbusch et al., 2022) :cite:p:`eickbusch2022fast` Table S1, without
+considering the anharmonicity for simplicity and with the exception of
+the dispersive shift taken to be :math:`10` times larger for simulation
+purposes. Our starting point is the well-known Jaynes-Cummings
+Hamiltonian in the dispersive regime, which describes an interaction of
+a qubit with a single bosonic mode when the characteristic qubit
+frequency :math:`\omega_{q}` is far detuned from the one of the
+resonator :math:`\omega_{r}` (see for instance (Blais et al., 2021)
+:cite:p:`blais2021circuit` for more details)
 
 .. math::
 
@@ -76,7 +79,7 @@ that the system starts in the initial state
 
 Let :math:`\varepsilon(t) = (\varepsilon_{r}(t), \varepsilon_{q}(t))`.
 For a fixed time :math:`T`, the system evolves to a state
-:math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t)) | \Psi_{\mathrm{initial}} \rangle`.
+:math:`| \Psi(T; \varepsilon(t)) \rangle = U(T; \varepsilon(t))  | \Psi_{\mathrm{initial}} \rangle`.
 We thus want to maximize the state fidelity, i.e., the overlap between
 :math:`| \Psi_{\mathrm{target}} \rangle` and :math:`| \Psi(t) \rangle`:
 
@@ -98,24 +101,24 @@ the resonator and qubit pulses, respectively.
     import matplotlib.pyplot as plt
     import numpy as np
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.composite_hamiltonian import CompositeHamiltonian
+    from paraqeet.hamiltonian.coupling import Coupling
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
+    from paraqeet.hamiltonian.resonator import ResonatorHamiltonian
     from paraqeet.measurement.smoothness import Smoothness
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
-    from paraqeet.model.composite_hamiltonian import CompositeHamiltonian
-    from paraqeet.model.coupling import Coupling
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.resonator import ResonatorHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.expm_grape import ExpmGRAPE
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
 
 We initialize our pulses as simple Gaussian envelopes. Additionally, we
-require fix ranges for the minimum and maximum amplitudes.
+require fixed ranges for the minimum and maximum amplitudes.
 
 .. code:: ipython3
 
@@ -188,14 +191,15 @@ levels in the resonator.
 
 Due to the infinite-dimensional nature of the Hilbert space of the
 resonator, it is necessary to introduce a Fock state truncation number
-:math:`N_{\mathrm{T}}`. This creates the problem that given certain
-pulses :math:`\mathcal{F}` depends on the choice of
-:math:`N_{\mathrm{T}}`. Following [Heeres2017], we thus consider
-:math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
-and introduce a penalty when having different values of fidelities for
-different truncation numbers. Thus, we create different systems, and
-accordingly fidelity measures, for the different Fock truncation
-numbers.
+:math:`N_{\mathrm{T}}`. This creates the problem that, given certain
+pulses, :math:`\mathcal{F}` depends on the choice of
+:math:`N_{\mathrm{T}}`. Following (Heeres et al., 2017)
+:cite:p:`heeres2017implementing`, we thus consider :math:`N_{\mathrm{T}}
+\in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} +
+1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`, and introduce a penalty
+when having different values of fidelities for different truncation
+numbers. Thus, we create different systems, and accordingly fidelity
+measures, for the different Fock truncation numbers.
 
 .. code:: ipython3
 
@@ -276,7 +280,7 @@ numbers.
             fock_number_op_list.append(n_op)
     
             # Propagation dt has to be less than `delta_sampling = 33e-9`. Set dt = 30e-9.
-            prop = ScipyExpmGRAPE(
+            prop = ExpmGRAPE(
                 eom_func=model.get_value,
                 eom_gradient_func=model.get_gradient,
                 resolution=1 / (30e-9),
@@ -289,7 +293,7 @@ numbers.
             prop_list.append(prop)
     
             fid = StateTransferFidelityGRAPE(
-                propagation_func=prop.propagate,
+                propagation_func=prop.get_value,
                 propagation_gradient_func=prop.get_gradient,
                 target_state=target_state,
                 overlap=overlap_state_vector,
@@ -304,11 +308,13 @@ numbers.
         n_fock_truncation_list, fock_target
     )
 
-Furthermore, following [Heeres2017] we also introduce a penalty for
+Furthermore, following (Heeres et al., 2017)
+:cite:p:`heeres2017implementing` we also introduce a penalty for
 non-smooth pulses. In particular, we consider the (normalized) sum of
 consecutive square differences of the pulse pixels as cost function (see
-Eqs. 21 in the supplementary material of [Heeres2017]) for both the
-resonator and the qubit pulses:
+Eq. 21 in the supplementary material of (Heeres et al., 2017)
+:cite:p:`heeres2017implementing`) for both the resonator and the qubit
+pulses:
 
 .. math:: g_{\mathrm{smooth}, r} (\varepsilon(t)) = 1.0 - \frac{1}{(N_{\mathrm{PWC}} - 1) R_r^2}\sum_{n=0}^{N_{\mathrm{PWC}} - 1} | \varepsilon_{r}((n+1) \Delta t) - \varepsilon_{r}((n) \Delta t) |^2,
 
@@ -321,15 +327,15 @@ resonator and the qubit pulses:
     meas_list.append(res_smoothness)
     meas_list.append(qubit_smoothness)
 
-We consider as cost function of the form
+We consider a cost function of the form
 
 .. math::
 
 
    C(\varepsilon(t) ) = w_1 \sum_{N = N_{\mathrm{T}}^{(\mathrm{min})}}^{ N_{\mathrm{T}}^{(\mathrm{max})}} \mathcal{F}_{N} (\varepsilon(t) ) + w_2 g_{\mathrm{smooth}, r} (\varepsilon(t)) + w_3 g_{\mathrm{smooth}, q} (\varepsilon(t))   - \frac{w_4}{2} \sum_{N, N' = N_{\mathrm{T}}^{(\mathrm{min})}}^{ N_{\mathrm{T}}^{(\mathrm{max})}} \left[\mathcal{F}_{N}(\varepsilon(t))- \mathcal{F}_{N'} (\varepsilon(t) ) \right]^2,
 
-that we want to maximize. This cost weighted cost function can be
-constructed using the class WeightedSumGoal.
+that we want to maximize. This weighted cost function can be constructed
+using the class WeightedSumGoal.
 
 .. code:: ipython3
 
@@ -355,7 +361,7 @@ dynamics.
     def plot_states_and_fock_number(item=0):
         """Plot the states."""
         ts = np.linspace(0, t_final, n_times)
-        states = prop_list[item].propagate(ts)
+        states = prop_list[item].get_value(ts)
         sig_res = gen_res.get_value(ts)
         sig_qubit = gen_qubit.get_value(ts)
         pop_initial_state = (np.abs(initial_state_list[item].conj().T @ states) ** 2).flatten()
@@ -414,18 +420,18 @@ We can compute the fidelities for the different truncation numbers
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].get_value(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].get_value(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.14410356849601133
+    Fidelity at N_T=3 = 0.1441035684960113
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=4 = 0.06788860193208278
+    Fidelity at N_T=4 = 0.06788860193208295
 
 
 which are quite poor! We now proceed with the pulse optimization.
@@ -501,75 +507,75 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 9.866070e-03
+    Iteration   80 | Infid = 9.866074e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 9.278848e-03
+    Iteration   90 | Infid = 9.278926e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 8.957972e-03
+    Iteration  100 | Infid = 8.958102e-03
 
 
 .. parsed-literal::
 
-    Iteration  110 | Infid = 8.820142e-03
+    Iteration  110 | Infid = 8.813085e-03
 
 
 .. parsed-literal::
 
-    Iteration  120 | Infid = 8.738079e-03
+    Iteration  120 | Infid = 8.705407e-03
 
 
 .. parsed-literal::
 
-    Iteration  130 | Infid = 8.464208e-03
+    Iteration  130 | Infid = 8.344716e-03
 
 
 .. parsed-literal::
 
-    Iteration  140 | Infid = 7.518731e-03
+    Iteration  140 | Infid = 7.726451e-03
 
 
 .. parsed-literal::
 
-    Iteration  150 | Infid = 6.866288e-03
+    Iteration  150 | Infid = 6.843084e-03
 
 
 .. parsed-literal::
 
-    Iteration  160 | Infid = 6.454712e-03
+    Iteration  160 | Infid = 6.502194e-03
 
 
 .. parsed-literal::
 
-    Iteration  170 | Infid = 6.383899e-03
+    Iteration  170 | Infid = 6.380795e-03
 
 
 .. parsed-literal::
 
-    Iteration  180 | Infid = 6.322007e-03
+    Iteration  180 | Infid = 6.343702e-03
 
 
 .. parsed-literal::
 
-    Iteration  190 | Infid = 6.320054e-03
+    Iteration  190 | Infid = 6.339750e-03
 
 
 .. parsed-literal::
 
-    CPU times: user 4min 59s, sys: 5.18 s, total: 5min 4s
-    Wall time: 1min
+    CPU times: user 4min 7s, sys: 3.52 s, total: 4min 11s
+    Wall time: 47.7 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.006319446339632329, 'iterations': 292, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.006313571446108002, 'iterations': 247, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -590,14 +596,14 @@ The new fidelities are
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].get_value(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].get_value(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9435485463888695
-    Fidelity at N_T=4 = 0.9332778200058509
+    Fidelity at N_T=3 = 0.9435952619193511
+    Fidelity at N_T=4 = 0.9336247091406492
 
 
 Setting truncation to higher values
@@ -607,7 +613,7 @@ Here we increase the system truncation to 15 and 20 levels and rerun the
 entire simulation. For more accurate results, we advise the reader to
 increase the truncation to 30 and 31 levels.
 
-*Note - The following takes about 5 mins to run on an AMD-EPYC Milan
+*Note - The following takes about 5 minutes to run on an AMD-EPYC Milan
 processor with 64 cores (might take more depending on the number of CPU
 cores available).*
 
@@ -618,7 +624,7 @@ redefine the resonator with higher truncation numbers.
 
     # in seconds (See Eickbusch et al https://arxiv.org/abs/2111.06414 S9 A)
     delta_sampling = 33e-9
-    n_pwc = 40  # number of piecewiise constants in the pulse
+    n_pwc = 40  # number of piecewise constants in the pulse
     t_final = n_pwc * delta_sampling  # for now just set up for trying
     tlist = np.linspace(0, t_final, n_pwc + 1)
     eps_res = 2 * np.pi * 1.0  # initial amplitude of the resonator (in MHz)
@@ -656,7 +662,7 @@ redefine the resonator with higher truncation numbers.
         n_fock_truncation_list, fock_target
     )
 
-lets also add the smoothness penalty to the measurement
+Let's also add the smoothness penalty to the measurement
 
 .. code:: ipython3
 
@@ -686,26 +692,33 @@ And then plot the dynamics of the resonator under the unoptimized pulse
     plot_states_and_fock_number()
 
 
+.. parsed-literal::
 
-.. image:: 08B_Bosonic_grape_state_preparation_files/08B_Bosonic_grape_state_preparation_33_0.png
+    OpenBLAS warning: precompiled NUM_THREADS exceeded, adding auxiliary array for thread metadata.
+    To avoid this warning, please rebuild your copy of OpenBLAS with a larger NUM_THREADS setting
+    or set the environment variable OPENBLAS_NUM_THREADS to 64 or lower
+
+
+
+.. image:: 08B_Bosonic_grape_state_preparation_files/08B_Bosonic_grape_state_preparation_33_1.png
 
 
 Initial fidelity before optimization
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].get_value(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].get_value(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=15 = 0.014283975566438286
+    Fidelity at N_T=15 = 0.014283975566438187
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=20 = 0.014283963209907323
+    Fidelity at N_T=20 = 0.014283963209907349
 
 
 We redefine the optimizer and perform the optimization again with higher
@@ -754,75 +767,75 @@ truncation numbers
 
 .. parsed-literal::
 
-    Iteration   60 | Infid = 5.571817e-03
+    Iteration   60 | Infid = 5.571816e-03
 
 
 .. parsed-literal::
 
-    Iteration   70 | Infid = 4.006977e-03
+    Iteration   70 | Infid = 4.007113e-03
 
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 2.919865e-03
+    Iteration   80 | Infid = 2.924839e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 2.429120e-03
+    Iteration   90 | Infid = 2.388873e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 2.141361e-03
+    Iteration  100 | Infid = 2.106039e-03
 
 
 .. parsed-literal::
 
-    Iteration  110 | Infid = 1.929256e-03
+    Iteration  110 | Infid = 1.975128e-03
 
 
 .. parsed-literal::
 
-    Iteration  120 | Infid = 1.802909e-03
+    Iteration  120 | Infid = 1.839000e-03
 
 
 .. parsed-literal::
 
-    Iteration  130 | Infid = 1.732753e-03
+    Iteration  130 | Infid = 1.760076e-03
 
 
 .. parsed-literal::
 
-    Iteration  140 | Infid = 1.696865e-03
+    Iteration  140 | Infid = 1.703803e-03
 
 
 .. parsed-literal::
 
-    Iteration  150 | Infid = 1.652172e-03
+    Iteration  150 | Infid = 1.668582e-03
 
 
 .. parsed-literal::
 
-    Iteration  160 | Infid = 1.625293e-03
+    Iteration  160 | Infid = 1.625379e-03
 
 
 .. parsed-literal::
 
-    Iteration  170 | Infid = 1.601547e-03
+    Iteration  170 | Infid = 1.596624e-03
 
 
 .. parsed-literal::
 
-    CPU times: user 6h 8min 22s, sys: 1min 51s, total: 6h 10min 14s
-    Wall time: 7min 32s
+    CPU times: user 4h 41s, sys: 1min 49s, total: 4h 2min 30s
+    Wall time: 4min 7s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.0015915832405125618, 'iterations': 202, 'message': 'STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT'}
+    {'status': 2, 'value': 0.001575634074790111, 'iterations': 201, 'message': 'STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT'}
 
 
 
@@ -830,14 +843,14 @@ The new fidelities are
 
 .. code:: ipython3
 
-    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].measure(tlist)}")
-    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].measure(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[0]} = {meas_list[0].get_value(tlist)}")
+    print(f"Fidelity at N_T={n_fock_truncation_list[1]} = {meas_list[1].get_value(tlist)}")
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=15 = 0.993474980163718
-    Fidelity at N_T=20 = 0.9928198934876475
+    Fidelity at N_T=15 = 0.9936645283345249
+    Fidelity at N_T=20 = 0.9929874029455249
 
 
 And the dynamics of the system under these optimized pulses looks like
@@ -855,11 +868,15 @@ the following
 References
 ----------
 
-| [Heeres2017] R. Heeres et al., “Implementing a universal gate set on a
-  logical qubit encoded in an oscillator”, Nature Communications 8, 94
-  (2017)
-| [Eickbusch2022] A. Eickbusch et al., “Fast Universal Control of an
-  Oscillator with Weak Dispersive Coupling to a Qubit”, Nature Physics
-  18, 1464–1469 (2022)
-| [Blais2021] A. Blais, A. Grimsmo, S. Girvin and A. Wallraff, “Circuit
-  quantum electrodynamics”, Review of Modern Physics 93, 025005 (2021)
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).
+- **(Heeres et al., 2017)** R. W. Heeres et al., “Implementing a
+  universal gate set on a logical qubit encoded in an oscillator,”
+  *Nature Communications* **8**, 94 (2017).
+- **(Eickbusch et al., 2022)** A. Eickbusch et al., “Fast universal
+  control of an oscillator with weak dispersive coupling to a qubit,”
+  *Nature Physics* **18**, 1464–1469 (2022).
+- **(Blais et al., 2021)** A. Blais et al., “Circuit quantum
+  electrodynamics,” *Reviews of Modern Physics* **93**, 025005 (2021).

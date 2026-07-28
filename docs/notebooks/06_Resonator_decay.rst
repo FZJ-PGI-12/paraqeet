@@ -2,7 +2,9 @@ Decay of coherent state of a resonator
 ======================================
 
 This is an example demonstrating open system simulation methods -
-exponentiation of Lindblad superoperator and ODE solver. We consider a
+exponentiation of the Lindblad (Lindblad, 1976)
+:cite:p:`lindblad1976generators` (Manzano, 2020)
+:cite:p:`manzano2020short` superoperator and ODE solver. We consider a
 simple model of decay of a coherent state in a resonator for this
 example.
 
@@ -12,15 +14,15 @@ example.
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.master_equation import MasterEquation
-    from paraqeet.model.resonator import Resonator, ResonatorHamiltonian
+    from paraqeet.eom.master_equation import MasterEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.resonator import Resonator, ResonatorHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ZeroEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
 
-1. Using ``ScipyExmp``
-----------------------
+1. Using ``Expm``
+-----------------
 
 Exponentiating the full Lindbladian super-operator
 
@@ -95,13 +97,13 @@ Exponentiating the full Lindbladian super-operator
 
 .. code:: ipython3
 
-    from paraqeet.propagation.scipy_expm import ScipyExpm
+    from paraqeet.propagation.expm import Expm
     from paraqeet.propagation.utils import convert_dm_to_vec
     
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = ScipyExpm(eom_func=model.get_value, resolution=100e9, initial_state=convert_dm_to_vec(init_dm))
+    prop = Expm(eom_func=model.get_value, resolution=100e9, initial_state=convert_dm_to_vec(init_dm))
 
 .. code:: ipython3
 
@@ -166,7 +168,7 @@ Exponentiating the full Lindbladian super-operator
     
     coherent_state = generate_coherent_state(num_fock, 1.5, dm=True)
 
-plot coherent state populations
+Plot coherent state populations
 
 .. code:: ipython3
 
@@ -256,7 +258,7 @@ plot coherent state populations
     t_final = 100e-9
     ts = np.linspace(0, t_final, 101)
     
-    prop = ScipyExpm(eom_func=model.get_value, resolution=100e9, initial_state=convert_dm_to_vec(coherent_state))
+    prop = Expm(eom_func=model.get_value, resolution=100e9, initial_state=convert_dm_to_vec(coherent_state))
     plot_signal_and_dynamics(
         gen, prop, ts, state_labels=[rf"$|{i}\rangle$" for i in range(num_fock)], open_system=True, vectorized_dm=True
     )
@@ -275,8 +277,8 @@ plot coherent state populations
 .. image:: 06_Resonator_decay_files/06_Resonator_decay_15_1.png
 
 
-2. Using ``Vern7``
-------------------
+2. Using ``Vern7`` (Verner, 2010) :cite:p:`verner2010numerically`
+-----------------------------------------------------------------
 
 Using ODE solver to compute the state
 
@@ -371,3 +373,15 @@ Using ODE solver to compute the state
 
 .. image:: 06_Resonator_decay_files/06_Resonator_decay_21_1.png
 
+
+References
+----------
+
+- **(Lindblad, 1976)** G. Lindblad, “On the generators of quantum
+  dynamical semigroups,” *Communications in Mathematical Physics*
+  **48**, 119–130 (1976).
+- **(Manzano, 2020)** D. Manzano, “A short introduction to the Lindblad
+  master equation,” *AIP Advances* **10**, 025106 (2020).
+- **(Verner, 2010)** J. H. Verner, “Numerically optimal Runge–Kutta
+  pairs with interpolants,” *Numerical Algorithms* **53**, 383–396
+  (2010).

@@ -16,15 +16,8 @@ from paraqeet.quantity import Array, Float
 class ScipyOptimizerGradient(ScipyOptimizer):
     """The Scipy Optimizer gradient model.
 
-    Minimize the outcome of a measurement with the Scipy optimization package by providing gradient values.
-
-    Parameters
-    ----------
-    measure_and_gradient_func: Callable[[Array], tuple[Float, Array]]
-        Function implementing measurement of observables to be minimized.
-    optimization_map: OptimizationMap
-        An optimization map containing all parameters that can be optimized.
-
+    Minimize the outcome of a measurement with the Scipy optimization package
+    by providing gradient values.
     """
 
     _grad_cache: Array  # of shape (n_parameters,)
@@ -34,6 +27,13 @@ class ScipyOptimizerGradient(ScipyOptimizer):
     def __init__(
         self, measure_and_gradient_func: Callable[[Array], tuple[Float, Array]], optimization_map: OptimizationMap
     ) -> None:
+        """
+        Args:
+            measure_and_gradient_func: Function implementing measurement of
+                observables to be minimized, returning (value, gradient).
+            optimization_map: An optimization map containing all parameters
+                that can be optimized.
+        """
         self._measure_and_gradient_func = measure_and_gradient_func
         self._measure_func = lambda times: self._measure_and_gradient_func(times)[0]
         super().__init__(self._measure_func, optimization_map)
@@ -45,14 +45,16 @@ class ScipyOptimizerGradient(ScipyOptimizer):
 
         Performs the actual optimization.
 
-        *Note - If input `times` is a float, then the start time of propagation is implicitly assumed to be zero.
-        For an array of times, the first time point is the start time.*
+        Note:
+            If input ``times`` is a float, then the start time of propagation
+            is implicitly assumed to be zero. For an array of times, the first
+            time point is the start time.
 
-        Returns
-        -------
-        OptimizationResult
+        Args:
+            times: Array of times or a float (assumed start time zero).
+
+        Returns:
             The result of the optimization.
-
         """
         self._times = jnp.array([0.0, times]) if isinstance(times, float) else times
 
@@ -77,7 +79,7 @@ class ScipyOptimizerGradient(ScipyOptimizer):
                 callback=self._callback,
             )
         except Exception as e:
-            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument `g`" in str(e):
+            if "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th" + " argument ``g``" in str(e):
                 raise IncompatibleOptimizationMap(
                     "Number of quantities in optMap differ from number of" + f" gradients computed. \n {e}"
                 )
@@ -95,25 +97,20 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             raw_result=result,
         )
 
-    def _set_parameters_and_measure(self, values) -> float:
+    def _set_parameters_and_measure(self, values: Array) -> float:
         """Update the parameter values and return measurement result.
 
         Returns the measurement result including gradient.
         The gradient is stored in a local cache for lookup.
-        This tailored for L-BFGS-B or similar algorithms that alternate
+        This is tailored for L-BFGS-B or similar algorithms that alternate
         between function and gradient calls.
         Internal callback.
 
-        Parameters
-        ----------
-        values: Array
-            Parameter values for the update.
+        Args:
+            values: Parameter values for the update.
 
-        Returns
-        -------
-        Array
-            Returns the inverse of the fidelity.
-
+        Returns:
+            The infidelity, i.e. one minus the fidelity (the optimizer minimizes this).
         """
         log = []
         params = self._optimization_map.get_all_parameters()
@@ -129,21 +126,16 @@ class ScipyOptimizerGradient(ScipyOptimizer):
             self._logger.log(log, float(infid))
         return float(1 - fun)
 
-    def _lookup_jac(self, values) -> Array:
+    def _lookup_jac(self, values: Array) -> Array:
         """Update the parameter values.
 
         Return the gradient of a measurement result.
         Internal callback.
 
-        Parameters
-        ----------
-        values: Array
-            Parameter values for the update.
+        Args:
+            values: Parameter values for the update.
 
-        Returns
-        -------
-        Array
-            Returns the gradient of a measurement result.
-
+        Returns:
+            The gradient of a measurement result.
         """
         return -1 * self._grad_cache * self._scales

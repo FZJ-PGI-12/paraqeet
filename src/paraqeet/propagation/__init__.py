@@ -1,1 +1,1 @@
-"""Propagation model module."""
+"""Propagation module."""

@@ -1,4 +1,4 @@
-"""Class definition for the Optimizable Map model."""
+"""Map that collects the parameters to optimize and traces them back to their Optimizable objects."""
 
 from collections.abc import Callable
 
@@ -16,18 +16,30 @@ class OptimizationMap:
     Optimizable to which they belong. Before optimization, an instance of this
     class needs to be filled and passed to the optimizer.
 
+    Examples:
+
+    .. code-block:: python
+
+        >>> from paraqeet import OptimizationMap
+        >>> from paraqeet.signal.envelopes import ConstantEnvelope
+        >>> envelope = ConstantEnvelope()
+        >>> optmap = OptimizationMap()
+        >>> optmap.add(envelope, [envelope.amplitude])
+        >>> len(optmap.get_all_parameters())
+        1
+
     """
 
     _optimizable_to_parameter_map: dict[Optimizable, list[Quantity]]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._optimizable_to_parameter_map = {}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Magic method for human readable representation."""
         return self.__str__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Human readable representation of the parameters set to optimize."""
         om_str = ""
         for key, val in self._optimizable_to_parameter_map.items():
@@ -40,7 +52,7 @@ class OptimizationMap:
         self,
         optimizable: Optimizable,
         optimizable_quantities: Quantity | list[Quantity] | None = None,
-    ):
+    ) -> None:
         """Add an optimizable object and a list of its quantities to the map.
 
         The list contains all parameters of the optimizable object that shall
@@ -48,13 +60,10 @@ class OptimizationMap:
         parameters of the class will be used. If the object was already added,
         the list of quantities will be overwritten.
 
-        Parameters
-        ----------
-        optimizable: Optimizable
-            Input Optimizable object for adding to the map.
-        optimizable_quantities: Quantity | list[Quantity] | None = None
-            List of all parameters of the optimizable object considered for
-            optimization.
+        Args:
+            optimizable: Input Optimizable object for adding to the map.
+            optimizable_quantities: List of all parameters of the optimizable
+                object considered for optimization.
 
         """
         if optimizable_quantities is not None:
@@ -71,20 +80,17 @@ class OptimizationMap:
         self,
         optimizable: Optimizable,
         optimizable_quantities: Quantity | list[Quantity] | None = None,
-    ):
+    ) -> None:
         """Append an optimizable object and a list of its quantities to the map.
 
-        This method is similar to the `add` method, but instead of overwriting the
+        This method is similar to the ``add`` method, but instead of overwriting the
         existing entries, this appends the specified list of quantities to the
         already existing quantities.
 
-        Parameters
-        ----------
-        optimizable: optimizable
-            Input optimizable object for adding to the map.
-        optimizable_quantities: Quantity | list[Quantity] | None = None
-            List of all parameters of the optimizable object considered for
-            optimization.
+        Args:
+            optimizable: Input optimizable object for adding to the map.
+            optimizable_quantities: List of all parameters of the optimizable
+                object considered for optimization.
 
         """
         if optimizable_quantities is not None:
@@ -101,19 +107,16 @@ class OptimizationMap:
         if len(self._optimizable_to_parameter_map[optimizable]) < 1:
             self._optimizable_to_parameter_map.pop(optimizable)
 
-    def remove(self, optimizable: Optimizable, params: Quantity | list[Quantity] | None = None):
+    def remove(self, optimizable: Optimizable, params: Quantity | list[Quantity] | None = None) -> None:
         """Remove the given optimizable or parameter(s) from the optimization map.
 
         If params is None, it removes the optimizable from the optimization map.
         Else it only removes the specific parameter from the optimization map.
 
-        Parameters
-        ----------
-        optimizable: optimizable
-            optimizable to be removed.
-        params: Quantity | list[Quantity] | None.
-            Parameter(s) to be removed from the optimization map. If None removes the optimizable.
-
+        Args:
+            optimizable: optimizable to be removed.
+            params: Parameter(s) to be removed from the optimization map.
+                If None removes the optimizable.
         """
         try:
             if params is None:
@@ -133,7 +136,9 @@ class OptimizationMap:
         new_parameters: Quantity | list[Quantity],
     ) -> None:
         """Perform an in-place substitution of the old and new parameters.
-        This helps to keeps the ordering of parameters the same while replacing parameters.
+
+        This helps to keep the ordering of parameters the same while replacing
+        parameters.
         """
         old_parameters_list = old_parameters if isinstance(old_parameters, list) else [old_parameters]
         new_parameters_list = new_parameters if isinstance(new_parameters, list) else [new_parameters]
@@ -146,39 +151,28 @@ class OptimizationMap:
     def get_optimizables(self) -> set[Optimizable]:
         """Return all optimizable objects that were added to this map.
 
-        Returns
-        -------
-        set[Optimizable]
+        Returns:
             Set of all optimizable objects from the map.
-
         """
         return set(self._optimizable_to_parameter_map.keys())
 
     def get_parameters(self, optimizable: Optimizable) -> list[Quantity] | None:
-        """Return all quantities associated with the given parameter.
+        """Return all quantities associated with the given optimizable.
 
-        Parameters
-        ----------
-        optimizable: Optimizable
-            Input optimizable object.
+        Args:
+            optimizable: Input optimizable object.
 
-        Returns
-        -------
-        list[Quantity] | None
+        Returns:
             List of parameters or None (if the optimizable has not been
             added yet).
-
         """
         return self._optimizable_to_parameter_map[optimizable]
 
     def get_all_parameters(self) -> list[Quantity]:
         """Return all parameters that were added to the system map.
 
-        Returns
-        -------
-        List[Quantity]
+        Returns:
             All parameters that were added to the map.
-
         """
         quantities = []
         for params in self._optimizable_to_parameter_map.values():
@@ -192,7 +186,6 @@ class OptimizationMap:
         each optimizable class. This needs to be called by the optimizer
         before gradient based optimization to tell the layers which gradients
         to compute.
-
         """
         for optimizable, params in self._optimizable_to_parameter_map.items():
             optimizable.set_optimizable_parameters(params)
@@ -205,11 +198,9 @@ class OptimizationMap:
         a filter function. Only parameters for which the filter function returns
         true will remain in this map.
 
-        Parameters
-        ----------
-        filter_function : Callable
-            Filter function that maps quantities to boolean values.
-
+        Args:
+            filter_function: Filter function that maps quantities to boolean
+                values.
         """
         for key in self._optimizable_to_parameter_map.keys():
             filtered = filter(filter_function, self._optimizable_to_parameter_map[key])
@@ -218,27 +209,21 @@ class OptimizationMap:
             (k, v) for k, v in self._optimizable_to_parameter_map.items() if len(v) > 0
         )
 
-    def filter_by_name(self, name: str):
+    def filter_by_name(self, name: str) -> None:
         """Filter parameters by name of parameter.
 
-        Parameters
-        ----------
-        name : str
-            Name of parameter to be filtered with.
-
+        Args:
+            name: Name of parameter to be filtered with.
         """
-        return self.filter_parameters(lambda quantity: quantity.get_name() == name)
+        self.filter_parameters(lambda quantity: quantity.get_name() == name)
 
-    def remove_by_name(self, name: str):
+    def remove_by_name(self, name: str) -> None:
         """Remove parameters by name of parameter.
 
-        Parameters
-        ----------
-        name : str
-            Name of parameter to be filtered with.
-
+        Args:
+            name: Name of parameter to be filtered with.
         """
-        return self.filter_parameters(lambda quantity: name not in quantity.get_name())
+        self.filter_parameters(lambda quantity: name not in quantity.get_name())
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of the optimization map.
@@ -261,19 +246,14 @@ class OptimizationMap:
                 }
             }
 
-        where the innermost part is generated by Quantity's toDict function.
+        where the innermost part is generated by Quantity's to_dict function.
 
+        Returns:
+            All optimized quantities in an exportable format.
 
-        Returns
-        -------
-        dict
-            all optimized quantities in an exportable format
-
-        Raises
-        ------
-        SerialisationException
-            If the name of any Optimizable or Quantity is None or not unique.
-
+        Raises:
+            SerializationException: If the name of any Optimizable or Quantity
+                is None or not unique.
         """
         data = dict()
         for optimizable, quantities in self._optimizable_to_parameter_map.items():
@@ -293,19 +273,17 @@ class OptimizationMap:
         return data
 
     def from_dict(self, data: dict) -> None:
-        """
-        Restores the values of all optimized quantities that are in the dictionary. The format of the dictionary needs
-        to be in the same format as generated by the toDict function.
+        """Restore the values of all optimized quantities in the dictionary.
 
-        Parameters
-        ----------
-        data: dict
-            All quantities that should be restored.
+        The format of the dictionary needs to be in the same format as generated
+        by the ``to_dict`` function.
 
-        Raises
-        ------
-        SerialisationException
-            If the dict contains an Optimizable or a Quantity that does not exist in this optimization map.
+        Args:
+            data: All quantities that should be restored.
+
+        Raises:
+            SerializationException: If the dict contains an Optimizable or a
+                Quantity that does not exist in this optimization map.
         """
         optimizables_for_name = {opt.name: opt for opt in self._optimizable_to_parameter_map.keys()}
         for optimizable_name, values in data.items():

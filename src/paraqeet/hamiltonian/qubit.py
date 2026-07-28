@@ -5,33 +5,30 @@ from typing import override
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
-from paraqeet.model.utils import sigma_minus, sigma_x, sigma_y, sigma_z
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.utils import sigma_minus, sigma_x, sigma_y, sigma_z
 from paraqeet.quantity import Array, Quantity
 
 
 class QubitHamiltonian(Hamiltonian):
-    r"""Hamiltonian of a single qubit -frequency / 2 * pauli_z.
+    r"""Hamiltonian of a single qubit, -frequency / 2 * pauli_z + drive.
 
     The implementation uses the quantum information convention of having :math:`|0\rangle` = [1 0]^T
-    system that is compatible with the projection of a higher-dimensional
-    as ground state and :math:`|1\rangle` = [0 1]^T as excited state. Hence, the Hamiltonian
-    should be taken with a minus sign.
-
-    Attributes
-    ----------
-    frequency: Quantity
-        Frequency for characterizing the qubit.
-    drives: list[Drive] | None
-        List of time-dependent drives.
+    as ground state and :math:`|1\rangle` = [0 1]^T as excited state, compatible with the projection
+    of a higher-dimensional system. Hence, the Hamiltonian should be taken with a minus sign.
     """
 
     def __init__(
         self,
         frequency: Quantity,
         drives: list[Drive] | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            frequency: Frequency of the qubit.
+            drives: List of time-dependent drives.
+        """
         super().__init__(drives)
         self.frequency = frequency
         self._sigma_minus = sigma_minus()
@@ -43,48 +40,42 @@ class QubitHamiltonian(Hamiltonian):
     def dimension(self) -> int:
         """Return the dimension of the Hilbert space of the system.
 
-        Returns
-        -------
-        int
+        Returns:
             Hilbert space dimension.
-
         """
         return 2
 
     @property
     def sigma_minus(self) -> Array:
-        """Return the sigma minus operator"""
+        """Return the sigma minus operator."""
         return self._sigma_minus
 
     @property
     def sigma_plus(self) -> Array:
-        """Return the sigme plus operator"""
+        """Return the sigma plus operator."""
         return self._sigma_minus.T
 
     @property
     def sigma_x(self) -> Array:
-        """Return the Pauli X operator"""
+        """Return the Pauli X operator."""
         return self._sigma_x
 
     @property
     def sigma_y(self) -> Array:
-        """Return the Pauli Y operator"""
+        """Return the Pauli Y operator."""
         return self._sigma_y
 
     @property
     def sigma_z(self) -> Array:
-        """Return the Pauli Z operator"""
+        """Return the Pauli Z operator."""
         return self._sigma_z
 
     @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
-        Returns
-        -------
-        list[Quantity]
-            Returns the list of parameters of the system.
-
+        Returns:
+            The list of parameters of the system.
         """
         return self.get_drive_parameters() + [self.frequency]
 
@@ -107,19 +98,8 @@ class QubitHamiltonian(Hamiltonian):
 
 
 class Qubit:
-    """A system representing a qubit. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators
-
-    Attributes
-    ----------
-    hamiltonian: QubitHamiltonian
-        The Hamiltonian of the qubit.
-    t1: Quantity | None
-        Energy relaxation time.
-    temp: Quantity | None
-        Temperature of the qubit.
-    t2star: Quantity | None
-        Dephasing time.
+    """A system representing a qubit. It allows storing information about relaxation and dephasing times
+    and getting the corresponding jump operators.
     """
 
     def __init__(
@@ -128,7 +108,14 @@ class Qubit:
         t1: Quantity | None = None,
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            hamiltonian: The Hamiltonian of the qubit.
+            t1: Energy relaxation time.
+            temp: Temperature of the qubit.
+            t2star: Dephasing time.
+        """
         self.hamiltonian = hamiltonian
         self.t1 = t1
         self.temp = temp

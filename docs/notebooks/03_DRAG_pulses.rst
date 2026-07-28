@@ -7,24 +7,25 @@ First, we make the necessary imports.
 
     import numpy as np
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.transmon import TransmonHamiltonian
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
-    from paraqeet.model.transmon import TransmonHamiltonian
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
-    from paraqeet.signal.waveform import DRAGMixer
+    from paraqeet.signal.signal import DRAGMixer
 
 1. Define the Gaussian Tone and put into the DRAGMixer
 ------------------------------------------------------
 
 The GaussTone explicitly allows for the evaluation of an envelope signal
-and its time derivative which is then used to calculate the DRAG
-corrected signal in the DRAGMixer
+and its time derivative which is then used to calculate the DRAG (Motzoi
+et al., 2009) :cite:p:`motzoi2009simple` corrected signal in the
+DRAGMixer
 
 .. code:: ipython3
 
@@ -86,7 +87,7 @@ corrected signal in the DRAGMixer
     
     params = gen.get_parameters()
     
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=100e9,
@@ -132,8 +133,8 @@ corrected signal in the DRAGMixer
 
 
 
-2. Set up ideal reference matrix to compare the pulses result to.
------------------------------------------------------------------
+2. Set up the ideal reference matrix to compare the pulse's result to.
+----------------------------------------------------------------------
 
 .. code:: ipython3
 
@@ -148,20 +149,20 @@ corrected signal in the DRAGMixer
             dtype=np.complex128,
         )
 
-Set up measure that is optimized. In this case, the gate fidelity
+Set up the measure that is optimized. In this case, the gate fidelity
 between the propagator resulting from the pulse simulation and the ideal
 reference defined above is used.
 
 .. code:: ipython3
 
     gate_fid = UnitaryFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         gate=rx(np.pi / 2),
     )
 
 Plot initial pulse shape and population transfer. Target is the full
-population transfer,i.e., an X-gate.
+population transfer, i.e., an X-gate.
 
 .. code:: ipython3
 
@@ -189,7 +190,7 @@ As expected, we get a partial transfer and a low fidelity.
 .. code:: ipython3
 
     times = np.array([0.0, t_final])
-    gate_fid.measure(times)
+    gate_fid.get_value(times)
 
 
 
@@ -213,7 +214,7 @@ and the parameters of the cosine tone.
     for i in [0, 2, 3, 4]:
         selected_params.append(params[i])
     optmap.add(gen, selected_params)
-    opt = ScipyOptimizer(measure_func=gate_fid.measure, optimization_map=optmap)
+    opt = ScipyOptimizer(measure_func=gate_fid.get_value, optimization_map=optmap)
 
 .. code:: ipython3
 
@@ -224,7 +225,7 @@ and the parameters of the cosine tone.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.005760894081225376, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.005760910023328569, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -245,14 +246,14 @@ Print all parameters that were optimized.
 
                Name:                Value                  Min                  Max
     --------------------------------------------------------------------------------
-          Amplitude:         2.455072e+08         0.000000e+00         1.000000e+09
-              Delta:        -2.493540e+09        -3.769911e+09        -1.256637e+08
-            lo_freq:         3.015934e+10         2.412743e+10         3.619115e+10
-              Phase:         2.006086e-04        -3.141593e+00         3.141593e+00
+          Amplitude:         2.455094e+08         0.000000e+00         1.000000e+09
+              Delta:        -2.493769e+09        -3.769911e+09        -1.256637e+08
+            lo_freq:         3.015935e+10         2.412743e+10         3.619115e+10
+              Phase:         3.539781e-04        -3.141593e+00         3.141593e+00
 
 
 Plot final pulse shape and population transfer. Target is the full
-population transfer,i.e., an X-gate.
+population transfer, i.e., an X-gate.
 
 .. code:: ipython3
 
@@ -273,18 +274,25 @@ population transfer,i.e., an X-gate.
 
 
 We can see from the plot and optimizer output that we have found better
-controls. For which the excitement to the second excited state is much
+controls, for which the excitation to the second excited state is much
 smaller than initially.
 
 .. code:: ipython3
 
-    gate_fid.measure(times)
+    gate_fid.get_value(times)
 
 
 
 
 .. parsed-literal::
 
-    Array(0.99423911, dtype=float64)
+    Array(0.99423909, dtype=float64)
 
 
+
+References
+----------
+
+- **(Motzoi et al., 2009)** F. Motzoi et al., “Simple pulses for
+  elimination of leakage in weakly nonlinear qubits,” *Physical Review
+  Letters* **103**, 110501 (2009).

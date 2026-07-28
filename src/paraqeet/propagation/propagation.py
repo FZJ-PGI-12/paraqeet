@@ -1,4 +1,4 @@
-"""Class definition of the Propagation model."""
+"""Abstract base class for solvers that propagate the equation of motion in time."""
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
@@ -9,21 +9,18 @@ from paraqeet.quantity import Array
 
 
 class Propagation(ABC):
-    """Abstract base class for solver of the equations of motion.
-
-    Parameters
-    ----------
-    _eom_func: Callable
-        A function that gives the equation of motion.
-    resolution: float
-        Propagation resolution used to solve the equation of motion.
-        The corresponding time step dt = 1/resolution
-    """
+    """Abstract base class for solvers of the equations of motion."""
 
     _eom_func: Callable[[Array], Array]
     _resolution: float
 
-    def __init__(self, eom_func: Callable[[Array], Array], resolution: float):
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float) -> None:
+        """
+        Args:
+            eom_func: A function that gives the equation of motion.
+            resolution: Propagation resolution used to solve the equation of motion.
+                The corresponding time step dt = 1/resolution
+        """
         self._eom_func = eom_func
         self._resolution = resolution
 
@@ -38,7 +35,7 @@ class Propagation(ABC):
         self._resolution = resolution
 
     @abstractmethod
-    def propagate(self, time: Array) -> Array:
+    def get_value(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
         The first dimension of the result will always be the time.
@@ -46,15 +43,11 @@ class Propagation(ABC):
         implementation and could for example be a propagated state vector or
         a propagator in matrix form.
 
-        Parameters
-        ----------
-        time: Array
-            Any one-dimensional vector of timestamps.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        Array
-            Returns the solution of the equations of motion.
+        Returns:
+            Array: Returns the solution of the equations of motion.
 
 
         """
@@ -68,17 +61,24 @@ class StatePropagation(Propagation):
 
     _initial_state: Array
 
-    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array):
+    def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array) -> None:
+        """
+        Args:
+            eom_func: A function that gives the equation of motion.
+            resolution: Propagation resolution used to solve the equation of motion.
+                The corresponding time step dt = 1/resolution.
+            initial_state: State at the beginning of the simulation.
+        """
         super().__init__(eom_func, resolution)
         self.initial_state = initial_state
 
     @property
-    def initial_state(self):
+    def initial_state(self) -> Array:
         """Return initial state."""
         return self._initial_state
 
     @initial_state.setter
-    def initial_state(self, state: Array):
+    def initial_state(self, state: Array) -> None:
         """Set initial state."""
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._initial_state = jnp.array(state, dtype=jnp.complex128)

@@ -6,28 +6,17 @@ import jax
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.model.drive import Drive
-from paraqeet.model.hamiltonian import Hamiltonian
+from paraqeet.hamiltonian.drive import Drive
+from paraqeet.hamiltonian.hamiltonian import Hamiltonian
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
 
 
 class TransmonHamiltonian(Hamiltonian):
-    """Hamiltonian of an anharmonic oscillator.
+    """Hamiltonian of an anharmonic (Duffing) oscillator, as used to model a transmon qubit :cite:p:`koch2007charge`.
 
     Optimizable parameters are the ground frequency and the anharmonicity.
-
-    Attributes
-    ----------
-    num_levels: int
-        Number of levels included in the modeling of the anharmonic oscillator.
-    frequency: Quantity
-        Frequency of the anharmonic oscillator.
-    anharmonicity: Quantity
-        Anharmonicity of the oscillator.
-    drives: list[Drive]
-        List of time-dependent drives of the subsystem.
     """
 
     def __init__(
@@ -36,7 +25,15 @@ class TransmonHamiltonian(Hamiltonian):
         frequency: Quantity,
         anharmonicity: Quantity,
         drives: list[Drive] | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            num_levels: Number of levels included in the modeling of the
+                anharmonic oscillator.
+            frequency: Frequency of the anharmonic oscillator.
+            anharmonicity: Anharmonicity of the oscillator.
+            drives: List of time-dependent drives of the subsystem.
+        """
         super().__init__(drives=drives)
         self._num_levels = num_levels
         self.frequency = frequency
@@ -51,28 +48,25 @@ class TransmonHamiltonian(Hamiltonian):
 
     @property
     def annihilation_op(self) -> Array:
-        """Return the annihilation operator"""
+        """Return the annihilation operator."""
         return self._annihilation_op
 
     @property
     def num_op(self) -> Array:
-        """Return the Fock number operator"""
+        """Return the Fock number operator."""
         return self._num_op
 
     @property
     def anharmonic_term(self) -> Array:
-        """Return the anharmonic_term"""
+        """Return the anharmonic_term."""
         return self._anharmonic_term
 
     @override
     def get_parameters(self) -> list[Quantity]:
         """Get parameters of the model.
 
-        Returns
-        -------
-        List[Quantity]
-            Returns the list of parameters of the system.
-
+        Returns:
+            The list of parameters of the system.
         """
         return self.get_drive_parameters() + [
             self.frequency,
@@ -102,19 +96,8 @@ class TransmonHamiltonian(Hamiltonian):
 
 
 class Transmon:
-    """A system representing a transmon. It allows to store information about relaxation and dephasing times
-    and get the corresponding jump operators
-
-    Attributes
-    ----------
-    hamiltonian: TransmonHamiltonian
-        The Hamiltonian of a transmon as a Duffing oscillator.
-    t1: Quantity | None
-        Energy relaxation time.
-    temp: Quantity | None
-        Temperature of the qubit.
-    t2star: Quantity | None
-        Dephasing time.
+    """A system representing a transmon. It allows storing information about relaxation and dephasing times
+    and getting the corresponding jump operators.
     """
 
     def __init__(
@@ -123,7 +106,14 @@ class Transmon:
         t1: Quantity | None = None,
         temp: Quantity | None = None,
         t2star: Quantity | None = None,
-    ):
+    ) -> None:
+        """
+        Args:
+            hamiltonian: The Hamiltonian of a transmon as a Duffing oscillator.
+            t1: Energy relaxation time.
+            temp: Temperature of the transmon.
+            t2star: Dephasing time.
+        """
         self.hamiltonian = hamiltonian
         self.t1 = t1
         self.temp = temp
@@ -153,13 +143,10 @@ class Transmon:
         return [gamma_t1, gamma_temp, gamma_t2star]
 
     def get_jump_operators(self) -> list[Array]:
-        """
-        Return a list of jump operators for the transmon.
+        """Return a list of jump operators for the transmon.
 
-        Return
-        ------
-        list[Array]
-            List of jump operators
+        Returns:
+            List of jump operators.
         """
         gamma_t1, gamma_temp, gamma_t2star = self.get_decay_rates()
         annihilation_op = self.hamiltonian.annihilation_op

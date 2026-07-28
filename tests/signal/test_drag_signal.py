@@ -9,7 +9,7 @@ from paraqeet.signal.envelopes import (
     ZeroEnvelope,
 )
 from paraqeet.signal.iq_mixer import IQMixer
-from paraqeet.signal.waveform import DRAGMixer
+from paraqeet.signal.signal import DRAGMixer
 
 LEN_SIG = 1001
 

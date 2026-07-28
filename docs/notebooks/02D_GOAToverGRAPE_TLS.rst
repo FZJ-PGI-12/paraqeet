@@ -2,11 +2,10 @@ Optimal control of a single spin by using GOAT over GRAPE
 =========================================================
 
 In this introductory example we compute the gradients of analytic pulse
-shapes in
-`GOAT <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.150401>`__
-by using the gradients of the time evolution from
-`GRAPE <https://www.sciencedirect.com/science/article/pii/S1090780704003696>`__.
-This is performed by using chain rule -
+shapes in GOAT (Machnes et al., 2018) :cite:p:`machnes2018tunable` by
+using the gradients of the time evolution from GRAPE (Khaneja et al.,
+2005) :cite:p:`khaneja2005optimal`. This is performed by using chain
+rule -
 
 .. math:: \frac{\partial J}{\partial p} = \sum_k \frac{\partial J}{\partial c_k} \frac{\partial c_k}{\partial p}
 
@@ -14,6 +13,10 @@ where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
 :math:`\vec{p}` are the analytical parameters of the control pulse
 :math:`c(t) \equiv c(\vec{p}, t)`, and
 :math:`\frac{\partial J}{\partial c_k}` are the gradients from GRAPE.
+
+The combination of GOAT and GRAPE gradients used here is a
+gradient-based variant of the GROUP method (Sørensen et al., 2018)
+:cite:p:`sorensen2018quantum`.
 
 1. Generate a PWC pulse shape
 -----------------------------
@@ -23,20 +26,20 @@ where :math:`c_k = c(t_k)` the ‘pixelated’ control pulse,
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
-    from paraqeet.signal.waveform import FlatTopGaussianFilter
+    from paraqeet.signal.signal import FlatTopGaussianFilter
 
 Define the ``FlatTopGaussianEnvelope`` and the ``PWCGenerator``. The
 ``PWCGenerator`` is used to produce the pixelated pulse shape for
 computing the gradients using GRAPE.
 
 Here we also define the ``FlatTopGaussianFilter`` to ensure that the
-pulse always starts and end at zero.
+pulse always starts and ends at zero.
 
 The optimization would be performed on the ``FlatTopGaussianEnvelope``
 parameters: ``amplitude``, ``t_up``, ``t_down``, ``ramp_time``.
@@ -109,13 +112,13 @@ Using GRAPE as the method to propagate and compute the gradients
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.scipy_expm_grape import ScipyExpmGRAPE
+    from paraqeet.propagation.expm_grape import ExpmGRAPE
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ScipyExpmGRAPE(
+    prop = ExpmGRAPE(
         eom_func=model.get_value,
         eom_gradient_func=model.get_gradient,
         resolution=2e9,
@@ -125,7 +128,7 @@ Using GRAPE as the method to propagate and compute the gradients
     )
     
     zeroone = StateTransferFidelityGRAPE(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -133,7 +136,7 @@ Using GRAPE as the method to propagate and compute the gradients
 
 .. code:: ipython3
 
-    zeroone.measure(times)
+    zeroone.get_value(times)
 
 
 
@@ -168,7 +171,7 @@ Using GRAPE as the method to propagate and compute the gradients
 3. Optimization
 ---------------
 
-Finally, we define the ``GOATOverGRAPE`` fideltiy that chains together
+Finally, we define the ``GOATOverGRAPE`` fidelity that chains together
 the GRAPE gradients to compute the gradient wrt the tone parameters
 
 .. code:: ipython3
@@ -197,7 +200,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
 
 
 
-For this simple example, we reach near perfect fidelity within a few
+For this simple example, we reach near-perfect fidelity within a few
 iterations.
 
 .. code:: ipython3
@@ -217,3 +220,17 @@ iterations.
 
 .. image:: 02D_GOAToverGRAPE_TLS_files/02D_GOAToverGRAPE_TLS_18_1.png
 
+
+References
+----------
+
+- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+  coupled spin dynamics: design of NMR pulse sequences by gradient
+  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+  (2005).
+- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+  efficient optimization of control pulses for practical qubits,”
+  *Physical Review Letters* **120**, 150401 (2018).
+- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+  optimal control in a chopped basis: Applications in control of
+  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).

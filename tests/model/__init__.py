@@ -1,1 +1,1 @@
-"""Model module for the testing suite."""
+"""Testing suite for the ``hamiltonian`` and ``eom`` module."""

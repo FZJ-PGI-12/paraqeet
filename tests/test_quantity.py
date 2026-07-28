@@ -172,7 +172,7 @@ def test_get_item(random_quantity_for_values) -> None:
         values = (2 * np.random.random(n) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(values)
         for i in range(len(q)):
-            testing.assert_almost_equal(q[i], values[i])
+            testing.assert_allclose(q[i], values[i], rtol=1e-12)
 
 
 def test_len(random_quantity_for_values) -> None:
@@ -189,7 +189,7 @@ def test_float(random_quantity_for_values) -> None:
     for _ in range(100):
         value = (2 * np.random.random(1) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(value)
-        testing.assert_almost_equal(float(q), value)
+        testing.assert_allclose(float(q), value, rtol=1e-12)
 
 
 def test_to_array(random_quantity_for_values) -> None:
@@ -197,7 +197,7 @@ def test_to_array(random_quantity_for_values) -> None:
     for n in range(1, 100):
         values = (2 * np.random.random(n) - 1) * np.power(10.0, np.random.randint(-10, 10))
         q = random_quantity_for_values(values)
-        testing.assert_array_almost_equal(np.asarray(q.get_value()), values)
+        testing.assert_allclose(np.asarray(q.get_value()), values, rtol=1e-12)
 
 
 # comparison
@@ -330,16 +330,11 @@ def test_is_scalar_or_vector(random_quantity):
 def __generate_random_matrix(n: int) -> np.ndarray:
     """Generate a random matrix of size `n` by `n`.
 
-    Parameters
-    ----------
-    n: int
-        Dimension of the matrix.
+    Args:
+        n: Dimension of the matrix.
 
-    Returns
-    -------
-    Array
-        Returns a randomly generated `N` by `N` matrix.
-
+    Returns:
+        A randomly generated `N` by `N` matrix.
     """
     magnitude: float = np.power(10.0, np.random.randint(-10, 10))
     return (2 * np.random.random((n, n)) - 1) * magnitude

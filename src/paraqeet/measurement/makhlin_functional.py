@@ -15,55 +15,45 @@ from paraqeet.quantity import Array, Float
 class MakhlinFunctional(Measurement):
     """Class definition of the Makhlin Functional invariants.
 
-    Measures the distance of a propagator to a perfect entangler
-    using Makhlin invariants.
+    Measures the distance of a propagator to a perfect entangler :cite:p:`zhang2005generation,watts2015optimizing`
+    using Makhlin invariants :cite:p:`makhlin2002nonlocal`.
     If a list of ideal Makhlin invariants is given,
     the distance is measured as the Euclidean distance between
     the actual and ideal invariants.
     Else, the Makhlin distance is used.
-
-    Parameters
-    ----------
-    propagation_func: Callable[[Array], Array]
-        Function that evaluates the propagation of some initial state.
-        Expected to be of the form `func(t: Array) -> states: Array`.
-    times : Array
-        One-dimensional vector of timestamps.
-    ideal_invariants : Array optional
-        One-dimensional vector of ideal Makhlin invariants.
-
     """
 
     _propagation_func: Callable[[Array], Array]
-    _ideal_invariants: Array | None
+    _ideal_invariants: tuple[Array, Array, Array] | None
 
     def __init__(
         self,
         propagation_func: Callable[[Array], Array],
-        ideal_invariants: Array | None = None,
-    ):
+        ideal_invariants: tuple[Array, Array, Array] | None = None,
+    ) -> None:
+        """
+        Args:
+            propagation_func: Function that evaluates the propagation of some
+                initial state. Expected to be of the form
+                ``func(t: Array) -> states: Array``.
+            ideal_invariants: One-dimensional vector of ideal Makhlin
+                invariants.
+        """
         self._propagation_func = propagation_func
         self._ideal_invariants = ideal_invariants
 
-    def measure(self, times: Array) -> Array | Float:
+    def get_value(self, times: Array) -> Array | Float:
         """Measure distance of the propagator to a perfect entangler.
 
-        Parameters
-        ----------
-        times : Array
-            One-dimensional vector of timestamps.
+        Args:
+            times: One-dimensional vector of timestamps.
 
-        Returns
-        -------
-        Array
+        Returns:
             Distance of propagator.
 
-        Raises
-        ------
-        IncompatibleLayersException
-            Raises an exception if a quadratic unitary
-            4x4 operator is not received.
-
+        Raises:
+            IncompatibleLayersException: If a quadratic unitary 4x4 operator
+                is not received.
         """
         if not times:
             raise ConfigurationException("Time array was not specified")
@@ -73,7 +63,7 @@ class MakhlinFunctional(Measurement):
             raise IncompatibleLayersException("quadratic unitary 4x4 propagator needed for Makhlin invariants")
         gs = self._makhlin_invariants(u)
         if self._ideal_invariants is not None:
-            return jnp.array(jnp.linalg.norm(gs - self._ideal_invariants))
+            return jnp.array(jnp.linalg.norm(jnp.array(gs) - jnp.array(self._ideal_invariants)))
         else:
             return jnp.abs(gs[2] * jnp.sqrt(gs[0] ** 2 + gs[1] ** 2) - gs[0])
 
@@ -82,16 +72,11 @@ class MakhlinFunctional(Measurement):
 
         Returns a tuple with the three invariants g1, g2 and g3.
 
-        Parameters
-        ----------
-        U: Array
-            Input matrix for computing the Makhlin invariants of.
+        Args:
+            u: Input matrix for computing the Makhlin invariants of.
 
-        Returns
-        -------
-        Tuple[Array, Array, Array]
-            Returns a tuple of 3 Numpy Array as invariants g1, g2 and g3.
-
+        Returns:
+            Tuple of 3 Arrays as invariants g1, g2 and g3.
         """
         # transform to bell basis
         q = jnp.array(

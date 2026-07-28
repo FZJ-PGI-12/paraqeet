@@ -9,14 +9,14 @@ for a single spin or qubit.
     import jax.numpy as jnp
     import numpy as np
     
+    from paraqeet.eom.schroedinger_equation import SchroedingerEquation
+    from paraqeet.hamiltonian.drive import Drive
+    from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.model.drive import Drive
-    from paraqeet.model.qubit import QubitHamiltonian
-    from paraqeet.model.schroedinger_equation import SchroedingerEquation
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.scipy_expm_goat import ScipyExpmGOAT
+    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -64,7 +64,7 @@ We can inspect the pre-defined parameters with
 
 
 In this notebook, we would like to optimize the amplitude ``Amplitude``
-and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
+and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 .. code:: ipython3
 
@@ -77,7 +77,7 @@ and frequency ``lo_freq`` if the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as initial guess to demonstrate the
+We use some offset from these values as an initial guess to demonstrate the
 optimization procedure.
 
 .. code:: ipython3
@@ -88,7 +88,7 @@ optimization procedure.
 
 It is important to note that, although we changed the parameters of
 ``params_gen`` the corresponding parameter of ``params_tone`` also
-changes, due Python’s “Pass By Object Reference” scheme. In fact,
+changes, due to Python’s “Pass By Object Reference” scheme. In fact,
 
 .. code:: ipython3
 
@@ -116,10 +116,10 @@ controlled qubit at the time ``t_simu``:
             [-2.49345621e+08,  1.50796447e+10]]], dtype=float64), Array([], shape=(1, 0, 2, 2), dtype=float64))
 
 
-We see that in this case it is empty. This is because, we haven’t yet
+We see that in this case it is empty. This is because we haven’t yet
 defined an ``OptimizationMap`` object that defines the optimizable
 parameters. Also note that the tone parameter ``t_final`` is simply the
-time after which the pulse it is assumed to be zero and it is set by
+time after which the pulse is assumed to be zero and it is set by
 default to :math:`32 \, \mathrm{ns}`. This is not necessarily the
 simulation time, which is another parameter of our choice called
 ``t_simu`` in this case.
@@ -133,13 +133,13 @@ and configure a state transfer problem from :math:`\ket{0}` to
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ScipyExpmGOAT(
+    prop = ExpmGOAT(
         eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=100e9, initial_state=init
     )  # implicit timestep is 1 / resolution
     times = np.array([0.0, t_simu])
     
     zeroone = StateTransferFidelity(
-        propagation_func=prop.propagate,
+        propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
@@ -173,12 +173,12 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. code:: ipython3
 
-    print(f"State fidelity: {zeroone.measure(times)}")
+    print(f"State fidelity: {zeroone.get_value(times)}")
 
 
 .. parsed-literal::
 
-    State fidelity: 0.3473607127051165
+    State fidelity: 0.34736071270511687
 
 
 Optimization
@@ -211,7 +211,7 @@ would not be empty, but instead
 
 
 
-This is because, the parameters have been passed, but not “registered”
+This is because the parameters have been passed, but not “registered”
 by ``optmap``. To remedy this
 
 .. code:: ipython3
@@ -266,7 +266,7 @@ We can now run the optimization as
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 5.009326287108706e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 4.971578704271451e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 The new optimal parameters are
@@ -306,12 +306,12 @@ controls.
 
 .. code:: ipython3
 
-    print(f"State fidelity: {zeroone.measure(times)}")
+    print(f"State fidelity: {zeroone.get_value(times)}")
 
 
 .. parsed-literal::
 
-    State fidelity: 0.9999999999994991
+    State fidelity: 0.9999999999995028
 
 
 In this notebook, we focused on state preparation. In the next notebook,

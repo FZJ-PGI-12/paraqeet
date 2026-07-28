@@ -1,0 +1,41 @@
+"""Schrödinger equation of motion for closed quantum systems."""
+
+from typing import override
+
+from paraqeet.hamiltonian.equation_of_motion import EquationOfMotion
+from paraqeet.quantity import Array
+
+
+class SchroedingerEquation(EquationOfMotion):
+    """Model of a closed physical system, defined by a Hamiltonian.
+
+    Its dynamics is given by the Schrödinger equation.
+    """
+
+    @override
+    def get_value(self, times: Array) -> Array:
+        """Compute the right hand side of the Schrödinger equation
+        without multiplying the state.
+
+        Args:
+            times: Array of times.
+
+        Returns:
+            RHS with dimension [t, n, n] with 't' as time
+            and 'n' as Hilbert space dimension.
+        """
+        return -1.0j * self._hamiltonian_func(times)
+
+    @override
+    def get_gradient(self, times: Array) -> Array:
+        """Compute the gradient of the right hand side of the Schrödinger equation
+        without multiplying the state.
+
+        Args:
+            times: Array of times.
+
+        Returns:
+            The gradient of the right hand side.
+        """
+        eom_gradient = self._hamiltonian_gradient_func(times)
+        return -1.0j * eom_gradient

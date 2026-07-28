@@ -2,23 +2,20 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="147.19731mm"
+   width="93.999992mm"
    height="176.38911mm"
-   viewBox="-3 -3 160.537 192.3743"
+   viewBox="-3 -3 102.5187 192.3743"
    version="1.1"
    id="svg5"
-   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
    sodipodi:docname="layers.svg"
-   inkscape:export-filename="layers.png"
-   inkscape:export-xdpi="150"
-   inkscape:export-ydpi="150"
+   inkscape:version="1.4.2 (ebf0e94, 2025-05-08)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:ns7="http://www.iki.fi/pav/software/textext/">
   <sodipodi:namedview
-     id="namedview7"
+     id="namedview1"
      pagecolor="#ffffff"
      bordercolor="#000000"
      borderopacity="0.25"
@@ -28,17 +25,15 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="0.64294806"
-     inkscape:cx="157.86656"
-     inkscape:cy="215.41398"
-     inkscape:window-width="1440"
-     inkscape:window-height="900"
+     inkscape:zoom="1.7399978"
+     inkscape:cx="-6.3218472"
+     inkscape:cy="443.10401"
+     inkscape:window-width="3440"
+     inkscape:window-height="1371"
      inkscape:window-x="0"
      inkscape:window-y="0"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="layer1"
-     showborder="true"
-     showguides="true">
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
     <inkscape:grid
        id="grid1"
        units="mm"
@@ -51,15 +46,8 @@
        color="#0099e5"
        opacity="0.14901961"
        empspacing="5"
-       dotted="false"
-       gridanglex="30"
-       gridanglez="30"
+       enabled="true"
        visible="true" />
-    <sodipodi:guide
-       position="114.51557,268.71801"
-       orientation="0,-1"
-       id="guide10"
-       inkscape:locked="false" />
   </sodipodi:namedview>
   <defs
      id="defs2">
@@ -69,12 +57,9 @@
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
-       markerWidth="6.13475207"
-       markerHeight="5.93049479"
+       markerWidth="6.1347523"
+       markerHeight="5.9304948"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -88,12 +73,9 @@
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
        markerWidth="6.1347523"
        markerHeight="5.9304953"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -107,12 +89,9 @@
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
        markerWidth="6.1347523"
        markerHeight="5.9304953"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -126,12 +105,9 @@
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
        markerWidth="6.1347523"
        markerHeight="5.9304953"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -145,12 +121,9 @@
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
        markerWidth="6.1347523"
        markerHeight="5.9304953"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -158,22 +131,15 @@
          style="fill:context-stroke;fill-rule:evenodd;stroke:none"
          id="path1367-9-6-7-2" />
     </marker>
-    <defs
-       id="id-9a4882e5-43f9-4717-a478-27e9b88128de" />
-    <defs
-       id="id-75e900ab-9c6b-480d-a4a2-51a4b021d76a" />
     <marker
        style="overflow:visible"
        id="RoundedArrow-2"
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
        markerWidth="6.1347523"
        markerHeight="5.9304948"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -187,12 +153,9 @@
        refX="0"
        refY="0"
        orient="auto-start-reverse"
-       inkscape:stockid="RoundedArrow"
        markerWidth="6.1347523"
        markerHeight="5.9304948"
        viewBox="0 0 6.1347524 5.9304951"
-       inkscape:isstock="true"
-       inkscape:collect="always"
        preserveAspectRatio="xMidYMid">
       <path
          transform="scale(0.7)"
@@ -202,10 +165,8 @@
     </marker>
   </defs>
   <g
-     inkscape:label="Ebene 1"
-     inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-15.739017,-31.786578)">
+     transform="translate(-15.739017,-31.786577)">
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.280637;stroke-dasharray:none"
        id="rect457"
@@ -213,10 +174,7 @@
        height="192.3743"
        x="12.739017"
        y="28.786577"
-       ry="1.3347701"
-       inkscape:export-filename="layers.png"
-       inkscape:export-xdpi="200"
-       inkscape:export-ydpi="200" />
+       ry="1.3347701" />
     <rect
        style="fill:#080808;fill-opacity:1;stroke:none;stroke-width:0.354366;stroke-dasharray:2.83495, 0.354366;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
        id="rect7-4-3"
@@ -228,14 +186,13 @@
        rx="1.0823605" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.9585px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.384473"
-       x="-170.48161"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.69324px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.384473"
+       x="-170.99741"
        y="34.231926"
        id="text1497-0-9-5"
-       transform="matrix(0,-1.0768478,0.92863638,0,0,0)"><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.9585px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.384473"
-         x="-170.48161"
+       transform="matrix(0,-1.0768478,0.92863635,0,0,0)"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.69324px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.384473"
+         x="-170.99741"
          y="34.231926"
          id="tspan1557-8-4-5">Optimizable</tspan></text>
     <rect
@@ -249,26 +206,24 @@
        rx="2.0353477" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.71066px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.48222"
-       x="-118.08779"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.27036px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.48222"
+       x="-118.73359"
        y="31.312555"
        id="text1497-0-9-0"
        transform="matrix(0,-0.95564024,1.0464189,0,0,0)"><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.71066px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.48222"
-         x="-118.08779"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.27036px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.48222"
+         x="-118.73359"
          y="31.312555"
          id="tspan1557-8-4-6">Optimizable</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.15597px;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke:none;stroke-width:0.4"
-       x="48.119545"
+       x="44.553982"
        y="69.08226"
        id="text1608-5-2"><tspan
-         sodipodi:role="line"
          id="tspan1606-6-2"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.15597px;font-family:serif;-inkscape-font-specification:serif;stroke-width:0.4"
-         x="48.119545"
+         x="44.553982"
          y="69.08226">Hamiltonian</tspan></text>
     <rect
        style="fill:#080808;fill-opacity:1;stroke:none;stroke-width:0.368678;stroke-dasharray:2.94944, 0.368678;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
@@ -281,14 +236,13 @@
        rx="1.2126083" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.07798px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.4"
-       x="-78.922173"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.69324px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.4"
+       x="-79.202667"
        y="32.14146"
        id="text1497-0-9"
        transform="rotate(-90)"><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.07798px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.4"
-         x="-78.922173"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.69324px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.4"
+         x="-79.202667"
          y="32.14146"
          id="tspan1557-8-4">Optimizable</tspan></text>
     <g
@@ -524,7 +478,7 @@
       </g>
     </g>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.45151855;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:0.451519;stroke-dasharray:none"
        id="rect845"
        width="68.205078"
        height="15.62708"
@@ -532,7 +486,7 @@
        y="32.568359"
        ry="1.4300199" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.45151855;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:0.451519;stroke-dasharray:none"
        id="rect845-3"
        width="68.211014"
        height="17.326431"
@@ -540,7 +494,7 @@
        y="62.719494"
        ry="1.585526" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.45151855;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:0.451519;stroke-dasharray:none"
        id="rect845-3-3"
        width="68.173691"
        height="20.779224"
@@ -548,7 +502,7 @@
        y="94.224045"
        ry="1.9014877" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.45151855;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:0.451519;stroke-dasharray:none"
        id="rect845-3-3-1"
        width="68.176033"
        height="19.776043"
@@ -565,37 +519,24 @@
        ry="1.6556655" />
     <text
        xml:space="preserve"
-       style="font-size:7.05556px;font-family:Carlito;-inkscape-font-specification:Carlito;fill:#000000;stroke:none;stroke-width:0.4"
-       x="36.434994"
-       y="42.526375"
-       id="text901"><tspan
-         sodipodi:role="line"
-         id="tspan899"
-         style="fill:#000000;stroke:none;stroke-width:0.4"
-         x="36.434994"
-         y="42.526375" /></text>
-    <text
-       xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.61698px;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke:none;stroke-width:0.4"
-       x="49.303146"
+       x="46.981384"
        y="44.569313"
        id="text1608"><tspan
-         sodipodi:role="line"
          id="tspan1606"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.61698px;font-family:serif;-inkscape-font-specification:serif;stroke-width:0.4"
-         x="49.303146"
+         x="46.981384"
          y="44.569313">Generate signal</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.15597px;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke:none;stroke-width:0.4"
-       x="53.112953"
+       x="54.605515"
        y="38.623051"
        id="text1608-5"><tspan
-         sodipodi:role="line"
          id="tspan1606-6"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.15597px;font-family:serif;-inkscape-font-specification:serif;stroke-width:0.4"
-         x="53.112953"
-         y="38.623051">Devices</tspan></text>
+         x="54.605515"
+         y="38.623051">Signal</tspan></text>
     <g
        fill="#000000"
        fill-opacity="1"
@@ -689,7 +630,7 @@
     </g>
     <g
        id="g2"
-       transform="matrix(1.0151719,0,0,1.0151719,6.2658926,3.4220679)">
+       transform="matrix(1.0151719,0,0,1.0151719,7.5926126,3.4220679)">
       <g
          fill="#000000"
          fill-opacity="1"
@@ -925,25 +866,21 @@
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow)"
        d="m 62.907742,50.599067 v 8.193627"
-       id="path762"
-       sodipodi:nodetypes="cc" />
+       id="path762" />
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-1)"
-       d="m 62.907742,82.227176 0,8.468585"
-       id="path762-4"
-       sodipodi:nodetypes="cc" />
+       d="m 62.907742,82.227176 v 8.468585"
+       id="path762-4" />
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-1-0)"
        d="M 63.998366,117.36517 V 127.7954"
-       id="path762-4-3"
-       sodipodi:nodetypes="cc" />
+       id="path762-4-3" />
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-1-0-3)"
        d="m 63.016737,152.63643 v 10.39342"
-       id="path762-4-3-4"
-       sodipodi:nodetypes="cc" />
+       id="path762-4-3-4" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.45151855;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:0.451519;stroke-dasharray:none"
        id="rect845-3-3-1-9-5"
        width="68.211014"
        height="14.840172"
@@ -953,19 +890,7 @@
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-1-0-3-5)"
        d="m 65.094628,187.15714 v 10.39342"
-       id="path762-4-3-4-4"
-       sodipodi:nodetypes="cc" />
-    <text
-       xml:space="preserve"
-       style="font-size:7.05556px;font-family:Carlito;-inkscape-font-specification:Carlito;fill:#000000;stroke:none;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1"
-       x="38.087994"
-       y="81.105263"
-       id="text2482"><tspan
-         sodipodi:role="line"
-         id="tspan2480"
-         style="stroke:none;stroke-width:0.4"
-         x="38.087994"
-         y="81.105263" /></text>
+       id="path762-4-3-4-4" />
     <g
        fill="#000000"
        fill-opacity="1"
@@ -1173,21 +1098,19 @@
     <text
        xml:space="preserve"
        style="font-size:6.15597px;font-family:Carlito;-inkscape-font-specification:Carlito;fill:#000000;stroke:none;stroke-width:0.319958;stroke-dasharray:none;stroke-opacity:1"
-       x="37.952618"
+       x="36.101227"
        y="100.47226"
        id="text3535"><tspan
-         sodipodi:role="line"
          id="tspan3533"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.15597px;font-family:Serif;-inkscape-font-specification:Serif;stroke-width:0.319958"
-         x="37.952618"
-         y="100.47226">Equations of motion</tspan></text>
+         x="36.101227"
+         y="100.47226">Equation of motion</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:6.15597px;font-family:Carlito;-inkscape-font-specification:Carlito;fill:#000000;stroke:none;stroke-width:0.319958;stroke-dasharray:none;stroke-opacity:1"
        x="45.922977"
        y="138.0069"
        id="text3535-9"><tspan
-         sodipodi:role="line"
          id="tspan3533-6"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.15597px;font-family:Serif;-inkscape-font-specification:Serif;stroke-width:0.319958"
          x="45.922977"
@@ -1195,21 +1118,19 @@
     <text
        xml:space="preserve"
        style="font-size:6.15597px;font-family:Carlito;-inkscape-font-specification:Carlito;fill:#000000;stroke:none;stroke-width:0.319958;stroke-dasharray:none;stroke-opacity:1"
-       x="47.186005"
+       x="48.015205"
        y="207.59468"
        id="text3535-9-0"><tspan
-         sodipodi:role="line"
          id="tspan3533-6-9"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.15597px;font-family:Serif;-inkscape-font-specification:Serif;stroke-width:0.319958"
-         x="47.186005"
-         y="207.59468">Optimization</tspan></text>
+         x="48.015205"
+         y="207.59468">Optimizer</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:6.15597px;font-family:Carlito;-inkscape-font-specification:Carlito;fill:#000000;stroke:none;stroke-width:0.319958;stroke-dasharray:none;stroke-opacity:1"
        x="44.921555"
        y="173.10904"
        id="text3535-9-0-7"><tspan
-         sodipodi:role="line"
          id="tspan3533-6-9-3"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.15597px;font-family:Serif;-inkscape-font-specification:Serif;stroke-width:0.319958"
          x="44.921555"
@@ -1327,13 +1248,12 @@
       <text
          xml:space="preserve"
          style="font-size:5.64444px;font-family:Carlito;-inkscape-font-specification:Carlito;text-align:center;text-anchor:middle;fill:#008000;stroke:none;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1"
-         x="41.611168"
+         x="39.879803"
          y="175.23338"
          id="text5497"><tspan
-           sodipodi:role="line"
            id="tspan5495"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Serif;-inkscape-font-specification:Serif;fill:#000000;stroke-width:0.4"
-           x="41.611168"
+           x="39.879803"
            y="175.23338">Fidelity</tspan></text>
       <g
          fill="#000000"
@@ -1496,16 +1416,15 @@
     <text
        xml:space="preserve"
        style="font-size:5.64446px;font-family:Carlito;-inkscape-font-specification:Carlito;text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1"
-       x="53.84248"
-       y="214.42075"
+       x="54.759251"
+       y="214.89682"
        id="text6359"><tspan
-         sodipodi:role="line"
          id="tspan6357"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Serif;-inkscape-font-specification:Serif;stroke-width:0.4"
-         x="53.84248"
-         y="214.42075">Find</tspan></text>
+         x="54.759251"
+         y="214.89682">Find</tspan></text>
     <g
-       transform="matrix(0.53256649,0,0,0.53256649,61.851305,210.59892)"
+       transform="matrix(0.53256649,0,0,0.53256649,62.76812,211.07496)"
        ns7:version="1.8.2"
        ns7:texconverter="pdflatex"
        ns7:pdfconverter="inkscape"
@@ -1573,10 +1492,6 @@
         </g>
       </g>
     </g>
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.190859;stroke-dasharray:1.52688, 0.190859;stroke-opacity:1;paint-order:stroke fill markers"
-       d="M 149.06707,121.31126 Z"
-       id="path4" />
     <rect
        style="fill:#080808;fill-opacity:1;stroke:none;stroke-width:0.352478;stroke-dasharray:2.81984, 0.352478;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
        id="rect7"
@@ -1588,14 +1503,13 @@
        rx="1.2126088" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.07798px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.4"
-       x="-47.958092"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.50086px;font-family:serif;-inkscape-font-specification:serif;fill:#000000;stroke:none;stroke-width:0.4"
+       x="-47.605381"
        y="32.078709"
        id="text1497-0"
        transform="rotate(-90)"><tspan
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.07798px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.4"
-         x="-47.958092"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.50086px;font-family:serif;-inkscape-font-specification:serif;fill:#ffffff;fill-opacity:1;stroke-width:0.4"
+         x="-47.605381"
          y="32.078709"
          id="tspan1557-8">Optimizable</tspan></text>
     <text
@@ -1604,30 +1518,28 @@
        x="42.185879"
        y="107.31154"
        id="text9"><tspan
-         sodipodi:role="line"
          id="tspan9"
          style="stroke-width:0.451519"
          x="42.185879"
          y="107.31154">``</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.451519;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#RoundedArrow);paint-order:stroke fill markers"
-       d="m 27.420868,208.73961 -8.724996,0 -0.549097,-169.046787 6.589111,0"
-       id="path9"
-       sodipodi:nodetypes="cccc" />
+       d="M 27.420868,208.73961 H 18.695872 L 18.146775,39.692823 h 6.589111"
+       id="path9" />
     <path
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.451517;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#RoundedArrow);paint-order:stroke fill markers"
        d="m 18.192139,70.230308 6.543747,-10e-7"
-       id="path10"
-       sodipodi:nodetypes="cc" />
+       id="path10" />
     <path
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.451517;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#RoundedArrow-2);paint-order:stroke fill markers"
        d="m 18.329791,104.17044 h 6.543747"
-       id="path10-2"
-       sodipodi:nodetypes="cc" />
+       id="path10-2" />
     <path
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.451517;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#RoundedArrow-11);paint-order:stroke fill markers"
        d="m 18.7393,174.70969 h 6.543747"
        id="path10-1"
-       sodipodi:nodetypes="cc" />
+       inkscape:export-filename="layers.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
   </g>
 </svg>

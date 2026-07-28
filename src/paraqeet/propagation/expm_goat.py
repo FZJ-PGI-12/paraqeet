@@ -1,4 +1,4 @@
-"""Class definition of the Scipy piecewise exponential propagation model.
+"""Class definition of the JAX piecewise exponential propagation model.
 
 Uses the GOAT optimization method.
 
@@ -6,7 +6,7 @@ Uses the GOAT optimization method.
 
 from collections.abc import Callable
 from functools import partial
-from typing import override
+from typing import Any, override
 
 import jax.numpy as jnp
 from jax import jit
@@ -14,17 +14,13 @@ from jax.lax import scan
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.scipy_expm import ScipyExpm
+from paraqeet.propagation.expm import Expm
 from paraqeet.propagation.utils import construct_times
-from paraqeet.quantity import Array, Float
+from paraqeet.quantity import Array
 
 
-class ScipyExpmGOAT(ScipyExpm, Differentiable):
-    """Solve EOMs by piecewise exponentiation via Scipy using GOAT.
-
-    The `eom_func` function is required in addition to `eom_and_grad_func` as a computationally
-    "cheaper" alternative for cases where gradient information is not required, such as gradient-free optimization.
-    """
+class ExpmGOAT(Expm, Differentiable):
+    """Solve EOMs by piecewise exponentiation via JAX using GOAT :cite:p:`machnes2018tunable`."""
 
     _eom_gradient_func: Callable[[Array], Array]
 
@@ -34,24 +30,27 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         eom_gradient_func: Callable[[Array], Array],
         resolution: float,
         initial_state: Array,
-    ):
-        ScipyExpm.__init__(self, eom_func, resolution, initial_state)
+    ) -> None:
+        """
+        Args:
+            eom_func: A function that gives the equation of motion.
+            eom_gradient_func: A function that gives the gradient of the equation of motion.
+            resolution: Propagation resolution used to solve the equation of motion.
+                The corresponding time step dt = 1/resolution.
+            initial_state: State at the beginning of the simulation.
+        """
+        super().__init__(eom_func, resolution, initial_state)
         self._eom_gradient_func = eom_gradient_func
 
     def _create_super_state(self, psi: Array, dpsis: Array) -> Array:
         """Create a state for the system state and also for gradient vectors.
 
-        Parameters
-        ----------
-        psi: Array
-            State of the system.
-        dpsis: Array
-            Differential of state.
+        Args:
+            psi: State of the system.
+            dpsis: Differential of state.
 
-        Returns
-        -------
-        Array
-            Returns a super state created from the state and the differential.
+        Returns:
+            Array: Returns a super state created from the state and the differential.
 
         """
         super_state = [psi]
@@ -59,22 +58,16 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         psi_t = jnp.concatenate(super_state)
         return psi_t
 
-    def _create_goat_ham(self, n_params, eom, grads):
+    def _create_goat_ham(self, n_params: int, eom: Array, grads: Array) -> Array:
         """Create a Hamiltonian for the GOAT optimization method.
 
-        Parameters
-        ----------
-        n_params: int
-            Number of parameters.
-        eom: Array
-            Equations of motion in matrix form.
-        grads: Array
-            Gradients of the system at a particular step.
+        Args:
+            n_params: Number of parameters.
+            eom: Equations of motion in matrix form.
+            grads: Gradients of the system at a particular step.
 
-        Returns
-        -------
-        Array
-            Hamiltonian for the GOAT optimization method.
+        Returns:
+            Array: Hamiltonian for the GOAT optimization method.
 
         """
         line = [eom]
@@ -91,18 +84,14 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
         return jnp.block(goat_ham_list)
 
     @partial(jit, static_argnums=(0, 1))
-    def _propagate_gradient(self, n_params, psis_t, eom, grads, steps_arr):
-        def propagate_body(psis_t, index):
+    def _propagate_gradient(self, n_params: int, psis_t: Array, eom: Array, grads: Array, steps_arr: Array) -> Array:
+        def propagate_body(psis_t: Array, index: Any) -> tuple[Array, Array]:
             goat_ham = self._create_goat_ham(n_params, eom[index], grads[index])
-            psis_t = ScipyExpm._propagate_psi(goat_ham, psis_t)
+            psis_t = Expm._propagate_psi(goat_ham, psis_t)
             return psis_t, psis_t
 
         psis_t, _ = scan(propagate_body, psis_t, steps_arr)
         return psis_t
-
-    @override
-    def get_value(self, times: Array) -> Array | Float:
-        return self.propagate(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:
@@ -113,19 +102,16 @@ class ScipyExpmGOAT(ScipyExpm, Differentiable):
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
-        Parameters
-        ----------
-        time: Array
-            Array of times.
+        Args:
+            times: Array of times.
 
-        Returns
-        -------
-        tuple[Array, Array]
-            First dimension is time, second dimension is the parameter.
+        Returns:
+            A tuple ``(value, gradient)``. ``value`` holds the propagated states with time along the first
+            dimension. ``gradient`` has time along the first dimension and the parameter along the second.
 
         """
         if len(times) < 2:
-            raise ValueError("ScipyExpmGOAT.get_value_and_gradient needs at least two time points.")
+            raise ValueError("ExpmGOAT.get_value_and_gradient needs at least two time points.")
 
         if self._initial_state is None:
             raise ConfigurationException("Initial state is not set")
