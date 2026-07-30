@@ -178,7 +178,6 @@ class PWCGenerator(Generator):
         """Generate in-phase and out-of-phase Quantities using tlist."""
         env = self._compute_shape()
 
-        # max_abs = jnp.max(jnp.abs(env))
         max_component = self._max_amplitude / jnp.sqrt(2)
         bound = max_component * jnp.ones_like(self._time_grid)
 
