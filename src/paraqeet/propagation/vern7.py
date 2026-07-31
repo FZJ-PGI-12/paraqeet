@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from functools import partial
-from typing import Any
+from typing import Any, override
 
 import jax
 import jax.numpy as jnp
@@ -10,8 +10,7 @@ from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.propagation.utils import construct_times
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
@@ -70,19 +69,24 @@ class Vern7(Propagation):
         else:
             self._jump_operators = jnp.empty((0,) + self._eom_func(jnp.array([0.0])).shape)
 
-    @staticmethod
-    def _interpolate_time(times: Array, dt: Array | float) -> Array:
+    @override
+    def _propagate_args(self, dt: Float) -> tuple[Array, ...]:
+        """Return the jump operators scaled with the step size."""
+        return (self._jump_operators * jnp.sqrt(dt),)
+
+    @override
+    def _construct_time_grid(self, step_times: Array, dt: Float) -> Array:
         times_interp = jnp.concatenate(
             [
-                times,
-                times + (1 / 200) * dt,
-                times + (49 / 450) * dt,
-                times + (49 / 300) * dt,
-                times + (911 / 2000) * dt,
-                times + (3480084980 / 5709648941) * dt,
-                times + (221 / 250) * dt,
-                times + (37 / 40) * dt,
-                times + dt,
+                step_times,
+                step_times + (1 / 200) * dt,
+                step_times + (49 / 450) * dt,
+                step_times + (49 / 300) * dt,
+                step_times + (911 / 2000) * dt,
+                step_times + (3480084980 / 5709648941) * dt,
+                step_times + (221 / 250) * dt,
+                step_times + (37 / 40) * dt,
+                step_times + dt,
             ],
             axis=0,
         )
@@ -154,10 +158,17 @@ class Vern7(Propagation):
         return state_new
 
     @partial(jit, static_argnums=(0,))
-    def _propagate(self, state_t: Array, eom: Array, col: Array, steps_arr: Array) -> Array:
+    @override
+    def _propagate(self, eom: Array, state_t: Array, steps_arr: Array, col: Array) -> Array:
         """
         Propagate from ``time[ti]`` to ``time[ti+1]``.
         JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
+
+        Args:
+            eom: EOM sampled at the nine times for every step.
+            state_t: State/propagator at the start of the interval.
+            steps_arr: Iteration indices, one per propagation step.
+            col: Jump operators scaled with the square root of the step size.
         """
 
         def propagate_body(state_t: Array, index: Any) -> tuple[Array, Array]:
@@ -170,39 +181,3 @@ class Vern7(Propagation):
 
         state_t, _ = scan(propagate_body, state_t, steps_arr)
         return state_t
-
-    def get_value(self, times: Array) -> Array:
-        """Return the solution of the equation of motion for open/closed system using vern7 ODE solver.
-
-        Loop over all desired times in time at set resolution.
-
-        Args:
-            times: Array of times.
-
-        Returns:
-            The solution of the equations of motion.
-
-        Raises:
-            ValueError: If fewer than two time points are given.
-        """
-        if len(times) < 2:
-            raise ValueError("Vern7.get_value needs at least two time points.")
-
-        init_state = jnp.array(self._initial_state, dtype=jnp.complex128)
-
-        states = [init_state]
-        for ti in range(1, len(times)):
-            state_t = states[ti - 1]
-            step_times, dt = construct_times(times, ti, self._resolution)
-            times_interp = Vern7._interpolate_time(step_times, dt)
-            # TODO: Separate jump operators from EOM.
-            eom = self._eom_func(times_interp + dt / 2)
-            state_t = self._propagate(
-                state_t,
-                eom * dt,
-                self._jump_operators * jnp.sqrt(dt),
-                jnp.arange(0, len(step_times), 1),
-            )
-            states.append(state_t)
-
-        return jnp.array(states)

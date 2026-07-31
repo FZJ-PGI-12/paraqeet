@@ -29,7 +29,7 @@ class AutoDiffGradients(DifferentiablePropagation):
     is provided by the user as `eom_gradient_func`.
     """
 
-    _propagation_and_gradient_func: Callable[[Array, Array, Array], tuple[Array, Array]]
+    _propagation_and_gradient_func: Callable[..., tuple[Array, Array]]
 
     def __init__(
         self,
@@ -42,7 +42,7 @@ class AutoDiffGradients(DifferentiablePropagation):
             eom_gradient_func: Function that returns the gradient of EOM.
         """
         super().__init__(propagation, eom_gradient_func)
-        self._propagation_and_gradient_func = jit(get_value_and_jacobian_rev(self._prop._propagate, argnums=0))
+        self._propagation_and_gradient_func = jit(get_value_and_jacobian_rev(self._prop._propagate, argnums=(0, 1)))
 
     @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
@@ -56,23 +56,28 @@ class AutoDiffGradients(DifferentiablePropagation):
             times: Array of time points/
         """
         psis = [self._prop.initial_state]
-        grads = []
+        # The state at the initial time does not depend on the parameters.
+        grads = [jnp.zeros((self._eom_gradient_func(jnp.array([0.0])).shape[1],) + psis[0].shape, dtype=psis[0].dtype)]
 
         for ti in range(1, len(times)):
-            times, dt = construct_times(times, ti, self._prop.resolution)
+            step_times, dt = construct_times(times, ti, self._prop.resolution)
             psis_t = psis[ti - 1]
-            eom, eom_grads_t = self._eom_and_gradient_func(times + dt / 2)
-            psis_t, partial_grads_t = self._propagation_and_gradient_func(
-                eom * dt, psis_t, jnp.arange(0, len(times), 1)
+            eom, eom_grads_t = self._eom_and_gradient_func(self._prop._construct_time_grid(step_times, dt))
+            psis_t, (eom_jacobian, state_jacobian) = self._propagation_and_gradient_func(
+                eom * dt,
+                psis_t,
+                jnp.arange(0, len(step_times), 1),
+                *self._prop._propagate_args(dt),
             )
 
-            partial_grads_t = jnp.transpose(partial_grads_t, axes=(2, 0, 1, 3, 4))
-            grads_t = jnp.einsum("tnmjk, tpjk -> pnm", partial_grads_t, eom_grads_t) * dt
+            # Contribution of the EOM of this interval to the gradient.
+            eom_jacobian = jnp.transpose(eom_jacobian, axes=(2, 0, 1, 3, 4))
+            grads_t = jnp.einsum("tnmjk, tpjk -> pnm", eom_jacobian, eom_grads_t) * dt
+            # Chain rule through the state, which carries the gradient of all earlier intervals.
+            grads_t += jnp.einsum("nmjk, pjk -> pnm", state_jacobian, grads[ti - 1])
 
             psis.append(psis_t)
             grads.append(grads_t)
-
-        grads = [jnp.zeros_like(grads[-1])] + grads  # Add zero gradients at initial time.
 
         return jnp.array(psis), jnp.array(grads)
 

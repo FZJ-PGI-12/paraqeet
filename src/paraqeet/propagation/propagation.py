@@ -8,7 +8,7 @@ import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.propagation.utils import construct_times
-from paraqeet.quantity import Array
+from paraqeet.quantity import Array, Float
 
 
 class Propagation(ABC):
@@ -67,6 +67,31 @@ class Propagation(ABC):
         # TODO: Provide explicit wrappers for multiple initial states or density vectors
         self._initial_state = jnp.array(state, dtype=jnp.complex128)
 
+    def _construct_time_grid(self, step_times: Array, dt: Float) -> Array:
+        """Return the times at which the EOM has to be sampled for one propagation step.
+
+        Default implementation samples EOM at the midpoint of every step.
+
+        Methods such as ODE solvers, override this and return more than one sample
+        per entry of ``step_times``.
+
+        Args:
+            step_times: Times at which the propagation steps start.
+            dt: Length of one propagation step.
+
+        Returns:
+            Times at which ``_eom_func`` is evaluated.
+        """
+        return step_times + dt / 2
+
+    def _propagate_args(self, dt: Float) -> tuple[Array, ...]:
+        """Return additional arguments that ``_propagate`` needs, after the ``steps`` argument.
+
+        Args:
+            dt: Length of one propagation step.
+        """
+        return ()
+
     @abstractmethod
     def _propagate(self, eom: Array, state: Array, steps: Array, *args: Any, **kwargs: Any) -> Array:
         """Propagate the state/propagator in time by solving the EOM.
@@ -81,9 +106,11 @@ class Propagation(ABC):
             respect to the first parameter (eom).
 
         Args:
-            eom: Equation of motion for some time points as an Array.
+            eom: Equation of motion as an Array, sampled at ``_construct_time_grid``.
             state: Initial state/propagator for propagation
             steps: Array of indices to iterate over.
+            *args: Extra arguments as returned by ``_propagate_args``.
+            **kwargs: Unused, kept for subclasses that might need keyword arguments.
 
         Returns:
             Propagated state/propagator by solving the EOM.
@@ -117,9 +144,13 @@ class Propagation(ABC):
 
         for ti in range(1, len(times)):
             step_times, dt = construct_times(times, ti, self._resolution)
-            psis_t = psis[ti - 1]
-            eom = self._eom_func(step_times + dt / 2) * dt
-            psis_t = self._propagate(eom, psis_t, jnp.arange(0, len(step_times), 1))
+            eom = self._eom_func(self._construct_time_grid(step_times, dt)) * dt
+            psis_t = self._propagate(
+                eom,
+                psis[ti - 1],
+                jnp.arange(0, len(step_times), 1),
+                *self._propagate_args(dt),
+            )
             psis.append(psis_t)
 
         psis_arr = jnp.array(psis)
@@ -137,6 +168,11 @@ class DifferentiablePropagation(Differentiable):
         propagation: Propagation,
         eom_gradient_func: Callable[[Array], Array],
     ):
+        """
+        Args:
+            propagation: Any propagation object.
+            eom_gradient_func: Function that returns the gradient of the EOM.
+        """
         self._prop = propagation
         self._eom_gradient_func = eom_gradient_func
 

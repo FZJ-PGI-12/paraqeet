@@ -10,7 +10,7 @@ from paraqeet.quantity import Array
 
 
 def get_value_and_jacobian_rev(
-    f: Callable, argnums: int | tuple[int] = 0
+    f: Callable, argnums: int | tuple[int, ...] = 0
 ) -> Callable[..., tuple[Array, Array | tuple[Array, ...]]]:
     """Compute Jacobian of f w.r.t. specified arguments via vjp (reverse-mode AD).
 
@@ -32,7 +32,7 @@ def get_value_and_jacobian_rev(
     """
     if isinstance(argnums, int):
         argnums_is_int = True
-        indices: tuple[int] = (argnums,)
+        indices: tuple[int, ...] = (argnums,)
     else:
         argnums_is_int = False
         indices = argnums
@@ -71,7 +71,7 @@ def get_value_and_jacobian_rev(
 
 
 def get_value_and_jacobian_fwd(
-    f: Callable, argnums: int | tuple[int] = 0
+    f: Callable, argnums: int | tuple[int, ...] = 0
 ) -> Callable[..., tuple[Array, Array | tuple[Array, ...]]]:
     """Compute Jacobian of f w.r.t. specified arguments via jvp (forward-mode AD).
 
@@ -93,7 +93,7 @@ def get_value_and_jacobian_fwd(
     """
     if isinstance(argnums, int):
         argnums_is_int = True
-        indices: tuple[int] = (argnums,)
+        indices: tuple[int, ...] = (argnums,)
     else:
         argnums_is_int = False
         indices = argnums

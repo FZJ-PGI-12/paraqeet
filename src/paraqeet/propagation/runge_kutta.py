@@ -35,8 +35,8 @@ class RungeKutta(Propagation):
         self._initial_time_step = 1 / resolution
 
     @override
-    def _propagate(self, eom: Array, state: Array, steps: Array, *args: Any, **kwargs: Any) -> Array:
-        """Perform per time-step state update"""
+    def _propagate(self, eom: Array, state: Array, steps: Array | None = None, *args: Any, **kwargs: Any) -> Array:
+        """Perform per time-step state update."""
         return eom @ state
 
     @override
