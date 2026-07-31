@@ -1,15 +1,13 @@
 """Class definition of the JAX piecewise exponential propagation model."""
 
-from typing import Any, override
+from typing import Any
 
 import jax
-import jax.numpy as jnp
 from jax import jit
 from jax.lax import scan
 from jax.scipy.linalg import expm
 
 from paraqeet.propagation.propagation import Propagation
-from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
@@ -67,34 +65,3 @@ class Expm(Propagation):
         """
         propagated: Array = expm(eom_matrix) @ psis_t
         return propagated
-
-    @override
-    def get_value(self, times: Array) -> Array:
-        """Return the solution of the equations of motion.
-
-        Loop over all desired times in time at set resolution.
-
-        Args:
-            times: Array of times.
-
-        Returns:
-            The solution of the equations of motion.
-
-        Raises:
-            ValueError: If fewer than two time points are given.
-
-        """
-        if len(times) < 2:
-            raise ValueError("Expm.get_value needs at least two time points.")
-
-        psis = [self._initial_state]
-
-        for ti in range(1, len(times)):
-            step_times, dt = construct_times(times, ti, self._resolution)
-            psis_t = psis[ti - 1]
-            eom = self._eom_func(step_times + dt / 2) * dt
-            psis_t = self._propagate(eom, psis_t, jnp.arange(0, len(step_times), 1))
-            psis.append(psis_t)
-
-        psis_arr = jnp.array(psis)
-        return psis_arr

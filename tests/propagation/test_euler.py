@@ -19,7 +19,7 @@ def euler():
             hamiltonian_func=sys.get_value,
             hamiltonian_gradient_func=sys.get_gradient,
         )
-        return Euler(eom_func=eom.get_value, resolution=1e9, initial_state=np.array([[1.0], [0.0j]]))
+        return Euler(eom_func=eom.get_value, resolution=3, initial_state=np.array([[1.0], [0.0j]]))
 
     return _method
 
