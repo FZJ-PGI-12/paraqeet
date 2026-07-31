@@ -9,14 +9,14 @@ import jax.numpy as jnp
 from jax import jit
 from jax.lax import dynamic_slice_in_dim, scan
 
-from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Vern7(StatePropagation):
+class Vern7(Propagation):
     """
     Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
@@ -154,7 +154,7 @@ class Vern7(StatePropagation):
         return state_new
 
     @partial(jit, static_argnums=(0,))
-    def _propagate_in_time(self, state_t: Array, eom: Array, col: Array, steps_arr: Array) -> Array:
+    def _propagate(self, state_t: Array, eom: Array, col: Array, steps_arr: Array) -> Array:
         """
         Propagate from ``time[ti]`` to ``time[ti+1]``.
         JIT compiled and uses ``jax.lax.scan`` to avoid compilation overhead.
@@ -197,7 +197,7 @@ class Vern7(StatePropagation):
             times_interp = Vern7._interpolate_time(step_times, dt)
             # TODO: Separate jump operators from EOM.
             eom = self._eom_func(times_interp + dt / 2)
-            state_t = self._propagate_in_time(
+            state_t = self._propagate(
                 state_t,
                 eom * dt,
                 self._jump_operators * jnp.sqrt(dt),

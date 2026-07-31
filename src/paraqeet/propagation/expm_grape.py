@@ -238,7 +238,7 @@ class ExpmGRAPE(Expm, Differentiable):
         return exponentiated
 
     @partial(jit, static_argnums=(0,))
-    def _propagate_in_time(
+    def _propagate(
         self,
         us: Array,
         psis_t: Array,
@@ -294,7 +294,7 @@ class ExpmGRAPE(Expm, Differentiable):
 
         us = vmap(ExpmGRAPE._exponentiate, in_axes=(0,))(eom)
 
-        psis = self._propagate_in_time(us, init_state, jnp.arange(0, len(time_grid), 1))
+        psis = self._propagate(us, init_state, jnp.arange(0, len(time_grid), 1))
         psis = jnp.concat([jnp.expand_dims(init_state, axis=0), psis], axis=0)
         return jnp.array(psis)
 

@@ -7,11 +7,11 @@ import numpy as np  # Using regular numpy for scipy interface
 from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class RungeKutta(StatePropagation):
+class RungeKutta(Propagation):
     """Propagation via the Runge-Kutta Scipy implementation.
 
     Uses scipy's Runge-Kutta implementation for propagating

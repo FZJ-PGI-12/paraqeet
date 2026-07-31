@@ -3,11 +3,11 @@
 import jax.numpy as jnp
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class Euler(StatePropagation):
+class Euler(Propagation):
     r"""Simple implementation of first order Euler propagation.
 
     Solves the equation of motion d/dt psi(t) = F(psi(t), t)
