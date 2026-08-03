@@ -1,10 +1,12 @@
 """Compute gradients of state/propagator by using the GRAPE QOC method."""
 
 import copy
+import math
 from collections.abc import Callable
 from typing import override
 
 import jax.numpy as jnp
+from jax import vmap
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.propagation import DifferentiablePropagation, Propagation
@@ -27,6 +29,35 @@ class GRAPE(DifferentiablePropagation):
     :math:`-i \Delta t \frac{\partial H}{\partial \alpha} U(t)` for closed system and
     :math:`-i \Delta t [\frac{\partial H}{\partial \alpha}, \rho] U(t)` for open system.
 
+    Higher orders :cite:p:`defouquieres2011second` follow from differentiating
+    :math:`U = \exp(\mathcal{L})` term by term, with :math:`\mathcal{L}` the generator of one
+    pulse piece and :math:`\partial\mathcal{L}` its derivative,
+
+        .. math::
+            \frac{\partial U}{\partial \alpha} = \sum_{m \geq 1} \frac{1}{m!}
+            \sum_{j=0}^{m-1} \mathcal{L}^j \, \partial\mathcal{L} \, \mathcal{L}^{m-1-j}.
+
+    Summed to all orders this is the Frechet derivative of the matrix exponential
+    :cite:p:`al2009computing`, :math:`\int_0^1 e^{s \mathcal{L}} \, \partial\mathcal{L} \,
+    e^{(1 - s) \mathcal{L}} \mathrm{d}s`.
+
+    The series is truncated after ``order`` terms. Rather than building the powers
+    :math:`\mathcal{L}^j` as matrices, they are applied to the states, using
+    :math:`\text{Tr}(\sigma^\dagger \mathcal{L}(X)) = \text{Tr}(\mathcal{L}^\dagger(\sigma)^\dagger X)`,
+
+        .. math::
+            \frac{\partial F}{\partial \alpha_k} = \sum_{m=1}^{\text{order}} \frac{1}{m!}
+            \sum_{j=0}^{m-1} \langle (\mathcal{L}^\dagger)^j \sigma_{k+1} \lvert
+            \partial\mathcal{L} \rvert \mathcal{L}^{m-1-j} \psi_k \rangle.
+
+    ``order=1`` is textbook first-order GRAPE.
+
+    Note:
+        Each order costs one more application of the generator per pulse piece on either side,
+        and ``order*(order + 1)/2`` sandwiches per parameter. The gain stops once the truncation
+        drops below the error of the propagation itself, which for an ODE solver such as
+        :class:`~paraqeet.propagation.vern7.Vern7` happens beyond the second order.
+
     Both the forward and backward propagations are delegated to the ``_propagate`` method of *any*
     :class:`~paraqeet.propagation.propagation.Propagation`.
     The backward propagation is constructed from a copy of the original propagation class as to
@@ -38,12 +69,14 @@ class GRAPE(DifferentiablePropagation):
         _reverse_step_function: Step function of the backward propagation, only needed for ODE
             solvers for with collapse operators.
         _backward_prop: Propagation object used for the backward propagation (constructed from a copy of ``_prop``).
+        _order: Order up to which the derivative of the propagator is expanded.
     """
 
     _target_state: Array
     _operator_sandwich_function: Callable
     _reverse_step_function: Callable | None
     _backward_prop: Propagation
+    _order: int
 
     def __init__(
         self,
@@ -52,6 +85,7 @@ class GRAPE(DifferentiablePropagation):
         target_state: Array,
         operator_sandwich_function: Callable,
         reverse_step_function: Callable | None = None,
+        order: int = 2,
     ):
         """
         Args:
@@ -64,12 +98,15 @@ class GRAPE(DifferentiablePropagation):
             reverse_step_function: Step function of the backward propagation. Only ODE solvers
                 that build a dissipator from collapse operators need one, use
                 ``reverse_lindblad_step`` for the Lindblad master equation in density matrix form.
+            order: Order up to which the derivative of the propagator is expanded. Defaults to 2.
+                Use 1 for textbook GRAPE.
         """
         super().__init__(propagation, eom_gradient_func)
         self.target_state = target_state
         self._operator_sandwich_function = operator_sandwich_function
         self._reverse_step_function = reverse_step_function
         self._backward_prop = self._create_backward_propagation()
+        self.order = order
 
     def _create_backward_propagation(self) -> Propagation:
         """Return the propagation object that propagates the target state backwards.
@@ -143,10 +180,61 @@ class GRAPE(DifferentiablePropagation):
         """Set the operator sandwich function for computing the gradients."""
         self._operator_sandwich_function = operator_sandwich_func
 
+    @property
+    def order(self) -> int:
+        """Return the order up to which the derivative of the propagator is expanded."""
+        return self._order
+
+    @order.setter
+    def order(self, order: int) -> None:
+        """Set the order up to which the derivative of the propagator is expanded.
+
+        Raises:
+            ConfigurationException: If the order is smaller than one.
+        """
+        if order < 1:
+            raise ConfigurationException("The order of the GRAPE gradient has to be at least one.")
+        self._order = order
+
+    @staticmethod
+    def _dagger(operators: Array) -> Array:
+        """Return the adjoint of a stack of operators, with the stacking axes leading."""
+        return jnp.conj(jnp.swapaxes(operators, -1, -2))
+
     @staticmethod
     def _adjoint_eom(eom: Array) -> Array:
         """Return the adjoint EOM of one interval, in reverse order."""
-        return jnp.conj(jnp.swapaxes(jnp.flip(eom, axis=0), -1, -2))
+        return GRAPE._dagger(jnp.flip(eom, axis=0))
+
+    def _apply_generator(self, propagation: Propagation, states: Array, eom: Array, dt: Float) -> Array:
+        """Apply the generator of every pulse piece to the state of that piece.
+
+        For propagation methods such as ODE solvers that use a ``step_function``, the generators are
+        applied onto the state using the ``step_function``. Else the EOM is used to apply the generators
+        onto the state.
+
+        Note:
+            This assumes that the *collapse_operators* are passed to the propagation by using the
+            ``_propagate_args`` method.
+
+        Args:
+            propagation: Propagation whose ``step function`` is used. Pass the forward propagation to
+                apply the generator and ``_backward_prop`` to apply its adjoint.
+            states: States of every pulse piece, with the pulse piece along the first axis.
+            eom: EOM of every pulse piece, scaled with the width of a piece.
+            dt: Width of one pulse piece, which scales the collapse operators.
+
+        Returns:
+            The states with the generator applied, in the shape of ``states``.
+        """
+        step_function = getattr(propagation, "step_function", None)
+        if step_function is None:
+            product: Array = jnp.matmul(eom, states)
+            return product
+
+        step_args = propagation._propagate_args(dt)
+        applied: Array = vmap(step_function, in_axes=(0, 0) + (None,) * len(step_args))(states, eom, *step_args)
+        return applied
 
     def _propagate_forward(self, times: Array) -> tuple[list[Array], list[tuple[Array, Float, int]]]:
         """Propagate the initial state forward and collect the EOM of every interval.
@@ -232,19 +320,35 @@ class GRAPE(DifferentiablePropagation):
         psis, intervals = self._propagate_forward(times)
         lamdas = self._propagate_backward(intervals)
 
-        # The gradient of the EOM is evaluated once per pulse piece, in the middle of it.
+        # The EOM and its gradient are evaluated once per pulse piece, in the middle of it.
         dt = times[1] - times[0]
-        eom_grads = jnp.array(self._eom_gradient_func(times[:-1] + dt / 2)) * dt
+        eom, eom_gradient = self._eom_and_gradient_func(times[:-1] + dt / 2)
+        eom = jnp.array(eom) * dt
+        eom_grads = jnp.array(eom_gradient) * dt
 
-        forward_states = jnp.array(psis[:-1])
+        # Powers of the generator applied to the states of every pulse piece, the forward states
+        # carrying the generator and the backward states its adjoint.
+        forward_states: list[Array] = [jnp.array(psis[:-1])]
+        backward_states: list[Array] = [jnp.array(lamdas[1:])]
+        for _ in range(self._order - 1):
+            forward_states.append(self._apply_generator(self._prop, forward_states[-1], eom, dt))
+            backward_states.append(
+                self._apply_generator(self._backward_prop, backward_states[-1], GRAPE._dagger(eom), dt)
+            )
+
         # The sandwich function expects the adjoint of the backward propagated states, taken
         # over the last two axes because time is the leading one.
-        adjoint_states = jnp.conj(jnp.swapaxes(jnp.array(lamdas[1:]), -1, -2))
+        adjoint_states = [GRAPE._dagger(states) for states in backward_states]
 
-        grads = [
-            jnp.squeeze(self._operator_sandwich_function(eom_grads[:, ii, ...], forward_states, adjoint_states))
-            for ii in range(eom_grads.shape[1])
-        ]
+        grads = []
+        for ii in range(eom_grads.shape[1]):
+            terms = [
+                self._operator_sandwich_function(eom_grads[:, ii, ...], forward_states[m - 1 - j], adjoint_states[j])
+                / math.factorial(m)
+                for m in range(1, self._order + 1)
+                for j in range(m)
+            ]
+            grads.append(jnp.squeeze(sum(terms)))
 
         return jnp.array(psis), jnp.array(grads)
 

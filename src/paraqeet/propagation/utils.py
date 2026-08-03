@@ -76,12 +76,6 @@ def reverse_lindblad_step(state: Array, h: Array, cols: Array, *args: Any, **kwa
     keeps its signs and only exchanges the collapse operators with their adjoints. The sign of the
     coherent part is already taken care of by the adjoint EOM that ``GRAPE`` passes in, so ``h`` is
     :math:`iH\,\mathrm{d}t` here and the commutator has the same form as in the forward step.
-
-    Note:
-        This is not the same as ``reverse_lindblad_step``, which belongs to the older ``Vern7GRAPE``
-        class and carries the opposite sign of the dissipator. That sign is only consistent with
-        integrating backwards in time with negative steps, which the fixed step ODE solvers cannot
-        express because the collapse operators enter scaled with the square root of the step size.
     """
     del_sigma: Array = commutator(h, state)
     for col in cols:
