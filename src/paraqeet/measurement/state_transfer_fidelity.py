@@ -94,8 +94,7 @@ class StateTransferFidelity(NormalizableMeasurement, Differentiable):
         Returns:
             The gradient of shape (n_params,).
         """
-        states = self._propagation_func(times)
-        dg_dp_list = self._propagation_gradient_func(times)
+        states, dg_dp_list = self._propagation_gradient_func(times)
         final_state = states[-1]
         df_dp_list = []
         f = self._overlap(final_state, self._target_state)
