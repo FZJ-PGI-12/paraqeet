@@ -24,6 +24,14 @@ optimization methods:
 - GOAT :cite:p:`machnes2018tunable`: Gradient Optimization of Analytic conTrols
 - dCRAB :cite:p:`rach2015dressing`: (Gradient based) dressed Chopped RAndom Basis
 - GOAToverGRAPE: A variant of GROUP :cite:p:`sorensen2018quantum` that optimizes continuous pulse parameters with GRAPE inside.
+- AD: Automatic differentiation of the state/propagator evolution
+
+Currently implemented propagation methods:
+- Expm: Matrix exponential using JAX ``expm``
+- ExpmChebyshev: Matrix exponential using Chebyshev polynomial expansion
+- ODE solvers: Diffrax :cite:p:`kidger2021on`, Verner 7th order method :cite:p:`verner2010numerically`, and Scipy Runge-Kutta methods :cite:p:`2020SciPy-NMeth`.
+
+The propagation methods can be combined with the QOC methods leading to combinations such as GOAT QOC using ``ExpmChebyshev``.
 
 .. grid:: 1 2 2 4
    :gutter: 3
