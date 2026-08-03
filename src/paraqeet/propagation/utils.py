@@ -62,18 +62,32 @@ def schrodinger_step(state: Array, h: Array, *args: Any, **kwargs: Any) -> Array
     return jnp.matmul(h, state)
 
 
-def reverse_schrodinger_step(state: Array, h: Array, *args: Any, **kwargs: Any) -> Array:
-    """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Schrödinger equation."""
-    return jnp.matmul(state, h)
-
-
 def reverse_lindblad_step(state: Array, h: Array, cols: Array, *args: Any, **kwargs: Any) -> Array:
-    """Reverse step function for ODE propagation methods, such as Vern7GRAPE, for the Lindblad master equation."""
-    del_rho: Array = commutator(h, state)
+    r"""Backward step function of :class:`~paraqeet.propagation.grape.GRAPE` for the Lindblad master equation.
+
+    Implements the adjoint Lindbladian
+
+        .. math::
+            \mathcal{L}^\dagger(\sigma) = i[H, \sigma]
+            + \sum_k L_k^\dagger \sigma L_k - \frac{1}{2}\{L_k^\dagger L_k, \sigma\},
+
+    which is the right hand side of the backward propagation of the target state in reverse time.
+    Compared to the forward ``lindblad_step`` the coherent part changes sign while the dissipator
+    keeps its signs and only exchanges the collapse operators with their adjoints. The sign of the
+    coherent part is already taken care of by the adjoint EOM that ``GRAPE`` passes in, so ``h`` is
+    :math:`iH\,\mathrm{d}t` here and the commutator has the same form as in the forward step.
+
+    Note:
+        This is not the same as ``reverse_lindblad_step``, which belongs to the older ``Vern7GRAPE``
+        class and carries the opposite sign of the dissipator. That sign is only consistent with
+        integrating backwards in time with negative steps, which the fixed step ODE solvers cannot
+        express because the collapse operators enter scaled with the square root of the step size.
+    """
+    del_sigma: Array = commutator(h, state)
     for col in cols:
-        del_rho -= jnp.matmul(jnp.matmul(dagger(col), state), col)
-        del_rho += 0.5 * anti_commutator(jnp.matmul(dagger(col), col), state)
-    return del_rho
+        del_sigma += jnp.matmul(jnp.matmul(dagger(col), state), col)
+        del_sigma -= 0.5 * anti_commutator(jnp.matmul(dagger(col), col), state)
+    return del_sigma
 
 
 @jit
