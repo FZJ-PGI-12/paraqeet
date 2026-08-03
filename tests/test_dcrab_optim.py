@@ -11,7 +11,8 @@ from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGR
 from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
-from paraqeet.propagation.expm_grape import ExpmGRAPE
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.grape import GRAPE
 from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import DCRABEnvelope
@@ -58,15 +59,18 @@ def model(gen):
 
 
 @pytest.fixture
-def prop(model):
+def propagation(model):
     init = np.array([[1.0], [0]])  # |0>
+    return Expm(eom_func=model.get_value, resolution=1e9, initial_state=init)
+
+
+@pytest.fixture
+def prop(model, propagation):
     target = np.array([[0.0], [1]])  # |1>
 
-    prop = ExpmGRAPE(
-        model.get_value,
-        model.get_gradient,
-        resolution=1e9,
-        initial_state=init,
+    prop = GRAPE(
+        propagation,
+        eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
     )
@@ -87,13 +91,13 @@ def fid(prop):
 
 
 @pytest.fixture
-def opt_grad(tone, fid, gen, prop):
+def opt_grad(tone, fid, gen, propagation):
     optmap = OptimizationMap()
     params = tone.get_parameters()
     optmap.add(tone, [params[0]] + params[2:])
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, generators=[gen], propagation_resolution=prop.resolution)
+    goat = GOATOverGRAPE(fid, generators=[gen], propagation_resolution=propagation.resolution)
     opt_grad = DCRABOptimizerGradient(
         measure_and_gradient_func=goat.get_value_and_gradient,
         optimization_map=optmap,
