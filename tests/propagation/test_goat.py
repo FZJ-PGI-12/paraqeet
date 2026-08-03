@@ -10,11 +10,13 @@ from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.propagation.auto_diff_gradients import AutoDiffGradients
 from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.finite_difference_gradients import FiniteDifferenceGradients
 from paraqeet.propagation.goat import GOAT
 from paraqeet.propagation.utils import convert_dm_to_vec, schrodinger_step
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import GaussEnvelope
+from tests.propagation.test_common_propagation import make_propagation
 
 T_FINAL = 20e-9
 FREQ = 1e6
@@ -34,17 +36,27 @@ def drive_amplitude():
 
 
 @pytest.fixture
-def qubit_hamiltonian(drive_amplitude):
-    """Return a driven qubit Hamiltonian with the drive amplitude as its free parameter."""
+def tone(drive_amplitude):
+    """Return the Gaussian pulse that drives the qubit."""
     tone = GaussEnvelope(amplitude=drive_amplitude)
     tone.t_final.set_value(T_FINAL)
+    return tone
 
-    hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
-    hamiltonian.drives = [Drive(hamiltonian.sigma_minus, tone, add_hermitian=True)]
 
+@pytest.fixture
+def optimization_map(tone, drive_amplitude):
+    """Return the optimization map holding the drive amplitude."""
     optmap = OptimizationMap()
     optmap.add(tone, [drive_amplitude])
     optmap.register_params_with_optimizables()
+    return optmap
+
+
+@pytest.fixture
+def qubit_hamiltonian(tone, optimization_map):
+    """Return a driven qubit Hamiltonian with the drive amplitude as its free parameter."""
+    hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
+    hamiltonian.drives = [Drive(hamiltonian.sigma_minus, tone, add_hermitian=True)]
     return hamiltonian
 
 
@@ -96,47 +108,39 @@ def test_goat_expm_matches_autodiff(schroedinger):
     np.testing.assert_allclose(goat_gradient, ad_gradient, rtol=1e-8, atol=1e-10)
 
 
-def test_goat_vern7_matches_goat_expm(schroedinger):
-    """The same GOAT class works with the Vern7 ODE solver and agrees with Expm."""
+@pytest.mark.parametrize(
+    ("method", "tolerance"),
+    [
+        # The expansion of the exponential solves the same discretization as Expm.
+        ("chebyshev", 1e-8),
+        ("vern7", 1e-3),
+        ("diffrax", 1e-3),
+    ],
+)
+def test_goat_matches_goat_expm(schroedinger, method, tolerance):
+    """The same GOAT class propagates the block triangular EOM with every propagation method."""
     expm_goat = GOAT(
-        Expm(eom_func=schroedinger.get_value, resolution=10e9, initial_state=INIT_STATE),
+        make_propagation("expm", schroedinger.get_value, 10e9, INIT_STATE),
         eom_gradient_func=schroedinger.get_gradient,
     )
-    vern7_goat = GOAT(
-        Vern7(
-            eom_func=schroedinger.get_value,
-            resolution=10e9,
-            initial_state=INIT_STATE,
-            step_function=schrodinger_step,
-        ),
+    goat = GOAT(
+        make_propagation(method, schroedinger.get_value, 10e9, INIT_STATE),
         eom_gradient_func=schroedinger.get_gradient,
     )
     expm_value, expm_gradient = expm_goat.get_value_and_gradient(TLIST)
-    vern7_value, vern7_gradient = vern7_goat.get_value_and_gradient(TLIST)
+    value, gradient = goat.get_value_and_gradient(TLIST)
 
     # Guard against the comparison below passing on gradients that are all zero.
     assert np.abs(expm_gradient).max() > 1e-10
 
-    # The tolerance is set by the second order midpoint rule of Expm.
+    # For the ODE solvers the tolerance is set by the second order midpoint rule of Expm.
     # The gradients are many orders of magnitude smaller than the states, so their absolute
     # tolerance is scaled to their own magnitude.
-    np.testing.assert_allclose(vern7_value, expm_value, rtol=1e-3, atol=1e-5)
-    np.testing.assert_allclose(vern7_gradient, expm_gradient, rtol=1e-3, atol=1e-3 * np.abs(expm_gradient).max())
+    np.testing.assert_allclose(value, expm_value, rtol=tolerance, atol=1e-2 * tolerance)
+    np.testing.assert_allclose(gradient, expm_gradient, rtol=tolerance, atol=tolerance * np.abs(expm_gradient).max())
 
 
-def _central_difference(parameter, value_func):
-    """Return the central difference of ``value_func`` w.r.t. ``parameter``, in physical units."""
-    value = np.reshape(np.array(parameter.get_value()), (-1,))
-    epsilon = float(1e-6 * np.abs(value[0]))
-    parameter.set_value(value + epsilon)
-    plus = value_func()
-    parameter.set_value(value - epsilon)
-    minus = value_func()
-    parameter.set_value(value)
-    return (plus - minus) / (2 * epsilon)
-
-
-def test_goat_vern7_open_system(master_equation, drive_amplitude):
+def test_goat_vern7_open_system(master_equation, optimization_map):
     """GOAT works for an open system through the vectorized Lindblad superoperator."""
     init_vec = convert_dm_to_vec(np.matmul(INIT_STATE, INIT_STATE.conj().T))
 
@@ -149,14 +153,12 @@ def test_goat_vern7_open_system(master_equation, drive_amplitude):
         ),
         eom_gradient_func=master_equation.get_gradient,
     )
-    expm_goat = GOAT(
-        Expm(
-            eom_func=master_equation.get_value,
-            resolution=10e9,
-            initial_state=init_vec,
-        ),
-        eom_gradient_func=master_equation.get_gradient,
+    expm_propagation = Expm(
+        eom_func=master_equation.get_value,
+        resolution=10e9,
+        initial_state=init_vec,
     )
+    expm_goat = GOAT(expm_propagation, eom_gradient_func=master_equation.get_gradient)
 
     vern7_value, vern7_gradient = vern7_goat.get_value_and_gradient(TLIST)
     expm_value, expm_gradient = expm_goat.get_value_and_gradient(TLIST)
@@ -171,20 +173,18 @@ def test_goat_vern7_open_system(master_equation, drive_amplitude):
     np.testing.assert_allclose(vern7_gradient, expm_gradient, rtol=1e-3, atol=1e-3 * np.abs(expm_gradient).max())
 
     # Also verify with finite difference.
-    finite_difference = _central_difference(drive_amplitude, lambda: expm_goat.get_value(TLIST))
-    np.testing.assert_allclose(expm_gradient[:, 0], finite_difference, rtol=1e-5, atol=1e-12)
+    finite_difference = FiniteDifferenceGradients(expm_propagation, optimization_map).get_gradient(TLIST)
+    np.testing.assert_allclose(expm_gradient, finite_difference, rtol=1e-5, atol=1e-12)
 
 
-def test_goat_gradient_against_finite_differences(schroedinger, drive_amplitude):
+def test_goat_gradient_against_finite_differences(schroedinger, optimization_map):
     """Check the GOAT gradient of Expm against a central difference of ``get_value``."""
-    goat = GOAT(
-        Expm(eom_func=schroedinger.get_value, resolution=1 / DELTAT, initial_state=INIT_STATE),
-        eom_gradient_func=schroedinger.get_gradient,
-    )
+    propagation = Expm(eom_func=schroedinger.get_value, resolution=1 / DELTAT, initial_state=INIT_STATE)
+    goat = GOAT(propagation, eom_gradient_func=schroedinger.get_gradient)
 
     _, gradient = goat.get_value_and_gradient(TLIST)
 
     # The gradients are taken w.r.t. the parameter value in physical units.
-    finite_difference = _central_difference(drive_amplitude, lambda: goat.get_value(TLIST))
+    finite_difference = FiniteDifferenceGradients(propagation, optimization_map).get_gradient(TLIST)
 
-    np.testing.assert_allclose(gradient[:, 0], finite_difference, rtol=1e-5, atol=1e-12)
+    np.testing.assert_allclose(gradient, finite_difference, rtol=1e-5, atol=1e-12)

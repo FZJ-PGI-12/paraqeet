@@ -13,6 +13,7 @@ from paraqeet.optimization_map import OptimizationMap
 from paraqeet.propagation.auto_diff_gradients import AutoDiffGradients
 from paraqeet.propagation.diffrax_ode import DiffraxODE
 from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.finite_difference_gradients import FiniteDifferenceGradients
 from paraqeet.propagation.utils import convert_dm_to_vec, convert_vec_to_dm, lindblad_step, schrodinger_step
 from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
@@ -36,17 +37,27 @@ def drive_amplitude():
 
 
 @pytest.fixture
-def qubit_hamiltonian(drive_amplitude):
-    """Return a driven qubit Hamiltonian with the drive amplitude as its free parameter."""
+def tone(drive_amplitude):
+    """Return the Gaussian pulse that drives the qubit."""
     tone = GaussEnvelope(amplitude=drive_amplitude)
     tone.t_final.set_value(T_FINAL)
+    return tone
 
-    hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
-    hamiltonian.drives = [Drive(hamiltonian.sigma_minus, tone, add_hermitian=True)]
 
+@pytest.fixture
+def optimization_map(tone, drive_amplitude):
+    """Return the optimization map holding the drive amplitude."""
     optmap = OptimizationMap()
     optmap.add(tone, [drive_amplitude])
     optmap.register_params_with_optimizables()
+    return optmap
+
+
+@pytest.fixture
+def qubit_hamiltonian(tone, optimization_map):
+    """Return a driven qubit Hamiltonian with the drive amplitude as its free parameter."""
+    hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
+    hamiltonian.drives = [Drive(hamiltonian.sigma_minus, tone, add_hermitian=True)]
     return hamiltonian
 
 
@@ -68,18 +79,6 @@ def master_equation(qubit_hamiltonian):
         hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
         jump_operators=open_qubit.get_jump_operators(),
     )
-
-
-def _central_difference(parameter, value_func):
-    """Return the central difference of ``value_func`` w.r.t. ``parameter``, in physical units."""
-    value = np.reshape(np.array(parameter.get_value()), (-1,))
-    epsilon = float(1e-6 * np.abs(value[0]))
-    parameter.set_value(value + epsilon)
-    plus = np.array(value_func())
-    parameter.set_value(value - epsilon)
-    minus = np.array(value_func())
-    parameter.set_value(value)
-    return (plus - minus) / (2 * epsilon)
 
 
 def test_diffrax_matches_vern7(schroedinger):
@@ -153,18 +152,16 @@ def test_diffrax_open_system(master_equation):
     np.testing.assert_allclose(final_dm, expected, rtol=1e-4, atol=1e-6)
 
 
-def test_diffrax_autodiff_gradient(schroedinger, drive_amplitude):
+def test_diffrax_autodiff_gradient(schroedinger, optimization_map):
     """Automatic differentiation through the Diffrax solve matches finite differences and Expm."""
-    autodiff = AutoDiffGradients(
-        DiffraxODE(
-            eom_func=schroedinger.get_value,
-            resolution=RESOLUTION,
-            initial_state=INIT_STATE,
-            step_function=schrodinger_step,
-            samples_per_step=2,
-        ),
-        eom_gradient_func=schroedinger.get_gradient,
+    propagation = DiffraxODE(
+        eom_func=schroedinger.get_value,
+        resolution=RESOLUTION,
+        initial_state=INIT_STATE,
+        step_function=schrodinger_step,
+        samples_per_step=2,
     )
+    autodiff = AutoDiffGradients(propagation, eom_gradient_func=schroedinger.get_gradient)
     reference = AutoDiffGradients(
         Expm(eom_func=schroedinger.get_value, resolution=RESOLUTION, initial_state=INIT_STATE),
         eom_gradient_func=schroedinger.get_gradient,
@@ -172,10 +169,10 @@ def test_diffrax_autodiff_gradient(schroedinger, drive_amplitude):
 
     _, gradient = autodiff.get_value_and_gradient(TLIST)
     expected = np.array(reference.get_gradient(TLIST))
-    finite_difference = _central_difference(drive_amplitude, lambda: autodiff.get_value(TLIST))
+    finite_difference = FiniteDifferenceGradients(propagation, optimization_map).get_gradient(TLIST)
 
     assert np.abs(gradient).max() > 1e-12
-    np.testing.assert_allclose(gradient[:, 0], finite_difference, rtol=1e-5, atol=1e-12)
+    np.testing.assert_allclose(gradient, finite_difference, rtol=1e-5, atol=1e-12)
     np.testing.assert_allclose(gradient, expected, rtol=1e-4, atol=1e-4 * np.abs(expected).max())
 
 

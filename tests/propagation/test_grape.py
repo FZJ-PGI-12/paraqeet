@@ -16,6 +16,7 @@ from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.propagation.auto_diff_gradients import AutoDiffGradients
 from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.finite_difference_gradients import FiniteDifferenceGradients
 from paraqeet.propagation.grape import GRAPE
 from paraqeet.propagation.utils import (
     convert_dm_to_vec,
@@ -30,6 +31,7 @@ from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import GaussEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
+from tests.propagation.test_common_propagation import make_propagation
 
 T_FINAL = 20e-9
 FREQ = 1e6
@@ -56,6 +58,20 @@ def pwc_generator():
     generator.multiply_flat_top = True
     generator.max_amplitude = 2e8
     return generator
+
+
+@pytest.fixture
+def drive_optimization_map(pwc_generator):
+    """Return an optimization map with the in-phase amplitudes, the first drive parameter.
+
+    It is deliberately not registered with the optimizables, so that the model keeps computing
+    gradients for all parameters of the generator while the finite differences displace only the
+    first one, which is the first entry of the parameter axis of the GRAPE gradient.
+    This is done for speed reasons.
+    """
+    optmap = OptimizationMap()
+    optmap.add(pwc_generator, [pwc_generator.get_parameters()[0]])
+    return optmap
 
 
 @pytest.fixture
@@ -156,19 +172,18 @@ def _truncation_error(n_pieces, order):
     return np.abs(gradient - exact) / np.abs(exact)
 
 
-def _central_difference(parameter, overlap_func):
-    """Return the central difference of ``overlap_func`` w.r.t. ``parameter``."""
-    value = np.reshape(np.array(parameter.get_value()), (-1,))
-    epsilon = float(1e-6 * np.abs(value[0]))
-    parameter.set_value(value + epsilon)
-    plus = overlap_func()
-    parameter.set_value(value - epsilon)
-    minus = overlap_func()
-    parameter.set_value(value)
-    return (plus - minus) / (2 * epsilon)
+def _finite_difference_overlap(propagation, optimization_map, overlap_func, times=TLIST):
+    """Return the central difference of a linear functional of the final state.
+
+    ``FiniteDifferenceGradients`` differentiates the propagated states, while GRAPE is compared
+    against the derivative of an overlap with the target state. That overlap is linear in the
+    final state, so applying it to the gradient of the state gives the same scalar.
+    """
+    gradients = np.array(FiniteDifferenceGradients(propagation, optimization_map).get_gradient(times))
+    return complex(sum(overlap_func(gradient) for gradient in gradients[-1]))
 
 
-def test_grape_expm_against_finite_differences(schroedinger, pwc_generator):
+def test_grape_expm_against_finite_differences(schroedinger, drive_optimization_map):
     """Compare GRAPE gradients with FD."""
     propagation = Expm(eom_func=schroedinger.get_value, resolution=1 / DELTAT, initial_state=INIT_STATE)
     grape = GRAPE(
@@ -180,11 +195,10 @@ def test_grape_expm_against_finite_differences(schroedinger, pwc_generator):
 
     _, gradient = grape.get_value_and_gradient(TLIST)
 
-    def overlap():
-        return complex((TARGET_STATE.conj().T @ np.array(propagation.get_value(TLIST)[-1]))[0, 0])
+    def overlap(state):
+        return complex((TARGET_STATE.conj().T @ np.array(state))[0, 0])
 
-    parameter = pwc_generator.get_parameters()[0]
-    finite_difference = _central_difference(parameter, overlap)
+    finite_difference = _finite_difference_overlap(propagation, drive_optimization_map, overlap)
 
     np.testing.assert_allclose(np.sum(np.array(gradient)[0]), finite_difference, rtol=1e-2)
 
@@ -212,37 +226,42 @@ def test_grape_expm_matches_automatic_differentiation(schroedinger):
     np.testing.assert_allclose(np.sum(np.array(gradient)[0]), exact, rtol=3e-3)
 
 
-def test_grape_vern7_matches_grape_expm(schroedinger):
-    """The same GRAPE class works with the Vern7 ODE solver and agrees with Expm."""
+@pytest.mark.parametrize(
+    ("method", "tolerance"),
+    [
+        # The expansion of the exponential solves the same discretization as Expm.
+        ("chebyshev", 1e-8),
+        ("vern7", 1e-2),
+        ("diffrax", 1e-2),
+    ],
+)
+def test_grape_matches_grape_expm(schroedinger, method, tolerance):
+    """The same GRAPE class propagates forwards and backwards with every propagation method."""
     expm_grape = GRAPE(
-        Expm(eom_func=schroedinger.get_value, resolution=10e9, initial_state=INIT_STATE),
+        make_propagation("expm", schroedinger.get_value, 10e9, INIT_STATE),
         eom_gradient_func=schroedinger.get_gradient,
         target_state=TARGET_STATE,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
     )
-    vern7_grape = GRAPE(
-        Vern7(
-            eom_func=schroedinger.get_value,
-            resolution=10e9,
-            initial_state=INIT_STATE,
-            step_function=schrodinger_step,
-        ),
+    grape = GRAPE(
+        make_propagation(method, schroedinger.get_value, 10e9, INIT_STATE),
         eom_gradient_func=schroedinger.get_gradient,
         target_state=TARGET_STATE,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
     )
 
     expm_value, expm_gradient = expm_grape.get_value_and_gradient(TLIST)
-    vern7_value, vern7_gradient = vern7_grape.get_value_and_gradient(TLIST)
+    value, gradient = grape.get_value_and_gradient(TLIST)
 
     assert np.abs(expm_gradient).max() > 1e-12
 
-    # The tolerance is set by the second order midpoint rule of Expm on a piecewise constant pulse.
-    np.testing.assert_allclose(vern7_value, expm_value, rtol=1e-2, atol=1e-4)
-    np.testing.assert_allclose(vern7_gradient, expm_gradient, rtol=1e-2, atol=1e-2 * np.abs(expm_gradient).max())
+    # For the ODE solvers the tolerance is set by the second order midpoint rule of Expm on a
+    # piecewise constant pulse.
+    np.testing.assert_allclose(value, expm_value, rtol=tolerance, atol=1e-2 * tolerance)
+    np.testing.assert_allclose(gradient, expm_gradient, rtol=tolerance, atol=tolerance * np.abs(expm_gradient).max())
 
 
-def test_grape_vern7_open_system(master_equation, pwc_generator):
+def test_grape_vern7_open_system(master_equation, drive_optimization_map):
     """Test GRAPE for an open system through the vectorized Lindblad superoperator."""
     init_vec = convert_dm_to_vec(np.matmul(INIT_STATE, INIT_STATE.conj().T))
     target_vec = convert_dm_to_vec(np.matmul(TARGET_STATE, TARGET_STATE.conj().T))
@@ -264,12 +283,10 @@ def test_grape_vern7_open_system(master_equation, pwc_generator):
     _, gradient = grape.get_value_and_gradient(TLIST)
     assert np.abs(gradient).max() > 1e-12
 
-    def overlap():
-        final_dm = convert_vec_to_dm(np.array(propagation.get_value(TLIST)[-1]))
-        return complex(np.trace(target_dm @ np.array(final_dm)))
+    def overlap(state):
+        return complex(np.trace(target_dm @ np.array(convert_vec_to_dm(np.array(state)))))
 
-    parameter = pwc_generator.get_parameters()[0]
-    finite_difference = _central_difference(parameter, overlap)
+    finite_difference = _finite_difference_overlap(propagation, drive_optimization_map, overlap)
 
     np.testing.assert_allclose(np.sum(np.array(gradient)[0]), finite_difference, rtol=1e-2)
 
@@ -298,18 +315,17 @@ def _dissipative_grape(master_eq, reverse_step_function, order=2):
     return propagation, grape
 
 
-def test_grape_vern7_open_system_density_matrix(dissipative_master_equation, pwc_generator):
+def test_grape_vern7_open_system_density_matrix(dissipative_master_equation, drive_optimization_map):
     """Test GRAPE for a strongly dissipative open system using ODE solvers."""
     propagation, grape = _dissipative_grape(dissipative_master_equation, reverse_lindblad_step)
     target_dm = np.matmul(TARGET_STATE, TARGET_STATE.conj().T)
 
     _, gradient = grape.get_value_and_gradient(TLIST)
 
-    def overlap():
-        return complex(np.trace(target_dm @ np.array(propagation.get_value(TLIST)[-1])))
+    def overlap(state):
+        return complex(np.trace(target_dm @ np.array(state)))
 
-    parameter = pwc_generator.get_parameters()[0]
-    finite_difference = _central_difference(parameter, overlap)
+    finite_difference = _finite_difference_overlap(propagation, drive_optimization_map, overlap)
 
     np.testing.assert_allclose(np.sum(np.array(gradient)[0]), finite_difference, rtol=5e-2)
 
@@ -362,7 +378,7 @@ def test_grape_expansion_converges_with_the_pulse_piece_width():
     assert second_order[0] < first_order[0] / 10
 
 
-def test_grape_higher_order_improves_the_density_matrix_form(dissipative_master_equation, pwc_generator):
+def test_grape_higher_order_improves_the_density_matrix_form(dissipative_master_equation, drive_optimization_map):
     """The expansion also works where the generator is not a matrix product.
 
     In density matrix form the powers of the Lindbladian cannot be written down as matrices, since
@@ -372,10 +388,10 @@ def test_grape_higher_order_improves_the_density_matrix_form(dissipative_master_
     target_dm = np.matmul(TARGET_STATE, TARGET_STATE.conj().T)
     propagation, _ = _dissipative_grape(dissipative_master_equation, reverse_lindblad_step)
 
-    def overlap():
-        return complex(np.trace(target_dm @ np.array(propagation.get_value(TLIST)[-1])))
+    def overlap(state):
+        return complex(np.trace(target_dm @ np.array(state)))
 
-    finite_difference = _central_difference(pwc_generator.get_parameters()[0], overlap)
+    finite_difference = _finite_difference_overlap(propagation, drive_optimization_map, overlap)
 
     errors = []
     for order in (1, 2):
