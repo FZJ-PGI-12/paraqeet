@@ -28,8 +28,8 @@ class AutoDiffGradients(DifferentiablePropagation):
 
 
     where :math:`\alpha` is some pulse parameter and the second term on the right hand side is due to checkpointing.
-    The first term on the right can be computed by AD of the propagation method, and the second term
-    is provided by the user as `eom_gradient_func`.
+    The term :math:`\frac{\partial \ket{\psi(t)}}{\partial H(\tau)}` can be computed by AD of the propagation method,
+    and :math:`\frac{\partial H(\tau)}{\partial \alpha}` is provided by the user as `eom_gradient_func`.
     """
 
     _propagation_and_gradient_func: Callable[..., tuple[Array, Array]]
