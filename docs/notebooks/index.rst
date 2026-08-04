@@ -47,6 +47,14 @@ Optimization of bosonic systems
 - :doc:`08B_Bosonic_grape_state_preparation` — Arbitrary bosonic state preparation using GRAPE.
 - :doc:`08C_Bosonic_grape_with_smooth_pulses` — Bosonic state preparation with smooth pulses via gradient-based dCRAB / GOAT over GRAPE.
 
+
+Propagation and Automatic Differentiation
+-----------------------------------------
+
+- :doc:`09_Automatic_differentiation_of_propagation` — How automatic differentiation of propagation is carried out in ParaQeet.
+- :doc:`10_Benchmarking_propagation_methods` — Benchmarking the propagation methods in ParaQeet.
+
+
 .. toctree::
    :maxdepth: 1
    :hidden:
@@ -69,3 +77,5 @@ Optimization of bosonic systems
    08A_Smoothness_measure
    08B_Bosonic_grape_state_preparation
    08C_Bosonic_grape_with_smooth_pulses
+   09_Automatic_differentiation_of_propagation
+   10_Benchmarking_propagation_methods
