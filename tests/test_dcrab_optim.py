@@ -7,7 +7,7 @@ from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+from paraqeet.measurement.state_transfer_fidelity import FidelityGRAPE
 from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
@@ -77,7 +77,7 @@ def prop(model):
 def fid(prop):
     target = np.array([[0.0], [1]])  # |1>
 
-    zeroone = StateTransferFidelityGRAPE(
+    zeroone = FidelityGRAPE(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,

@@ -7,7 +7,7 @@ from paraqeet.eom.master_equation import MasterEquation
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
+from paraqeet.measurement.state_transfer_fidelity import Fidelity
 from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
 from paraqeet.optimization_map import OptimizationMap
@@ -97,7 +97,7 @@ def states(prop, mode):
 
         overlap_func = overlap_vectorized_density_matrix
 
-    return StateTransferFidelity(
+    return Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         target_state=target,

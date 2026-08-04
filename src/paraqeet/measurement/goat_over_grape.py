@@ -7,7 +7,7 @@ import jax.numpy as jnp
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.measurement.state_transfer_fidelity import (
-    StateTransferFidelityGRAPE,
+    FidelityGRAPE,
 )
 from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array, Float
@@ -21,13 +21,13 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
     This is similar to the GROUP method :cite:p:`sorensen2018quantum`.
     """
 
-    _measurement: StateTransferFidelityGRAPE
+    _measurement: FidelityGRAPE
     _gens: list[PWCGenerator]
     _propagation_resolution: int
 
     def __init__(
         self,
-        measurement: StateTransferFidelityGRAPE,
+        measurement: FidelityGRAPE,
         generators: PWCGenerator | list[PWCGenerator],
         propagation_resolution: int,
     ) -> None:

@@ -6,6 +6,8 @@ from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
 from paraqeet.quantity import Array, Float, Quantity
 
+# TODO: Convert and factor into propagation and use generic measurement implementations
+
 
 class RabiExperiment(NormalizableMeasurement, Optimizable):
     """Analytic model of the general Rabi formula."""

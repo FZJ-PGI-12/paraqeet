@@ -40,3 +40,15 @@ def overlap_vectorized_density_matrix_mixed_states(final_state: Array, target_st
     target_state = convert_vec_to_dm(target_state)
     final_state = convert_vec_to_dm(final_state)
     return jnp.linalg.trace(matrix_sqrt_psd(jnp.matmul(target_state, final_state))) ** 2
+
+
+@jit
+def gate_fidelity(overlap: Array) -> Array:
+    """Compute the fidelity of a gate based on state overlaps."""
+    return jnp.abs(jnp.average(overlap)) ** 2
+
+
+@jit
+def state_fidelity(overlap: Array) -> Array:
+    """Compute the average state transfer fidelity based on state overlaps."""
+    return jnp.average(jnp.abs(overlap) ** 2)

@@ -15,7 +15,7 @@ from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.state_transfer_fidelity import (
-    StateTransferFidelityGRAPE,
+    FidelityGRAPE,
 )
 from paraqeet.measurement.utils import overlap_state_vector
 from paraqeet.optimization_map import OptimizationMap
@@ -123,7 +123,7 @@ def prop(model):
 def fid(prop):
     target = jnp.array([[0.0], [1.0]])  # |1>
 
-    zeroone = StateTransferFidelityGRAPE(
+    zeroone = FidelityGRAPE(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         overlap=overlap_state_vector,
