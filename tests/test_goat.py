@@ -100,7 +100,7 @@ def states(prop, mode):
     return Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_func,
     )
 

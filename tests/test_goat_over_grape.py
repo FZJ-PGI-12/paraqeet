@@ -127,7 +127,7 @@ def fid(prop):
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         overlap=overlap_state_vector,
-        target_state=target,
+        target_states=target,
     )
     return zeroone
 

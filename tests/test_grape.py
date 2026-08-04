@@ -152,7 +152,7 @@ def states(model, mode, solver):
     return FidelityGRAPE(
         propagation_func=prop_method.get_value,
         propagation_gradient_func=prop_method.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_func,
     )
 

@@ -46,7 +46,7 @@ PROP = ExpmGOAT(eom_func=MODEL.get_value, eom_gradient_func=MODEL.get_gradient, 
 ZEROONE = Fidelity(
     propagation_func=PROP.get_value,
     propagation_gradient_func=PROP.get_gradient,
-    target_state=TARGET,
+    target_states=TARGET,
     fid=state_fidelity,
     overlap=overlap_state_vector,
 )

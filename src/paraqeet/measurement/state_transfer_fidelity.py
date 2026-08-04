@@ -8,6 +8,7 @@ import jax.numpy as jnp
 
 from paraqeet.autograd_utils import get_jacobian_func
 from paraqeet.differentiable import Differentiable
+from paraqeet.exceptions import ConfigurationException
 from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.measurement.utils import gate_fidelity
 from paraqeet.quantity import Array, Float
@@ -42,9 +43,11 @@ class Fidelity(NormalizableMeasurement, Differentiable):
         self,
         propagation_func: Callable[[Array], Array],
         propagation_gradient_func: Callable[[Array], Array],
-        target_state: Array,
         overlap: Callable[[Array, Array], Array],
         fid: Callable[[Array], Array],
+        target_states: Array | None = None,
+        basis_states: Array | None = None,
+        ideal_gate: Array | None = None,
     ) -> None:
         """
         Args:
@@ -57,9 +60,16 @@ class Fidelity(NormalizableMeasurement, Differentiable):
             overlap: Overlap function of the form
                 ``overlap(final_state, target_state)``.
         """
+        if target_states and ideal_gate:
+            raise ConfigurationException("Supply either target_states or and ideal_gate with basis_states")
+        if not ideal_gate or target_states:
+            raise ConfigurationException("You need to supply either an ideal_gate or target_states directly.")
         self._propagation_func = propagation_func
         self._propagation_gradient_func = propagation_gradient_func
-        self._target_states = jnp.array(target_state, dtype=jnp.complex128)
+        self._target_states = jnp.array(target_states, dtype=jnp.complex128)
+        if ideal_gate is not None:
+            basis_states = basis_states or jnp.eye(ideal_gate.shape[0])
+            self.set_ideal_gate(ideal_gate, basis_states)
         self._overlap = overlap
         self._fid = fid
         self._overlap_grad = get_jacobian_func(self._overlap)
@@ -111,6 +121,17 @@ class Fidelity(NormalizableMeasurement, Differentiable):
             df_dp_list.append(jnp.real(jnp.squeeze(dfdp)))
         return self._fid(f), jnp.array(df_dp_list)  # (n_parameters,)
 
+    def set_ideal_gate(self, gate: Array, basis_states: Array | None) -> None:
+        """Compute target states by applying an ideal gate to a set of basis states.
+
+        Args:
+            gate: Target state computation via this gate.
+        """
+        if basis_states is None:
+            self._target_states = gate
+        else:
+            self._target_states = gate @ basis_states
+
 
 class FidelityGRAPE(Fidelity):
     """Fidelity measure that compares the overlap of the propagated final state and the target state.
@@ -154,8 +175,7 @@ class UnitaryFidelity(Fidelity):
     average gate fidelity formula :cite:p:`nielsen2002simple`.
     """
 
-    _basis_states: Array | None
-    _target_costates: Array
+    _target_states: Array
     _propagation_func: Callable[[Array], Array]
     _propagation_gradient_func: Callable[[Array], Array]
 
@@ -181,15 +201,15 @@ class UnitaryFidelity(Fidelity):
         """
         self._propagation_func = propagation_func
         self._propagation_gradient_func = propagation_gradient_func
-        self._basis_states = basis_states if basis_states is not None else jnp.eye(gate.shape[0])
-        self.set_ideal_gate(gate)
+        basis_states = basis_states or jnp.eye(gate.shape[0])
+        self.set_ideal_gate(gate, basis_states)
         self._fid = gate_fidelity
 
     @override
     def get_value(self, times: Array) -> Float:
         states = self._propagation_func(jnp.array(times))
         overlaps = []
-        for ii, s in enumerate(self._target_costates.T):
+        for ii, s in enumerate(self._target_states):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self._fid(jnp.asarray(overlaps))
 
@@ -218,14 +238,14 @@ class UnitaryFidelity(Fidelity):
         states = self._propagation_func(times)
         dg_dp_list = self._propagation_gradient_func(times)  # gradient of states wrt parameters
         overlaps = []
-        for ii, s in enumerate(self._target_costates.T):
+        for ii, s in enumerate(self._target_states):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         f = jnp.average(jnp.asarray(overlaps))
 
         df_dp_list = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
-            for ii, s in enumerate(self._target_costates.T):
+            for ii, s in enumerate(self._target_states):
                 gs.append(jnp.vdot(s, dg_dp[:, ii]))
             g = jnp.average(jnp.asarray(gs))
             # TODO: Convert to AD and use this implementation as check
@@ -237,14 +257,3 @@ class UnitaryFidelity(Fidelity):
     def get_gradient(self, times: Array) -> Array:
         _, grad = self.get_value_and_gradient(times)
         return grad
-
-    def set_ideal_gate(self, gate: Array) -> None:
-        """Compute target states for the L2 norm.
-
-        Args:
-            gate: Target state computation via this gate.
-        """
-        if self._basis_states is None:
-            self._target_costates = gate
-        else:
-            self._target_costates = self._basis_states @ gate
