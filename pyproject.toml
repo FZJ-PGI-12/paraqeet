@@ -149,7 +149,7 @@ builtin = "clear,rare,en-GB_to_en-US"
 ignore-words-list = "fo,nd,wrd,thru,iam,te,ket,lamdas"
 
 # Files / directories / globs to skip.
-skip = "*.lock,*.csv,*.svg,./.git/*,./build/*,./dist/*,./venv/*,./.venv/*,./docs/requirements*,*.js,docs/requirements.txt,docs/refs.bib"
+skip = "*.lock,*.csv,*.svg,./.git/*,./build/*,./dist/*,./venv/*,./.venv/*,./docs/requirements*,*.js,docs/requirements.txt,./docs/refs.bib"
 
 # Optional quality-of-life settings
 check-filenames = true
