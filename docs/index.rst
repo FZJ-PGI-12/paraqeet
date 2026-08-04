@@ -27,8 +27,9 @@ optimization methods:
 - AD: Automatic differentiation of the state/propagator evolution
 
 Currently implemented propagation methods:
-- Expm: Matrix exponential using JAX ``expm``
-- ExpmChebyshev: Matrix exponential using Chebyshev polynomial expansion
+
+- Expm: Matrix exponential using JAX ``expm`` :cite:p:`jax2018github`
+- ExpmChebyshev: Matrix exponential using Chebyshev polynomial expansion :cite:p:`talezer1984accurate`
 - ODE solvers: Diffrax :cite:p:`kidger2021on`, Verner 7th order method :cite:p:`verner2010numerically`, and Scipy Runge-Kutta methods :cite:p:`2020SciPy-NMeth`.
 
 The propagation methods can be combined with the QOC methods leading to combinations such as GOAT QOC using ``ExpmChebyshev``.

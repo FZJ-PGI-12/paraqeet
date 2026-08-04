@@ -22,9 +22,12 @@ class AutoDiffGradients(DifferentiablePropagation):
     The AD performs
         .. math::
             \frac{\partial \ket{\psi(t)}}{\partial \alpha} = \sum_{\tau \in [0, t]}
-            \frac{\partial \ket{\psi(t)}}{\partial H(\tau)} \frac{\partial H(\tau)}{\partial \alpha},
+            \frac{\partial \ket{\psi(t)}}{\partial H(\tau)} \frac{\partial H(\tau)}{\partial \alpha}
+            + \sum_{\tau \in [0, t_1, t_2, ...]} \frac{\partial \ket{\psi(t)}}{\partial \ket{\psi(\tau)}}
+            \frac{\partial \ket{\psi(\tau)}}{\partial \alpha}
 
-    where :math:`\alpha` is some pulse parameter.
+
+    where :math:`\alpha` is some pulse parameter and the second term on the right hand side is due to checkpointing.
     The first term on the right can be computed by AD of the propagation method, and the second term
     is provided by the user as `eom_gradient_func`.
     """
