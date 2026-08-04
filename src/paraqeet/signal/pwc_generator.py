@@ -292,10 +292,11 @@ class PWCGenerator(Generator):
         """
         grads = []
         time_grid = self._time_grid
+        dt = time_grid[1] - time_grid[0]
 
         if self._multiply_flat_top:
             smoothing = self._compute_envelope(time_grid)
-            index = jnp.argmin(jnp.abs(jnp.expand_dims(time_grid, axis=1) - times), axis=0)
+            index = jnp.array(times / dt, int)
             env = smoothing[index]
         else:
             env = jnp.ones_like(times)
