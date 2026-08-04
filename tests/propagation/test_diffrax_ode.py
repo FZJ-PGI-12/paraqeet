@@ -88,7 +88,6 @@ def test_diffrax_matches_vern7(schroedinger):
         resolution=RESOLUTION,
         initial_state=INIT_STATE,
         step_function=schrodinger_step,
-        samples_per_step=2,
     )
     vern7 = Vern7(
         eom_func=schroedinger.get_value,
@@ -101,7 +100,7 @@ def test_diffrax_matches_vern7(schroedinger):
 
     assert states.shape == (len(TLIST),) + INIT_STATE.shape
     np.testing.assert_allclose(np.linalg.norm(states, axis=(1, 2)), np.ones(len(TLIST)), rtol=1e-8)
-    np.testing.assert_allclose(states, np.array(vern7.get_value(TLIST)), rtol=1e-5, atol=1e-6)
+    np.testing.assert_allclose(states, np.array(vern7.get_value(TLIST)), rtol=1e-8, atol=1e-9)
 
 
 def test_diffrax_adaptive_step_size(schroedinger):
@@ -119,12 +118,96 @@ def test_diffrax_adaptive_step_size(schroedinger):
         step_function=schrodinger_step,
         solver=diffrax.Dopri8(),
         stepsize_controller=diffrax.PIDController(rtol=1e-10, atol=1e-12),
-        samples_per_step=2,
+        interpolation_order=10,
     )
 
     np.testing.assert_allclose(
-        np.array(adaptive.get_value(TLIST)), np.array(reference.get_value(TLIST)), rtol=1e-5, atol=1e-6
+        np.array(adaptive.get_value(TLIST)), np.array(reference.get_value(TLIST)), rtol=1e-8, atol=1e-9
     )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_order"),
+    [
+        ({}, 4.0),
+        ({"solver": diffrax.Dopri8(), "interpolation_order": 10}, 7.0),
+    ],
+)
+def test_diffrax_convergence_order(schroedinger, kwargs, expected_order):
+    """The error decreases with the order of the solver, not with the order of the interpolation.
+
+    The EOM is sampled on a grid and interpolated in between, so an interpolation of too low an order
+    caps the convergence of the whole solve no matter which solver is used. This regression test
+    pins the observed order, which the tests comparing against ``Vern7`` are too loose to catch.
+    """
+    reference = np.array(
+        Vern7(
+            eom_func=schroedinger.get_value,
+            resolution=200e9,
+            initial_state=INIT_STATE,
+            step_function=schrodinger_step,
+        ).get_value(TLIST)
+    )[-1]
+
+    resolutions = np.array([1e9, 2e9, 5e9])
+    errors = np.array(
+        [
+            np.linalg.norm(
+                np.array(
+                    DiffraxODE(
+                        eom_func=schroedinger.get_value,
+                        resolution=resolution,
+                        initial_state=INIT_STATE,
+                        step_function=schrodinger_step,
+                        **kwargs,
+                    ).get_value(TLIST)
+                )[-1]
+                - reference
+            )
+            for resolution in resolutions
+        ]
+    )
+
+    order = -np.polyfit(np.log(resolutions), np.log(errors), 1)[0]
+    assert order > expected_order
+
+
+def test_diffrax_samples_per_step_helps_adaptive_stepping(schroedinger):
+    """With an adaptive step size controller the sampling of the EOM sets the accuracy floor.
+
+    The controller subdivides below the propagation step and drives the error of the solve below its
+    own tolerance, so what is left over is the error of interpolating the EOM between the samples.
+    Sampling more finely is then the only way to a more accurate result, and tightening the tolerance
+    does nothing. The error depends on the density of the samples alone, so raising ``resolution`` at
+    a fixed ``samples_per_step`` is equally effective, but it also adds propagation steps the solver
+    does not need.
+    """
+    reference = np.array(
+        Vern7(
+            eom_func=schroedinger.get_value,
+            resolution=200e9,
+            initial_state=INIT_STATE,
+            step_function=schrodinger_step,
+        ).get_value(TLIST)
+    )[-1]
+
+    def error(samples_per_step, rtol):
+        adaptive = DiffraxODE(
+            eom_func=schroedinger.get_value,
+            resolution=1e9,
+            initial_state=INIT_STATE,
+            step_function=schrodinger_step,
+            solver=diffrax.Dopri8(),
+            stepsize_controller=diffrax.PIDController(rtol=rtol, atol=rtol / 100),
+            samples_per_step=samples_per_step,
+        )
+        return float(np.linalg.norm(np.array(adaptive.get_value(TLIST))[-1] - reference))
+
+    coarse = error(samples_per_step=1, rtol=1e-10)
+
+    assert error(samples_per_step=4, rtol=1e-10) < coarse / 100
+    # The interpolation, not the tolerance of the controller, is what limits the accuracy here.
+    np.testing.assert_allclose(error(samples_per_step=1, rtol=1e-12), coarse, rtol=1e-3)
 
 
 def test_diffrax_open_system(master_equation):
@@ -136,7 +219,6 @@ def test_diffrax_open_system(master_equation):
         initial_state=initial_dm,
         step_function=lindblad_step,
         jump_operators=master_equation.jump_operators,
-        samples_per_step=2,
     )
     superoperator = Vern7(
         eom_func=master_equation.get_value,
@@ -159,7 +241,6 @@ def test_diffrax_autodiff_gradient(schroedinger, optimization_map):
         resolution=RESOLUTION,
         initial_state=INIT_STATE,
         step_function=schrodinger_step,
-        samples_per_step=2,
     )
     autodiff = AutoDiffGradients(propagation, eom_gradient_func=schroedinger.get_gradient)
     reference = AutoDiffGradients(
@@ -176,13 +257,14 @@ def test_diffrax_autodiff_gradient(schroedinger, optimization_map):
     np.testing.assert_allclose(gradient, expected, rtol=1e-4, atol=1e-4 * np.abs(expected).max())
 
 
-def test_diffrax_rejects_invalid_sampling(schroedinger):
-    """At least one EOM sample per propagation step is needed for the interpolation."""
+@pytest.mark.parametrize("kwargs", [{"samples_per_step": 0}, {"interpolation_order": 1}])
+def test_diffrax_rejects_invalid_sampling(schroedinger, kwargs):
+    """One EOM sample per propagation step and two grid points per interpolation are the minimum."""
     with pytest.raises(ConfigurationException):
         DiffraxODE(
             eom_func=schroedinger.get_value,
             resolution=RESOLUTION,
             initial_state=INIT_STATE,
             step_function=schrodinger_step,
-            samples_per_step=0,
+            **kwargs,
         )

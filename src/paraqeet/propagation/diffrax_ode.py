@@ -8,6 +8,7 @@ import diffrax
 import jax
 import jax.numpy as jnp
 from jax import jit
+from jax.lax import dynamic_slice_in_dim
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.propagation import Propagation
@@ -25,7 +26,9 @@ class DiffraxODE(Propagation):
     it takes a ``step_function`` that implements the right hand side of the equation of motion,
     so the step functions of :mod:`paraqeet.propagation.utils` can be used with both classes.
 
-    The equation of motion is sampled on a fixed grid and interpolated with a cubic Hermite spline in between.
+    The equation of motion is sampled on an equidistant grid and interpolated in between by a Lagrange polynomial
+    through the ``interpolation_order`` nearest grid points. This is required to preserve the adaptive
+    time step in Diffrax based ODE solvers.
     The solver therefore integrates in units of propagation steps: one unit of the solver's internal time
     is one step of length ``1 / resolution``.
     Since Diffrax is written in JAX, ``_propagate`` stays compatible with
@@ -35,17 +38,19 @@ class DiffraxODE(Propagation):
     This is also what makes implicit solvers such as ``diffrax.Kvaerno5()`` usable.
 
     Note:
-        The default configuration, ``Tsit5`` with a constant step size of one propagation step,
-        reproduces the behavior of the other fixed step methods. For a high order ODE solver
-        use ``solver=diffrax.Dopri8()``, and for adaptive stepping pass a
-        ``stepsize_controller=diffrax.PIDController(rtol=..., atol=...)``.
+        For a high order ODE solver
+        use ``solver=diffrax.Dopri8()`` together with a larger ``interpolation_order``, and for
+        adaptive stepping pass a ``stepsize_controller=diffrax.PIDController(rtol=..., atol=...)``.
 
     Note:
-        Unlike ``Vern7``, which evaluates the EOM exactly at fixed time steps, this
-        solver only sees the interpolated EOM. With the default of one sample per step the
-        interpolation, the interpolation limits the accuracy to about third order in the step size,
-        so ``Vern7`` is more accurate at the same resolution. Increase ``samples_per_step`` or the
-        ``resolution`` if the propagation has to be more accurate than that.
+        As this solver sees the interpolated EOM, the order of convergence is the minimum of the
+        order of the solver and the ``interpolation_order``. Hence, always choose the ``interpolation_order``
+        to be around the order of the solver.
+
+    Note:
+        ``samples_per_step`` decrease the effective time step and matters for the case of an
+        adaptive solver. Extra samples increase the number of EOM evaluations, hence should only
+        be used in case the solver does not reach its convergence.
     """
 
     _step_function: Callable
@@ -56,6 +61,7 @@ class DiffraxODE(Propagation):
     _dt0: float
     _max_steps: int | None
     _samples_per_step: int
+    _interpolation_order: int
 
     def __init__(
         self,
@@ -70,6 +76,7 @@ class DiffraxODE(Propagation):
         dt0: float = 1.0,
         max_steps: int | None = None,
         samples_per_step: int = 1,
+        interpolation_order: int = 8,
     ) -> None:
         """
         Args:
@@ -88,12 +95,15 @@ class DiffraxODE(Propagation):
                 step size controller the default of one propagation step is used throughout.
             max_steps: Maximum number of solver steps per interval of the times array. Defaults to
                 None, in which case it is chosen large enough for the constant step size solve.
-            samples_per_step: Number of times the EOM is sampled per propagation step. Increasing
-                it improves the interpolation of the EOM between the grid points at the cost of
-                more EOM evaluations.
+            samples_per_step: Number of times the EOM is sampled per propagation step. Only useful
+                for adaptive ``stepsize_controller``, PWC pulse.
+            interpolation_order: Number of grid points the EOM is interpolated over between the
+                samples, which is the order of convergence the interpolation supports. Defaults to 8,
+                enough for the fifth order default solver.
 
         Raises:
-            ConfigurationException: If fewer than one sample per propagation step is requested.
+            ConfigurationException: If fewer than one sample per propagation step, or an interpolation
+                over fewer than two grid points, is requested.
         """
         super().__init__(eom_func, resolution, initial_state)
         self._step_function = step_function
@@ -108,6 +118,9 @@ class DiffraxODE(Propagation):
         if samples_per_step < 1:
             raise ConfigurationException("DiffraxODE needs at least one EOM sample per propagation step.")
         self._samples_per_step = samples_per_step
+        if interpolation_order < 2:
+            raise ConfigurationException("DiffraxODE needs to interpolate the EOM over at least two grid points.")
+        self._interpolation_order = interpolation_order
 
     @property
     def step_function(self) -> Callable:
@@ -157,6 +170,9 @@ class DiffraxODE(Propagation):
         The solve runs in units of propagation steps, from ``0`` to the number of steps, because
         the EOM comes in already scaled with the step size.
 
+        Between the samples the EOM is interpolated by the Lagrange polynomial through the
+        ``interpolation_order`` nearest grid points.
+
         The EOM and the state are split into their real and imaginary parts before the solve and
         rejoined afterwards, so that Diffrax integrates a purely real system.
 
@@ -167,14 +183,20 @@ class DiffraxODE(Propagation):
             col: Jump operators scaled with the square root of the step size.
         """
         num_steps = steps_arr.shape[0]
-        sample_times = jnp.arange(num_steps * self._samples_per_step + 1) / self._samples_per_step
+        num_knots = num_steps * self._samples_per_step + 1
+        stencil = min(self._interpolation_order, num_knots)
         eom_split = jnp.stack([eom.real, eom.imag], axis=1)
-        eom_interp = diffrax.CubicInterpolation(
-            sample_times, diffrax.backward_hermite_coefficients(sample_times, eom_split)
-        )
+
+        nodes = jnp.arange(stencil, dtype=float)
+        diagonal = jnp.eye(stencil, dtype=bool)
+        denominator = jnp.where(diagonal, 1.0, nodes[:, None] - nodes[None, :])
 
         def vector_field(time: Any, state: Array, _args: Any) -> Array:
-            eom_t = eom_interp.evaluate(time)
+            knot = time * self._samples_per_step
+            base = jnp.clip(jnp.floor(knot).astype(int) - (stencil // 2 - 1), 0, num_knots - stencil)
+            offset = knot - base
+            weights = jnp.prod(jnp.where(diagonal, 1.0, (offset - nodes)[None, :] / denominator), axis=1)
+            eom_t = jnp.tensordot(weights, dynamic_slice_in_dim(eom_split, base, stencil, axis=0), axes=1)
             state_t: Array = self._step_function(state[0] + 1j * state[1], eom_t[0] + 1j * eom_t[1], col)
             return jnp.stack([state_t.real, state_t.imag])
 
