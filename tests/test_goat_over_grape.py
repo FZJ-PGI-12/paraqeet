@@ -161,3 +161,27 @@ def test_can_measure(fid, gen, propagation):
 def test_goat_over_grape(opt_grad):
     res = opt_grad.optimize(times=TLIST)
     assert res.value < 1e-4
+
+
+def test_gradient_on_a_grid_that_differs_from_the_pixels(tone, fid, gen, propagation):
+    """Test that the gradients are computed correctly for a different time grid."""
+    optmap = OptimizationMap()
+    optmap.add(tone)
+    optmap.register_params_with_optimizables()
+    goat = GOATOverGRAPE(fid, generators=gen, propagation_resolution=propagation.resolution)
+    times = jnp.array([0.0, T_FINAL])
+
+    _, gradient = goat.get_value_and_gradient(times=times)
+
+    finite_differences = []
+    for parameter in tone.get_parameters():
+        value = parameter.get_value()
+        step = 1e-6 * jnp.abs(value)
+        parameter.set_value(value + step)
+        forward = goat.get_value(times=times)
+        parameter.set_value(value - step)
+        backward = goat.get_value(times=times)
+        parameter.set_value(value)
+        finite_differences.append((forward - backward) / (2 * step))
+
+    testing.assert_allclose(np.array(gradient).flatten(), np.array(finite_differences).flatten(), rtol=1e-2)
