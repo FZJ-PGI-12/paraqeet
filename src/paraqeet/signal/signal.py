@@ -23,6 +23,7 @@ class Signal(Optimizable, Differentiable):
     # AC: the following annotation does not seem needed / correct.
     _partial_grads_function: Callable | None = None
     _gradient_function: Callable | None = None
+    _value_function: Callable | None = None
     _grad_arg_nums: tuple[int, ...] = ()
 
     def _compute_gradient_function(
@@ -91,7 +92,12 @@ class Signal(Optimizable, Differentiable):
         params = self.get_parameters()
         param_values = [param.get_value() for param in params]
         t_arr = jnp.array(times, ndmin=1)
-        value = jit(self._evaluate)(*param_values, t_arr)
+
+        # To ensure that the compilation takes place only once
+        if self._value_function is None:
+            self._value_function = jit(self._evaluate)
+
+        value = self._value_function(*param_values, t_arr)
         # ignoring mypy due to jit
         return value  # type: ignore
 
