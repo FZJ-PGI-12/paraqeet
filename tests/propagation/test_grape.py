@@ -117,18 +117,18 @@ def dissipative_master_equation(qubit_hamiltonian):
     )
 
 
-def _closed_system(n_pieces):
+def _closed_system(n_pieces, amplitude=np.pi / T_FINAL / 3):
     """Return the time grid and the Schroedinger equation of the driven qubit on a finer grid.
 
     The fixtures above are tied to ``TLIST``. Convergence in the width of a pulse piece needs the
     same system on several grids, so this rebuilds it for a given number of pieces.
     """
     tlist = np.linspace(0, T_FINAL, n_pieces + 1)
-    tone = GaussEnvelope(amplitude=Quantity(np.pi / T_FINAL / 3, -np.pi / T_FINAL, np.pi / T_FINAL))
+    tone = GaussEnvelope(amplitude=Quantity(amplitude, -4 * amplitude, 4 * amplitude))
     tone.t_final.set_value(T_FINAL)
     generator = PWCGenerator(envelopes=[tone], tlist=tlist)
     generator.multiply_flat_top = True
-    generator.max_amplitude = 2e8
+    generator.max_amplitude = max(2e8, 4 * amplitude)
 
     hamiltonian = QubitHamiltonian(Quantity(FREQ, FREQ / 4, FREQ), drives=[])
     hamiltonian.drives = [Drive(hamiltonian.sigma_minus, generator, add_hermitian=True)]
@@ -166,6 +166,7 @@ def _truncation_error(n_pieces, order):
         target_state=TARGET_STATE,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
         order=order,
+        frechet_derivative=False,
     )
     gradient = np.sum(np.array(grape.get_gradient(tlist))[0])
     exact = _exact_overlap_gradient(propagation, schroedinger, tlist)
