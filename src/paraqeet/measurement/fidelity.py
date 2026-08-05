@@ -60,9 +60,9 @@ class Fidelity(NormalizableMeasurement, Differentiable):
             overlap: Overlap function of the form
                 ``overlap(final_state, target_state)``.
         """
-        if target_states and ideal_gate:
+        if target_states is not None and ideal_gate is not None:
             raise ConfigurationException("Supply either target_states or and ideal_gate with basis_states")
-        if not ideal_gate or target_states:
+        if ideal_gate is not None and target_states is not None:
             raise ConfigurationException("You need to supply either an ideal_gate or target_states directly.")
         self._propagation_func = propagation_func
         self._propagation_gradient_func = propagation_gradient_func

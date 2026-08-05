@@ -3,12 +3,12 @@
 import numpy as np
 import pytest
 
+from paraqeet import UnitaryFidelity
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.composite_hamiltonian import CompositeHamiltonian
 from paraqeet.hamiltonian.coupling import Coupling
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.transmon import TransmonHamiltonian
-from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
