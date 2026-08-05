@@ -112,17 +112,16 @@ Using GRAPE as the method to propagate and compute the gradients
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_grape import ExpmGRAPE
+    from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ExpmGRAPE(
-        eom_func=model.get_value,
+    propagation = Expm(eom_func=model.get_value, resolution=2e9, initial_state=init)
+    prop = GRAPE(
+        propagation,
         eom_gradient_func=model.get_gradient,
-        resolution=2e9,
-        initial_state=init,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
     )
@@ -184,7 +183,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
     optmap.add(filtered_tone)
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, gen, prop.resolution)
+    goat = GOATOverGRAPE(zeroone, gen, propagation.resolution)
     opt_grad = ScipyOptimizerGradient(measure_and_gradient_func=goat.get_value_and_gradient, optimization_map=optmap)
 
 .. code:: ipython3
@@ -196,7 +195,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
 
 .. parsed-literal::
 
-    {'status': 1, 'value': -8.881784197001252e-16, 'iterations': 6, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 1.4224774691484754e-09, 'iterations': 5, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 

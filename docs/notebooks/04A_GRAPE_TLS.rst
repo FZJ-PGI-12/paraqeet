@@ -76,17 +76,16 @@ As a simple toy model, we use a single spin.
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_grape import ExpmGRAPE
+    from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ExpmGRAPE(
-        eom_func=model.get_value,
+    propagation = Expm(eom_func=model.get_value, resolution=2e9, initial_state=init)
+    prop = GRAPE(
+        propagation,
         eom_gradient_func=model.get_gradient,
-        resolution=2e9,
-        initial_state=init,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
     )
@@ -130,7 +129,7 @@ As a simple toy model, we use a single spin.
 
 .. parsed-literal::
 
-    Array(0.73183237, dtype=float64)
+    Array(0.10336679, dtype=float64)
 
 
 
@@ -160,7 +159,7 @@ from a ``PWCGenerator`` using ``gen.tlist``.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 1.4499512701604544e-13, 'iterations': 7, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 1.2907700330799798e-07, 'iterations': 22, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -188,7 +187,7 @@ iterations.
 With open system
 ----------------
 
-Let's first reset the pulse and create an open-system model
+Let’s first reset the pulse and create an open-system model
 
 .. code:: ipython3
 
@@ -230,14 +229,14 @@ Let's first reset the pulse and create an open-system model
         jump_operators=open_qubit.get_jump_operators(),
     )
 
-Let's test GRAPE with ODE propagation
+Let’s test GRAPE with ODE propagation
 
 .. code:: ipython3
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_density_matrix
+    from paraqeet.propagation import GRAPE, Vern7
     from paraqeet.propagation.utils import grape_operator_sandwich_function_open, lindblad_step, reverse_lindblad_step
-    from paraqeet.propagation.vern7_grape import Vern7GRAPE
     
     init = np.array([[1.0], [0.0j]])  # |0>
     target = np.array([[0.0j], [1.0]])  # |1>
@@ -245,16 +244,21 @@ Let's test GRAPE with ODE propagation
     init = jnp.matmul(init, init.T.conj())
     target = jnp.matmul(target, target.T.conj())
     
-    prop = Vern7GRAPE(
+    propagation = Vern7(
         eom_func=model.get_eom_ode_propagation,
-        eom_gradient_func=model.get_eom_gradient_ode_propagation,
         resolution=10e9,
         initial_state=init,
-        target_state=target,
         step_function=lindblad_step,
-        reverse_step_function=reverse_lindblad_step,
-        operator_sandwich_function=grape_operator_sandwich_function_open,
         jump_operators=open_qubit.get_jump_operators(),
+    )
+    # The dissipator is built from the collapse operators inside the step function rather than being
+    # part of the equation of motion, so the backward propagation needs the adjoint dissipator.
+    prop = GRAPE(
+        propagation,
+        eom_gradient_func=model.get_eom_gradient_ode_propagation,
+        target_state=target,
+        operator_sandwich_function=grape_operator_sandwich_function_open,
+        reverse_step_function=reverse_lindblad_step,
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -306,7 +310,7 @@ Let's test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    Array(0.0109955, dtype=float64)
+    Array(0.0109956, dtype=float64)
 
 
 
@@ -329,11 +333,16 @@ Let's test GRAPE with ODE propagation
     opt_grad.optimize(tlist)
 
 
+.. parsed-literal::
+
+    scipy.optimize: The `disp` and `iprint` options of the L-BFGS-B solver are deprecated and will be removed in SciPy 1.18.0.
+
+
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.009539974355470049, 'iterations': 49, 'message': 'ABNORMAL: '}
+    {'status': 1, 'value': 0.006379207131413489, 'iterations': 26, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -364,7 +373,7 @@ Let's test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    Array(0.99046003, dtype=float64)
+    Array(0.99364055, dtype=float64)
 
 
 

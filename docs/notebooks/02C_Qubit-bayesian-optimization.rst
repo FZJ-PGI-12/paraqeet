@@ -18,7 +18,7 @@ uses Bayesian optimization (Shahriari et al., 2016)
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import Expm
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -79,8 +79,8 @@ and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as an initial guess to demonstrate the
-optimization procedure.
+We use some offset from these values as an initial guess to demonstrate
+the optimization procedure.
 
 .. code:: ipython3
 
@@ -95,14 +95,8 @@ identity at time :math:`0`.
 
     times = np.array([0.0, t_simu])
     
-    prop = ExpmGOAT(
-        eom_func=model.get_value,
-        eom_gradient_func=model.get_gradient,
-        resolution=100e9,
-        initial_state=np.identity(2),
-    )
-    
-    gate_fid = UnitaryFidelity(propagation_func=prop.get_value, propagation_gradient_func=prop.get_gradient, gate=sigma_x)
+    prop = Expm(eom_func=model.get_value, resolution=100e9, initial_state=np.identity(2))
+    gate_fid = UnitaryFidelity(propagation_func=prop.get_value, propagation_gradient_func=None, gate=sigma_x)
 
 .. code:: ipython3
 
@@ -201,18 +195,18 @@ to collect all samples that the optimizer takes
 
     | [35m12       [39m | [35m0.3210977[39m | [35m0.3995182[39m | [35m-0.075493[39m | [35m-0.066396[39m |
     | [39m13       [39m | [39m0.1647017[39m | [39m0.5639544[39m | [39m-0.194260[39m | [39m-0.341354[39m |
+    | [35m14       [39m | [35m0.3215744[39m | [35m0.5552035[39m | [35m0.1456268[39m | [35m-0.017306[39m |
 
 
 .. parsed-literal::
 
-    | [35m14       [39m | [35m0.3215744[39m | [35m0.5552035[39m | [35m0.1456268[39m | [35m-0.017306[39m |
     | [39m15       [39m | [39m-.246e-06[39m | [39m0.2755778[39m | [39m0.3197374[39m | [39m-0.141076[39m |
     | [39m16       [39m | [39m0.2212795[39m | [39m0.5554470[39m | [39m0.1939444[39m | [39m-0.022655[39m |
+    | [39m17       [39m | [39m0.1641519[39m | [39m0.5808638[39m | [39m-0.020411[39m | [39m-0.013947[39m |
 
 
 .. parsed-literal::
 
-    | [39m17       [39m | [39m0.1641519[39m | [39m0.5808638[39m | [39m-0.020411[39m | [39m-0.013947[39m |
     | [35m18       [39m | [35m0.3386069[39m | [35m0.3983636[39m | [35m-0.078108[39m | [35m-0.062977[39m |
 
 
@@ -227,11 +221,11 @@ to collect all samples that the optimizer takes
     | [39m21       [39m | [39m0.2996809[39m | [39m0.3799188[39m | [39m-0.030457[39m | [39m0.0350806[39m |
     | [39m22       [39m | [39m0.3506612[39m | [39m0.2964954[39m | [39m-0.068823[39m | [39m-0.020524[39m |
     | [39m23       [39m | [39m0.0011528[39m | [39m0.9867827[39m | [39m-0.644633[39m | [39m0.8585118[39m |
+    | [39m24       [39m | [39m-.894e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
 
 
 .. parsed-literal::
 
-    | [39m24       [39m | [39m-.894e-05[39m | [39m-0.472166[39m | [39m-0.869049[39m | [39m-0.553717[39m |
     | [39m25       [39m | [39m-.132e-08[39m | [39m-0.877018[39m | [39m-0.657881[39m | [39m0.0207137[39m |
     | [39m26       [39m | [39m0.0011949[39m | [39m-0.795254[39m | [39m-0.508318[39m | [39m0.9524448[39m |
 
@@ -304,16 +298,16 @@ to collect all samples that the optimizer takes
 
     | [35m47       [39m | [35m0.9247866[39m | [35m0.8027911[39m | [35m0.0301315[39m | [35m-0.485857[39m |
     | [39m48       [39m | [39m0.1162966[39m | [39m-0.455283[39m | [39m0.0556825[39m | [39m-0.294502[39m |
-
-
-.. parsed-literal::
-
     | [39m49       [39m | [39m0.0005492[39m | [39m-0.896720[39m | [39m-0.199863[39m | [39m-0.487141[39m |
 
 
 .. parsed-literal::
 
     | [39m50       [39m | [39m0.2695574[39m | [39m0.8031122[39m | [39m-0.066686[39m | [39m-0.485512[39m |
+
+
+.. parsed-literal::
+
     | [39m51       [39m | [39m0.4891204[39m | [39m0.7696168[39m | [39m0.0946999[39m | [39m-0.517352[39m |
 
 
@@ -341,12 +335,16 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m57       [39m | [39m0.8529050[39m | [39m0.9997355[39m | [39m0.0692861[39m | [39m0.5637266[39m |
-    | [39m58       [39m | [39m0.3471668[39m | [39m1.0      [39m | [39m-0.039209[39m | [39m0.5793447[39m |
 
 
 .. parsed-literal::
 
+    | [39m58       [39m | [39m0.3471668[39m | [39m1.0      [39m | [39m-0.039209[39m | [39m0.5793447[39m |
     | [39m59       [39m | [39m0.2922228[39m | [39m0.9356930[39m | [39m0.1417109[39m | [39m0.5855986[39m |
+
+
+.. parsed-literal::
+
     | [39m60       [39m | [39m0.7454913[39m | [39m0.9328742[39m | [39m0.0904889[39m | [39m-0.391478[39m |
 
 
@@ -475,10 +473,6 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m95       [39m | [39m0.0776399[39m | [39m0.5006620[39m | [39m-0.185180[39m | [39m-0.817513[39m |
-
-
-.. parsed-literal::
-
     | [39m96       [39m | [39m0.2675017[39m | [39m0.8040816[39m | [39m-0.159214[39m | [39m-0.860836[39m |
 
 
@@ -504,17 +498,17 @@ to collect all samples that the optimizer takes
 .. parsed-literal::
 
     | [39m104      [39m | [39m0.8174814[39m | [39m0.8789252[39m | [39m-0.043038[39m | [39m-0.618030[39m |
-
-
-.. parsed-literal::
-
     | [39m105      [39m | [39m0.7748375[39m | [39m1.0      [39m | [39m0.0417764[39m | [39m-0.621004[39m |
-    | [39m106      [39m | [39m0.0628136[39m | [39m-0.231786[39m | [39m-0.098097[39m | [39m-0.206950[39m |
 
 
 .. parsed-literal::
 
+    | [39m106      [39m | [39m0.0628136[39m | [39m-0.231786[39m | [39m-0.098097[39m | [39m-0.206950[39m |
     | [39m107      [39m | [39m0.0144301[39m | [39m0.7975162[39m | [39m0.2655924[39m | [39m0.9053020[39m |
+
+
+.. parsed-literal::
+
     | [39m108      [39m | [39m-.685e-05[39m | [39m-0.454330[39m | [39m0.6388374[39m | [39m-0.363639[39m |
     | [39m109      [39m | [39m0.0194496[39m | [39m1.0      [39m | [39m0.1289968[39m | [39m0.2124224[39m |
 

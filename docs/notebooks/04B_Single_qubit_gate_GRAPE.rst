@@ -95,7 +95,7 @@ The Hamiltonian in the rotating frame of the drive is given by -
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_grape import ExpmGRAPE
+    from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0], [0.0]])  # |0>
@@ -103,15 +103,16 @@ The Hamiltonian in the rotating frame of the drive is given by -
     
     times = np.array([0.0, t_final])
     
-    prop = ExpmGRAPE(
-        eom_func=model.get_value,
+    propagation = Expm(eom_func=model.get_value, resolution=1e9, initial_state=init)
+    # ``order`` sets how far the derivative of the piece propagator is expanded. The default of 2 is
+    # an order of magnitude more accurate than the textbook first order GRAPE of ``order=1``.
+    prop = GRAPE(
+        propagation,
         eom_gradient_func=model.get_gradient,
-        resolution=1e9,
-        initial_state=init,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=2,
     )
-    prop.schirmer_derivative = True
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.get_value,
@@ -152,7 +153,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    Array(0.74491766, dtype=float64)
+    Array(0.31007536, dtype=float64)
 
 
 
@@ -179,14 +180,14 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    Iteration   10 | Infid = 1.254676e-08
+    Iteration   10 | Infid = 9.282243e-09
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.7638757948977855e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 7.815716962511488e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 

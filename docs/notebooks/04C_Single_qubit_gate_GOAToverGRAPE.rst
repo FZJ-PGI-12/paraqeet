@@ -131,7 +131,7 @@ The Hamiltonian in the rotating frame of the drive is given by -
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_grape import ExpmGRAPE
+    from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0], [0]])  # |0>
@@ -139,15 +139,13 @@ The Hamiltonian in the rotating frame of the drive is given by -
     
     times = np.array([0.0, t_final])
     
-    prop = ExpmGRAPE(
-        eom_func=model.get_value,
+    propagation = Expm(eom_func=model.get_value, resolution=1e9, initial_state=init)
+    prop = GRAPE(
+        propagation,
         eom_gradient_func=model.get_gradient,
-        resolution=1e9,
-        initial_state=init,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
     )
-    prop.use_schirmer_derivative = True
     
     zeroone = StateTransferFidelityGRAPE(
         propagation_func=prop.get_value,
@@ -188,7 +186,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    Array(0.74342557, dtype=float64)
+    Array(0.53928598, dtype=float64)
 
 
 
@@ -226,7 +224,7 @@ Optimization
     optmap.add(filtered_tone)
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, propagation_resolution=prop.resolution, generators=[gen])
+    goat = GOATOverGRAPE(zeroone, propagation_resolution=propagation.resolution, generators=[gen])
     
     optgrad = ScipyOptimizerGradient(measure_and_gradient_func=goat.get_value_and_gradient, optimization_map=optmap)
 
@@ -252,14 +250,19 @@ Optimization
 
 .. parsed-literal::
 
-    Iteration   10 | Infid = 2.888190e-03
+    Iteration   10 | Infid = 2.656649e-03
+
+
+.. parsed-literal::
+
+    Iteration   20 | Infid = 2.636966e-03
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0026468690799831274, 'iterations': 46, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.002594563362441238, 'iterations': 70, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 

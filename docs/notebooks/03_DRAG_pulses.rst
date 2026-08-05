@@ -13,7 +13,7 @@ First, we make the necessary imports.
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import GOAT, Expm
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -87,11 +87,9 @@ DRAGMixer
     
     params = gen.get_parameters()
     
-    prop = ExpmGOAT(
-        eom_func=model.get_value,
+    prop = GOAT(
+        Expm(eom_func=model.get_value, resolution=100e9, initial_state=np.eye(num_levels)),
         eom_gradient_func=model.get_gradient,
-        resolution=100e9,
-        initial_state=np.eye(num_levels),
     )
 
 .. code:: ipython3
@@ -133,7 +131,7 @@ DRAGMixer
 
 
 
-2. Set up the ideal reference matrix to compare the pulse's result to.
+2. Set up the ideal reference matrix to compare the pulse’s result to.
 ----------------------------------------------------------------------
 
 .. code:: ipython3

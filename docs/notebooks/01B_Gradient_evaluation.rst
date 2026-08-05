@@ -76,7 +76,7 @@ the ``_evaluate`` method to be a pure-JAX function, with arguments as
 
 The :math:`\texttt{signal}` module includes the
 :math:`\texttt{Envelopes}` class which defines the shape of a pulse.
-Let's define an example envelope of a Gaussian
+Let’s define an example envelope of a Gaussian
 
 .. math:: \Omega(t) = A \, e^{-\frac{(t - \mu)^2}{2\sigma^2}}.
 
@@ -181,7 +181,7 @@ get
 
 
 The gradients are currently empty as the ``OptimizationMap`` is not
-defined yet. Let's define the optmap and add the ``tone`` to it. We need
+defined yet. Let’s define the optmap and add the ``tone`` to it. We need
 to “register” the parameters using the
 ``register_params_with_optimizables`` method to inform the specified
 classes which parameters are being optimized.
@@ -223,7 +223,7 @@ classes which parameters are being optimized.
 Note that the shape of the gradients is (t, num_params). Here there are
 3 parameters added to the ``optmap``.
 
-Let's compare the gradients with the analytical formulas
+Let’s compare the gradients with the analytical formulas
 
 .. code:: ipython3
 
@@ -270,7 +270,7 @@ Let's compare the gradients with the analytical formulas
 
 Further, the signal module includes filter functions and
 :math:`\texttt{DRAGMixer}` (Motzoi et al., 2009)
-:cite:p:`motzoi2009simple` to modify the pulse shape. Let's include a
+:cite:p:`motzoi2009simple` to modify the pulse shape. Let’s include a
 :math:`\texttt{FlatTopGaussianFilter}`
 :math:`(\epsilon(t) = s(t) \Omega(t))` on top of this pulse and add the
 DRAG component. The final pulse would be
@@ -319,7 +319,7 @@ evaluated by
 .. image:: 01B_Gradient_evaluation_files/01B_Gradient_evaluation_19_0.png
 
 
-Let's plot the derivative with :math:`\mu`
+Let’s plot the derivative with :math:`\mu`
 
 .. code:: ipython3
 
@@ -401,7 +401,7 @@ strength between two subsystems, by adding the corresponding quantity to
 the optmap. Thus we can put the optimization of the model and pulse
 parameter on the same footing.
 
-For this example, let's define a qubit, given by the Hamiltonian
+For this example, let’s define a qubit, given by the Hamiltonian
 
 .. math:: H(t)=H_\text{drift}+H_c(t)= \frac{\omega_q}{2} \sigma_z + \Omega(t)\sigma_x, 
 
@@ -535,20 +535,23 @@ here we instead compute
 
 .. math:: \frac{\partial \ket{\psi(t)}}{\partial \alpha} = \frac{\partial U(t)}{\partial \alpha} \ket{\psi(0)}.
 
-In this example we look at the gradients computed using GOAT by using
-the propagation module :math:`\texttt{ExpmGOAT}` at the initial and the
-final time points.
+In this example we look at the gradients computed using GOAT by wrapping
+the :math:`\texttt{Expm}` propagation in :math:`\texttt{GOAT}`, at the
+initial and the final time points.
 
 .. code:: ipython3
 
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import GOAT, Expm
     
     times = np.array([0.0, t_final])
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ExpmGOAT(eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=10e9, initial_state=init)
+    prop = GOAT(
+        Expm(eom_func=schrgl.get_value, resolution=10e9, initial_state=init),
+        eom_gradient_func=schrgl.get_gradient,
+    )
     
     value, grads = prop.get_value_and_gradient(times)
     grads.shape

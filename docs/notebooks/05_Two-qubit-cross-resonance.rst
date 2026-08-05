@@ -17,7 +17,7 @@ Gradient-based optimization of a cross-resonance gate between two transmons
     from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import GOAT, Expm
     from paraqeet.propagation.propagation import Propagation
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -40,8 +40,8 @@ second one to apply a cross-resonance (CR) gate (Sheldon et al., 2016)
 phases of the gate.
 
 Here the tone values are set such that the optimization process is fast.
-Generally, with a lot of parameters, ``ExpmGOAT`` (in its current form)
-can take a considerably long time.
+Generally, with a lot of parameters, ``GOAT`` (in its current form) can
+take a considerably long time.
 
 .. code:: ipython3
 
@@ -305,11 +305,13 @@ configure CR as a target gate.
     
     times = np.array([0.0, t_final])
     
-    prop = ExpmGOAT(
-        eom_func=model.get_value,
+    prop = GOAT(
+        Expm(
+            eom_func=model.get_value,
+            resolution=100e9,
+            initial_state=np.identity(transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()),
+        ),
         eom_gradient_func=model.get_gradient,
-        resolution=100e9,
-        initial_state=np.identity(transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()),
     )
     
     gate_fid = UnitaryFidelity(
