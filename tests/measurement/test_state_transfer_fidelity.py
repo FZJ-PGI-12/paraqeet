@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from paraqeet.measurement.fidelity import Fidelity
-from paraqeet.measurement.utils import overlap_state_vector
+from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from tests.propagation.identity_propagation import IdentityPropagation
 from tests.propagation.random_propagation import RandomPropagation
 
@@ -26,6 +26,7 @@ def test_limits_vectors(random_state):
             propagation_gradient_func=propagation.get_gradient,
             target_states=target_state,
             overlap=overlap_state_vector,
+            fid=state_fidelity,
         )
 
         for _ in range(20):
@@ -48,6 +49,7 @@ def test_vector_equality(identity_propagation, random_state):
                 propagation_gradient_func=identity_propagation.get_gradient,
                 target_states=state,
                 overlap=overlap_state_vector,
+                fid=state_fidelity,
             )
             m = measurement.get_value(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0)
@@ -81,6 +83,7 @@ def test_incompatible_shape(identity_propagation, random_state):
                 propagation_gradient_func=identity_propagation.get_gradient,
                 target_states=targetState,
                 overlap=overlap_state_vector,
+                fid=state_fidelity,
             )
 
             with pytest.raises(Exception):

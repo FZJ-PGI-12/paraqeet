@@ -13,11 +13,11 @@ from jax.scipy.special import erf
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
-from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.fidelity import (
     FidelityGRAPE,
 )
-from paraqeet.measurement.utils import overlap_state_vector
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.expm_grape import ExpmGRAPE
@@ -127,6 +127,7 @@ def fid(prop):
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
         overlap=overlap_state_vector,
+        fid=state_fidelity,
         target_states=target,
     )
     return zeroone

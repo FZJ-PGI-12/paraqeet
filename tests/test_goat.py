@@ -9,7 +9,7 @@ from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.measurement.fidelity import Fidelity
-from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
+from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -87,6 +87,7 @@ def states(prop, mode):
     init = np.array([[1.0], [0.0]])
     target = np.array([[0.0], [1.0]])
     overlap_func = overlap_state_vector
+    fid_func = state_fidelity
 
     if mode == "OpenSystem":
         init = np.matmul(init, init.T)
@@ -102,6 +103,7 @@ def states(prop, mode):
         propagation_gradient_func=prop.get_gradient,
         target_states=target,
         overlap=overlap_func,
+        fid=fid_func,
     )
 
 

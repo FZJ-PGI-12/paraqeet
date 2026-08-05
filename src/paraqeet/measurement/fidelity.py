@@ -130,7 +130,7 @@ class Fidelity(NormalizableMeasurement, Differentiable):
         if basis_states is None:
             self._target_states = gate
         else:
-            self._target_states = gate @ basis_states
+            self._target_states = basis_states @ gate
 
 
 class FidelityGRAPE(Fidelity):
@@ -201,7 +201,7 @@ class UnitaryFidelity(Fidelity):
         """
         self._propagation_func = propagation_func
         self._propagation_gradient_func = propagation_gradient_func
-        basis_states = basis_states or jnp.eye(gate.shape[0])
+        basis_states = basis_states if basis_states is not None else jnp.eye(gate.shape[0])
         self.set_ideal_gate(gate, basis_states)
         self._fid = gate_fidelity
 
@@ -209,7 +209,7 @@ class UnitaryFidelity(Fidelity):
     def get_value(self, times: Array) -> Float:
         states = self._propagation_func(jnp.array(times))
         overlaps = []
-        for ii, s in enumerate(self._target_states):
+        for ii, s in enumerate(self._target_states.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         return self._fid(jnp.asarray(overlaps))
 
@@ -238,14 +238,14 @@ class UnitaryFidelity(Fidelity):
         states = self._propagation_func(times)
         dg_dp_list = self._propagation_gradient_func(times)  # gradient of states wrt parameters
         overlaps = []
-        for ii, s in enumerate(self._target_states):
+        for ii, s in enumerate(self._target_states.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
         f = jnp.average(jnp.asarray(overlaps))
 
         df_dp_list = []
         for dg_dp in dg_dp_list[-1]:
             gs = []
-            for ii, s in enumerate(self._target_states):
+            for ii, s in enumerate(self._target_states.T):
                 gs.append(jnp.vdot(s, dg_dp[:, ii]))
             g = jnp.average(jnp.asarray(gs))
             # TODO: Convert to AD and use this implementation as check

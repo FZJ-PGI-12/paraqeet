@@ -6,9 +6,9 @@ import pytest
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
-from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.fidelity import FidelityGRAPE
-from paraqeet.measurement.utils import overlap_state_vector
+from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
+from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
 from paraqeet.propagation.expm_grape import ExpmGRAPE
@@ -82,6 +82,7 @@ def fid(prop):
         propagation_gradient_func=prop.get_gradient,
         target_states=target,
         overlap=overlap_state_vector,
+        fid=state_fidelity,
     )
     return zeroone
 

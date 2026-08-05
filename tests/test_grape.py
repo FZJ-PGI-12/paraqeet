@@ -10,7 +10,12 @@ from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
 from paraqeet.measurement.fidelity import (
     FidelityGRAPE,
 )
-from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
+from paraqeet.measurement.utils import (
+    overlap_density_matrix,
+    overlap_state_vector,
+    overlap_vectorized_density_matrix,
+    state_fidelity,
+)
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.expm_grape import ExpmGRAPE
@@ -154,6 +159,7 @@ def states(model, mode, solver):
         propagation_gradient_func=prop_method.get_gradient,
         target_states=target,
         overlap=overlap_func,
+        fid=state_fidelity,
     )
 
 
