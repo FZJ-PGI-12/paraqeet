@@ -24,8 +24,7 @@ import jax
 
 from paraqeet.eom.master_equation import MasterEquation
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
-from paraqeet.measurement.state_transfer_fidelity import Fidelity, FidelityGRAPE
-from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+from paraqeet.measurement.fidelity import Fidelity, FidelityGRAPE, UnitaryFidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient

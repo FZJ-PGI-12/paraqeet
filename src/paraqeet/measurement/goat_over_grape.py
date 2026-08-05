@@ -6,7 +6,7 @@ import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.measurement.state_transfer_fidelity import (
+from paraqeet.measurement.fidelity import (
     FidelityGRAPE,
 )
 from paraqeet.propagation.utils import construct_times

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from paraqeet.measurement.state_transfer_fidelity import Fidelity
+from paraqeet.measurement.fidelity import Fidelity
 from paraqeet.measurement.utils import overlap_state_vector
 from tests.propagation.identity_propagation import IdentityPropagation
 from tests.propagation.random_propagation import RandomPropagation

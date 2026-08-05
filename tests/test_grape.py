@@ -7,7 +7,7 @@ from paraqeet.eom.master_equation import MasterEquation
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
-from paraqeet.measurement.state_transfer_fidelity import (
+from paraqeet.measurement.fidelity import (
     FidelityGRAPE,
 )
 from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix

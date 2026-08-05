@@ -14,7 +14,7 @@ from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
-from paraqeet.measurement.state_transfer_fidelity import (
+from paraqeet.measurement.fidelity import (
     FidelityGRAPE,
 )
 from paraqeet.measurement.utils import overlap_state_vector

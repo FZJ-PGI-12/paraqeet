@@ -7,7 +7,7 @@ from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.logger import Logger
-from paraqeet.measurement.state_transfer_fidelity import Fidelity
+from paraqeet.measurement.fidelity import Fidelity
 from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
