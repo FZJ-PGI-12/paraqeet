@@ -5,13 +5,14 @@ from typing import override
 import jax.numpy as jnp
 import numpy as np
 
+from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.optimization_map import OptimizationMap
-from paraqeet.propagation.propagation import DifferentiablePropagation, Propagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class FiniteDifferenceGradients(DifferentiablePropagation):
+class FiniteDifferenceGradients(Differentiable):
     r"""Wraps a Propagation object to add gradient computation by central finite differences.
 
     Every parameter of the optimization map is displaced by a small step in both directions, and
@@ -21,22 +22,13 @@ class FiniteDifferenceGradients(DifferentiablePropagation):
             \frac{\partial \ket{\psi(t)}}{\partial \alpha} \approx
             \frac{\ket{\psi_{\alpha + h}(t)} - \ket{\psi_{\alpha - h}(t)}}{2h}.
 
-    Unlike :class:`~paraqeet.propagation.auto_diff_gradients.AutoDiffGradients`,
-    :class:`~paraqeet.propagation.goat.GOAT` and :class:`~paraqeet.propagation.grape.GRAPE`, this
-    needs no gradient of the equation of motion and makes no assumption about the propagation, so
-    it also works with methods that are not differentiable, such as
-    :class:`~paraqeet.propagation.runge_kutta.RungeKutta`.
-
     Note:
         This method is meant for verification only. It costs two full propagations per parameter,
         which is prohibitive for a pulse with many parameters. Use it to check the gradient of one of
         the analytic methods, and optimize with those.
-
-    The parameters are displaced in physical units, matching the gradients that the analytic
-    methods return. The step is taken relative to the magnitude of a parameter, and relative to
-    the range between its bounds where the value is zero, so that every parameter is displaced.
     """
 
+    _prop: Propagation
     _optimization_map: OptimizationMap
     _epsilon: float
 
@@ -57,26 +49,11 @@ class FiniteDifferenceGradients(DifferentiablePropagation):
         Raises:
             ConfigurationException: If the displacement is not positive.
         """
-        super().__init__(propagation, eom_gradient_func=FiniteDifferenceGradients._no_eom_gradient)
+        self._prop = propagation
         if epsilon <= 0.0:
             raise ConfigurationException("The displacement of the finite differences has to be positive.")
         self._optimization_map = optimization_map
         self._epsilon = epsilon
-
-    @staticmethod
-    def _no_eom_gradient(times: Array) -> Array:
-        """Raise, because finite differences displace the parameters instead of the EOM.
-
-        Args:
-            times: Array of times.
-
-        Raises:
-            ConfigurationException: Always.
-        """
-        raise ConfigurationException(
-            "FiniteDifferenceGradients differentiates by displacing the parameters of the "
-            "optimization map, hence it has no gradient of the equation of motion."
-        )
 
     @property
     def epsilon(self) -> float:
@@ -93,6 +70,16 @@ class FiniteDifferenceGradients(DifferentiablePropagation):
         if epsilon <= 0.0:
             raise ConfigurationException("The displacement of the finite differences has to be positive.")
         self._epsilon = epsilon
+
+    @override
+    def get_value(self, times: Array) -> Array:
+        """Return the solution of the equations of motion from the propagation method.
+
+        Args:
+            times: Array of times.
+
+        """
+        return self._prop.get_value(times)
 
     @override
     def get_gradient(self, times: Array) -> Array:

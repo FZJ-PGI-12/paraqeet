@@ -115,6 +115,3 @@ def test_finite_differences_reject_an_invalid_configuration(schroedinger, optimi
 
     with pytest.raises(ConfigurationException):
         FiniteDifferenceGradients(propagation, OptimizationMap()).get_gradient(TLIST)
-
-    with pytest.raises(ConfigurationException):
-        finite_difference._eom_and_gradient_func(TLIST)
