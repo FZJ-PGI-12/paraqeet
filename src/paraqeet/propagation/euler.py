@@ -1,43 +1,42 @@
 """Class definition of the Euler propagation model."""
 
-import jax.numpy as jnp
+from typing import Any, override
 
-from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import StatePropagation
+from jax import jit
+from jax.lax import scan
+
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class Euler(StatePropagation):
+class Euler(Propagation):
     r"""Simple implementation of first order Euler propagation.
 
     Solves the equation of motion d/dt psi(t) = F(psi(t), t)
     with a finite step size d as psi(t+d) = psi(t) + F(psi(t), t).
-    The step size can be variable and is calculated from the time array that is
-    passed to the ``get_value`` function.
+    The step size is determined by the propagation ``resolution``.
     """
 
-    def get_value(self, times: Array) -> Array:
-        """Calculate the first order Euler propagation.
-
-        Performs the actual propagation calculation.
+    @staticmethod
+    @jit
+    @override
+    def _propagate(eom: Array, psis_t: Array, steps_arr: Array) -> Array:
+        """Propagate the system in time with first order Euler steps.
 
         Args:
-            times: Array of times.
+            eom: Equation of motion, already scaled with the step size, for a list of times.
+            psis_t: State/states at time 't'.
+            steps_arr: Iteration indices, one per propagation step.
 
         Returns:
-            Array: Results of the Euler propagation.
+            The evolved state.
 
         """
-        if len(times) < 2:
-            raise ValueError("Euler.get_value needs at least two time points.")
 
-        if self._initial_state is None:
-            raise ConfigurationException("Initial state is not set")
+        def propagate_body(psis_t: Array, index: Any) -> tuple[Array, Array]:
+            psis_t = psis_t + eom[index] @ psis_t
+            return psis_t, psis_t
 
-        eom_values = self._eom_func(times)
-        dt = times[1:] - times[0:-1]
-        states = [self._initial_state]
-        for i in range(len(dt)):
-            states.append(states[-1] + dt[i] * eom_values[i] @ states[-1])
+        psis_t, _ = scan(propagate_body, psis_t, steps_arr)
 
-        return jnp.array(states)  # Jax arrays are immutable, so listing and then packing for return
+        return psis_t

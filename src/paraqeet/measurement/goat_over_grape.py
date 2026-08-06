@@ -117,7 +117,8 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
 
         control_gradients: list[Array] = []
         for gen_num, gen in enumerate(self._gens):
-            control_gradients.append(self._pad_with_zeros(gen._get_partial_derivatives(time_grid), gen_num))
+            pixel_times = gen.get_pixel_times(time_grid)
+            control_gradients.append(self._pad_with_zeros(gen._get_partial_derivatives(pixel_times), gen_num))
         control_gradients_arr = jnp.hstack(control_gradients)
 
         # Evaluate GRAPE gradients

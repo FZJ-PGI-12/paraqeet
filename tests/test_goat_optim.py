@@ -13,7 +13,8 @@ from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.expm_goat import ExpmGOAT
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.goat import GOAT
 from paraqeet.propagation.utils import convert_dm_to_vec
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
@@ -51,7 +52,7 @@ def mode(request):
 
 
 @pytest.fixture
-def prop(gen, mode):
+def propagation(gen, mode):
     """Solve the equation of motion.
 
     By piecewise exponentiation with the scipy package.
@@ -78,7 +79,14 @@ def prop(gen, mode):
             hamiltonian_func=qubit_hamiltonian.get_value,
             hamiltonian_gradient_func=qubit_hamiltonian.get_gradient,
         )
-    return ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=RES, initial_state=init)
+    return Expm(eom_func=model.get_value, resolution=RES, initial_state=init), model
+
+
+@pytest.fixture
+def prop(propagation):
+    """Add gradients to the propagation with GOAT."""
+    expm, model = propagation
+    return GOAT(expm, eom_gradient_func=model.get_gradient)
 
 
 @pytest.fixture
@@ -106,12 +114,13 @@ def states(prop, mode):
 
 
 @pytest.fixture
-def gates(prop, mode):
+def gates(propagation, prop, mode):
     """Compare the propagator with a gate via the L2 norm."""
     if mode == "OpenSystem":
         pytest.skip("Gate optimization is only implemented for closed system.")
     pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-    prop.initial_state = np.identity(2)
+    expm, _ = propagation
+    expm.initial_state = np.identity(2)
     return UnitaryFidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,

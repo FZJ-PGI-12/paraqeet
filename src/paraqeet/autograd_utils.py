@@ -4,13 +4,13 @@ from collections.abc import Callable
 from typing import Any
 
 import jax.numpy as jnp
-from jax import jit, vjp, vmap
+from jax import jit, linearize, vjp, vmap
 
 from paraqeet.quantity import Array
 
 
-def get_value_and_jacobian(
-    f: Callable, argnums: int | tuple[int] = 0
+def get_value_and_jacobian_rev(
+    f: Callable, argnums: int | tuple[int, ...] = 0
 ) -> Callable[..., tuple[Array, Array | tuple[Array, ...]]]:
     """Compute Jacobian of f w.r.t. specified arguments via vjp (reverse-mode AD).
 
@@ -18,6 +18,7 @@ def get_value_and_jacobian(
     Returns a ``get_value_and_gradient`` that returns the value and the gradients w.r.t. argnums.
 
     It supports functions with complex + vector valued inputs, and complex + vector valued outputs.
+    Reverse mode is preferable when the number of inputs are larger than the outputs.
 
     Args:
         f: JAX-jit compatible function to be differentiated.
@@ -31,7 +32,7 @@ def get_value_and_jacobian(
     """
     if isinstance(argnums, int):
         argnums_is_int = True
-        indices: tuple[int] = (argnums,)
+        indices: tuple[int, ...] = (argnums,)
     else:
         argnums_is_int = False
         indices = argnums
@@ -63,6 +64,74 @@ def get_value_and_jacobian(
         reshaped = tuple(jac.reshape(y.shape + jnp.shape(diff_args[i])) for i, jac in enumerate(jac_tuple))
 
         return y, (reshaped[0] if argnums_is_int else reshaped)
+
+    # `jit` returns JitWrapped object, fixing the signature here.
+    wrapped: Callable[..., tuple[Array, Array | tuple[Array, ...]]] = value_and_jacobian_func
+    return wrapped
+
+
+def get_value_and_jacobian_fwd(
+    f: Callable, argnums: int | tuple[int, ...] = 0
+) -> Callable[..., tuple[Array, Array | tuple[Array, ...]]]:
+    """Compute Jacobian of f w.r.t. specified arguments via jvp (forward-mode AD).
+
+    The function ``f`` has to be jax ``jit`` and ``grad`` compatible.
+    Returns a ``get_value_and_gradient`` that returns the value and the gradients w.r.t. argnums.
+
+    It supports functions with complex + vector valued inputs, and complex + vector valued outputs.
+    Forward mode is preferable when the number of inputs are smaller than the outputs.
+
+    Args:
+        f: JAX-jit compatible function to be differentiated.
+        argnums: int or tuple of ints (similar to jax.grad).
+            Arguments for which the gradients are computed.
+
+    Returns:
+        A function that returns (value, gradient) for the given arguments.
+        The gradient is a single Array if ``argnums`` is an int, and a tuple with one Array
+        per entry of ``argnums`` if it is a tuple.
+    """
+    if isinstance(argnums, int):
+        argnums_is_int = True
+        indices: tuple[int, ...] = (argnums,)
+    else:
+        argnums_is_int = False
+        indices = argnums
+
+    @jit
+    def value_and_jacobian_func(*args, **kwargs) -> tuple[Array, Array]:
+        diff_args = tuple(args[i] for i in indices)
+
+        # Build a partial function that only depends on the args to differentiate with
+        # The arguments not in diff_args are not traced and hence not differentiated with.
+        def f_partial(*diff_args_):
+            full_args_list = list(args)
+            for i, a in zip(indices, diff_args_):
+                full_args_list[i] = a
+            return f(*full_args_list, **kwargs)
+
+        y, jvp_fn = linearize(f_partial, *diff_args)
+
+        jacobians = []
+        for k, x in enumerate(diff_args):
+            x_shape = jnp.shape(x)
+            x_size = jnp.size(x)
+
+            # Feed basis vectors covering the flattened input, with zero tangents
+            # for the other differentiable arguments.
+            Identity = jnp.eye(x_size, dtype=jnp.result_type(x)).reshape((x_size,) + x_shape)
+
+            def push_tangent(v, k=k):
+                tangents = tuple(v if j == k else jnp.zeros_like(a) for j, a in enumerate(diff_args))
+                return jvp_fn(*tangents)
+
+            jac = vmap(push_tangent)(Identity)
+            # Move the input axis last to match the (y.shape + x.shape) convention
+            # of the reverse-mode version.
+            jacobians.append(jnp.moveaxis(jac, 0, -1).reshape(y.shape + x_shape))
+
+        # ignoring mypy as the function is JitWrapped
+        return y, (jacobians[0] if argnums_is_int else tuple(jacobians))  # type: ignore
 
     # `jit` returns JitWrapped object, fixing the signature here.
     wrapped: Callable[..., tuple[Array, Array | tuple[Array, ...]]] = value_and_jacobian_func

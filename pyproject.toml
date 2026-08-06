@@ -32,7 +32,8 @@ dependencies = [
   "jaxlib>=0.10.0",
   "bayesian-optimization>=2.0.4",
   "cma>=4.2.0",
-  "jaxtyping>=0.3.7"
+  "jaxtyping>=0.3.7",
+  "diffrax>=0.7.0"
 ]
 
 [tool.sphinx-pyproject]
@@ -148,7 +149,7 @@ builtin = "clear,rare,en-GB_to_en-US"
 ignore-words-list = "fo,nd,wrd,thru,iam,te,ket,lamdas"
 
 # Files / directories / globs to skip.
-skip = "*.lock,*.csv,*.svg,./.git/*,./build/*,./dist/*,./venv/*,./.venv/*,./docs/requirements*,*.js,docs/requirements.txt"
+skip = "*.lock,*.csv,*.svg,./.git/*,./build/*,./dist/*,./venv/*,./.venv/*,./docs/requirements*,*.js,docs/requirements.txt,./docs/refs.bib"
 
 # Optional quality-of-life settings
 check-filenames = true

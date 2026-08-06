@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - References in online documentation, including citations in code and notebooks
 - Expiry date (of 1 week) to all artifacts during CI/CD
 - Missing type annotation and mypy fixes
+- ``DifferentiablePropagation`` as a base class that wraps a ``Propagation`` object with gradient computation abilities
+- ``DiffraxODE`` and ``ExpmChebyshev`` propagation methods. Support for adaptive ODE solver using `DiffraxODE`
+- Automatic differentiation of propagation ``AutoDiffGradients``
+- ``GOAT`` and ``GRAPE`` classes that can be applied to any propagation object, with support for higher order corrections to `GRAPE` 
+- Example notebook for benchmarking the propagation methods 
+- ``FiniteDifferenceGradient`` as a reference method for verification
+- forward mode AD util
+
 
 
 
@@ -39,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename classes ``ScipyExpm`` -> ``Expm``, ``ScipyExpmGOAT``/``ScipyExpmGRAPE`` -> ``ExpmGOAT``/``ExpmGRAPE``, ``Waveform`` -> ``Signal``
 - ``Model`` module split into ``Hamiltonian`` and ``EOM`` modules
 - Renamed methods ``propagate`` and ``measure`` -> ``get_value`` for consistency
+- Cleaner structure of the Propagation module
+- Modified the ``PWCGenerator`` signal generation and gradient to standardize PWC interpolation 
+
 
 
 ### Removed
@@ -46,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_value_at_timestep` and `get_value_and_gradient_at_timestep` methods. Replaced with vectorized code
 - `DifferentiablePropagation` class in favor of explicitly inheriting from `Differentiable`  
 - Solvable in favor of Hamiltonian.
+- ``ExpmGOAT``, ``ExpmGRAPE`` and ``Vern7GRAPE`` classes
+
 
 ## [v0.11.1] - 2026-03-27
 

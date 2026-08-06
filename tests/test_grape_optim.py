@@ -13,17 +13,17 @@ from paraqeet.measurement.state_transfer_fidelity import (
 from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.expm_grape import ExpmGRAPE
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.grape import GRAPE
 from paraqeet.propagation.utils import (
     convert_dm_to_vec,
     grape_operator_sandwich_function_closed,
     grape_operator_sandwich_function_open,
     lindblad_step,
     reverse_lindblad_step,
-    reverse_schrodinger_step,
     schrodinger_step,
 )
-from paraqeet.propagation.vern7_grape import Vern7GRAPE
+from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import GaussEnvelope
 from paraqeet.signal.pwc_generator import PWCGenerator
@@ -93,8 +93,6 @@ def states(model, mode, solver):
     init = np.array([[1.0], [0.0]])
     target = np.array([[0.0], [1]])
     overlap_func = overlap_state_vector
-    step_func = schrodinger_step
-    reverse_step_func = reverse_schrodinger_step
     operator_sandwich_func = grape_operator_sandwich_function_closed
 
     if mode == "OpenSystem" and solver == "expm":
@@ -107,47 +105,46 @@ def states(model, mode, solver):
         init = np.matmul(init, init.T)
         target = np.matmul(target, target.T)
         overlap_func = overlap_density_matrix
-        step_func = lindblad_step
-        reverse_step_func = reverse_lindblad_step
         operator_sandwich_func = grape_operator_sandwich_function_open
 
+    # The EOM of an open system is a superoperator acting on the vectorized density matrix for
+    # ``Expm``, which propagates by matrix multiplication, and the Hamiltonian plus a list of
+    # collapse operators for the ODE solver, which builds the dissipator in its step function.
     if solver == "expm":
-        prop_method = ExpmGRAPE(
-            eom_func=model.get_value,
-            eom_gradient_func=model.get_gradient,
-            resolution=1 / DELTAT,
-            initial_state=init,
-            target_state=target,
-            operator_sandwich_function=grape_operator_sandwich_function_closed,
-        )
+        propagation = Expm(eom_func=model.get_value, resolution=1 / DELTAT, initial_state=init)
+        eom_gradient_func = model.get_gradient
+        reverse_step_func = None
 
     elif mode == "ClosedSystem" and solver == "ode":
-        prop_method = Vern7GRAPE(
+        propagation = Vern7(
             eom_func=model.get_value,
-            eom_gradient_func=model.get_gradient,
             resolution=10e9,
             initial_state=init,
-            target_state=target,
-            step_function=step_func,
-            reverse_step_function=reverse_step_func,
-            operator_sandwich_function=operator_sandwich_func,
+            step_function=schrodinger_step,
         )
+        eom_gradient_func = model.get_gradient
+        # Daggering the EOM is all the backward propagation of a closed system needs.
+        reverse_step_func = None
 
     elif mode == "OpenSystem" and solver == "ode":
-        prop_method = Vern7GRAPE(
+        propagation = Vern7(
             eom_func=model.get_eom_ode_propagation,
-            eom_gradient_func=model.get_eom_gradient_ode_propagation,
             resolution=10e9,
             initial_state=init,
-            target_state=target,
-            step_function=step_func,
-            reverse_step_function=reverse_step_func,
-            operator_sandwich_function=operator_sandwich_func,
+            step_function=lindblad_step,
             jump_operators=model.jump_operators,
         )
+        eom_gradient_func = model.get_eom_gradient_ode_propagation
+        # The dissipator is not part of the EOM here, so the backward propagation needs its adjoint.
+        reverse_step_func = reverse_lindblad_step
 
-    prop_method.initial_state = init
-    prop_method.target_state = target
+    prop_method = GRAPE(
+        propagation,
+        eom_gradient_func=eom_gradient_func,
+        target_state=target,
+        operator_sandwich_function=operator_sandwich_func,
+        reverse_step_function=reverse_step_func,
+    )
 
     return StateTransferFidelityGRAPE(
         propagation_func=prop_method.get_value,

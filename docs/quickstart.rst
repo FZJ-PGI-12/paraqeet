@@ -23,14 +23,12 @@ unit-aware parameters that any optimizer can adjust:
 
    import numpy as np
    from paraqeet import (
-       OptimizationMap, Quantity, SchroedingerEquation,
-       ScipyExpmGOAT, ScipyOptimizer, StateTransferFidelity,
+       Expm, GOAT, OptimizationMap, Quantity, SchroedingerEquation,
+       ScipyOptimizer, StateTransferFidelity,
    )
    from paraqeet.measurement.utils import overlap_state_vector
-   from paraqeet.hamiltonian.drive import Drive
-   from paraqeet.hamiltonian.qubit import QubitHamiltonian
-   from paraqeet.signal.envelopes import ConstantEnvelope
-   from paraqeet.signal.iq_mixer import IQMixer
+   from paraqeet.hamiltonian import Drive, QubitHamiltonian
+   from paraqeet.signal import ConstantEnvelope, IQMixer
 
    freq = 4.8e9 * 2 * np.pi
    t_final = 10e-9
@@ -58,18 +56,23 @@ dynamics is given by the Schrödinger equation:
 Propagate and define the goal
 -----------------------------
 
-A propagator solves the equation of motion, and a fidelity measure turns the
-final state into a scalar goal function. :class:`~paraqeet.propagation.expm_goat.ExpmGOAT` also propagates the
-analytic gradients (using the GOAT method :cite:p:`machnes2018tunable`), so the optimizer receives exact derivatives:
+A propagation solves the equation of motion, and a fidelity measure turns the
+final state into a scalar goal function. Wrapping the propagation in
+:class:`~paraqeet.propagation.goat.GOAT` adds analytic gradients (using the GOAT method
+:cite:p:`machnes2018tunable`), so the optimizer receives exact derivatives:
 
 .. code-block:: python
 
-   prop = ScipyExpmGOAT(
-       eom_func=model.get_value, eom_gradient_func=model.get_gradient,
-       resolution=100e9, initial_state=np.array([[1.0], [0.0]]),
+   prop = GOAT(
+       Expm(
+           eom_func=model.get_value,
+           resolution=100e9,
+           initial_state=np.array([[1.0], [0.0]]),
+       ),
+       eom_gradient_func=model.get_gradient,
    )
    fidelity = StateTransferFidelity(
-       propagation_func=prop.propagate,
+       propagation_func=prop.get_value,
        propagation_gradient_func=prop.get_gradient,
        target_state=np.array([[0.0], [1.0]]),
        overlap=overlap_state_vector,

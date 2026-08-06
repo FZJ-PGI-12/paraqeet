@@ -1,21 +1,19 @@
 """Class definition of the JAX piecewise exponential propagation model."""
 
-from typing import Any, override
+from typing import Any
 
 import jax
-import jax.numpy as jnp
 from jax import jit
 from jax.lax import scan
 from jax.scipy.linalg import expm
 
-from paraqeet.propagation.propagation import StatePropagation
-from paraqeet.propagation.utils import construct_times
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Expm(StatePropagation):
+class Expm(Propagation):
     """Piecewise matrix exponential propagation system.
 
     Solve the equation of motion by piecewise exponentiation with the
@@ -25,7 +23,7 @@ class Expm(StatePropagation):
 
     @staticmethod
     @jit
-    def _propagate_in_time(psis_t: Array, eom: Array, steps_arr: Array) -> Array:
+    def _propagate(eom: Array, psis_t: Array, steps_arr: Array) -> Array:
         """Propagate the system in time.
 
         Iteratively propagate state/states (psis_t) according
@@ -67,34 +65,3 @@ class Expm(StatePropagation):
         """
         propagated: Array = expm(eom_matrix) @ psis_t
         return propagated
-
-    @override
-    def get_value(self, times: Array) -> Array:
-        """Return the solution of the equations of motion.
-
-        Loop over all desired times in time at set resolution.
-
-        Args:
-            times: Array of times.
-
-        Returns:
-            The solution of the equations of motion.
-
-        Raises:
-            ValueError: If fewer than two time points are given.
-
-        """
-        if len(times) < 2:
-            raise ValueError("Expm.get_value needs at least two time points.")
-
-        psis = [self._initial_state]
-
-        for ti in range(1, len(times)):
-            step_times, dt = construct_times(times, ti, self._resolution)
-            psis_t = psis[ti - 1]
-            eom = self._eom_func(step_times + dt / 2) * dt
-            psis_t = self._propagate_in_time(psis_t, eom, jnp.arange(0, len(step_times), 1))
-            psis.append(psis_t)
-
-        psis_arr = jnp.array(psis)
-        return psis_arr

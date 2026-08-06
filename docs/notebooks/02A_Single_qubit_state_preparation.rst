@@ -16,7 +16,6 @@ for a single spin or qubit.
     from paraqeet.measurement.utils import overlap_state_vector
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.expm_goat import ExpmGOAT
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -77,8 +76,8 @@ and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as an initial guess to demonstrate the
-optimization procedure.
+We use some offset from these values as an initial guess to demonstrate
+the optimization procedure.
 
 .. code:: ipython3
 
@@ -130,17 +129,20 @@ and configure a state transfer problem from :math:`\ket{0}` to
 
 .. code:: ipython3
 
+    from paraqeet.propagation.auto_diff_gradients import AutoDiffGradients
+    from paraqeet.propagation.expm import Expm
+    
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ExpmGOAT(
-        eom_func=schrgl.get_value, eom_gradient_func=schrgl.get_gradient, resolution=100e9, initial_state=init
-    )  # implicit timestep is 1 / resolution
+    prop = Expm(eom_func=schrgl.get_value, resolution=100e9, initial_state=init)  # implicit timestep is 1 / resolution
     times = np.array([0.0, t_simu])
     
+    prop_AD = AutoDiffGradients(propagation=prop, eom_gradient_func=schrgl.get_gradient)
+    
     zeroone = StateTransferFidelity(
-        propagation_func=prop.get_value,
-        propagation_gradient_func=prop.get_gradient,
+        propagation_func=prop_AD.get_value,
+        propagation_gradient_func=prop_AD.get_gradient,
         target_state=target,
         overlap=overlap_state_vector,
     )
@@ -211,8 +213,8 @@ would not be empty, but instead
 
 
 
-This is because the parameters have been passed, but not “registered”
-by ``optmap``. To remedy this
+This is because the parameters have been passed, but not “registered” by
+``optmap``. To remedy this
 
 .. code:: ipython3
 
@@ -266,7 +268,7 @@ We can now run the optimization as
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 4.971578704271451e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 5.009326287108706e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 The new optimal parameters are
@@ -311,7 +313,7 @@ controls.
 
 .. parsed-literal::
 
-    State fidelity: 0.9999999999995028
+    State fidelity: 0.9999999999994991
 
 
 In this notebook, we focused on state preparation. In the next notebook,

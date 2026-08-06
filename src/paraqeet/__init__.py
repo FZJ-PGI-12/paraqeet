@@ -30,8 +30,9 @@ from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.expm import Expm
-from paraqeet.propagation.expm_goat import ExpmGOAT
-from paraqeet.propagation.expm_grape import ExpmGRAPE
+from paraqeet.propagation.goat import GOAT
+from paraqeet.propagation.grape import GRAPE
+from paraqeet.propagation.vern7 import Vern7
 from paraqeet.quantity import Array, Quantity
 
 jax.config.update("jax_enable_x64", True)
@@ -50,8 +51,9 @@ __all__ = [
     "SchrEq",
     "MasterEquation",
     "Expm",
-    "ExpmGOAT",
-    "ExpmGRAPE",
+    "Vern7",
+    "GOAT",
+    "GRAPE",
     "StateTransferFidelity",
     "StateTransferFidelityGRAPE",
     "UnitaryFidelity",

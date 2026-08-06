@@ -16,7 +16,7 @@ single-qubit gate, specifically an :math:`X`-gate.
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import GOAT, Expm
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import ConstantEnvelope
     from paraqeet.signal.iq_mixer import IQMixer
@@ -95,8 +95,8 @@ and frequency ``lo_freq`` of the drive. We add a drive on the qubit.
 
 Textbook values for implementing an :math:`X` rotation on this system at
 a time :math:`T` would be :math:`\omega=\omega_q` and :math:`A=\pi/T`.
-We use some offset from these values as an initial guess to demonstrate the
-optimization procedure.
+We use some offset from these values as an initial guess to demonstrate
+the optimization procedure.
 
 .. code:: ipython3
 
@@ -111,8 +111,9 @@ identity at time :math:`0`.
 
     times = np.array([0.0, t_simu])
     
-    prop = ExpmGOAT(
-        eom_func=eom.get_value, eom_gradient_func=eom.get_gradient, resolution=100e9, initial_state=np.identity(2)
+    prop = GOAT(
+        Expm(eom_func=eom.get_value, resolution=100e9, initial_state=np.identity(2)),
+        eom_gradient_func=eom.get_gradient,
     )
     gate_fid = UnitaryFidelity(
         propagation_func=prop.get_value,

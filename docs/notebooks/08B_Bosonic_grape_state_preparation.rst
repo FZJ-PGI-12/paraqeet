@@ -112,7 +112,7 @@ the resonator and qubit pulses, respectively.
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-    from paraqeet.propagation.expm_grape import ExpmGRAPE
+    from paraqeet.propagation import GRAPE, Expm
     from paraqeet.quantity import Quantity
     from paraqeet.signal.envelopes import GaussEnvelope
     from paraqeet.signal.pwc_generator import PWCGenerator
@@ -194,12 +194,12 @@ resonator, it is necessary to introduce a Fock state truncation number
 :math:`N_{\mathrm{T}}`. This creates the problem that, given certain
 pulses, :math:`\mathcal{F}` depends on the choice of
 :math:`N_{\mathrm{T}}`. Following (Heeres et al., 2017)
-:cite:p:`heeres2017implementing`, we thus consider :math:`N_{\mathrm{T}}
-\in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} +
-1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`, and introduce a penalty
-when having different values of fidelities for different truncation
-numbers. Thus, we create different systems, and accordingly fidelity
-measures, for the different Fock truncation numbers.
+:cite:p:`heeres2017implementing`, we thus consider
+:math:`N_{\mathrm{T}} \in \{N_{\mathrm{T}}^{(\mathrm{min})}, N_{\mathrm{T}}^{(\mathrm{min})} + 1, \dots, N_{\mathrm{T}}^{(\mathrm{max})} \}`,
+and introduce a penalty when having different values of fidelities for
+different truncation numbers. Thus, we create different systems, and
+accordingly fidelity measures, for the different Fock truncation
+numbers.
 
 .. code:: ipython3
 
@@ -280,15 +280,14 @@ measures, for the different Fock truncation numbers.
             fock_number_op_list.append(n_op)
     
             # Propagation dt has to be less than `delta_sampling = 33e-9`. Set dt = 30e-9.
-            prop = ExpmGRAPE(
-                eom_func=model.get_value,
+            propagation = Expm(eom_func=model.get_value, resolution=1 / (30e-9), initial_state=initial_state)
+            prop = GRAPE(
+                propagation,
                 eom_gradient_func=model.get_gradient,
-                resolution=1 / (30e-9),
-                initial_state=initial_state,
                 target_state=target_state,
                 operator_sandwich_function=grape_operator_sandwich_function_closed,
+                order=3,
             )
-            prop.schirmer_derivative = True
     
             prop_list.append(prop)
     
@@ -472,110 +471,76 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    Iteration   10 | Infid = 2.439131e-02
+    Iteration   10 | Infid = 2.419405e-02
 
 
 .. parsed-literal::
 
-    Iteration   20 | Infid = 2.040161e-02
+    Iteration   20 | Infid = 1.911555e-02
 
 
 .. parsed-literal::
 
-    Iteration   30 | Infid = 1.743383e-02
+    Iteration   30 | Infid = 1.391941e-02
 
 
 .. parsed-literal::
 
-    Iteration   40 | Infid = 1.440551e-02
+    Iteration   40 | Infid = 1.237015e-02
 
 
 .. parsed-literal::
 
-    Iteration   50 | Infid = 1.265304e-02
+    Iteration   50 | Infid = 1.103964e-02
 
 
 .. parsed-literal::
 
-    Iteration   60 | Infid = 1.150580e-02
+    Iteration   60 | Infid = 1.007346e-02
 
 
 .. parsed-literal::
 
-    Iteration   70 | Infid = 1.068317e-02
+    Iteration   70 | Infid = 9.334688e-03
 
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 9.866074e-03
+    Iteration   80 | Infid = 9.141000e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 9.278926e-03
+    Iteration   90 | Infid = 9.105644e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 8.958102e-03
+    Iteration  100 | Infid = 9.078590e-03
 
 
 .. parsed-literal::
 
-    Iteration  110 | Infid = 8.813085e-03
+    Iteration  110 | Infid = 9.022916e-03
 
 
 .. parsed-literal::
 
-    Iteration  120 | Infid = 8.705407e-03
+    Iteration  120 | Infid = 8.821202e-03
 
 
 .. parsed-literal::
 
-    Iteration  130 | Infid = 8.344716e-03
-
-
-.. parsed-literal::
-
-    Iteration  140 | Infid = 7.726451e-03
-
-
-.. parsed-literal::
-
-    Iteration  150 | Infid = 6.843084e-03
-
-
-.. parsed-literal::
-
-    Iteration  160 | Infid = 6.502194e-03
-
-
-.. parsed-literal::
-
-    Iteration  170 | Infid = 6.380795e-03
-
-
-.. parsed-literal::
-
-    Iteration  180 | Infid = 6.343702e-03
-
-
-.. parsed-literal::
-
-    Iteration  190 | Infid = 6.339750e-03
-
-
-.. parsed-literal::
-
-    CPU times: user 4min 7s, sys: 3.52 s, total: 4min 11s
-    Wall time: 47.7 s
+    Iteration  130 | Infid = 8.695268e-03
+    CPU times: user 2min 26s, sys: 1.35 s, total: 2min 27s
+    Wall time: 28.9 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.006313571446108002, 'iterations': 247, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.00869526815724364, 'iterations': 214, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -602,8 +567,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9435952619193511
-    Fidelity at N_T=4 = 0.9336247091406492
+    Fidelity at N_T=3 = 0.9236683110100381
+    Fidelity at N_T=4 = 0.8728240314907942
 
 
 Setting truncation to higher values
@@ -662,7 +627,7 @@ redefine the resonator with higher truncation numbers.
         n_fock_truncation_list, fock_target
     )
 
-Let's also add the smoothness penalty to the measurement
+Let’s also add the smoothness penalty to the measurement
 
 .. code:: ipython3
 
@@ -692,15 +657,8 @@ And then plot the dynamics of the resonator under the unoptimized pulse
     plot_states_and_fock_number()
 
 
-.. parsed-literal::
 
-    OpenBLAS warning: precompiled NUM_THREADS exceeded, adding auxiliary array for thread metadata.
-    To avoid this warning, please rebuild your copy of OpenBLAS with a larger NUM_THREADS setting
-    or set the environment variable OPENBLAS_NUM_THREADS to 64 or lower
-
-
-
-.. image:: 08B_Bosonic_grape_state_preparation_files/08B_Bosonic_grape_state_preparation_33_1.png
+.. image:: 08B_Bosonic_grape_state_preparation_files/08B_Bosonic_grape_state_preparation_33_0.png
 
 
 Initial fidelity before optimization
@@ -742,100 +700,60 @@ truncation numbers
 
 .. parsed-literal::
 
-    Iteration   10 | Infid = 6.029631e-02
+    Iteration   10 | Infid = 5.745168e-02
 
 
 .. parsed-literal::
 
-    Iteration   20 | Infid = 3.679076e-02
+    Iteration   20 | Infid = 3.610521e-02
 
 
 .. parsed-literal::
 
-    Iteration   30 | Infid = 2.042122e-02
+    Iteration   30 | Infid = 2.214250e-02
 
 
 .. parsed-literal::
 
-    Iteration   40 | Infid = 1.200990e-02
+    Iteration   40 | Infid = 1.433836e-02
 
 
 .. parsed-literal::
 
-    Iteration   50 | Infid = 7.619864e-03
+    Iteration   50 | Infid = 1.035729e-02
 
 
 .. parsed-literal::
 
-    Iteration   60 | Infid = 5.571816e-03
+    Iteration   60 | Infid = 8.685309e-03
 
 
 .. parsed-literal::
 
-    Iteration   70 | Infid = 4.007113e-03
+    Iteration   70 | Infid = 8.127652e-03
 
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 2.924839e-03
+    Iteration   80 | Infid = 7.446799e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 2.388873e-03
+    Iteration   90 | Infid = 7.038011e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 2.106039e-03
-
-
-.. parsed-literal::
-
-    Iteration  110 | Infid = 1.975128e-03
-
-
-.. parsed-literal::
-
-    Iteration  120 | Infid = 1.839000e-03
-
-
-.. parsed-literal::
-
-    Iteration  130 | Infid = 1.760076e-03
-
-
-.. parsed-literal::
-
-    Iteration  140 | Infid = 1.703803e-03
-
-
-.. parsed-literal::
-
-    Iteration  150 | Infid = 1.668582e-03
-
-
-.. parsed-literal::
-
-    Iteration  160 | Infid = 1.625379e-03
-
-
-.. parsed-literal::
-
-    Iteration  170 | Infid = 1.596624e-03
-
-
-.. parsed-literal::
-
-    CPU times: user 4h 41s, sys: 1min 49s, total: 4h 2min 30s
-    Wall time: 4min 7s
+    CPU times: user 16min 44s, sys: 1.9 s, total: 16min 46s
+    Wall time: 27.8 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.001575634074790111, 'iterations': 201, 'message': 'STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT'}
+    {'status': 1, 'value': 0.007038010838982922, 'iterations': 130, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -849,8 +767,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=15 = 0.9936645283345249
-    Fidelity at N_T=20 = 0.9929874029455249
+    Fidelity at N_T=15 = 0.9120315639807287
+    Fidelity at N_T=20 = 0.912031672521721
 
 
 And the dynamics of the system under these optimized pulses looks like

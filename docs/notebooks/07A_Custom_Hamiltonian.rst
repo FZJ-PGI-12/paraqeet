@@ -115,19 +115,23 @@ we define a function that raises an exception when it is called.
 2. Define propagation method and measurement function
 -----------------------------------------------------
 
-Here we pick the standard ``ExpmGOAT`` method for propagation and
-``StateTransferFidelity`` as our measurement function
+Here we pick the standard ``Expm`` method for propagation, add gradients
+to it with ``GOAT``, and use ``StateTransferFidelity`` as our
+measurement function
 
 .. code:: ipython3
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import GOAT, Expm
     
     init = jnp.array([[1.0], [0]])  # |0>
     target = jnp.array([[0.0], [1]])  # |1>
     
-    prop = ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init)
+    prop = GOAT(
+        Expm(eom_func=model.get_value, resolution=100e9, initial_state=init),
+        eom_gradient_func=model.get_gradient,
+    )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
@@ -210,7 +214,10 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
     model = SchroedingerEquation(hamiltonian_func=tls_hamiltonian, hamiltonian_gradient_func=grad_tls_hamiltonian)
     
-    prop = ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init)
+    prop = GOAT(
+        Expm(eom_func=model.get_value, resolution=100e9, initial_state=init),
+        eom_gradient_func=model.get_gradient,
+    )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(

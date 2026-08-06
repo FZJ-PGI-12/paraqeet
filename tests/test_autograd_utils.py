@@ -3,7 +3,7 @@
 import jax.numpy as jnp
 import numpy as np
 
-from paraqeet.autograd_utils import get_value_and_jacobian
+from paraqeet.autograd_utils import get_value_and_jacobian_fwd, get_value_and_jacobian_rev
 from paraqeet.quantity import Array, Quantity
 
 tls_freq = 4.8e9 * 2 * jnp.pi
@@ -49,14 +49,52 @@ def analytical_value_and_grad(t: Array, amp, freq):
     return tls_hamiltonian(t, amp, freq), ham_grads
 
 
-def test_hamiltonian_autodiff():
+def test_hamiltonian_autodiff_reverse():
     ts = jnp.linspace(0.0, 1.0, 10)
     freq = frequency.get_value()
     amp = amplitude.get_value()
 
     analytical_value, analytical_grads = analytical_value_and_grad(ts, amp, freq)
-    AD_value, AD_grads = get_value_and_jacobian(tls_hamiltonian, argnums=(1, 2))(ts, amp, freq)
+    AD_value, AD_grads = get_value_and_jacobian_rev(tls_hamiltonian, argnums=(1, 2))(ts, amp, freq)
 
     assert np.allclose(AD_value, analytical_value)
     assert np.allclose(jnp.squeeze(AD_grads[0]), analytical_grads[:, 0, ...])
     assert np.allclose(jnp.squeeze(AD_grads[1]), analytical_grads[:, 1, ...])
+
+
+def test_hamiltonian_autodiff_forward():
+    ts = jnp.linspace(0.0, 1.0, 10)
+    freq = frequency.get_value()
+    amp = amplitude.get_value()
+
+    analytical_value, analytical_grads = analytical_value_and_grad(ts, amp, freq)
+    AD_value, AD_grads = get_value_and_jacobian_fwd(tls_hamiltonian, argnums=(1, 2))(ts, amp, freq)
+
+    assert np.allclose(AD_value, analytical_value)
+    assert np.allclose(jnp.squeeze(AD_grads[0]), analytical_grads[:, 0, ...])
+    assert np.allclose(jnp.squeeze(AD_grads[1]), analytical_grads[:, 1, ...])
+
+
+def test_forward_matches_reverse():
+    ts = jnp.linspace(0.0, 1.0, 10)
+    freq = frequency.get_value()
+    amp = amplitude.get_value()
+
+    fwd_value, fwd_grads = get_value_and_jacobian_fwd(tls_hamiltonian, argnums=(1, 2))(ts, amp, freq)
+    rev_value, rev_grads = get_value_and_jacobian_rev(tls_hamiltonian, argnums=(1, 2))(ts, amp, freq)
+
+    assert np.allclose(fwd_value, rev_value)
+    assert np.allclose(fwd_grads[0], rev_grads[0])
+    assert np.allclose(fwd_grads[1], rev_grads[1])
+
+
+def test_forward_int_argnums():
+    ts = jnp.linspace(0.0, 1.0, 10)
+    freq = frequency.get_value()
+    amp = amplitude.get_value()
+
+    # A single int argnums should return a bare Jacobian, not a tuple.
+    _, amp_grad = get_value_and_jacobian_fwd(tls_hamiltonian, argnums=1)(ts, amp, freq)
+
+    assert not isinstance(amp_grad, tuple)
+    assert np.allclose(jnp.squeeze(amp_grad), jnp.squeeze(analytical_grad_amp(ts, freq)))

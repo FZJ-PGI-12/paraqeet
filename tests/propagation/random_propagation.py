@@ -36,11 +36,15 @@ class RandomPropagation(Propagation, Differentiable):
         """
         sys = EmptyHamiltonian(0)
         eom = SchroedingerEquation(sys.get_value, sys.get_gradient)
-        super().__init__(eom.get_value, 1e9)
+        super().__init__(eom.get_value, 1e9, np.zeros((dimension, 1)))
         self._dimension = dimension
         self._create_matrices = generate_matrices
         self._auto_update = auto_update
         self.update()
+
+    def _propagate(self, eom: Array, state: Array, steps: Array, *args, **kwargs) -> Array:
+        # This mock returns random states instead of propagating, see get_value.
+        raise NotImplementedError
 
     def get_value(self, times: Array) -> Array:
         if self._auto_update:
