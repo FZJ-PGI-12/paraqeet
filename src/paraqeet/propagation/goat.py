@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import override
 
 import jax.numpy as jnp
-from jax import jit
+from jax import jit, vmap
 
 from paraqeet.propagation.propagation import DifferentiablePropagation, Propagation
 from paraqeet.propagation.utils import construct_times
@@ -104,6 +104,9 @@ class GOAT(DifferentiablePropagation):
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
         """Solve the GOAT equation for the gradient vector.
 
+        If ``self._prop.batched_propagation`` is ``True`` the propagation and its gradient
+        is computed in one compiled loop. *Input ``times`` has to be uniformly spaced in this case.*
+
         Args:
             times: Array of times.
 
@@ -113,6 +116,36 @@ class GOAT(DifferentiablePropagation):
 
         n_params = self._eom_gradient_func(jnp.array([0.0])).shape[1]
         dim = self._prop.initial_state.shape[0]
+
+        if self._prop.batched_propagation:
+            initial_super_state = GOAT._create_super_state(
+                jnp.array(self._prop.initial_state, dtype=jnp.complex128),
+                jnp.zeros((n_params,) + self._prop.initial_state.shape, dtype=jnp.complex128),
+            )
+
+            sampled_eom_and_gradient = self._sample_eom_and_gradient_batched(times)
+            if sampled_eom_and_gradient is not None:
+                eom, eom_grads, dt, steps = sampled_eom_and_gradient
+                n_segments, n_samples = eom.shape[:2]
+
+                goat_eom = GOAT._create_goat_eom(
+                    jnp.reshape(eom, (n_segments * n_samples,) + eom.shape[2:]),
+                    jnp.reshape(eom_grads, (n_segments * n_samples,) + eom_grads.shape[2:]),
+                )
+                goat_eom = jnp.reshape(goat_eom, (n_segments, n_samples) + goat_eom.shape[1:])
+
+                super_states = self._prop._propagate_batched(
+                    goat_eom,
+                    initial_super_state,
+                    steps,
+                    *self._prop._propagate_args(dt),
+                )
+                psis_and_dpsis: tuple[Array, Array] = vmap(GOAT._decompose_super_state, in_axes=(0, None, None))(
+                    super_states, n_params, dim
+                )
+                return psis_and_dpsis
+
+        # Fallback to python loop
 
         psis: list[Array] = [jnp.array(self._prop.initial_state, dtype=jnp.complex128)]
         dpsis: list[Array] = [jnp.zeros((n_params,) + self._prop.initial_state.shape, dtype=jnp.complex128)]

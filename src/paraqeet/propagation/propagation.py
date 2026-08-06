@@ -2,12 +2,15 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from functools import partial
 from typing import Any, override
 
 import jax.numpy as jnp
+from jax import jit, vmap
+from jax.lax import scan
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.propagation.utils import construct_times
+from paraqeet.propagation.utils import construct_batched_times, construct_times
 from paraqeet.quantity import Array, Float
 
 
@@ -19,14 +22,26 @@ class Propagation(ABC):
     For evaluating propagation of a propagator ``initial_state``
     can also be set to an initial `propagator`.
 
+    To implement new propagation methods, users are required to implement the ``_propagate`` method
+    that propagates a quantum state/propagator from some initial to final time, under some EOM.
+    Default implementation includes a batched propagation method that computes the EOM for the interpolated
+    time grid, and performs the entire propagation in a single compiled loop. Utilizing this requires a
+    **uniform time grid** to ensure a single dt and to avoid recompilation.
+
     Note:
         `Propagator` here refers to both unitary matrices for closed system and quantum channel for
         open quantum systems.
+
+    Note:
+        By default we use a ``batched_propagation = True`` that computes the EOM for the entire
+        interpolated time grid and performs a jitted propagation (for speed). For cases that are
+        limited by RAM, set ``batched_propagation = False``.
     """
 
     _eom_func: Callable[[Array], Array]
     _resolution: float
     _initial_state: Array
+    _batched_propagation: bool = True
 
     def __init__(self, eom_func: Callable[[Array], Array], resolution: float, initial_state: Array) -> None:
         """
@@ -39,6 +54,21 @@ class Propagation(ABC):
         self._eom_func = eom_func
         self._resolution = resolution
         self.initial_state = initial_state
+
+    @property
+    def batched_propagation(self) -> bool:
+        """Return whether the EOM is sampled for all times and propagated in one compiled call."""
+        return self._batched_propagation
+
+    @batched_propagation.setter
+    def batched_propagation(self, batched_propagation: bool) -> None:
+        """Set whether the EOM is sampled for all times and propagated in one compiled call.
+
+        Note:
+            Setting ``batched_propagation = True`` uses more RAM. For memory sensitive tasks
+            set this to ``False``.
+        """
+        self._batched_propagation = batched_propagation
 
     @property
     def resolution(self) -> float:
@@ -84,6 +114,28 @@ class Propagation(ABC):
         """
         return step_times + dt / 2
 
+    def _construct_batched_time_grid(self, times: Array) -> tuple[Array, Float, Array] | None:
+        """Return the times at which the EOM has to be sampled, for all segments at once.
+
+        Args:
+            times: Array of times.
+
+        Returns:
+            Batched time grid, dt, a steps array for propagation. Returns None if times is not
+            a uniform grid.
+
+        """
+        if not self.batched_propagation:
+            return None
+
+        batched_times_and_dt = construct_batched_times(times, self._resolution)
+        if batched_times_and_dt is None:
+            return None
+        batched_times, dt = batched_times_and_dt
+
+        batched_time_grid = vmap(self._construct_time_grid, in_axes=(0, None))(batched_times, dt)
+        return batched_time_grid, dt, jnp.arange(0, batched_times.shape[1], 1)
+
     def _propagate_args(self, dt: Float) -> tuple[Array, ...]:
         """Return additional arguments that ``_propagate`` needs, after the ``steps`` argument.
 
@@ -117,6 +169,53 @@ class Propagation(ABC):
         """
         pass
 
+    def _sample_eom_batched(self, times: Array) -> tuple[Array, Float, Array, Array] | None:
+        """Sample the equation of motion of all segments in a single call.
+
+        Evaluating the EOM costs a fixed overhead per call, which dominates the runtime when paid
+        once per segment.
+
+        Args:
+            times: Array of times.
+
+        Returns:
+            The EOM with the segment along the first and the sample along the second axis, already
+            scaled with the step size; dt; the iteration indices of one segment; and
+            the times the EOM was sampled at.
+        """
+        grid = self._construct_batched_time_grid(times)
+        if grid is None:
+            return None
+        batched_time_grid, dt, steps = grid
+
+        eom = self._eom_func(jnp.reshape(batched_time_grid, (-1,))) * dt
+        eom_batched = jnp.reshape(eom, batched_time_grid.shape + eom.shape[1:])
+
+        return eom_batched, dt, steps, batched_time_grid
+
+    @partial(jit, static_argnums=(0,))
+    def _propagate_batched(self, eom: Array, state: Array, steps: Array, *args: Any) -> Array:
+        """Propagate a state through all segments in a single compiled loop.
+
+        Args:
+            eom: Equation of motion of every segment, as returned by ``_sample_eom_batched``.
+            state: State/propagator at the beginning of the first segment.
+            steps: Array of indices to iterate over within one segment.
+            *args: Extra arguments as returned by ``_propagate_args``.
+
+        Returns:
+            The state at every time point, the given initial one included, with time along the
+            first axis.
+        """
+
+        def propagate_batched(state: Array, eom_batched: Any) -> tuple[Array, Array]:
+            state = self._propagate(eom_batched, state, steps, *args)
+            return state, state
+
+        _, states = scan(propagate_batched, state, eom)
+        propagated_states: Array = jnp.concatenate([jnp.expand_dims(state, axis=0), states])
+        return propagated_states
+
     def get_value(self, times: Array) -> Array:
         """Return the solution of the equations of motion.
 
@@ -126,6 +225,10 @@ class Propagation(ABC):
         Like in the model, the format of the other dimensions depends on the
         implementation and could for example be a propagated state vector or
         a propagator in matrix form.
+
+        If ``batched_propagation`` is ``True``, ``_propagate_batched`` method is used
+        to compute all the EOM at once, and propagate in one compiled loop.
+        *Input ``times`` has to be uniformly spaced in this case.*
 
         Args:
             times: Array of times.
@@ -139,6 +242,16 @@ class Propagation(ABC):
         """
         if len(times) < 2:
             raise ValueError("Propagation.get_value needs at least two time points.")
+
+        sampled_eom = self._sample_eom_batched(times)
+        if sampled_eom is not None:
+            eom, dt, steps, _ = sampled_eom
+            propagated_states: Array = self._propagate_batched(
+                eom, self._initial_state, steps, *self._propagate_args(dt)
+            )
+            return propagated_states
+
+        # Fallback to python loop for propagation: Uses less RAM.
 
         psis = [self._initial_state]
 
@@ -188,6 +301,36 @@ class DifferentiablePropagation(Differentiable):
             times: Array of time steps.
         """
         return self._prop._eom_func(times), self._eom_gradient_func(times)
+
+    def _sample_eom_and_gradient_batched(self, times: Array) -> tuple[Array, Array, Float, Array] | None:
+        """Sample the EOM and its gradient of all segments in a single call.
+
+        The counterpart of ``Propagation._sample_eom_batched`` for the gradient wrappers,
+        which need the derivative of the EOM at the same times.
+
+        Args:
+            times: Array of times.
+
+        Returns:
+            The EOM and its gradient, both with the segment along the first and the sample along
+            the second axis and both scaled with the step size; dt; and the iteration
+            indices of one segment.
+        """
+        grid = self._prop._construct_batched_time_grid(times)
+        if grid is None:
+            return None
+        batched_time_grid, dt, steps = grid
+
+        eom, eom_gradient = self._eom_and_gradient_func(jnp.reshape(batched_time_grid, (-1,)))
+        eom = jnp.array(eom) * dt
+        eom_gradient = jnp.array(eom_gradient) * dt
+
+        return (
+            jnp.reshape(eom, batched_time_grid.shape + eom.shape[1:]),
+            jnp.reshape(eom_gradient, batched_time_grid.shape + eom_gradient.shape[1:]),
+            dt,
+            steps,
+        )
 
     @override
     def get_value(self, times: Array) -> Array:

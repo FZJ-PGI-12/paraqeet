@@ -108,6 +108,12 @@ def grape_operator_sandwich_function_open(ham_grads: Array, fwd_prop_states: Arr
     return jnp.linalg.trace(grad)
 
 
+def _number_of_steps(segment_length: Float, resolution: float) -> int:
+    """Return the number of propagation steps that one segment is split into."""
+    steps = int(np.floor(segment_length * resolution + 0.5))
+    return max(steps, 1)
+
+
 def construct_times(times: Array, ti: int, resolution: float) -> tuple[Array, Float]:
     """Construct one-dimensional vector of time.
 
@@ -115,7 +121,7 @@ def construct_times(times: Array, ti: int, resolution: float) -> tuple[Array, Fl
 
     Args:
         times: Array of times.
-        ti: Index of the current step into ``times``; the interval [times[ti - 1], times[ti]) is interpolated.
+        ti: Index of the current step into ``times``; the segment [times[ti - 1], times[ti]) is interpolated.
         resolution: Time steps resolution.
 
     Returns:
@@ -125,12 +131,39 @@ def construct_times(times: Array, ti: int, resolution: float) -> tuple[Array, Fl
     """
     t0 = times[ti - 1]
     t1 = times[ti]
-    steps = int(np.floor((t1 - t0) * resolution + 0.5))
-    if steps == 0:
-        steps = 1
+    steps = _number_of_steps(t1 - t0, resolution)
     new_times = jnp.linspace(t0, t1, steps, endpoint=False)
     if steps < 2:
         dt = t1 - t0
     else:
         dt = new_times[1] - new_times[0]
     return new_times, dt
+
+
+def construct_batched_times(times: Array, resolution: float) -> tuple[Array, Float] | None:
+    """Construct the propagation steps of every segment at once, for a uniform time grid.
+
+    The vectorized counterpart of ``construct_times``. The input times has to be a uniform time grid.
+    Returns ``None`` otherwise.
+
+    Args:
+        times: Array of times.
+        resolution: Time steps resolution.
+
+    Returns:
+        The start times of every propagation step, with shape ``(len(times) - 1, steps)``, and the
+        length of one step. None if fewer than two time points are given, or if they are not
+        uniformly spaced.
+    """
+    times_arr = np.asarray(times, dtype=float)
+    if len(times_arr) < 2:
+        return None
+
+    segment_length = times_arr[1] - times_arr[0]
+    if not np.allclose(np.diff(times_arr), segment_length, rtol=1e-12, atol=0.0):
+        return None
+
+    steps = _number_of_steps(segment_length, resolution)
+    interp_times = jnp.linspace(jnp.asarray(times[:-1]), jnp.asarray(times[1:]), steps, endpoint=False, axis=-1)
+    dt = interp_times[0, 1] - interp_times[0, 0] if steps > 1 else segment_length
+    return interp_times, dt
