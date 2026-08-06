@@ -110,6 +110,7 @@ of the time grid used for discretization. In this case
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -236,7 +237,7 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    Iteration number = 10 	  Infidelity  = 2.525e-03
+    Iteration number = 10 	  Infidelity  = 2.753e-03
 
 
 .. parsed-literal::
@@ -245,53 +246,18 @@ coefficients for the optimization.
     
     ==== Decrease in infidelity less than 1e-09 ====
     ==== Starting super-iteration 1 ====
-    * Current lowest infidelity =  2.530e-11
+    * Current lowest infidelity =  2.071e-11
     * Current no. of parameters = 25
 
 
 .. parsed-literal::
 
-    Iteration number = 20 	  Infidelity  = 4.854e-02
+    Iteration number = 20 	  Infidelity  = 4.878e-02
 
 
 .. parsed-literal::
 
-    Iteration number = 30 	  Infidelity  = 2.855e-05
-
-
-.. parsed-literal::
-
-    
-    
-    ==== Decrease in infidelity less than 1e-09 ====
-    ==== Starting super-iteration 2 ====
-    * Current lowest infidelity =  2.530e-11
-    * Current no. of parameters = 37
-
-
-.. parsed-literal::
-
-    Iteration number = 40 	  Infidelity  = 1.903e-03
-
-
-.. parsed-literal::
-
-    
-    
-    ==== Decrease in infidelity less than 1e-09 ====
-    ==== Starting super-iteration 3 ====
-    * Current lowest infidelity =  2.530e-11
-    * Current no. of parameters = 49
-
-
-.. parsed-literal::
-
-    Iteration number = 50 	  Infidelity  = 6.801e-02
-
-
-.. parsed-literal::
-
-    Iteration number = 60 	  Infidelity  = 1.085e-05
+    Iteration number = 30 	  Infidelity  = 2.294e-05
 
 
 .. parsed-literal::
@@ -308,7 +274,7 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 2.5302426820417168e-11, 'iterations': 45, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 2.071320892582662e-11, 'iterations': 33, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -362,19 +328,20 @@ fidelity.
 References
 ----------
 
-- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
-  coupled spin dynamics: design of NMR pulse sequences by gradient
-  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
-  (2005).
-- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
-  efficient optimization of control pulses for practical qubits,”
-  *Physical Review Letters* **120**, 150401 (2018).
-- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
-  optimal control in a chopped basis: Applications in control of
-  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).
-- **(Rach et al., 2015)** N. Rach et al., “Dressing the
-  chopped-random-basis optimization: A bandwidth-limited access to the
-  trap-free landscape,” *Physical Review A* **92**, 062343 (2015).
-- **(Müller et al., 2022)** M. M. Müller et al., “One decade of quantum
-  optimal control in the chopped random basis,” *Reports on Progress in
-  Physics* **85**, 076001 (2022).
+-  **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+   coupled spin dynamics: design of NMR pulse sequences by gradient
+   ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+   (2005).
+-  **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+   efficient optimization of control pulses for practical qubits,”
+   *Physical Review Letters* **120**, 150401 (2018).
+-  **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+   optimal control in a chopped basis: Applications in control of
+   Bose-Einstein condensates,” *Physical Review A* **98**, 022119
+   (2018).
+-  **(Rach et al., 2015)** N. Rach et al., “Dressing the
+   chopped-random-basis optimization: A bandwidth-limited access to the
+   trap-free landscape,” *Physical Review A* **92**, 062343 (2015).
+-  **(Müller et al., 2022)** M. M. Müller et al., “One decade of quantum
+   optimal control in the chopped random basis,” *Reports on Progress in
+   Physics* **85**, 076001 (2022).

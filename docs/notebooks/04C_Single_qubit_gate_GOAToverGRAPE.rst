@@ -145,6 +145,7 @@ The Hamiltonian in the rotating frame of the drive is given by -
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -250,19 +251,19 @@ Optimization
 
 .. parsed-literal::
 
-    Iteration   10 | Infid = 2.656649e-03
+    Iteration   10 | Infid = 2.870565e-03
 
 
 .. parsed-literal::
 
-    Iteration   20 | Infid = 2.636966e-03
+    Iteration   20 | Infid = 2.643414e-03
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.002594563362441238, 'iterations': 70, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.002643413828831709, 'iterations': 48, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -287,13 +288,14 @@ Optimization
 References
 ----------
 
-- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
-  coupled spin dynamics: design of NMR pulse sequences by gradient
-  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
-  (2005).
-- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
-  efficient optimization of control pulses for practical qubits,”
-  *Physical Review Letters* **120**, 150401 (2018).
-- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
-  optimal control in a chopped basis: Applications in control of
-  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).
+-  **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+   coupled spin dynamics: design of NMR pulse sequences by gradient
+   ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+   (2005).
+-  **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+   efficient optimization of control pulses for practical qubits,”
+   *Physical Review Letters* **120**, 150401 (2018).
+-  **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+   optimal control in a chopped basis: Applications in control of
+   Bose-Einstein condensates,” *Physical Review A* **98**, 022119
+   (2018).

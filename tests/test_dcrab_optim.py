@@ -73,6 +73,7 @@ def prop(model, propagation):
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3,
     )
     return prop
 

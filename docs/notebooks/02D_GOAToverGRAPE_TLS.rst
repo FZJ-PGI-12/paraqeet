@@ -124,6 +124,7 @@ Using GRAPE as the method to propagate and compute the gradients
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -195,7 +196,7 @@ the GRAPE gradients to compute the gradient wrt the tone parameters
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 1.4224774691484754e-09, 'iterations': 5, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 3.022595507218284e-10, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -223,13 +224,14 @@ iterations.
 References
 ----------
 
-- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
-  coupled spin dynamics: design of NMR pulse sequences by gradient
-  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
-  (2005).
-- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
-  efficient optimization of control pulses for practical qubits,”
-  *Physical Review Letters* **120**, 150401 (2018).
-- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
-  optimal control in a chopped basis: Applications in control of
-  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).
+-  **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+   coupled spin dynamics: design of NMR pulse sequences by gradient
+   ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+   (2005).
+-  **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+   efficient optimization of control pulses for practical qubits,”
+   *Physical Review Letters* **120**, 150401 (2018).
+-  **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+   optimal control in a chopped basis: Applications in control of
+   Bose-Einstein condensates,” *Physical Review A* **98**, 022119
+   (2018).

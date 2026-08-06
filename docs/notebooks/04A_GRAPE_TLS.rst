@@ -88,6 +88,7 @@ As a simple toy model, we use a single spin.
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3
     )
     
     times = np.array([0.0, t_final])
@@ -159,7 +160,7 @@ from a ``PWCGenerator`` using ``gen.tlist``.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 1.2907700330799798e-07, 'iterations': 22, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 3.647304680498564e-11, 'iterations': 20, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -259,6 +260,7 @@ Let’s test GRAPE with ODE propagation
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_open,
         reverse_step_function=reverse_lindblad_step,
+        order=3
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -326,23 +328,17 @@ Let’s test GRAPE with ODE propagation
 .. code:: ipython3
 
     opt_grad = ScipyOptimizerGradient(measure_and_gradient_func=zeroone.get_value_and_gradient, optimization_map=optmap)
-    opt_grad.set_options({"disp": True})
 
 .. code:: ipython3
 
     opt_grad.optimize(tlist)
 
 
-.. parsed-literal::
-
-    scipy.optimize: The `disp` and `iprint` options of the L-BFGS-B solver are deprecated and will be removed in SciPy 1.18.0.
-
-
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.006379207131413489, 'iterations': 26, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 2, 'value': 0.005283974963344429, 'iterations': 54, 'message': 'ABNORMAL: '}
 
 
 
@@ -373,14 +369,14 @@ Let’s test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    Array(0.99364055, dtype=float64)
+    Array(0.99471603, dtype=float64)
 
 
 
 References
 ----------
 
-- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
-  coupled spin dynamics: design of NMR pulse sequences by gradient
-  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
-  (2005).
+-  **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+   coupled spin dynamics: design of NMR pulse sequences by gradient
+   ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+   (2005).

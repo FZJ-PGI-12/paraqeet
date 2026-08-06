@@ -104,14 +104,12 @@ The Hamiltonian in the rotating frame of the drive is given by -
     times = np.array([0.0, t_final])
     
     propagation = Expm(eom_func=model.get_value, resolution=1e9, initial_state=init)
-    # ``order`` sets how far the derivative of the piece propagator is expanded. The default of 2 is
-    # an order of magnitude more accurate than the textbook first order GRAPE of ``order=1``.
     prop = GRAPE(
         propagation,
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
-        order=2,
+        order=3,
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -180,14 +178,14 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    Iteration   10 | Infid = 9.282243e-09
+    Iteration   10 | Infid = 1.640602e-08
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 7.815716962511488e-10, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 1.538807525847119e-09, 'iterations': 14, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -212,7 +210,7 @@ frequency, as in the state transfer example.
 References
 ----------
 
-- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
-  coupled spin dynamics: design of NMR pulse sequences by gradient
-  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
-  (2005).
+-  **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+   coupled spin dynamics: design of NMR pulse sequences by gradient
+   ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+   (2005).
