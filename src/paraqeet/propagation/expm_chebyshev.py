@@ -33,35 +33,23 @@ class ExpmChebyshev(Propagation):
             \exp(A)\,\psi = \exp(-iB)\,\psi
             = \sum_{k=0}^{K} (2 - \delta_{k,0})\,(-i)^k J_k(R)\,T_k(B/R)\,\psi,
 
-    where :math:`J_k` are Bessel functions of the first kind. The Chebyshev polynomials are applied
-    through the three term recurrence
-    :math:`T_{k+1}(\xi)\psi = 2\xi\,T_k(\xi)\psi - T_{k-1}(\xi)\psi`, so that every term of the sum
-    costs one product of the generator with the state.
+    where :math:`J_k` are Bessel functions of the first kind. It follows the recurrence relation
+    :math:`T_{k+1}(\xi)\psi = 2\xi\,T_k(\xi)\psi - T_{k-1}(\xi)\psi`.
 
-    One propagation step therefore costs ``order`` matrix-vector products instead of one dense
-    matrix exponential, which pays off when few states are propagated in a large Hilbert space.
-
-    The expansion is truncated after ``order`` terms, which leaves an error of about
-    :math:`2\lvert J_{K+1}(R)\rvert`. The Bessel coefficients fall off super-exponentially once
-    :math:`k > R`, so the truncation is negligible as soon as the order exceeds the radius of a
-    step, which is small for a resolution that resolves the dynamics. The radius is bounded by the
-    largest row sum of the generator, a bound that is tight for the sparse Hamiltonians of most
-    models but loose by up to :math:`\sqrt{\dim}` for dense ones. Since the truncation is not
-    detected at runtime, use :meth:`suggested_order` to check that the order is large enough for
-    the model at hand.
+    Truncating after ``order`` terms leaves an error of about :math:`2\lvert J_{K+1}(R)\rvert`. The
+    coefficients fall off super-exponentially once :math:`k > R`, so the truncation is negligible
+    once the order exceeds the radius of a step. It is not detected at runtime, so check the order
+    against the model with :meth:`suggested_order`.
 
     Note:
-        The radius is recomputed from the generators of every interval and does not carry a
-        gradient, so that the gradient of ``_propagate``, and with it
-        :class:`~paraqeet.propagation.auto_diff_gradients.AutoDiffGradients`, only differentiates
-        the polynomial in the generator.
+        The radius is bounded by the largest row sum of the generator, which is tight for sparse
+        Hamiltonians but loose by up to :math:`\sqrt{\dim}` for dense ones.
 
     Note:
-        The expansion converges for every generator whose field of values is bounded by :math:`R`,
-        which includes the generators of the Lindblad master equation and of the block
-        triangular equation of motion of :class:`~paraqeet.propagation.goat.GOAT`. Those need an
-        order slightly above the radius, while an anti-Hermitian generator converges already at
-        :math:`K \approx R`.
+        The radius is recomputed per interval and carries no gradient, so ``_propagate``, and with
+        it :class:`~paraqeet.propagation.auto_diff_gradients.AutoDiffGradients`, differentiates
+        only the polynomial in the generator.
+
     """
 
     _order: int
@@ -146,8 +134,8 @@ class ExpmChebyshev(Propagation):
             order: Number of Chebyshev terms of the expansion.
         """
         num_terms = order + 40
-        ks = jnp.arange(order + 1)[:, None]
-        ms = jnp.arange(num_terms)[None, :]
+        ks = jnp.expand_dims(jnp.arange(order + 1), axis=1)
+        ms = jnp.expand_dims(jnp.arange(num_terms), axis=0)
         log_terms = (ks + 2 * ms) * jnp.log(radius / 2.0) - gammaln(ms + 1.0) - gammaln(ks + ms + 1.0)
         bessel = jnp.sum(jnp.where(ms % 2 == 0, 1.0, -1.0) * jnp.exp(log_terms), axis=1)
 
@@ -213,15 +201,14 @@ class ExpmChebyshev(Propagation):
     def suggested_order(self, times: Array, tolerance: float = 1e-14, margin: int = 2) -> int:
         """Return the expansion order that the equation of motion needs on the given times.
 
-        Samples the equation of motion the way :meth:`get_value` does, takes the largest radius of
-        all steps and returns the first order whose Bessel coefficient drops below ``tolerance``.
-        This is a diagnostic to run once for a model, and not in every optimization step, because
-        it evaluates the equation of motion on the full time grid.
+        Samples the EOM the way :meth:`get_value` does, takes the largest radius of all steps and
+        returns the first order whose Bessel coefficient drops below ``tolerance``. It evaluates
+        the EOM on the full time grid, so run it once per model rather than per optimization step.
 
         Note:
-            Wrapping the propagation in :class:`~paraqeet.propagation.goat.GOAT` propagates a block
-            triangular generator that also contains the derivatives of the equation of motion. Its
-            radius is larger than the one seen here, so add a few orders on top of the suggestion.
+            :class:`~paraqeet.propagation.goat.GOAT` propagates a block triangular generator that
+            also holds the derivatives of the EOM, whose radius is larger than the one seen here.
+            Add a few orders on top of the suggestion for it.
 
         Args:
             times: Array of times, as handed to :meth:`get_value`.
