@@ -20,6 +20,10 @@ class Vern7(Propagation):
     Propagate state by solving the Schrödinger equation / Lindblad master equation by using ODE solver.
 
     Implements Vern7 ODE Solver algorithm :cite:p:`verner2010numerically` non-adaptive (fixed time-step) version.
+
+    Attributes:
+        _step_function: Right hand side of the equation of motion.
+        _jump_operators: Collapse operators of a dissipative equation of motion.
     """
 
     _step_function: Callable
@@ -74,23 +78,49 @@ class Vern7(Propagation):
         """Return the jump operators scaled with the step size."""
         return (self._jump_operators * jnp.sqrt(dt),)
 
+    @staticmethod
+    def _step_offset(step_times: Array, dt: Float) -> Array:
+        """Return step offset needed for a PWC pulse.
+
+        A piecewise constant pulse jumps at a pixel boundary, so its value exactly on one is
+        ambiguous. This method adds a small offset to the sampled points to ensure that the sampled
+        point does not lie exactly on the pixel boundary.
+
+        Args:
+            step_times: Times at which the propagation steps of one segment start.
+            dt: Length of one propagation step.
+
+        Returns:
+            The offset in units of time.
+        """
+        ulps_of_margin = 32.0
+        largest_time = jnp.abs(step_times[-1]) + jnp.abs(dt)
+        return ulps_of_margin * jnp.finfo(jnp.float64).eps * largest_time
+
     @override
     def _construct_time_grid(self, step_times: Array, dt: Float) -> Array:
-        times_interp = jnp.concatenate(
+        """Return the times of the nine interpolation points in Vern7."""
+        interp_points = jnp.array(
             [
-                step_times,
-                step_times + (1 / 200) * dt,
-                step_times + (49 / 450) * dt,
-                step_times + (49 / 300) * dt,
-                step_times + (911 / 2000) * dt,
-                step_times + (3480084980 / 5709648941) * dt,
-                step_times + (221 / 250) * dt,
-                step_times + (37 / 40) * dt,
-                step_times + dt,
-            ],
-            axis=0,
+                0.0,
+                1 / 200,
+                49 / 450,
+                49 / 300,
+                911 / 2000,
+                3480084980 / 5709648941,
+                221 / 250,
+                37 / 40,
+                1.0,
+            ]
         )
-        return jnp.sort(times_interp)
+        offset = Vern7._step_offset(step_times, dt)
+
+        # Add small offset to the initial and final points
+        stage_offsets = (interp_points * dt).at[0].add(offset)
+        stage_offsets = stage_offsets.at[-1].add(-offset)
+
+        interp_times = jnp.expand_dims(step_times, axis=1) + jnp.expand_dims(stage_offsets, axis=0)
+        return jnp.reshape(interp_times, (-1,))
 
     @partial(jit, static_argnums=(0,))
     def _vern7_one_step(self, state: Array, h: Array, col: Array) -> Array:
@@ -166,7 +196,7 @@ class Vern7(Propagation):
 
         Args:
             eom: EOM sampled at the nine times for every step.
-            state_t: State/propagator at the start of the interval.
+            state_t: State/propagator at the start of the segment.
             steps_arr: Iteration indices, one per propagation step.
             col: Jump operators scaled with the square root of the step size.
         """

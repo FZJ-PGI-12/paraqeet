@@ -21,36 +21,28 @@ class DiffraxODE(Propagation):
     """
     Propagate state by solving the Schrödinger equation / Lindblad master equation with Diffrax.
 
-    This utilizes the ODE solvers of `Diffrax <https://docs.kidger.site/diffrax/>`_ :cite:p:`kidger2021on`, which
-    adds adaptive step size control and a choice of explicit and implicit solvers. Like ``Vern7``
-    it takes a ``step_function`` that implements the right hand side of the equation of motion,
-    so the step functions of :mod:`paraqeet.propagation.utils` can be used with both classes.
+    This utilizes the ODE solvers of `Diffrax <https://docs.kidger.site/diffrax/>`_ :cite:p:`kidger2021on`,
+    which add adaptive step size control and a choice of explicit and implicit solvers. Like
+    ``Vern7`` it takes a ``step_function`` for the right hand side, and can be chosen from
+    :mod:`paraqeet.propagation.utils`. It is JAX and
+    :class:`~paraqeet.propagation.auto_diff_gradients.AutoDiffGradients` compatible.
 
-    The equation of motion is sampled on an equidistant grid and interpolated in between by a Lagrange polynomial
-    through the ``interpolation_order`` nearest grid points. This is required to preserve the adaptive
-    time step in Diffrax based ODE solvers.
-    The solver therefore integrates in units of propagation steps: one unit of the solver's internal time
-    is one step of length ``1 / resolution``.
-    Since Diffrax is written in JAX, ``_propagate`` stays compatible with
-    :class:`~paraqeet.propagation.auto_diff_gradients.AutoDiffGradients`.
-
-    The EOM and the state are complex, but is split into the real and imaginary part for compatibility with diffrax.
-    This is also what makes implicit solvers such as ``diffrax.Kvaerno5()`` usable.
+    The EOM is sampled on an equidistant grid and interpolated in between by a Lagrange polynomial
+    through the ``interpolation_order`` nearest grid points, which is what preserves the adaptive
+    time step. The solver therefore integrates in units of propagation steps: one unit of its
+    internal time is one step of length ``1 / resolution``. The EOM and the state are split into
+    real and imaginary parts for Diffrax, which is also what makes implicit solvers such as
+    ``diffrax.Kvaerno5()`` usable.
 
     Note:
-        For a high order ODE solver
-        use ``solver=diffrax.Dopri8()`` together with a larger ``interpolation_order``, and for
-        adaptive stepping pass a ``stepsize_controller=diffrax.PIDController(rtol=..., atol=...)``.
+        For a high order solver use ``solver=diffrax.Dopri8()`` with a larger
+        ``interpolation_order``, and for adaptive stepping pass a
+        ``stepsize_controller=diffrax.PIDController(rtol=..., atol=...)``.
 
     Note:
-        As this solver sees the interpolated EOM, the order of convergence is the minimum of the
-        order of the solver and the ``interpolation_order``. Hence, always choose the ``interpolation_order``
-        to be around the order of the solver.
+        ``samples_per_step`` decreases the effective time step and only matters for an adaptive
+        solver. Extra samples cost EOM evaluations, so add them only if it does not converge.
 
-    Note:
-        ``samples_per_step`` decrease the effective time step and matters for the case of an
-        adaptive solver. Extra samples increase the number of EOM evaluations, hence should only
-        be used in case the solver does not reach its convergence.
     """
 
     _step_function: Callable
@@ -93,7 +85,7 @@ class DiffraxODE(Propagation):
                 ``diffrax.RecursiveCheckpointAdjoint()``, which supports reverse-mode AD.
             dt0: Initial step size of the solver, in units of propagation steps. With a constant
                 step size controller the default of one propagation step is used throughout.
-            max_steps: Maximum number of solver steps per interval of the times array. Defaults to
+            max_steps: Maximum number of solver steps per segment of the times array. Defaults to
                 None, in which case it is chosen large enough for the constant step size solve.
             samples_per_step: Number of times the EOM is sampled per propagation step. Only useful
                 for adaptive ``stepsize_controller``, PWC pulse.
@@ -150,16 +142,35 @@ class DiffraxODE(Propagation):
         """Return the jump operators scaled with the step size."""
         return (self._jump_operators * jnp.sqrt(dt),)
 
+    @staticmethod
+    def _step_offset(step_times: Array, dt: Float) -> Array:
+        """Return step offset needed for a PWC pulse.
+
+        A piecewise constant pulse jumps at a pixel boundary, so its value exactly on one is
+        ambiguous. This method adds a small offset to the sampled points to ensure that the sampled
+        point does not lie exactly on the pixel boundary.
+
+        Args:
+            step_times: Times at which the propagation steps of one segment start.
+            dt: Length of one propagation step.
+
+        Returns:
+            The offset in units of time.
+        """
+        ulps_of_margin = 32.0
+        largest_time = jnp.abs(step_times[-1]) + jnp.abs(dt)
+        return ulps_of_margin * jnp.finfo(jnp.float64).eps * largest_time
+
     @override
     def _construct_time_grid(self, step_times: Array, dt: Float) -> Array:
-        """Return the sample times of the EOM, ``samples_per_step`` per step plus the final time.
-
-        The samples are equidistant, so that they are the knots of the interpolation that
-        ``_propagate`` evaluates the EOM at.
-        """
+        """Return interpolation points for the time grid."""
+        # add small offset to the first and last point
+        offset = DiffraxODE._step_offset(step_times, dt)
         offsets = jnp.arange(self._samples_per_step) * (dt / self._samples_per_step)
-        times_interp = (step_times[:, None] + offsets[None, :]).reshape(-1)
-        return jnp.concatenate([times_interp, step_times[-1:] + dt])
+        offsets = offsets.at[0].add(offset)
+
+        interp_times = jnp.expand_dims(step_times, axis=1) + jnp.expand_dims(offsets, axis=0)
+        return jnp.concatenate([jnp.reshape(interp_times, (-1,)), step_times[-1:] + dt - offset])
 
     @partial(jit, static_argnums=(0,))
     @override
@@ -178,7 +189,7 @@ class DiffraxODE(Propagation):
 
         Args:
             eom: EOM sampled at the times of ``_construct_time_grid``.
-            state_t: State/propagator at the start of the interval.
+            state_t: State/propagator at the start of the segment.
             steps_arr: Iteration indices, one per propagation step.
             col: Jump operators scaled with the square root of the step size.
         """
@@ -189,13 +200,13 @@ class DiffraxODE(Propagation):
 
         nodes = jnp.arange(stencil, dtype=float)
         diagonal = jnp.eye(stencil, dtype=bool)
-        denominator = jnp.where(diagonal, 1.0, nodes[:, None] - nodes[None, :])
+        denominator = jnp.where(diagonal, 1.0, jnp.expand_dims(nodes, axis=1) - jnp.expand_dims(nodes, axis=0))
 
         def vector_field(time: Any, state: Array, _args: Any) -> Array:
             knot = time * self._samples_per_step
             base = jnp.clip(jnp.floor(knot).astype(int) - (stencil // 2 - 1), 0, num_knots - stencil)
             offset = knot - base
-            weights = jnp.prod(jnp.where(diagonal, 1.0, (offset - nodes)[None, :] / denominator), axis=1)
+            weights = jnp.prod(jnp.where(diagonal, 1.0, jnp.expand_dims(offset - nodes, axis=0) / denominator), axis=1)
             eom_t = jnp.tensordot(weights, dynamic_slice_in_dim(eom_split, base, stencil, axis=0), axes=1)
             state_t: Array = self._step_function(state[0] + 1j * state[1], eom_t[0] + 1j * eom_t[1], col)
             return jnp.stack([state_t.real, state_t.imag])
