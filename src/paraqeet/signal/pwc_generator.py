@@ -16,7 +16,7 @@ class PWCGenerator(Generator):
     """Convert a complex envelope to PWC pulse.
 
     This sets the pulse parameters to the ``tlist`` points.
-    The gradient of the pulse wrt the PWC bins is 1 at that time point and zero
+    The gradient of the pulse wrt the PWC pixels is 1 at that time point and zero
     everywhere else.
 
     This Generator doesn't add the LO signal to the envelope pulse.
@@ -355,7 +355,7 @@ class PWCGenerator(Generator):
         """Return signal gradient wrt inphase and out-of-phase.
 
         This returns a list of ones as the gradient of the envelope wrt a step
-        is 1 for that time bin and 0 everywhere else.
+        is 1 for that pixel and 0 everywhere else.
 
         Args:
             times: Array of times.
