@@ -94,7 +94,7 @@ class Fidelity(NormalizableMeasurement, Differentiable):
     def get_value(self, times: Array) -> Float:
         states = self._propagation_func(jnp.array(times))
         final_state = states[-1]
-        return self._fid(self._overlap(final_state, self._target_states))
+        return float(self._fid(self._overlap(final_state, self._target_states)))
 
     @override
     def get_gradient(self, times: Array) -> Array:
@@ -211,7 +211,7 @@ class UnitaryFidelity(Fidelity):
         overlaps = []
         for ii, s in enumerate(self._target_states.T):
             overlaps.append(jnp.vdot(s, states[-1][:, ii]))
-        return self._fid(jnp.asarray(overlaps))
+        return float(self._fid(jnp.asarray(overlaps)))
 
     @override
     def calculate_normalized_scalar(self, times: Array) -> Float:
@@ -226,7 +226,7 @@ class UnitaryFidelity(Fidelity):
         return self.get_value(times)
 
     @override
-    def get_value_and_gradient(self, times: Array) -> tuple[Float, Array]:
+    def get_value_and_gradient(self, times: Array) -> tuple[Float | Array, Array]:
         """Get the analytic expression for the measurement value and its gradient.
 
         Args:

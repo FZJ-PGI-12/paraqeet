@@ -46,7 +46,7 @@ def overlap_vectorized_density_matrix_mixed_states(final_state: Array, target_st
 def overlap_density_matrix_root(state: Array, target_state: Array) -> Array:
     """Overlap of two density matrices."""
     target_state_sqrt = matrix_sqrt_psd(target_state)
-    return target_state_sqrt @ state @ target_state_sqrt
+    return jnp.array(target_state_sqrt @ state @ target_state_sqrt)
 
 
 @jit
