@@ -117,13 +117,13 @@ def dissipative_master_equation(qubit_hamiltonian):
     )
 
 
-def _closed_system(n_pieces, amplitude=np.pi / T_FINAL / 3):
+def _closed_system(n_pixels, amplitude=np.pi / T_FINAL / 3):
     """Return the time grid and the Schroedinger equation of the driven qubit on a finer grid.
 
-    The fixtures above are tied to ``TLIST``. Convergence in the width of a pulse piece needs the
-    same system on several grids, so this rebuilds it for a given number of pieces.
+    The fixtures above are tied to ``TLIST``. Convergence in the width of a pulse pixel needs the
+    same system on several grids, so this rebuilds it for a given number of pixels.
     """
-    tlist = np.linspace(0, T_FINAL, n_pieces + 1)
+    tlist = np.linspace(0, T_FINAL, n_pixels + 1)
     tone = GaussEnvelope(amplitude=Quantity(amplitude, -4 * amplitude, 4 * amplitude))
     tone.t_final.set_value(T_FINAL)
     generator = PWCGenerator(envelopes=[tone], tlist=tlist)
@@ -155,9 +155,9 @@ def _exact_overlap_gradient(propagation, schroedinger, tlist):
     return complex((TARGET_STATE.conj().T @ state_gradient)[0, 0])
 
 
-def _truncation_error(n_pieces, order):
+def _truncation_error(n_pixels, order):
     """Return the deviation of the GRAPE gradient from the exact derivative of the propagator."""
-    tlist, schroedinger = _closed_system(n_pieces)
+    tlist, schroedinger = _closed_system(n_pixels)
     dt = tlist[1] - tlist[0]
     propagation = Expm(eom_func=schroedinger.get_value, resolution=1 / dt, initial_state=INIT_STATE)
     grape = GRAPE(
@@ -208,7 +208,7 @@ def test_grape_expm_matches_automatic_differentiation(schroedinger):
     """GRAPE agrees with automatic differentiation of the same propagation.
 
     The two share the propagation and nothing else: GRAPE propagates the target state backwards
-    and expands the derivative of every piece propagator, automatic differentiation differentiates
+    and expands the derivative of every pixel propagator, automatic differentiation differentiates
     the propagation itself.
     """
     propagation = Expm(eom_func=schroedinger.get_value, resolution=1 / DELTAT, initial_state=INIT_STATE)
@@ -230,10 +230,9 @@ def test_grape_expm_matches_automatic_differentiation(schroedinger):
 @pytest.mark.parametrize(
     ("method", "tolerance"),
     [
-        # The expansion of the exponential solves the same discretization as Expm.
         ("chebyshev", 1e-8),
-        ("vern7", 1e-2),
-        ("diffrax", 1e-2),
+        ("vern7", 1e-8),
+        ("diffrax", 1e-8),
     ],
 )
 def test_grape_matches_grape_expm(schroedinger, method, tolerance):
@@ -256,8 +255,6 @@ def test_grape_matches_grape_expm(schroedinger, method, tolerance):
 
     assert np.abs(expm_gradient).max() > 1e-12
 
-    # For the ODE solvers the tolerance is set by the second order midpoint rule of Expm on a
-    # piecewise constant pulse.
     np.testing.assert_allclose(value, expm_value, rtol=tolerance, atol=1e-2 * tolerance)
     np.testing.assert_allclose(gradient, expm_gradient, rtol=tolerance, atol=tolerance * np.abs(expm_gradient).max())
 
@@ -363,10 +360,10 @@ def test_grape_requires_a_reverse_step_function_for_collapse_operators(dissipati
         _dissipative_grape(dissipative_master_equation, None)
 
 
-def test_grape_expansion_converges_with_the_pulse_piece_width():
+def test_grape_expansion_converges_with_the_pulse_pixel_width():
     """The truncated expansion of the propagator gradient converges with its order.
 
-    Halving the width of a pulse piece divides the deviation from the exact derivative by two at
+    Halving the width of a pulse pixel divides the deviation from the exact derivative by two at
     first order and by four at second order, the definition of the two orders. The bounds are
     loose because the deviation of the reference itself is not exactly a power law.
     """
