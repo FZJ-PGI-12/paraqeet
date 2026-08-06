@@ -286,7 +286,7 @@ numbers.
                 eom_gradient_func=model.get_gradient,
                 target_state=target_state,
                 operator_sandwich_function=grape_operator_sandwich_function_closed,
-                order=3
+                order=3,
             )
     
             prop_list.append(prop)
@@ -425,12 +425,12 @@ We can compute the fidelities for the different truncation numbers
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.1441035684960115
+    Fidelity at N_T=3 = 0.1441035684960113
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=4 = 0.06788860193208297
+    Fidelity at N_T=4 = 0.06788860193208295
 
 
 which are quite poor! We now proceed with the pulse optimization.
@@ -506,41 +506,41 @@ which are quite poor! We now proceed with the pulse optimization.
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 9.141001e-03
+    Iteration   80 | Infid = 9.141000e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 9.105646e-03
+    Iteration   90 | Infid = 9.105644e-03
 
 
 .. parsed-literal::
 
-    Iteration  100 | Infid = 9.078599e-03
+    Iteration  100 | Infid = 9.078590e-03
 
 
 .. parsed-literal::
 
-    Iteration  110 | Infid = 9.022809e-03
+    Iteration  110 | Infid = 9.022916e-03
 
 
 .. parsed-literal::
 
-    Iteration  120 | Infid = 8.819286e-03
+    Iteration  120 | Infid = 8.821202e-03
 
 
 .. parsed-literal::
 
-    Iteration  130 | Infid = 8.691026e-03
-    CPU times: user 8min 11s, sys: 11.7 s, total: 8min 23s
-    Wall time: 5min 48s
+    Iteration  130 | Infid = 8.695268e-03
+    CPU times: user 2min 26s, sys: 1.35 s, total: 2min 27s
+    Wall time: 28.9 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.008691025798088559, 'iterations': 207, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.00869526815724364, 'iterations': 214, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -567,12 +567,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.923815961552387
-
-
-.. parsed-literal::
-
-    Fidelity at N_T=4 = 0.8727417363007163
+    Fidelity at N_T=3 = 0.9236683110100381
+    Fidelity at N_T=4 = 0.8728240314907942
 
 
 Setting truncation to higher values
@@ -675,12 +671,12 @@ Initial fidelity before optimization
 
 .. parsed-literal::
 
-    Fidelity at N_T=15 = 0.01428397556643819
+    Fidelity at N_T=15 = 0.014283975566438187
 
 
 .. parsed-literal::
 
-    Fidelity at N_T=20 = 0.01428396320990732
+    Fidelity at N_T=20 = 0.014283963209907349
 
 
 We redefine the optimizer and perform the optimization again with higher
@@ -719,45 +715,45 @@ truncation numbers
 
 .. parsed-literal::
 
-    Iteration   40 | Infid = 1.433837e-02
+    Iteration   40 | Infid = 1.433836e-02
 
 
 .. parsed-literal::
 
-    Iteration   50 | Infid = 1.035731e-02
+    Iteration   50 | Infid = 1.035729e-02
 
 
 .. parsed-literal::
 
-    Iteration   60 | Infid = 8.685287e-03
+    Iteration   60 | Infid = 8.685309e-03
 
 
 .. parsed-literal::
 
-    Iteration   70 | Infid = 8.128695e-03
+    Iteration   70 | Infid = 8.127652e-03
 
 
 .. parsed-literal::
 
-    Iteration   80 | Infid = 7.390772e-03
+    Iteration   80 | Infid = 7.446799e-03
 
 
 .. parsed-literal::
 
-    Iteration   90 | Infid = 7.035749e-03
+    Iteration   90 | Infid = 7.038011e-03
 
 
 .. parsed-literal::
 
-    CPU times: user 2h 37min 27s, sys: 19.2 s, total: 2h 37min 46s
-    Wall time: 4min 30s
+    CPU times: user 16min 44s, sys: 1.9 s, total: 16min 46s
+    Wall time: 27.8 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.0067726366604544674, 'iterations': 141, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.007038010838982922, 'iterations': 130, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -771,12 +767,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=15 = 0.9153408218950431
-
-
-.. parsed-literal::
-
-    Fidelity at N_T=20 = 0.9153410823080889
+    Fidelity at N_T=15 = 0.9120315639807287
+    Fidelity at N_T=20 = 0.912031672521721
 
 
 And the dynamics of the system under these optimized pulses looks like
