@@ -3,15 +3,16 @@
 import copy
 import math
 from collections.abc import Callable
+from functools import partial
 from typing import override
 
 import jax.numpy as jnp
-from jax import vmap
+from jax import jit, vmap
 from jax.scipy.linalg import expm_frechet
 
 from paraqeet.exceptions import ConfigurationException
 from paraqeet.propagation.propagation import DifferentiablePropagation, Propagation
-from paraqeet.propagation.utils import construct_times
+from paraqeet.propagation.utils import construct_times, squeeze_trivial_axes
 from paraqeet.quantity import Array, Float
 
 
@@ -20,7 +21,7 @@ class GRAPE(DifferentiablePropagation):
 
     It computes the gradient of the state overlap for a PWC pulses ansatz by using GRAPE.
     The initial state is propagated forwards and the target state backwards,
-    and the gradient of every pulse piece follows from sandwiching the gradient
+    and the gradient of every pulse pixel follows from sandwiching the gradient
     of the equation of motion between them,
 
         .. math::
@@ -32,7 +33,7 @@ class GRAPE(DifferentiablePropagation):
 
     Higher orders :cite:p:`defouquieres2011second` follow from differentiating
     :math:`U = \exp(\mathcal{L})` term by term, with :math:`\mathcal{L}` the generator of one
-    pulse piece and :math:`\partial\mathcal{L}` its derivative,
+    pulse pixel and :math:`\partial\mathcal{L}` its derivative,
 
         .. math::
             \frac{\partial U}{\partial \alpha} = \sum_{m \geq 1} \frac{1}{m!}
@@ -55,7 +56,7 @@ class GRAPE(DifferentiablePropagation):
     ``order=1`` is textbook first-order GRAPE.
 
     Note:
-        Each order costs one more application of the generator per pulse piece on either side,
+        Each order costs one more application of the generator per pulse pixel on either side,
         and ``order*(order + 1)/2`` sandwiches per parameter. The gain stops once the truncation
         drops below the error of the propagation itself, which for an ODE solver such as
         :class:`~paraqeet.propagation.vern7.Vern7` happens beyond the second order.
@@ -64,6 +65,10 @@ class GRAPE(DifferentiablePropagation):
     :class:`~paraqeet.propagation.propagation.Propagation`.
     The backward propagation is constructed from a copy of the original propagation class as to
     ensure the ``_propagate`` method is recompiled after changing the EOM to the adjoint EOM.
+
+    Note:
+        Current implementation of GRAPE focuses on optimizing the code speed, and can use significant
+        amount of RAM. A memory efficient version would be added in a future release.
 
     Attributes:
         _target_state: Target state for the backward propagation.
@@ -206,12 +211,12 @@ class GRAPE(DifferentiablePropagation):
 
     @property
     def frechet_derivative(self) -> bool:
-        """Return whether the propagator of a pulse piece is differentiated exactly."""
+        """Return whether the propagator of a pulse pixel is differentiated exactly."""
         return self._frechet_derivative
 
     @frechet_derivative.setter
     def frechet_derivative(self, frechet_derivative: bool) -> None:
-        r"""Set whether the propagator of a pulse piece is differentiated exactly.
+        r"""Set whether the propagator of a pulse pixel is differentiated exactly.
 
         Note:
             The Frechet derivative cannot be used for ODE solver for open systems
@@ -225,12 +230,45 @@ class GRAPE(DifferentiablePropagation):
         return jnp.conj(jnp.swapaxes(operators, -1, -2))
 
     @staticmethod
-    def _adjoint_eom(eom: Array) -> Array:
-        """Return the adjoint EOM of one interval, in reverse order."""
-        return GRAPE._dagger(jnp.flip(eom, axis=0))
+    @partial(jit, static_argnums=(0,))
+    def _frechet_sandwich_func(
+        operator_sandwich_function: Callable, eom: Array, eom_grads: Array, forward: Array, adjoint: Array
+    ) -> Array:
+        """Sandwich the Frechet derivative of the propagator of every pulse pixel, for every parameter.
+
+        Args:
+            operator_sandwich_function: Function that evaluates the matrix element of an operator.
+            eom: EOM of every pulse pixel, scaled with the width of a pixel.
+            eom_grads: Derivative of that EOM, with the parameter along the second axis.
+            forward: Forward propagated state of every pulse pixel.
+            adjoint: Adjoint of the backward propagated state of every pulse pixel.
+
+        Returns:
+            The gradient with the parameter along the first and the pulse pixel along the second axis.
+        """
+
+        def propagator_gradient(generator: Array, direction: Array) -> Array:
+            derivative: Array = expm_frechet(generator, direction)[1]
+            return derivative
+
+        # Vectorized over the pulse pixel, which both arrays carry along their first axis, and
+        # over the parameter, which only the direction of the derivative carries.
+        propagator_grads = vmap(vmap(propagator_gradient, in_axes=(None, 0)), in_axes=(0, 0))(eom, eom_grads)
+        sandwiches = vmap(operator_sandwich_function, in_axes=(1, None, None))(propagator_grads, forward, adjoint)
+        return squeeze_trivial_axes(sandwiches)
+
+    @staticmethod
+    def _adjoint_eom(eom: Array, axis: int = 0) -> Array:
+        """Return the adjoint EOM, in reverse order along the given axis.
+
+        Args:
+            eom: Equation of motion, sampled along ``axis``.
+            axis: Axis along which the samples of one segment are stacked.
+        """
+        return GRAPE._dagger(jnp.flip(eom, axis=axis))
 
     def _apply_generator(self, propagation: Propagation, states: Array, eom: Array, dt: Float) -> Array:
-        """Apply the generator of every pulse piece to the state of that piece.
+        """Apply the generator of every pulse pixel to the state of that pixel.
 
         For propagation methods such as ODE solvers that use a ``step_function``, the generators are
         applied onto the state using the ``step_function``. Else the EOM is used to apply the generators
@@ -243,9 +281,9 @@ class GRAPE(DifferentiablePropagation):
         Args:
             propagation: Propagation whose ``step function`` is used. Pass the forward propagation to
                 apply the generator and ``_backward_prop`` to apply its adjoint.
-            states: States of every pulse piece, with the pulse piece along the first axis.
-            eom: EOM of every pulse piece, scaled with the width of a piece.
-            dt: Width of one pulse piece, which scales the collapse operators.
+            states: States of every pulse pixel, with the pulse pixel along the first axis.
+            eom: EOM of every pulse pixel, scaled with the width of a pixel.
+            dt: Width of one pulse pixel, which scales the collapse operators.
 
         Returns:
             The states with the generator applied, in the shape of ``states``.
@@ -259,97 +297,117 @@ class GRAPE(DifferentiablePropagation):
         applied: Array = vmap(step_function, in_axes=(0, 0) + (None,) * len(step_args))(states, eom, *step_args)
         return applied
 
-    def _propagate_forward(self, times: Array) -> tuple[list[Array], list[tuple[Array, Float, int]]]:
-        """Propagate the initial state forward and collect the EOM of every interval.
+    def _propagate_forward(self, times: Array) -> tuple[Array, Array, Float, Array, Array]:
+        """Propagate the initial state forward and collect the EOM of every segment.
+
+        The EOM of all segments is evaluated in a single call and all segments are propagated in
+        a single compiled loop, see ``Propagation._sample_eom_batched``.
 
         Args:
             times: Array of times.
 
         Returns:
-            The forward propagated states, one per entry of ``times``, and per interval the
-            equation of motion, the step size and the number of propagation steps (needed for backward propagation).
+            The forward propagated states, one per entry of ``times``, the EOM with the segment
+            along the first axis, the step size, the iteration indices of one segment and the
+            sample times. The latter four feed the backward propagation and the gradient.
+
+        Raises:
+            ConfigurationException: If the given times are not uniformly spaced. GRAPE stacks the
+                EOM of every segment along one axis, which needs them to be of equal length.
         """
-        psis = [self._prop.initial_state]
-        intervals: list[tuple[Array, Float, int]] = []
+        sampled_eom = self._prop._sample_eom_batched(times)
+        if sampled_eom is not None:
+            eom, dt, steps, sample_times = sampled_eom
+            psis = self._prop._propagate_batched(eom, self._prop.initial_state, steps, *self._prop._propagate_args(dt))
+            return psis, eom, dt, steps, sample_times
+
+        # Fallback to the ``_propagate`` method, one segment at a time.
+        first_step_times, dt = construct_times(times, 1, self._prop.resolution)
+        steps = jnp.arange(0, len(first_step_times), 1)
+        propagate_args = self._prop._propagate_args(dt)
+
+        states: list[Array] = [self._prop.initial_state]
+        eom_per_segment: list[Array] = []
+        times_per_segment: list[Array] = []
 
         for ti in range(1, len(times)):
             step_times, dt = construct_times(times, ti, self._prop.resolution)
-            eom = self._prop._eom_func(self._prop._construct_time_grid(step_times, dt)) * dt
-            psis.append(
-                self._prop._propagate(
-                    eom,
-                    psis[-1],
-                    jnp.arange(0, len(step_times), 1),
-                    *self._prop._propagate_args(dt),
-                )
-            )
-            intervals.append((eom, dt, len(step_times)))
+            times_of_segment = self._prop._construct_time_grid(step_times, dt)
+            eom_of_segment = self._prop._eom_func(times_of_segment) * dt
 
-        return psis, intervals
+            states.append(self._prop._propagate(eom_of_segment, states[-1], steps, *propagate_args))
+            eom_per_segment.append(eom_of_segment)
+            times_per_segment.append(times_of_segment)
 
-    def _propagate_backward(self, intervals: list[tuple[Array, Float, int]]) -> list[Array]:
-        """Propagate the target state backwards through the intervals of the forward pass.
+        return (
+            jnp.stack(states),
+            jnp.stack(eom_per_segment),
+            dt,
+            steps,
+            jnp.stack(times_per_segment),
+        )
+
+    def _propagate_backward(self, eom: Array, dt: Float, steps: Array) -> Array:
+        """Propagate the target state backwards through the segments of the forward pass.
+
+        The segments are reversed against each other and the samples within a segment are
+        reversed among themselves, so that the backward propagation runs in reverse time.
 
         Args:
-            intervals: Per interval the equation of motion, the step size and the number of
-                propagation steps, as returned by ``_propagate_forward``.
+            eom: Equation of motion of every segment, as returned by ``_propagate_forward``.
+            dt: Length of one propagation step.
+            steps: Iteration indices of one segment.
 
         Returns:
             The backward propagated states, one per time point and in forward time order.
         """
-        lamdas = [self._target_state]
+        adjoint_eom = jnp.flip(GRAPE._adjoint_eom(eom, axis=1), axis=0)
+        propagate_args = self._backward_prop._propagate_args(dt)
 
-        for eom, dt, n_steps in reversed(intervals):
-            lamdas.append(
-                self._backward_prop._propagate(
-                    GRAPE._adjoint_eom(eom),
-                    lamdas[-1],
-                    jnp.arange(0, n_steps, 1),
-                    *self._backward_prop._propagate_args(dt),
-                )
+        if self._prop.batched_propagation:
+            lamdas = self._backward_prop._propagate_batched(adjoint_eom, self._target_state, steps, *propagate_args)
+            return jnp.flip(lamdas, axis=0)
+
+        # Fallback to the ``_propagate`` method, one segment at a time.
+        reverse_lamdas = [self._target_state]
+        for eom_of_segment in adjoint_eom:
+            reverse_lamdas.append(
+                self._backward_prop._propagate(eom_of_segment, reverse_lamdas[-1], steps, *propagate_args)
             )
 
-        lamdas.reverse()
+        return jnp.flip(jnp.stack(reverse_lamdas), axis=0)
 
-        return lamdas
-
-    def _frechet_gradients(self, eom: Array, eom_grads: Array, forward: Array, backward: Array) -> list[Array]:
+    def _frechet_gradients(self, eom: Array, eom_grads: Array, forward: Array, backward: Array) -> Array:
         r"""Return the gradient of every parameter from the Frechet derivative of the propagator.
 
         Args:
-            eom: EOM of every pulse piece, scaled with the width of a piece.
+            eom: EOM of every pulse pixel, scaled with the width of a pixel.
             eom_grads: Derivative of that EOM, with the parameter along the second axis.
-            forward: Forward propagated state of every pulse piece.
-            backward: Backward propagated state of every pulse piece.
+            forward: Forward propagated state of every pulse pixel.
+            backward: Backward propagated state of every pulse pixel.
         """
         # The sandwich function expects the adjoint of the backward propagated states, taken
         # over the last two axes because time is the leading one.
         adjoint = GRAPE._dagger(backward)
 
-        grads: list[Array] = []
-        for ii in range(eom_grads.shape[1]):
-            propagator_grad = vmap(lambda generator, direction: expm_frechet(generator, direction)[1], in_axes=(0, 0))(
-                eom, eom_grads[:, ii, ...]
-            )
-            grads.append(jnp.squeeze(self._operator_sandwich_function(propagator_grad, forward, adjoint)))
+        gradients: Array = GRAPE._frechet_sandwich_func(
+            self._operator_sandwich_function, eom, eom_grads, forward, adjoint
+        )
+        return gradients
 
-        return grads
-
-    def _expansion_gradients(
-        self, eom: Array, eom_grads: Array, forward: Array, backward: Array, dt: Float
-    ) -> list[Array]:
+    def _expansion_gradients(self, eom: Array, eom_grads: Array, forward: Array, backward: Array, dt: Float) -> Array:
         """Return the gradient of every parameter from the series expansion of the derivative of the propagator.
 
         The expansion is truncated after ``order`` terms.
 
         Args:
-            eom: EOM of every pulse piece, scaled with the width of a piece.
+            eom: EOM of every pulse pixel, scaled with the width of a pixel.
             eom_grads: Derivative of that EOM, with the parameter along the second axis.
-            forward: Forward propagated state of every pulse piece.
-            backward: Backward propagated state of every pulse piece.
-            dt: Width of one pulse piece.
+            forward: Forward propagated state of every pulse pixel.
+            backward: Backward propagated state of every pulse pixel.
+            dt: Width of one pulse pixel.
         """
-        # Powers of the generator applied to the states of every pulse piece, the forward states
+        # Powers of the generator applied to the states of every pulse pixel, the forward states
         # carrying the generator and the backward states its adjoint.
         forward_states: list[Array] = [forward]
         backward_states: list[Array] = [backward]
@@ -363,17 +421,42 @@ class GRAPE(DifferentiablePropagation):
         # over the last two axes because time is the leading one.
         adjoint_states = [GRAPE._dagger(states) for states in backward_states]
 
-        grads: list[Array] = []
-        for ii in range(eom_grads.shape[1]):
-            terms = [
-                self._operator_sandwich_function(eom_grads[:, ii, ...], forward_states[m - 1 - j], adjoint_states[j])
-                / math.factorial(m)
-                for m in range(1, self._order + 1)
-                for j in range(m)
-            ]
-            grads.append(jnp.squeeze(sum(terms)))
+        # Sandwich every parameter at once, the parameter being the second axis of the derivative.
+        sandwich = vmap(self._operator_sandwich_function, in_axes=(1, None, None))
+        terms = [
+            sandwich(eom_grads, forward_states[m - 1 - j], adjoint_states[j]) / math.factorial(m)
+            for m in range(1, self._order + 1)
+            for j in range(m)
+        ]
 
-        return grads
+        return squeeze_trivial_axes(sum(terms))
+
+    def _sample_eom_and_grad_at_midpoint(
+        self, midpoints: Array, dt: Float, segment_eom: Array, sample_times: Array
+    ) -> tuple[Array, Array]:
+        """Return the EOM and its derivative at the midpoint of every pulse pixel.
+
+        For cases where the EOM and its gradient are sampled not at the midpoint (such as ODE solvers),
+        this method returns the EOM and gradient at the midpoints. Else, it returns the the input EOM, and
+        samples the gradient at pixel midpoints.
+
+        Args:
+            midpoints: Times in the middle of every pulse pixel.
+            dt: Width of one pulse pixel.
+            segment_eom: EOM of every segment as sampled by the propagation.
+            sample_times: Times at which ``segment_eom`` was sampled.
+
+        """
+        samples_the_midpoint = (sample_times.shape[1] == 1) and (
+            bool(jnp.allclose(sample_times[:, 0], midpoints, rtol=1e-12, atol=0.0))
+        )
+
+        if samples_the_midpoint:
+            # ``segment_eom`` is already sampled at the midpoint.
+            return segment_eom[:, 0], jnp.array(self._eom_gradient_func(midpoints)) * dt
+
+        eom, eom_gradient = self._eom_and_gradient_func(midpoints)
+        return jnp.array(eom) * dt, jnp.array(eom_gradient) * dt
 
     @override
     def get_value_and_gradient(self, times: Array) -> tuple[Array, Array]:
@@ -391,7 +474,7 @@ class GRAPE(DifferentiablePropagation):
         Returns:
             A tuple ``(value, gradient)``. ``value`` holds the forward propagated states with
             time along the first dimension. ``gradient`` has the parameter along the first
-            dimension and the pulse piece along the second.
+            dimension and the pulse pixel along the second.
 
         """
         if len(times) < 2:
@@ -402,24 +485,23 @@ class GRAPE(DifferentiablePropagation):
         if self._target_state is None:
             raise ConfigurationException("Target state is not set")
 
-        psis, intervals = self._propagate_forward(times)
-        lamdas = self._propagate_backward(intervals)
+        psis, segment_eom, step_dt, steps, sample_times = self._propagate_forward(times)
+        lamdas = self._propagate_backward(segment_eom, step_dt, steps)
 
-        # The EOM and its gradient are evaluated once per pulse piece, in the middle of it.
+        # The EOM and its gradient of a pulse pixel are the ones in the middle of that pixel.
         dt = times[1] - times[0]
-        eom, eom_gradient = self._eom_and_gradient_func(times[:-1] + dt / 2)
-        eom = jnp.array(eom) * dt
-        eom_grads = jnp.array(eom_gradient) * dt
+        midpoints = times[:-1] + dt / 2
+        eom, eom_grads = self._sample_eom_and_grad_at_midpoint(midpoints, dt, segment_eom, sample_times)
 
-        forward = jnp.array(psis[:-1])
-        backward = jnp.array(lamdas[1:])
+        forward = psis[:-1]
+        backward = lamdas[1:]
 
         if self._frechet_derivative:
             grads = self._frechet_gradients(eom, eom_grads, forward, backward)
         else:
             grads = self._expansion_gradients(eom, eom_grads, forward, backward, dt)
 
-        return jnp.array(psis), jnp.array(grads)
+        return psis, grads
 
     @override
     def get_gradient(self, times: Array) -> Array:

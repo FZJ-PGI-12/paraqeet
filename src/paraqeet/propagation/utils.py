@@ -167,3 +167,9 @@ def construct_batched_times(times: Array, resolution: float) -> tuple[Array, Flo
     interp_times = jnp.linspace(jnp.asarray(times[:-1]), jnp.asarray(times[1:]), steps, endpoint=False, axis=-1)
     dt = interp_times[0, 1] - interp_times[0, 0] if steps > 1 else segment_length
     return interp_times, dt
+
+
+def squeeze_trivial_axes(arr: Array) -> Array:
+    """Drop the trivial axes of an array."""
+    trivial_axes = tuple(axis for axis, size in enumerate(arr.shape) if size == 1 and axis > 0)
+    return jnp.squeeze(arr, axis=trivial_axes)
