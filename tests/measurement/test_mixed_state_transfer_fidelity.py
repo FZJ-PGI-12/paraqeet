@@ -3,9 +3,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.measurement.mixed_state_transfer_fidelity import (
-    MixedStateTransferFidelity,
-)
+from paraqeet.measurement.fidelity import Fidelity
+from paraqeet.measurement.utils import densitiy_matrix_trace_fidelity, overlap_density_matrix_root
 from tests.propagation.identity_propagation import IdentityPropagation
 from tests.propagation.random_propagation import RandomPropagation
 
@@ -24,10 +23,16 @@ def test_limits_vectors():
 
     """
     for size in range(2, 30):
-        targetState = random_mixed_state(size)
+        target_state = random_mixed_state(size)
         propagation = RandomPropagation(size, True)
         times = np.array([1.0])
-        measurement = MixedStateTransferFidelity(propagation.get_value, targetState)
+        measurement = Fidelity(
+            propagation.get_value,
+            propagation_gradient_func=None,
+            target_states=target_state,
+            overlap=overlap_density_matrix_root,
+            fid=densitiy_matrix_trace_fidelity,
+        )
 
         for i in range(100):
             m = measurement.get_value(times)
@@ -41,7 +46,13 @@ def test_vector_equality():
             state = random_mixed_state(size)
             propagation = IdentityPropagation()
             propagation.set_initial_state(state)
-            measurement = MixedStateTransferFidelity(propagation.get_value, state)
+            measurement = Fidelity(
+                propagation.get_value,
+                propagation_gradient_func=None,
+                target_states=state,
+                overlap=overlap_density_matrix_root,
+                fid=densitiy_matrix_trace_fidelity,
+            )
             m = measurement.get_value(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0, decimal=2)
 
@@ -61,12 +72,19 @@ def test_incompatible_shape():
     allDims = np.arange(2, 30)
     for dim in allDims:
         for i in range(100):
-            targetState = random_mixed_state(dim)
+            target_state = random_mixed_state(dim)
 
             # create a propagator of a different dimension
             dimensions = np.delete(allDims, np.where(allDims == dim)[0][0])
             propagation = RandomPropagation(np.random.choice(dimensions), True)
 
-            measurement = MixedStateTransferFidelity(propagation.get_value, targetState)
+            measurement = Fidelity(
+                propagation.get_value,
+                propagation_gradient_func=None,
+                target_states=target_state,
+                overlap=overlap_density_matrix_root,
+                fid=densitiy_matrix_trace_fidelity,
+            )
+
             with pytest.raises(Exception):
                 measurement.get_value(times=np.array([1.0]))
