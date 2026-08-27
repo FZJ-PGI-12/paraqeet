@@ -27,7 +27,7 @@ gradient-based variant of the GROUP method (Sørensen et al., 2018)
     from paraqeet.signal.pwc_generator import PWCGenerator
     from paraqeet.signal.signal import FlatTopGaussianFilter
 
-Similar to the previous case, let's define the pulse generator, with the
+Similar to the previous case, let’s define the pulse generator, with the
 envelope being the ``DCRABEnvelope``. We use a ``FlatTopGaussianFilter``
 to ensure that the pulse always starts and ends at zero. Finally, to
 obtain GRAPE gradients we pixelate the pulse using a ``PWCGenerator``.
@@ -98,19 +98,19 @@ of the time grid used for discretization. In this case
 
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_grape import ExpmGRAPE
+    from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    prop = ExpmGRAPE(
-        eom_func=model.get_value,
+    propagation = Expm(eom_func=model.get_value, resolution=3e9, initial_state=init)
+    prop = GRAPE(
+        propagation,
         eom_gradient_func=model.get_gradient,
-        resolution=3e9,
-        initial_state=init,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3
     )
     
     zeroone = StateTransferFidelityGRAPE(
@@ -195,7 +195,7 @@ Here we add the parameters from the ``DCRABEnvelope`` to the ``optmap``
     optmap.add(tone, [params[0]] + params[2:])
     optmap.register_params_with_optimizables()
     
-    goat = GOATOverGRAPE(zeroone, gen, prop.resolution)
+    goat = GOATOverGRAPE(zeroone, gen, propagation.resolution)
     opt_grad = DCRABOptimizerGradient(
         measure_and_gradient_func=goat.get_value_and_gradient,
         optimization_map=optmap,
@@ -237,23 +237,31 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    Iteration number = 10 	  Infidelity  = 7.888e-06
+    Iteration number = 10 	  Infidelity  = 2.753e-03
 
 
 .. parsed-literal::
 
-    Iteration number = 20 	  Infidelity  = 3.930e-14
     
     
     ==== Decrease in infidelity less than 1e-09 ====
     ==== Starting super-iteration 1 ====
-    * Current lowest infidelity =  3.930e-14
+    * Current lowest infidelity =  2.071e-11
     * Current no. of parameters = 25
 
 
 .. parsed-literal::
 
-    Iteration number = 30 	  Infidelity  = 1.497e-05
+    Iteration number = 20 	  Infidelity  = 4.878e-02
+
+
+.. parsed-literal::
+
+    Iteration number = 30 	  Infidelity  = 2.294e-05
+
+
+.. parsed-literal::
+
     Setting parameters to the best values.
 
 
@@ -266,7 +274,7 @@ coefficients for the optimization.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 3.930189507173054e-14, 'iterations': 35, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.071320892582662e-11, 'iterations': 33, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -320,19 +328,20 @@ fidelity.
 References
 ----------
 
-- **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
-  coupled spin dynamics: design of NMR pulse sequences by gradient
-  ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
-  (2005).
-- **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
-  efficient optimization of control pulses for practical qubits,”
-  *Physical Review Letters* **120**, 150401 (2018).
-- **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
-  optimal control in a chopped basis: Applications in control of
-  Bose-Einstein condensates,” *Physical Review A* **98**, 022119 (2018).
-- **(Rach et al., 2015)** N. Rach et al., “Dressing the
-  chopped-random-basis optimization: A bandwidth-limited access to the
-  trap-free landscape,” *Physical Review A* **92**, 062343 (2015).
-- **(Müller et al., 2022)** M. M. Müller et al., “One decade of quantum
-  optimal control in the chopped random basis,” *Reports on Progress in
-  Physics* **85**, 076001 (2022).
+-  **(Khaneja et al., 2005)** N. Khaneja et al., “Optimal control of
+   coupled spin dynamics: design of NMR pulse sequences by gradient
+   ascent algorithms,” *Journal of Magnetic Resonance* **172**, 296–305
+   (2005).
+-  **(Machnes et al., 2018)** S. Machnes et al., “Tunable, flexible, and
+   efficient optimization of control pulses for practical qubits,”
+   *Physical Review Letters* **120**, 150401 (2018).
+-  **(Sørensen et al., 2018)** J. J. W. H. Sørensen et al., “Quantum
+   optimal control in a chopped basis: Applications in control of
+   Bose-Einstein condensates,” *Physical Review A* **98**, 022119
+   (2018).
+-  **(Rach et al., 2015)** N. Rach et al., “Dressing the
+   chopped-random-basis optimization: A bandwidth-limited access to the
+   trap-free landscape,” *Physical Review A* **92**, 062343 (2015).
+-  **(Müller et al., 2022)** M. M. Müller et al., “One decade of quantum
+   optimal control in the chopped random basis,” *Reports on Progress in
+   Physics* **85**, 076001 (2022).

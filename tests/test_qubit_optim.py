@@ -13,7 +13,8 @@ from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
 from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
-from paraqeet.propagation.expm_goat import ExpmGOAT
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.goat import GOAT
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import ConstantEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -40,7 +41,10 @@ MODEL = SchroedingerEquation(
     hamiltonian_gradient_func=QUBIT_HAMILTONIAN.get_gradient,
 )
 
-PROP = ExpmGOAT(eom_func=MODEL.get_value, eom_gradient_func=MODEL.get_gradient, resolution=100e9, initial_state=INIT)
+PROP = GOAT(
+    Expm(eom_func=MODEL.get_value, resolution=100e9, initial_state=INIT),
+    eom_gradient_func=MODEL.get_gradient,
+)
 
 
 ZEROONE = Fidelity(

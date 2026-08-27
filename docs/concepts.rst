@@ -40,10 +40,11 @@ The modules
 
 **Propagation** (:mod:`paraqeet.propagation`)
    Solvers of the equation of motion, from piecewise matrix exponentials
-   (:class:`~paraqeet.propagation.expm.Expm` and its GOAT/GRAPE
-   variants) to Runge-Kutta and Verner ODE integrators. The GOAT and GRAPE
-   variants propagate gradients alongside the state to provide analytical gradient
-   values.
+   (:class:`~paraqeet.propagation.expm.Expm`) to Euler, Runge-Kutta and Verner ODE
+   integrators. Gradients come from wrapping any of them in
+   :class:`~paraqeet.propagation.goat.GOAT`, :class:`~paraqeet.propagation.grape.GRAPE` or
+   :class:`~paraqeet.propagation.auto_diff_gradients.AutoDiffGradients`, which add analytic
+   or automatically differentiated gradients to the propagation they wrap.
 
 **Measurement** (:mod:`paraqeet.measurement`)
    Goal functions: state transfer and unitary fidelities, the Makhlin

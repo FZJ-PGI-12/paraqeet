@@ -3,12 +3,12 @@
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.measurement.measurement import CostFunction
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class ConstantMeasurement(NormalizableMeasurement, Differentiable):
+class ConstantMeasurement(CostFunction, Differentiable):
     """Mock implementation that always returns the same value."""
 
     def __init__(

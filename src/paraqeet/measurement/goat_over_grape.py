@@ -5,16 +5,16 @@ from typing import override
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.measurement.fidelity import (
     FidelityGRAPE,
 )
+from paraqeet.measurement.measurement import CostFunction
 from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array, Float
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 
-class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
+class GOATOverGRAPE(CostFunction, Differentiable):
     """Combine GRAPE :cite:p:`khaneja2005optimal` propagation with analytic gradients of
     GOAT :cite:p:`machnes2018tunable` via chain rule.
 
@@ -117,7 +117,8 @@ class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
 
         control_gradients: list[Array] = []
         for gen_num, gen in enumerate(self._gens):
-            control_gradients.append(self._pad_with_zeros(gen._get_partial_derivatives(time_grid), gen_num))
+            pixel_times = gen.get_pixel_times(time_grid)
+            control_gradients.append(self._pad_with_zeros(gen._get_partial_derivatives(pixel_times), gen_num))
         control_gradients_arr = jnp.hstack(control_gradients)
 
         # Evaluate GRAPE gradients

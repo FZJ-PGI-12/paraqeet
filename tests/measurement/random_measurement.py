@@ -2,12 +2,12 @@
 
 import numpy as np
 
-from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.measurement.measurement import CostFunction
 from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class RandomMeasurement(NormalizableMeasurement):
+class RandomMeasurement(CostFunction):
     """Mock class that returns a random measurement value between 0 and 1."""
 
     def __init__(self, propagation: Propagation):

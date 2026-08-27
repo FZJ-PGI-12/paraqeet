@@ -160,16 +160,17 @@ exception when it is called.
 2. Define propagation method and measurement function
 -----------------------------------------------------
 
-Here we pick the standard ``ExpmGOAT`` method for propagation and
-``UnitaryFidelity`` as our measurement function. We start from the
-identity matrix with the goal to prepare the Hadamard gate.
+Here we pick the standard ``Expm`` method for propagation, add gradients
+to it with ``GOAT``, and use ``UnitaryFidelity`` as our measurement
+function. We start from the identity matrix with the goal to prepare the
+Hadamard gate.
 
 .. code:: ipython3
 
     from paraqeet.hamiltonian.utils import qobj_to_array
     from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
     from paraqeet.measurement.utils import overlap_state_vector
-    from paraqeet.propagation.expm_goat import ExpmGOAT
+    from paraqeet.propagation import GOAT, Expm
     
     init_qobj = qt.basis(2, 0)  # |0>
     target_qobj = qt.basis(2, 1)  # |1>
@@ -178,7 +179,10 @@ identity matrix with the goal to prepare the Hadamard gate.
     init = qobj_to_array(init_qobj)
     target = qobj_to_array(target_qobj)
     
-    prop = ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init)
+    prop = GOAT(
+        Expm(eom_func=model.get_value, resolution=100e9, initial_state=init),
+        eom_gradient_func=model.get_gradient,
+    )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(
@@ -246,7 +250,10 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
     model = SchroedingerEquation(hamiltonian_func=jax_ham_func, hamiltonian_gradient_func=grad_tls_hamiltonian)
     
-    prop = ExpmGOAT(eom_func=model.get_value, eom_gradient_func=model.get_gradient, resolution=100e9, initial_state=init)
+    prop = GOAT(
+        Expm(eom_func=model.get_value, resolution=100e9, initial_state=init),
+        eom_gradient_func=model.get_gradient,
+    )
     times = jnp.array([0.0, t_final])
     
     zeroone = StateTransferFidelity(

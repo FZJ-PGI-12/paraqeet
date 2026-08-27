@@ -1,21 +1,24 @@
 """Class definition for the Runge-Kutta Scipy propagation model."""
 
 from collections.abc import Callable
-from typing import override
+from typing import Any, override
 
 import numpy as np  # Using regular numpy for scipy interface
-from scipy.integrate import RK45  # TODO: Replace with jax? Is there one?
+from scipy.integrate import RK45
 
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.propagation.propagation import StatePropagation
+from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array
 
 
-class RungeKutta(StatePropagation):
+class RungeKutta(Propagation):
     """Propagation via the Runge-Kutta Scipy implementation.
 
     Uses scipy's Runge-Kutta implementation for propagating
     a state vector or density matrix.
+
+    Note:
+        This class uses Scipy RK45, and hence is not compatible with automatic differentation for gradients.
     """
 
     _initial_time_step: float
@@ -31,16 +34,10 @@ class RungeKutta(StatePropagation):
         super().__init__(eom_func, resolution, initial_state)
         self._initial_time_step = 1 / resolution
 
-    def set_initial_state(self, state: Array) -> None:
-        """Set the initial state for the propagation.
-
-        Subclasses can access the state in the _initial_state field.
-
-        Args:
-            state: Parameter value to be set as the initial state for the propagation.
-
-        """
-        self._initial_state = np.reshape(state, (-1,))
+    @override
+    def _propagate(self, eom: Array, state: Array, steps: Array | None = None, *args: Any, **kwargs: Any) -> Array:
+        """Perform per time-step state update."""
+        return eom @ state
 
     @override
     def get_value(self, times: Array) -> Array:
@@ -63,11 +60,7 @@ class RungeKutta(StatePropagation):
             raise ValueError("RungeKutta.get_value needs at least two time steps")
 
         def callback(time: float, state: Array) -> Array:
-            column_state = np.reshape(state, (-1, 1))
-            return np.reshape(
-                self._eom_func(np.array([time])) @ column_state,
-                (-1),
-            )
+            return self._propagate(self._eom_func(np.array([time])), state, None)
 
         # Since RK45 uses adaptive time steps and does not guarantee
         # to return a state for each time stamp, this

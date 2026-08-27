@@ -9,14 +9,14 @@ import jax.numpy as jnp
 from paraqeet.autograd_utils import get_jacobian_func
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.measurement.measurement import CostFunction
 from paraqeet.measurement.utils import gate_fidelity
 from paraqeet.quantity import Array, Float
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Fidelity(NormalizableMeasurement, Differentiable):
+class Fidelity(CostFunction, Differentiable):
     """Fidelity measure that compares the overlap of the propagated final state and the target state.
 
     TODO: Update docstring here
@@ -94,6 +94,7 @@ class Fidelity(NormalizableMeasurement, Differentiable):
     def get_value(self, times: Array) -> Float:
         states = self._propagation_func(jnp.array(times))
         final_state = states[-1]
+        # TODO: casting to float? Use custom type
         return float(self._fid(self._overlap(final_state, self._target_states)))
 
     @override

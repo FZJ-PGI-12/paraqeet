@@ -12,7 +12,8 @@ from paraqeet.hamiltonian.transmon import TransmonHamiltonian
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.expm_goat import ExpmGOAT
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.goat import GOAT
 from paraqeet.quantity import Quantity
 from paraqeet.signal.envelopes import FlatTopGaussianEnvelope
 from paraqeet.signal.iq_mixer import IQMixer
@@ -134,11 +135,13 @@ def coupled_transmons(tone):
     model = SchroedingerEquation(
         hamiltonian_func=hamiltonian.get_value, hamiltonian_gradient_func=hamiltonian.get_gradient
     )
-    prop = ExpmGOAT(
-        eom_func=model.get_value,
+    prop = GOAT(
+        Expm(
+            eom_func=model.get_value,
+            resolution=100e9,
+            initial_state=np.identity(transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()),
+        ),
         eom_gradient_func=model.get_gradient,
-        resolution=100e9,
-        initial_state=np.identity(transmon_hamiltonian_1.dimension() * transmon_hamiltonian_2.dimension()),
     )
 
     pauli_x = np.array([[0.0, 1], [1, 0.0]])

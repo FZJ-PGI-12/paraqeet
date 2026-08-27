@@ -17,21 +17,29 @@
 
 Choose a pulse parametrisation, simulate a quantum system, and optimize. 
 
-Combining Quantum Optimal Control methods with automatic differentiation with JAX.
+Combining Quantum Optimal Control (QOC) methods with automatic differentiation with JAX.
 Aimed at resource efficient computation.
 
 We use a top-down approach to make the codebase modular. 
 Each module interacts only with the module above it in hierarchy. 
 
 <div align="center">
-  <center><img src="https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/raw/main/docs/layers.png" alt="Layers" width="60%"/></center>
+  <center><img src="https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet/-/raw/main/docs/layers.png" alt="Layers" width="40%"/></center>
 </div>
 
-Currently implemented optimization methods
+Currently implemented QOC methods:
 - GRAPE: Gradient Ascent Pulse Engineering
 - GOAT: Gradient Optimization of Analytic conTrols
 - dCRAB : (Gradient based) dressed Chopped RAndom Basis
 - GOAToverGRAPE: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
+- AD: Automatic differentiation of the state/propagator evolution
+
+Currently implemented propagation methods:
+- Expm: Matrix exponential using JAX ``expm``
+- ExpmChebyshev: Matrix exponential using Chebyshev polynomial expansion
+- ODE solvers: Diffrax, Verner 7th order method, and Scipy Runge-Kutta methods
+
+The propagation methods can be combined with the QOC methods leading to combinations such as GOAT QOC using ``ExpmChebyshev``.
 
 
 ## Installation from PyPi

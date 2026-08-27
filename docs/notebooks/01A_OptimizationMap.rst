@@ -89,8 +89,8 @@ ParaQeet’s ``Quantity`` objects:
 The Optimization Map
 --------------------
 
-To handle the parameters of both tones, we make an
-``OptimizationMap``\ and add the parameters of the ``gen`` explicitly.
+To handle the parameters of both tones, we make an ``OptimizationMap``
+and add the parameters of the ``gen`` explicitly.
 
 .. code:: ipython3
 

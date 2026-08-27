@@ -20,7 +20,8 @@ from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
 from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
-from paraqeet.propagation.expm_grape import ExpmGRAPE
+from paraqeet.propagation.expm import Expm
+from paraqeet.propagation.grape import GRAPE
 from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
 from paraqeet.quantity import Array, Quantity
 from paraqeet.signal.envelopes import Envelope
@@ -104,17 +105,21 @@ def model(gen):
 
 
 @pytest.fixture
-def prop(model):
+def propagation(model):
     init = jnp.array([[1.0], [0]])  # |0>
+    return Expm(eom_func=model.get_value, resolution=1e9, initial_state=init)
+
+
+@pytest.fixture
+def prop(model, propagation):
     target = jnp.array([[0.0], [1]])  # |1>
 
-    prop = ExpmGRAPE(
-        model.get_value,
-        model.get_gradient,
-        resolution=1e9,
-        initial_state=init,
+    prop = GRAPE(
+        propagation,
+        eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
+        order=3,
     )
     return prop
 
@@ -134,18 +139,18 @@ def fid(prop):
 
 
 @pytest.fixture
-def opt_grad(tone, fid, gen, prop):
+def opt_grad(tone, fid, gen, propagation):
     optmap = OptimizationMap()
     optmap.add(tone)
     optmap.register_params_with_optimizables()
 
-    goat = GOATOverGRAPE(fid, generators=gen, propagation_resolution=prop.resolution)
+    goat = GOATOverGRAPE(fid, generators=gen, propagation_resolution=propagation.resolution)
     opt_grad = ScipyOptimizerGradient(measure_and_gradient_func=goat.get_value_and_gradient, optimization_map=optmap)
     return opt_grad
 
 
-def test_can_measure(fid, gen, prop):
-    fid = GOATOverGRAPE(fid, generators=[gen], propagation_resolution=prop.resolution)
+def test_can_measure(fid, gen, propagation):
+    fid = GOATOverGRAPE(fid, generators=[gen], propagation_resolution=propagation.resolution)
     val, grad = fid.get_value_and_gradient(times=TLIST)
     assert 0 <= fid.get_value(times=TLIST)
     assert 0 <= val <= 1
@@ -158,3 +163,27 @@ def test_can_measure(fid, gen, prop):
 def test_goat_over_grape(opt_grad):
     res = opt_grad.optimize(times=TLIST)
     assert res.value < 1e-4
+
+
+def test_gradient_on_a_grid_that_differs_from_the_pixels(tone, fid, gen, propagation):
+    """Test that the gradients are computed correctly for a different time grid."""
+    optmap = OptimizationMap()
+    optmap.add(tone)
+    optmap.register_params_with_optimizables()
+    goat = GOATOverGRAPE(fid, generators=gen, propagation_resolution=propagation.resolution)
+    times = jnp.array([0.0, T_FINAL])
+
+    _, gradient = goat.get_value_and_gradient(times=times)
+
+    finite_differences = []
+    for parameter in tone.get_parameters():
+        value = parameter.get_value()
+        step = 1e-6 * jnp.abs(value)
+        parameter.set_value(value + step)
+        forward = goat.get_value(times=times)
+        parameter.set_value(value - step)
+        backward = goat.get_value(times=times)
+        parameter.set_value(value)
+        finite_differences.append((forward - backward) / (2 * step))
+
+    testing.assert_allclose(np.array(gradient).flatten(), np.array(finite_differences).flatten(), rtol=1e-2)
