@@ -12,7 +12,7 @@ single-qubit gate, specifically an :math:`X`-gate.
     from paraqeet.eom.schroedinger_equation import SchroedingerEquation
     from paraqeet.hamiltonian.drive import Drive
     from paraqeet.hamiltonian.qubit import QubitHamiltonian
-    from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+    from paraqeet.measurement.fidelity import UnitaryFidelity
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -133,8 +133,7 @@ identity at time :math:`0`.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -191,8 +190,7 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -253,9 +251,7 @@ information to identify the problem.
 .. parsed-literal::
 
     (<Figure size 500x500 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz / $2\\pi$]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>],
-           dtype=object))
+     array([<Axes: ylabel='Field [MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>], dtype=object))
 
 
 
@@ -280,10 +276,6 @@ our drive to shift and include the phase parameter in the optimization.
 .. parsed-literal::
 
     Iteration   10 | Infid = 2.374870e-01
-
-
-.. parsed-literal::
-
     Iteration   20 | Infid = 1.151436e-09
 
 
@@ -309,8 +301,6 @@ our drive to shift and include the phase parameter in the optimization.
 .. parsed-literal::
 
     (<Figure size 500x500 with 2 Axes>,
-     array([<Axes: ylabel='Field [MHz / $2\\pi$]'>,
-            <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>],
-           dtype=object))
+     array([<Axes: ylabel='Field [MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Expectation value $\\langle\\hat\\sigma_i\\rangle$'>], dtype=object))
 
 

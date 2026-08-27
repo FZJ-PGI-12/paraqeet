@@ -9,11 +9,11 @@ for a single spin or qubit.
     import jax.numpy as jnp
     import numpy as np
     
+    from paraqeet import Fidelity
     from paraqeet.eom.schroedinger_equation import SchroedingerEquation
     from paraqeet.hamiltonian.drive import Drive
     from paraqeet.hamiltonian.qubit import QubitHamiltonian
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.utils import gate_fidelity, overlap_state_vector
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.quantity import Quantity
@@ -111,8 +111,8 @@ controlled qubit at the time ``t_simu``:
 
 .. parsed-literal::
 
-    (Array([[[-1.50796447e+10, -2.49345621e+08],
-            [-2.49345621e+08,  1.50796447e+10]]], dtype=float64), Array([], shape=(1, 0, 2, 2), dtype=float64))
+    (Array([[[-1.508e+10, -2.493e+08],
+            [-2.493e+08,  1.508e+10]]], dtype=float64), Array([], shape=(1, 0, 2, 2), dtype=float64))
 
 
 We see that in this case it is empty. This is because we haven’t yet
@@ -140,11 +140,12 @@ and configure a state transfer problem from :math:`\ket{0}` to
     
     prop_AD = AutoDiffGradients(propagation=prop, eom_gradient_func=schrgl.get_gradient)
     
-    zeroone = StateTransferFidelity(
+    zeroone = Fidelity(
         propagation_func=prop_AD.get_value,
         propagation_gradient_func=prop_AD.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=gate_fidelity,
     )
 
 Population dynamics
@@ -162,8 +163,7 @@ Population dynamics
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -180,7 +180,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    State fidelity: 0.34736071270511687
+    State fidelity: 0.3473607127051165
 
 
 Optimization
@@ -207,8 +207,8 @@ would not be empty, but instead
 
 .. parsed-literal::
 
-    (Array([[[-1.50796447e+10, -2.49345621e+08],
-             [-2.49345621e+08,  1.50796447e+10]]], dtype=float64),
+    (Array([[[-1.508e+10, -2.493e+08],
+             [-2.493e+08,  1.508e+10]]], dtype=float64),
      Array([], shape=(1, 0, 2, 2), dtype=float64))
 
 
@@ -224,12 +224,12 @@ This is because the parameters have been passed, but not “registered” by
 
 .. parsed-literal::
 
-    (Array([[[-1.50796447e+10, -2.49345621e+08],
-            [-2.49345621e+08,  1.50796447e+10]]], dtype=float64), Array([[[[ 0.        , -0.9921147 ],
-             [-0.9921147 ,  0.        ]],
+    (Array([[[-1.508e+10, -2.493e+08],
+            [-2.493e+08,  1.508e+10]]], dtype=float64), Array([[[[ 0.   , -0.992],
+             [-0.992,  0.   ]],
     
-            [[ 0.        , -0.31499677],
-             [-0.31499677,  0.        ]]]], dtype=float64))
+            [[ 0.   , -0.315],
+             [-0.315,  0.   ]]]], dtype=float64))
 
 
 .. code:: ipython3
@@ -241,7 +241,7 @@ This is because the parameters have been passed, but not “registered” by
 
 .. parsed-literal::
 
-    (Array(2.51327412e+08, dtype=float64), Array([[1.]], dtype=float64))
+    (Array(2.513e+08, dtype=float64), Array([[1.]], dtype=float64))
 
 
 
@@ -268,7 +268,7 @@ We can now run the optimization as
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 5.009326287108706e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 5.020428517354958e-13, 'iterations': 11, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 The new optimal parameters are
@@ -294,8 +294,7 @@ We can now plot the optimized dynamics
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -313,7 +312,7 @@ controls.
 
 .. parsed-literal::
 
-    State fidelity: 0.9999999999994991
+    State fidelity: 0.999999999999498
 
 
 In this notebook, we focused on state preparation. In the next notebook,
