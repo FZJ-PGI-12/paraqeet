@@ -3,13 +3,10 @@
 import jax.numpy as jnp
 
 from paraqeet.optimizable import Optimizable
-from paraqeet.propagation.propagation import Propagation
 from paraqeet.quantity import Array, Quantity
 
-# TODO: Convert and factor into propagation and use generic measurement implementations
 
-
-class RabiModel(Propagation, Optimizable):
+class RabiModel(Optimizable):
     """Analytic model of the general Rabi formula."""
 
     _qubit_freq: Quantity
