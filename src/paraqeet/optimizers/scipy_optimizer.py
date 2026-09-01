@@ -125,7 +125,8 @@ class ScipyOptimizer(Optimizer):
         return OptimizationResult(
             status=OptimizationResult.STATUS_SUCCESS if opt_res.success else OptimizationResult.STATUS_FAILED,
             value=opt_res.fun,
-            iterations=opt_res.nfev,
+            iterations=opt_res.nit,
+            evaluations=opt_res.nfev,
             message=opt_res.message,
             raw_result=opt_res,
         )
