@@ -123,6 +123,7 @@ class BayesianOptimizer(Optimizer):
             status=OptimizationResult.STATUS_FINISHED,
             value=float(result["fun"]),
             iterations=self._iterations + self._initial_samples,
+            evaluations=self._iterations + self._initial_samples,
             raw_result=optimizer.max,
         )
 

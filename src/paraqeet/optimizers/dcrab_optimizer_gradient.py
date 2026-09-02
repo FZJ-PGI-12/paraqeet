@@ -48,6 +48,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
 
     best_params: Array | list[float]
     best_fid: float = 99999
+    evaluations: int = 0
 
     _previous_fid: float = 99999
     _super_iteration_since: int = 0
@@ -266,6 +267,7 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         infid = 1.0 - fun
         if self._logger:
             self._logger.log(log, float(infid))
+        self.evaluations += 1
         return float(1 - fun)
 
     def _minimize_infidelity(self, init: list[Array]) -> OptimizeResult:
@@ -334,7 +336,8 @@ class DCRABOptimizerGradient(ScipyOptimizerGradient):
         return OptimizationResult(
             status=(OptimizationResult.STATUS_SUCCESS if result.success else OptimizationResult.STATUS_FAILED),
             value=self.best_fid,
-            iterations=result.nfev,
+            iterations=self._num_iteration,
+            evaluations=self.evaluations,
             message=result.message,
             raw_result=result,
         )

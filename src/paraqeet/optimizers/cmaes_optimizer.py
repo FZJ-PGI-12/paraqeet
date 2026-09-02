@@ -180,6 +180,7 @@ class CMAEsOptimizer(Optimizer):
             status=self.__determine_termination_status(es.result.stop()),
             value=es.result.fbest,
             iterations=es.result.iterations,
+            evaluations=es.result.evaluations,
             raw_result=es.result,
         )
 

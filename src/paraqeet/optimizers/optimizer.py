@@ -40,6 +40,8 @@ class OptimizationResult:
     value: float
     # The number of iterations during the optimization.
     iterations: int
+    # The number of function evaluations
+    evaluations: int
     # Any additional message from the optimization algorithm.
     # This can be an error message in case of failure.
     message: str | None = None
@@ -57,6 +59,7 @@ class OptimizationResult:
             "status": self.status,
             "value": self.value,
             "iterations": self.iterations,
+            "evaluations": self.evaluations,
         }
         if self.message:
             as_dict["message"] = self.message
