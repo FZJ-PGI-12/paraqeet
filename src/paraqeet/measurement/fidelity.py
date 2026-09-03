@@ -19,20 +19,15 @@ jax.config.update("jax_enable_x64", True)
 class Fidelity(CostFunction, Differentiable):
     """Fidelity measure that compares the overlap of the propagated final state and the target state.
 
-    TODO: Update docstring here
-
-    This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``.
-    The overlap function is assumed to be a JAX jit compatible functionally pure function.
-
-    The fidelity function has a default implementation of ``abs(overlap)^2``.
-    The user can replace the fidelity function with a JAX jit compatible function
-    of the form ``fid(overlap: Array, *args, **kwargs) -> float``.
+    This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``
+    and a fidelity function of the form ``fid(overlap: Array, *args, **kwargs) -> float``.
+    Both functions are assumed to be a JAX jit compatible functionally pure function.
 
     The gradient of the ``_overlap`` and the ``_fid`` functions are computed by automatic differentiation.
     """
 
     _target_states: Array
-    _fid: Callable[[Array], Array]
+    _fid: Callable[[Array], Float]
     _overlap: Callable[[Array, Array], Array]
     _propagation_func: Callable[[Array], Array]
     _propagation_gradient_func: Callable[[Array], Array]
@@ -44,7 +39,7 @@ class Fidelity(CostFunction, Differentiable):
         propagation_func: Callable[[Array], Array],
         propagation_gradient_func: Callable[[Array], Array],
         overlap: Callable[[Array, Array], Array],
-        fid: Callable[[Array], Array],
+        fid: Callable[[Array], Float],
         target_states: Array | None = None,
         basis_states: Array | None = None,
         ideal_gate: Array | None = None,
@@ -56,9 +51,12 @@ class Fidelity(CostFunction, Differentiable):
                 ``func(t: Array) -> states: Array``.
             propagation_gradient_func: Function returning the gradient of the
                 propagated states.
-            target_state: Target state.
             overlap: Overlap function of the form
                 ``overlap(final_state, target_state)``.
+            target_state: Column state vector representing the target.
+            basis_states: Column state vectors that will be batch propagated.
+            ideal_gate: Matrix representation of a gate to implement. Optional argument to be used instead of target
+                state in conjunction with basis_states.
         """
         if target_states is not None and ideal_gate is not None:
             raise ConfigurationException("Supply either target_states or and ideal_gate with basis_states")
@@ -94,8 +92,7 @@ class Fidelity(CostFunction, Differentiable):
     def get_value(self, times: Array) -> Float:
         states = self._propagation_func(jnp.array(times))
         final_state = states[-1]
-        # TODO: casting to float? Use custom type
-        return float(self._fid(self._overlap(final_state, self._target_states)))
+        return self._fid(self._overlap(final_state, self._target_states))
 
     @override
     def get_gradient(self, times: Array) -> Array:
@@ -139,12 +136,9 @@ class FidelityGRAPE(Fidelity):
 
     For GRAPE the optimizable parameters are vector quantities given by the PWC bins of the pulse.
 
-    This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``.
-    The overlap function is assumed to be a JAX jit compatible functionally pure function.
-
-    The fidelity function has a default implementation of ``abs(overlap)^2``.
-    The user can replace the fidelity function with a JAX jit compatible function
-    of the form ``fid(overlap: Array, *args, **kwargs) -> float``.
+    This class takes the overlap function as input, in the form ``overlap(final_state, target_state, *args, **kwargs)``
+    and a fidelity function of the form ``fid(overlap: Array, *args, **kwargs) -> float``.
+    Both functions are assumed to be a JAX jit compatible functionally pure function.
 
     The gradient of the ``_overlap`` and the ``_fid`` functions are computed by automatic differentiation.
     """
@@ -174,6 +168,9 @@ class UnitaryFidelity(Fidelity):
 
     It compares the propagator with a desired gate by using the L2 norm, based on the
     average gate fidelity formula :cite:p:`nielsen2002simple`.
+
+    It's a preconfigured implementation of the base class, using the analytic gradient
+    of the ``fid`` function in place of automatic differentiation.
     """
 
     _target_states: Array
@@ -249,7 +246,6 @@ class UnitaryFidelity(Fidelity):
             for ii, s in enumerate(self._target_states.T):
                 gs.append(jnp.vdot(s, dg_dp[:, ii]))
             g = jnp.average(jnp.asarray(gs))
-            # TODO: Convert to AD and use this implementation as check
             df_dp_list.append(jnp.real(f.conj() * g + f * g.conj()))  # chain rule for abs^2
 
         return self._fid(jnp.asarray(overlaps)), jnp.array(df_dp_list)  # shape scalar, (n_parameters,)

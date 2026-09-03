@@ -1,4 +1,4 @@
-"""Utility functions for measurements, such as state overlaps and Jacobian helpers."""
+"""Utility functions for measurements, such as state overlap, fidelity functions and Jacobian helpers."""
 
 import jax.numpy as jnp
 from jax import jit
