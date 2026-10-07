@@ -5,29 +5,29 @@ from typing import override
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.measurement.measurement import NormalizableMeasurement
-from paraqeet.measurement.state_transfer_fidelity import (
-    StateTransferFidelityGRAPE,
+from paraqeet.measurement.fidelity import (
+    FidelityGRAPE,
 )
+from paraqeet.measurement.measurement import CostFunction
 from paraqeet.propagation.utils import construct_times
 from paraqeet.quantity import Array, Float
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 
-class GOATOverGRAPE(NormalizableMeasurement, Differentiable):
+class GOATOverGRAPE(CostFunction, Differentiable):
     """Combine GRAPE :cite:p:`khaneja2005optimal` propagation with analytic gradients of
     GOAT :cite:p:`machnes2018tunable` via chain rule.
 
     This is similar to the GROUP method :cite:p:`sorensen2018quantum`.
     """
 
-    _measurement: StateTransferFidelityGRAPE
+    _measurement: FidelityGRAPE
     _gens: list[PWCGenerator]
     _propagation_resolution: int
 
     def __init__(
         self,
-        measurement: StateTransferFidelityGRAPE,
+        measurement: FidelityGRAPE,
         generators: PWCGenerator | list[PWCGenerator],
         propagation_resolution: int,
     ) -> None:

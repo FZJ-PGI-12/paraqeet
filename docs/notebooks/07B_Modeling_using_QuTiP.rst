@@ -1,11 +1,11 @@
 Using QuTiP with ParaQeet
 =========================
 
-In this example we demonstrate how QuTiP (Lambert et al., 2026)
-:cite:p:`lambert2026qutip` objects could be used for modeling a quantum
-system, and combined with ParaQeet for propagation and optimization
-tasks. Here we follow the same example as before, of a state preparation
-task, but use QuTiP functions for modeling the system.
+In this example we demonstrate how QuTiP (Lambert et al., 2026) objects
+could be used for modeling a quantum system, and combined with ParaQeet
+for propagation and optimization tasks. Here we follow the same example
+as before, of a state preparation task, but use QuTiP functions for
+modeling the system.
 
 .. code:: ipython3
 
@@ -128,11 +128,11 @@ JAX-compatible function by using the wrapper function
 
 .. parsed-literal::
 
-    Array([[[ 1.50796447e+10+0.j,  1.55000000e+08+0.j],
-            [ 1.55000000e+08+0.j, -1.50796447e+10+0.j]],
+    Array([[[ 1.508e+10+0.j,  1.550e+08+0.j],
+            [ 1.550e+08+0.j, -1.508e+10+0.j]],
     
-           [[ 1.50796447e+10+0.j,  4.78976341e+07+0.j],
-            [ 4.78976341e+07+0.j, -1.50796447e+10+0.j]]], dtype=complex128)
+           [[ 1.508e+10+0.j,  4.790e+07+0.j],
+            [ 4.790e+07+0.j, -1.508e+10+0.j]]], dtype=complex128)
 
 
 
@@ -168,8 +168,8 @@ Hadamard gate.
 .. code:: ipython3
 
     from paraqeet.hamiltonian.utils import qobj_to_array
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.fidelity import Fidelity
+    from paraqeet.measurement.utils import gate_fidelity, overlap_state_vector
     from paraqeet.propagation import GOAT, Expm
     
     init_qobj = qt.basis(2, 0)  # |0>
@@ -185,11 +185,12 @@ Hadamard gate.
     )
     times = jnp.array([0.0, t_final])
     
-    zeroone = StateTransferFidelity(
+    zeroone = Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=gate_fidelity,
     )
 
 .. code:: ipython3
@@ -204,8 +205,7 @@ Hadamard gate.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -222,7 +222,7 @@ Hadamard gate.
 
 .. parsed-literal::
 
-    Array(0.64040275, dtype=float64)
+    0.6404027521371738
 
 
 
@@ -256,11 +256,12 @@ function) with the updated ``hamiltonian_and_gradient_func``.
     )
     times = jnp.array([0.0, t_final])
     
-    zeroone = StateTransferFidelity(
+    zeroone = Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=gate_fidelity,
     )
 
 .. code:: ipython3
@@ -272,7 +273,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    Array(0.64040275, dtype=float64)
+    0.6404027521371738
 
 
 
@@ -310,7 +311,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 5.551115123125783e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 3.774758283725532e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -323,8 +324,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -341,12 +341,12 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    Array(1., dtype=float64)
+    0.9999999999999962
 
 
 
 References
 ----------
 
-- **(Lambert et al., 2026)** N. Lambert et al., “QuTiP 5: The quantum
-  toolbox in Python,” *Physics Reports* **1153**, 1–62 (2026).
+-  **(Lambert et al., 2026)** N. Lambert et al., “QuTiP 5: The quantum
+   toolbox in Python,” *Physics Reports* **1153**, 1–62 (2026).

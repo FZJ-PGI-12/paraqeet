@@ -2,11 +2,9 @@ Decay of coherent state of a resonator
 ======================================
 
 This is an example demonstrating open system simulation methods -
-exponentiation of the Lindblad (Lindblad, 1976)
-:cite:p:`lindblad1976generators` (Manzano, 2020)
-:cite:p:`manzano2020short` superoperator and ODE solver. We consider a
-simple model of decay of a coherent state in a resonator for this
-example.
+exponentiation of the Lindblad (Lindblad, 1976) (Manzano, 2020)
+superoperator and ODE solver. We consider a simple model of decay of a
+coherent state in a resonator for this example.
 
 .. code:: ipython3
 
@@ -119,8 +117,7 @@ Exponentiating the full Lindbladian super-operator
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -268,8 +265,7 @@ Plot coherent state populations
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -277,8 +273,8 @@ Plot coherent state populations
 .. image:: 06_Resonator_decay_files/06_Resonator_decay_15_1.png
 
 
-2. Using ``Vern7`` (Verner, 2010) :cite:p:`verner2010numerically`
------------------------------------------------------------------
+2. Using ``Vern7`` (Verner, 2010)
+---------------------------------
 
 Using ODE solver to compute the state
 
@@ -309,8 +305,7 @@ Using ODE solver to compute the state
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -365,8 +360,7 @@ Using ODE solver to compute the state
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -377,11 +371,11 @@ Using ODE solver to compute the state
 References
 ----------
 
-- **(Lindblad, 1976)** G. Lindblad, “On the generators of quantum
-  dynamical semigroups,” *Communications in Mathematical Physics*
-  **48**, 119–130 (1976).
-- **(Manzano, 2020)** D. Manzano, “A short introduction to the Lindblad
-  master equation,” *AIP Advances* **10**, 025106 (2020).
-- **(Verner, 2010)** J. H. Verner, “Numerically optimal Runge–Kutta
-  pairs with interpolants,” *Numerical Algorithms* **53**, 383–396
-  (2010).
+-  **(Lindblad, 1976)** G. Lindblad, “On the generators of quantum
+   dynamical semigroups,” *Communications in Mathematical Physics*
+   **48**, 119–130 (1976).
+-  **(Manzano, 2020)** D. Manzano, “A short introduction to the Lindblad
+   master equation,” *AIP Advances* **10**, 025106 (2020).
+-  **(Verner, 2010)** J. H. Verner, “Numerically optimal Runge–Kutta
+   pairs with interpolants,” *Numerical Algorithms* **53**, 383–396
+   (2010).

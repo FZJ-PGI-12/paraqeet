@@ -27,7 +27,7 @@ class Measurement(ABC):
         pass
 
 
-class NormalizableMeasurement(Measurement):
+class CostFunction(Measurement):
     """An abstract class for measurements providing normalized scalar value.
 
     Subclasses must implement the calculate_normalized_scalar() method which would

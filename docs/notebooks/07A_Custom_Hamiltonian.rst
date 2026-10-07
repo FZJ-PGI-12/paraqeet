@@ -116,13 +116,13 @@ we define a function that raises an exception when it is called.
 -----------------------------------------------------
 
 Here we pick the standard ``Expm`` method for propagation, add gradients
-to it with ``GOAT``, and use ``StateTransferFidelity`` as our
-measurement function
+to it with ``GOAT``, and use ``state_fidelity`` as our measurement
+function
 
 .. code:: ipython3
 
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.fidelity import Fidelity
+    from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
     from paraqeet.propagation import GOAT, Expm
     
     init = jnp.array([[1.0], [0]])  # |0>
@@ -134,11 +134,12 @@ measurement function
     )
     times = jnp.array([0.0, t_final])
     
-    zeroone = StateTransferFidelity(
+    zeroone = Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=state_fidelity,
     )
 
 .. code:: ipython3
@@ -153,8 +154,7 @@ measurement function
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -220,11 +220,12 @@ function) with the updated ``hamiltonian_and_gradient_func``.
     )
     times = jnp.array([0.0, t_final])
     
-    zeroone = StateTransferFidelity(
+    zeroone = Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=state_fidelity,
     )
 
 .. code:: ipython3
@@ -236,7 +237,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    Array(0.64040275, dtype=float64)
+    0.6404027521371738
 
 
 
@@ -274,7 +275,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 3.3306690738754696e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
+    {'status': 1, 'value': 2.4424906541753444e-15, 'iterations': 10, 'message': 'CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL'}
 
 
 
@@ -287,8 +288,7 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -305,6 +305,6 @@ function) with the updated ``hamiltonian_and_gradient_func``.
 
 .. parsed-literal::
 
-    Array(1., dtype=float64)
+    0.9999999999999976
 
 

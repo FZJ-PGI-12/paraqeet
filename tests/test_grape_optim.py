@@ -7,10 +7,15 @@ from paraqeet.eom.master_equation import MasterEquation
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
-from paraqeet.measurement.state_transfer_fidelity import (
-    StateTransferFidelityGRAPE,
+from paraqeet.measurement.fidelity import (
+    FidelityGRAPE,
 )
-from paraqeet.measurement.utils import overlap_density_matrix, overlap_state_vector, overlap_vectorized_density_matrix
+from paraqeet.measurement.utils import (
+    overlap_density_matrix,
+    overlap_state_vector,
+    overlap_vectorized_density_matrix,
+    state_fidelity,
+)
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
 from paraqeet.propagation.expm import Expm
@@ -146,11 +151,12 @@ def states(model, mode, solver):
         reverse_step_function=reverse_step_func,
     )
 
-    return StateTransferFidelityGRAPE(
+    return FidelityGRAPE(
         propagation_func=prop_method.get_value,
         propagation_gradient_func=prop_method.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_func,
+        fid=state_fidelity,
     )
 
 

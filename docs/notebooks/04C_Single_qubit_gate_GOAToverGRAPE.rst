@@ -2,10 +2,9 @@ Single qubit gate optimization using GOAT over GRAPE
 ====================================================
 
 This example optimizes a single-qubit gate with the GOAT-over-GRAPE
-method, which combines GOAT (Machnes et al., 2018)
-:cite:p:`machnes2018tunable` and GRAPE (Khaneja et al., 2005)
-:cite:p:`khaneja2005optimal` as a gradient-based variant of the GROUP
-method (Sørensen et al., 2018) :cite:p:`sorensen2018quantum`.
+method, which combines GOAT (Machnes et al., 2018) and GRAPE (Khaneja et
+al., 2005) as a gradient-based variant of the GROUP method (Sørensen et
+al., 2018).
 
 .. code:: ipython3
 
@@ -129,8 +128,8 @@ The Hamiltonian in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.fidelity import FidelityGRAPE
+    from paraqeet.measurement.utils import gate_fidelity, overlap_state_vector
     from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
@@ -145,14 +144,15 @@ The Hamiltonian in the rotating frame of the drive is given by -
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
-        order=3
+        order=3,
     )
     
-    zeroone = StateTransferFidelityGRAPE(
+    zeroone = FidelityGRAPE(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=gate_fidelity,
     )
 
 .. code:: ipython3
@@ -167,8 +167,7 @@ The Hamiltonian in the rotating frame of the drive is given by -
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -187,7 +186,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    Array(0.53928598, dtype=float64)
+    0.5392859819605514
 
 
 
@@ -252,10 +251,6 @@ Optimization
 .. parsed-literal::
 
     Iteration   10 | Infid = 2.870565e-03
-
-
-.. parsed-literal::
-
     Iteration   20 | Infid = 2.643414e-03
 
 
@@ -276,8 +271,7 @@ Optimization
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 

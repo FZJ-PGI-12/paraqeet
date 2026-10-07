@@ -167,7 +167,7 @@ halving it leaves the state meaningfully unchanged.
 
 .. parsed-literal::
 
-    Change when halving the resolution of the reference: 4.61e-15
+    Change when halving the resolution of the reference: 4.68e-15
 
 
 Let’s run all the propagation methods at various resolutions to
@@ -216,249 +216,245 @@ compiled, we store the fastest runtime (to avoid adding compile time)
 
 .. parsed-literal::
 
-                      Euler |      1.0e+09 |   7.51e-01 |       1557 ms |          4.6 ms
+                      Euler |      1.0e+09 |   7.51e-01 |        990 ms |          3.3 ms
 
 
 .. parsed-literal::
 
-                      Euler |      2.0e+09 |   2.90e-01 |       1334 ms |          4.6 ms
+                      Euler |      2.0e+09 |   2.90e-01 |        999 ms |          3.7 ms
 
 
 .. parsed-literal::
 
-                      Euler |      5.0e+09 |   9.54e-02 |       1426 ms |          4.7 ms
+                      Euler |      5.0e+09 |   9.54e-02 |       1007 ms |          3.4 ms
 
 
 .. parsed-literal::
 
-                      Euler |      1.0e+10 |   4.47e-02 |       1389 ms |          5.1 ms
+                      Euler |      1.0e+10 |   4.47e-02 |        998 ms |          3.7 ms
 
 
 .. parsed-literal::
 
-                      Euler |      3.0e+10 |   1.43e-02 |       1307 ms |          5.5 ms
+                      Euler |      3.0e+10 |   1.43e-02 |       1000 ms |          4.0 ms
 
 
 .. parsed-literal::
 
-                      Euler |      5.0e+10 |   8.50e-03 |        917 ms |          5.7 ms
+                      Euler |      5.0e+10 |   8.50e-03 |        794 ms |          4.0 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-                       Expm |      1.0e+09 |   3.86e-03 |        466 ms |          4.8 ms
+                       Expm |      1.0e+09 |   3.86e-03 |        366 ms |          3.3 ms
 
 
 .. parsed-literal::
 
-                       Expm |      2.0e+09 |   9.69e-04 |        401 ms |          5.0 ms
+                       Expm |      2.0e+09 |   9.69e-04 |        270 ms |          3.4 ms
 
 
 .. parsed-literal::
 
-                       Expm |      5.0e+09 |   1.55e-04 |        400 ms |          6.0 ms
+                       Expm |      5.0e+09 |   1.55e-04 |        265 ms |          3.8 ms
 
 
 .. parsed-literal::
 
-                       Expm |      1.0e+10 |   3.88e-05 |        379 ms |          7.3 ms
+                       Expm |      1.0e+10 |   3.88e-05 |        268 ms |          4.4 ms
 
 
 .. parsed-literal::
 
-                       Expm |      3.0e+10 |   4.31e-06 |        373 ms |         12.6 ms
+                       Expm |      3.0e+10 |   4.31e-06 |        258 ms |          6.6 ms
 
 
 .. parsed-literal::
 
-                       Expm |      5.0e+10 |   1.55e-06 |        349 ms |         15.9 ms
+                       Expm |      5.0e+10 |   1.55e-06 |        272 ms |          9.6 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-              ExpmChebyshev |      1.0e+09 |   3.86e-03 |        407 ms |          5.0 ms
+              ExpmChebyshev |      1.0e+09 |   3.86e-03 |        285 ms |          3.5 ms
 
 
 .. parsed-literal::
 
-              ExpmChebyshev |      2.0e+09 |   9.69e-04 |        367 ms |          4.8 ms
+              ExpmChebyshev |      2.0e+09 |   9.69e-04 |        433 ms |          3.7 ms
 
 
 .. parsed-literal::
 
-              ExpmChebyshev |      5.0e+09 |   1.55e-04 |        376 ms |          5.3 ms
+              ExpmChebyshev |      5.0e+09 |   1.55e-04 |        247 ms |          4.4 ms
 
 
 .. parsed-literal::
 
-              ExpmChebyshev |      1.0e+10 |   3.88e-05 |        370 ms |          6.5 ms
+              ExpmChebyshev |      1.0e+10 |   3.88e-05 |        255 ms |          5.2 ms
 
 
 .. parsed-literal::
 
-              ExpmChebyshev |      3.0e+10 |   4.31e-06 |        368 ms |          7.6 ms
+              ExpmChebyshev |      3.0e+10 |   4.31e-06 |        243 ms |          8.3 ms
 
 
 .. parsed-literal::
 
-              ExpmChebyshev |      5.0e+10 |   1.55e-06 |        399 ms |          8.8 ms
+              ExpmChebyshev |      5.0e+10 |   1.55e-06 |        255 ms |         11.2 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-                      Vern7 |      1.0e+09 |   1.55e-06 |       1327 ms |          6.0 ms
+                      Vern7 |      1.0e+09 |   1.55e-06 |        882 ms |          6.7 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |      2.0e+09 |   2.54e-08 |       1317 ms |          6.7 ms
+                      Vern7 |      2.0e+09 |   2.54e-08 |        881 ms |          6.8 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |      5.0e+09 |   1.08e-10 |       1314 ms |          6.7 ms
+                      Vern7 |      5.0e+09 |   1.08e-10 |        859 ms |          7.4 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |      1.0e+10 |   1.72e-12 |       1536 ms |          6.8 ms
+                      Vern7 |      1.0e+10 |   1.72e-12 |        885 ms |          8.1 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |      3.0e+10 |   3.51e-15 |       1338 ms |          7.7 ms
-
-
-.. parsed-literal::
-
-                      Vern7 |      5.0e+10 |   4.61e-15 |        205 ms |         12.4 ms
+                      Vern7 |      3.0e+10 |   3.43e-15 |        929 ms |         11.0 ms
+                      Vern7 |      5.0e+10 |   4.68e-15 |        156 ms |         14.9 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |      1.0e+09 |   3.87e-05 |       2247 ms |          5.3 ms
+              Diffrax Tsit5 |      1.0e+09 |   3.87e-05 |       1720 ms |          6.5 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |      2.0e+09 |   1.28e-07 |       1817 ms |          6.3 ms
+              Diffrax Tsit5 |      2.0e+09 |   1.28e-07 |       1731 ms |          6.8 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |      5.0e+09 |   1.36e-09 |       2139 ms |          7.2 ms
+              Diffrax Tsit5 |      5.0e+09 |   1.36e-09 |       1451 ms |          7.2 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |      1.0e+10 |   4.07e-11 |       1816 ms |          7.9 ms
+              Diffrax Tsit5 |      1.0e+10 |   4.07e-11 |       1528 ms |          8.4 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |      3.0e+10 |   1.68e-13 |       1694 ms |         12.6 ms
+              Diffrax Tsit5 |      3.0e+10 |   1.75e-13 |       1409 ms |         11.7 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |      5.0e+10 |   1.37e-14 |       1798 ms |         17.3 ms
+              Diffrax Tsit5 |      5.0e+10 |   3.10e-14 |       1764 ms |         16.9 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |      1.0e+09 |   3.77e-05 |       1029 ms |          7.1 ms
+     Diffrax Tsit5 adaptive |      1.0e+09 |   3.77e-05 |        772 ms |          9.7 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |      2.0e+09 |   1.07e-07 |        699 ms |          6.8 ms
+     Diffrax Tsit5 adaptive |      2.0e+09 |   1.07e-07 |        718 ms |          8.5 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |      5.0e+09 |   8.01e-11 |        689 ms |          7.0 ms
+     Diffrax Tsit5 adaptive |      5.0e+09 |   8.01e-11 |        717 ms |          9.3 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |      1.0e+10 |   7.88e-12 |        724 ms |          9.6 ms
+     Diffrax Tsit5 adaptive |      1.0e+10 |   7.89e-12 |        720 ms |          9.1 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |      3.0e+10 |   8.00e-12 |        731 ms |          7.2 ms
+     Diffrax Tsit5 adaptive |      3.0e+10 |   8.00e-12 |        719 ms |          9.3 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |      5.0e+10 |   8.00e-12 |       1130 ms |          9.5 ms
+     Diffrax Tsit5 adaptive |      5.0e+10 |   8.00e-12 |       1162 ms |          9.5 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |      1.0e+09 |   1.02e-05 |        676 ms |          6.4 ms
+             Diffrax Dopri8 |      1.0e+09 |   1.02e-05 |        721 ms |          6.9 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |      2.0e+09 |   8.05e-09 |        667 ms |          6.8 ms
+             Diffrax Dopri8 |      2.0e+09 |   8.05e-09 |        687 ms |          7.2 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |      5.0e+09 |   8.01e-13 |        711 ms |          8.7 ms
+             Diffrax Dopri8 |      5.0e+09 |   7.94e-13 |        693 ms |          8.5 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |      1.0e+10 |   2.75e-15 |        690 ms |          8.9 ms
+             Diffrax Dopri8 |      1.0e+10 |   2.50e-14 |        717 ms |         10.3 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |      3.0e+10 |   2.45e-15 |        729 ms |         21.5 ms
+             Diffrax Dopri8 |      3.0e+10 |   2.48e-14 |        692 ms |         17.3 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |      5.0e+10 |   2.59e-15 |        733 ms |         31.9 ms
+             Diffrax Dopri8 |      5.0e+10 |   2.48e-14 |        718 ms |         31.0 ms
     ----------------------------------------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |      1.0e+09 |   1.02e-05 |       1262 ms |          8.6 ms
+    Diffrax Dopri8 adaptive |      1.0e+09 |   1.02e-05 |        720 ms |         11.1 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |      2.0e+09 |   8.01e-09 |        719 ms |          6.9 ms
+    Diffrax Dopri8 adaptive |      2.0e+09 |   8.04e-09 |        733 ms |          9.1 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |      5.0e+09 |   7.03e-12 |        721 ms |          5.4 ms
+    Diffrax Dopri8 adaptive |      5.0e+09 |   7.02e-12 |       1235 ms |          7.6 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |      1.0e+10 |   6.27e-12 |        720 ms |          5.7 ms
+    Diffrax Dopri8 adaptive |      1.0e+10 |   6.26e-12 |        735 ms |          7.8 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |      3.0e+10 |   6.23e-12 |        662 ms |          4.9 ms
+    Diffrax Dopri8 adaptive |      3.0e+10 |   6.22e-12 |        752 ms |          8.3 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |      5.0e+10 |   6.40e-12 |        729 ms |          5.9 ms
+    Diffrax Dopri8 adaptive |      5.0e+10 |   6.38e-12 |        732 ms |          8.0 ms
     ----------------------------------------------------------------------------------------------------
 
 
@@ -551,9 +547,9 @@ We can look at how the time is distributed per 100 steps of proapagation
 .. parsed-literal::
 
     100 propagation steps at a resolution of 5e+09 samples per second
-      signal generation          0.95 ms
-      equation of motion         1.71 ms
-      Expm propagation           0.67 ms
+      signal generation          0.72 ms
+      equation of motion         1.54 ms
+      Expm propagation           0.68 ms
 
 
 Scaling with Hilbert space dimension
@@ -599,179 +595,183 @@ Scaling with Hilbert space dimension
 
 .. parsed-literal::
 
-                       Expm |          3 |        180 ms |         12.3 ms
+                       Expm |          3 |        416 ms |          8.5 ms
 
 
 .. parsed-literal::
 
-                       Expm |          5 |       1118 ms |         21.6 ms
+                       Expm |          5 |        942 ms |         13.3 ms
 
 
 .. parsed-literal::
 
-                       Expm |         10 |       1524 ms |         27.1 ms
+                       Expm |         10 |        993 ms |         20.3 ms
 
 
 .. parsed-literal::
 
-                       Expm |         20 |       1590 ms |         66.9 ms
+                       Expm |         20 |       1052 ms |         58.8 ms
 
 
 .. parsed-literal::
 
-                       Expm |         30 |       1784 ms |        184.0 ms
-    ---------------------------------------------------------------------
-              ExpmChebyshev |          3 |        134 ms |          8.2 ms
-
-
-.. parsed-literal::
-
-              ExpmChebyshev |          5 |        556 ms |          8.4 ms
-
-
-.. parsed-literal::
-
-              ExpmChebyshev |         10 |        618 ms |         14.6 ms
-
-
-.. parsed-literal::
-
-              ExpmChebyshev |         20 |        603 ms |         28.6 ms
-
-
-.. parsed-literal::
-
-              ExpmChebyshev |         30 |        636 ms |         54.1 ms
+                       Expm |         30 |       5309 ms |       2369.7 ms
     ---------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-                      Vern7 |          3 |        375 ms |         11.2 ms
+              ExpmChebyshev |          3 |        415 ms |         12.4 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |          5 |        917 ms |         14.7 ms
+              ExpmChebyshev |          5 |        388 ms |         12.1 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |         10 |        998 ms |         26.8 ms
+              ExpmChebyshev |         10 |        370 ms |         19.6 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |         20 |       1036 ms |         62.8 ms
+              ExpmChebyshev |         20 |        417 ms |         29.6 ms
 
 
 .. parsed-literal::
 
-                      Vern7 |         30 |       1040 ms |        182.5 ms
+              ExpmChebyshev |         30 |        410 ms |         40.9 ms
     ---------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |          3 |        842 ms |         19.0 ms
+                      Vern7 |          3 |        290 ms |         13.6 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |          5 |       1282 ms |         19.8 ms
+                      Vern7 |          5 |        677 ms |         18.0 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |         10 |       1411 ms |         21.4 ms
+                      Vern7 |         10 |        692 ms |         31.9 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |         20 |       1540 ms |         38.5 ms
+                      Vern7 |         20 |        748 ms |         69.9 ms
 
 
 .. parsed-literal::
 
-              Diffrax Tsit5 |         30 |       1496 ms |         55.9 ms
+                      Vern7 |         30 |        847 ms |        216.6 ms
     ---------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |          3 |       1561 ms |          9.5 ms
+              Diffrax Tsit5 |          3 |        851 ms |         17.2 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |          5 |        871 ms |         12.2 ms
+              Diffrax Tsit5 |          5 |       1246 ms |         17.2 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |         10 |        962 ms |         16.2 ms
+              Diffrax Tsit5 |         10 |       1307 ms |         23.5 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |         20 |       1081 ms |         80.6 ms
+              Diffrax Tsit5 |         20 |       1414 ms |         37.8 ms
 
 
 .. parsed-literal::
 
-     Diffrax Tsit5 adaptive |         30 |       1155 ms |        220.3 ms
+              Diffrax Tsit5 |         30 |       1436 ms |         65.9 ms
     ---------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |          3 |        910 ms |         31.2 ms
+     Diffrax Tsit5 adaptive |          3 |        865 ms |          9.9 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |          5 |        940 ms |         32.7 ms
+     Diffrax Tsit5 adaptive |          5 |        911 ms |         12.9 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |         10 |        977 ms |         27.0 ms
+     Diffrax Tsit5 adaptive |         10 |        947 ms |         18.3 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |         20 |       1019 ms |         51.5 ms
+     Diffrax Tsit5 adaptive |         20 |       1033 ms |         85.0 ms
 
 
 .. parsed-literal::
 
-             Diffrax Dopri8 |         30 |       1058 ms |        107.7 ms
+     Diffrax Tsit5 adaptive |         30 |       2294 ms |        355.0 ms
     ---------------------------------------------------------------------
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |          3 |       1777 ms |          7.6 ms
+             Diffrax Dopri8 |          3 |        872 ms |         25.6 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |          5 |        908 ms |          9.7 ms
+             Diffrax Dopri8 |          5 |        864 ms |         32.2 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |         10 |        945 ms |         15.5 ms
+             Diffrax Dopri8 |         10 |        865 ms |         41.2 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |         20 |        991 ms |         48.4 ms
+             Diffrax Dopri8 |         20 |        935 ms |         78.9 ms
 
 
 .. parsed-literal::
 
-    Diffrax Dopri8 adaptive |         30 |       1122 ms |        125.9 ms
+             Diffrax Dopri8 |         30 |        983 ms |        131.1 ms
+    ---------------------------------------------------------------------
+
+
+.. parsed-literal::
+
+    Diffrax Dopri8 adaptive |          3 |        908 ms |          8.7 ms
+
+
+.. parsed-literal::
+
+    Diffrax Dopri8 adaptive |          5 |        911 ms |         11.7 ms
+
+
+.. parsed-literal::
+
+    Diffrax Dopri8 adaptive |         10 |        892 ms |         17.2 ms
+
+
+.. parsed-literal::
+
+    Diffrax Dopri8 adaptive |         20 |        951 ms |         68.2 ms
+
+
+.. parsed-literal::
+
+    Diffrax Dopri8 adaptive |         30 |       1164 ms |        266.2 ms
     ---------------------------------------------------------------------
 
 

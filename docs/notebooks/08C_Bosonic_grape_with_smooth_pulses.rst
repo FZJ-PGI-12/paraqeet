@@ -21,8 +21,8 @@ Here we perform a gradient-based dCRAB optimization, by using the
     from paraqeet.hamiltonian.drive import Drive
     from paraqeet.hamiltonian.qubit import QubitHamiltonian
     from paraqeet.hamiltonian.resonator import ResonatorHamiltonian
+    from paraqeet.measurement.fidelity import FidelityGRAPE
     from paraqeet.measurement.goat_over_grape import GOATOverGRAPE
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
     from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.dcrab_optimizer_gradient import DCRABOptimizerGradient
@@ -134,7 +134,7 @@ numbers.
 
 .. code:: ipython3
 
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     
@@ -223,11 +223,12 @@ numbers.
     
             prop_list.append(prop)
     
-            fid = StateTransferFidelityGRAPE(
+            fid = FidelityGRAPE(
                 propagation_func=prop.get_value,
                 propagation_gradient_func=prop.get_gradient,
-                target_state=target_state,
+                target_states=target_state,
                 overlap=overlap_state_vector,
+                fid=state_fidelity,
             )
             goat_over_grape_fid = GOATOverGRAPE(
                 fid, generators=[gen_res, gen_qubit], propagation_resolution=propagation.resolution
@@ -419,7 +420,7 @@ we can later use to plot the infidelity vs function evaluation.
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmpy8f8x6unpq
+    Logging directory = /tmp/tmpntc959mdpq
 
 
 .. code:: ipython3
@@ -468,12 +469,12 @@ we can later use to plot the infidelity vs function evaluation.
 
 .. parsed-literal::
 
-    Iteration number = 100 	  Infidelity  = 6.987e-01
+    Iteration number = 100 	  Infidelity  = 5.445e-01
 
 
 .. parsed-literal::
 
-    Iteration number = 150 	  Infidelity  = 1.635e-01
+    Iteration number = 150 	  Infidelity  = 1.027e-01
 
 
 .. parsed-literal::
@@ -482,13 +483,13 @@ we can later use to plot the infidelity vs function evaluation.
     
     ==== Max iteration before a super-iteration reached ====
     ==== Starting super-iteration 2 ====
-    *** Current lowest infidelity =  0.065 ***
+    *** Current lowest infidelity =  0.081 ***
     * Current no. of parameters = 74
 
 
 .. parsed-literal::
 
-    Iteration number = 200 	  Infidelity  = 5.108e-01
+    Iteration number = 200 	  Infidelity  = 5.356e-01
 
 
 .. parsed-literal::
@@ -504,15 +505,15 @@ we can later use to plot the infidelity vs function evaluation.
 .. parsed-literal::
 
     Setting parameters to the best values.
-    CPU times: user 4min 13s, sys: 3.79 s, total: 4min 17s
-    Wall time: 48.1 s
+    CPU times: user 4min 16s, sys: 6.29 s, total: 4min 22s
+    Wall time: 46 s
 
 
 
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.06548257093209842, 'iterations': 126, 'message': '`callback` raised `StopIteration`.'}
+    {'status': 2, 'value': 0.08073444817207831, 'iterations': 126, 'message': '`callback` raised `StopIteration`.'}
 
 
 
@@ -528,78 +529,78 @@ run
 
 .. parsed-literal::
 
-    [Amplitude CRAB resonator: 2.56e+07,
-     CRAB Re coefficient 0: 0.953,
-     CRAB Re coefficient 1: -0.601,
-     CRAB Re coefficient 2: -0.0896,
-     CRAB Re coefficient 3: 0.0677,
+    [Amplitude CRAB resonator: -4.6e+07,
+     CRAB Re coefficient 0: -0.282,
+     CRAB Re coefficient 1: -0.862,
+     CRAB Re coefficient 2: -0.729,
+     CRAB Re coefficient 3: -1,
      CRAB Re coefficient 4: 0,
      CRAB Re coefficient 5: 0,
-     CRAB Re frequency 0: 1.17 Hz x 2pi,
-     CRAB Re frequency 1: 276 mHz x 2pi,
-     CRAB Re frequency 2: 734 mHz x 2pi,
-     CRAB Re frequency 3: 1.7 Hz x 2pi,
+     CRAB Re frequency 0: 202 mHz x 2pi,
+     CRAB Re frequency 1: 1.3 mHz x 2pi,
+     CRAB Re frequency 2: 839 mHz x 2pi,
+     CRAB Re frequency 3: 2 Hz x 2pi,
      CRAB Re frequency 4: 1 Hz x 2pi,
      CRAB Re frequency 5: 1 Hz x 2pi,
-     CRAB Re Phase 0: 2.92 rad,
-     CRAB Re Phase 1: -2 rad,
-     CRAB Re Phase 2: 2.31 rad,
-     CRAB Re Phase 3: -1.76 rad,
+     CRAB Re Phase 0: -2.87 rad,
+     CRAB Re Phase 1: -3.12 rad,
+     CRAB Re Phase 2: -2.9 rad,
+     CRAB Re Phase 3: 2 rad,
      CRAB Re Phase 4: 0 rad,
      CRAB Re Phase 5: 0 rad,
-     CRAB Im coefficient 0: -0.673,
-     CRAB Im coefficient 1: 0.672,
-     CRAB Im coefficient 2: -0.437,
-     CRAB Im coefficient 3: -0.21,
+     CRAB Im coefficient 0: -0.881,
+     CRAB Im coefficient 1: 0.78,
+     CRAB Im coefficient 2: -0.856,
+     CRAB Im coefficient 3: 0.543,
      CRAB Im coefficient 4: 0,
      CRAB Im coefficient 5: 0,
-     CRAB Im frequency 0: 1.99 Hz x 2pi,
-     CRAB Im frequency 1: 1.75 Hz x 2pi,
-     CRAB Im frequency 2: 291 mHz x 2pi,
-     CRAB Im frequency 3: 842 mHz x 2pi,
+     CRAB Im frequency 0: 90.2 mHz x 2pi,
+     CRAB Im frequency 1: 2 Hz x 2pi,
+     CRAB Im frequency 2: 1.18 Hz x 2pi,
+     CRAB Im frequency 3: 1.29 Hz x 2pi,
      CRAB Im frequency 4: 1 Hz x 2pi,
      CRAB Im frequency 5: 1 Hz x 2pi,
-     CRAB Im Phase 0: 1.88 rad,
-     CRAB Im Phase 1: 2.49 rad,
-     CRAB Im phase 2: -2.31 rad,
-     CRAB Im phase 3: -2.87 rad,
+     CRAB Im Phase 0: -2.98 rad,
+     CRAB Im Phase 1: 2.24 rad,
+     CRAB Im phase 2: -1.24 rad,
+     CRAB Im phase 3: -223 mrad,
      CRAB Im phase 4: 0 rad,
      CRAB Im phase 5: 0 rad,
-     Amplitude CRAB qubit: 1.82e+04,
-     CRAB Re coefficient 0: 0.246,
-     CRAB Re coefficient 1: -0.974,
-     CRAB Re coefficient 2: -0.0149,
-     CRAB Re coefficient 3: 0.395,
+     Amplitude CRAB qubit: 4.51e+07,
+     CRAB Re coefficient 0: -0.0217,
+     CRAB Re coefficient 1: -0.998,
+     CRAB Re coefficient 2: 0.471,
+     CRAB Re coefficient 3: 0.163,
      CRAB Re coefficient 4: 0,
      CRAB Re coefficient 5: 0,
-     CRAB Re frequency 0: 1.87 Hz x 2pi,
-     CRAB Re frequency 1: 603 mHz x 2pi,
-     CRAB Re frequency 2: 1.37 Hz x 2pi,
-     CRAB Re frequency 3: 860 mHz x 2pi,
+     CRAB Re frequency 0: 1.98 Hz x 2pi,
+     CRAB Re frequency 1: 654 mHz x 2pi,
+     CRAB Re frequency 2: 694 mHz x 2pi,
+     CRAB Re frequency 3: 1.96 Hz x 2pi,
      CRAB Re frequency 4: 1 Hz x 2pi,
      CRAB Re frequency 5: 1 Hz x 2pi,
-     CRAB Re Phase 0: 3.06 rad,
-     CRAB Re Phase 1: -219 mrad,
-     CRAB Re Phase 2: -2.03 rad,
-     CRAB Re Phase 3: -1.18 rad,
+     CRAB Re Phase 0: 3.09 rad,
+     CRAB Re Phase 1: -445 mrad,
+     CRAB Re Phase 2: 2.55 rad,
+     CRAB Re Phase 3: 792 mrad,
      CRAB Re Phase 4: 0 rad,
      CRAB Re Phase 5: 0 rad,
-     CRAB Im coefficient 0: 0.654,
-     CRAB Im coefficient 1: -0.331,
-     CRAB Im coefficient 2: 0.104,
-     CRAB Im coefficient 3: 0.03,
+     CRAB Im coefficient 0: 0.989,
+     CRAB Im coefficient 1: 0.109,
+     CRAB Im coefficient 2: 0.329,
+     CRAB Im coefficient 3: 0.432,
      CRAB Im coefficient 4: 0,
      CRAB Im coefficient 5: 0,
-     CRAB Im frequency 0: 1.67 Hz x 2pi,
-     CRAB Im frequency 1: 358 mHz x 2pi,
-     CRAB Im frequency 2: 996 mHz x 2pi,
-     CRAB Im frequency 3: 1.43 Hz x 2pi,
+     CRAB Im frequency 0: 926 mHz x 2pi,
+     CRAB Im frequency 1: 424 mHz x 2pi,
+     CRAB Im frequency 2: 204 mHz x 2pi,
+     CRAB Im frequency 3: 1.15 Hz x 2pi,
      CRAB Im frequency 4: 1 Hz x 2pi,
      CRAB Im frequency 5: 1 Hz x 2pi,
-     CRAB Im Phase 0: 1.3 rad,
-     CRAB Im Phase 1: -769 mrad,
-     CRAB Im phase 2: -1.81 rad,
-     CRAB Im phase 3: 102 mrad,
+     CRAB Im Phase 0: 539 mrad,
+     CRAB Im Phase 1: -121 mrad,
+     CRAB Im phase 2: -2.1 rad,
+     CRAB Im phase 3: -1.3 rad,
      CRAB Im phase 4: 0 rad,
      CRAB Im phase 5: 0 rad]
 
@@ -643,8 +644,8 @@ The new fidelities are
 
 .. parsed-literal::
 
-    Fidelity at N_T=3 = 0.9432121875700105
-    Fidelity at N_T=4 = 0.8793010309096806
+    Fidelity at N_T=3 = 0.9087482261711122
+    Fidelity at N_T=4 = 0.8838505944964853
 
 
 For this small truncation number the dynamics and fidelities do not
@@ -893,12 +894,12 @@ Redefine the optmap and the optimizer and rerun the optimization
 
 .. parsed-literal::
 
-    Logging directory = /tmp/tmps5o37kr1pq
+    Logging directory = /tmp/tmp6yg5z1sgpq
 
 
 .. parsed-literal::
 
-    Implicitly cleaning up <TemporaryDirectory '/tmp/tmpy8f8x6unpq'>
+    Implicitly cleaning up <TemporaryDirectory '/tmp/tmpntc959mdpq'>
 
 
 .. code:: ipython3
@@ -1016,8 +1017,8 @@ Redefine the optmap and the optimizer and rerun the optimization
 .. parsed-literal::
 
     Setting parameters to the best values.
-    CPU times: user 1h 6min 50s, sys: 32.2 s, total: 1h 7min 22s
-    Wall time: 1min 44s
+    CPU times: user 1h 12min 40s, sys: 46.8 s, total: 1h 13min 27s
+    Wall time: 1min 55s
 
 
 

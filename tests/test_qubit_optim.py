@@ -7,8 +7,8 @@ from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import QubitHamiltonian
 from paraqeet.logger import Logger
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraqeet.measurement.utils import overlap_state_vector
+from paraqeet.measurement.fidelity import Fidelity
+from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.bayesian_optimizer import BayesianOptimizer
 from paraqeet.optimizers.cmaes_optimizer import CMAEsOptimizer
@@ -47,10 +47,11 @@ PROP = GOAT(
 )
 
 
-ZEROONE = StateTransferFidelity(
+ZEROONE = Fidelity(
     propagation_func=PROP.get_value,
     propagation_gradient_func=PROP.get_gradient,
-    target_state=TARGET,
+    target_states=TARGET,
+    fid=state_fidelity,
     overlap=overlap_state_vector,
 )
 

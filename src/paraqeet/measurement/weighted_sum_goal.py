@@ -8,11 +8,11 @@ import numpy as np
 
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.measurement import DifferentiableNormalizableMeasurement, NormalizableMeasurement
+from paraqeet.measurement.measurement import CostFunction, DifferentiableNormalizableMeasurement
 from paraqeet.quantity import Array, Float
 
 
-class WeightedSumGoal(NormalizableMeasurement, Differentiable):
+class WeightedSumGoal(CostFunction, Differentiable):
     """Combine multiple measurements into a single goal function."""
 
     _measurements: list[DifferentiableNormalizableMeasurement]

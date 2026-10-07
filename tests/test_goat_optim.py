@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
+from paraqeet import UnitaryFidelity
 from paraqeet.eom.master_equation import MasterEquation
 from paraqeet.eom.schroedinger_equation import SchroedingerEquation
 from paraqeet.hamiltonian.drive import Drive
 from paraqeet.hamiltonian.qubit import Qubit, QubitHamiltonian
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
-from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix
+from paraqeet.measurement.fidelity import Fidelity
+from paraqeet.measurement.utils import overlap_state_vector, overlap_vectorized_density_matrix, state_fidelity
 from paraqeet.optimization_map import OptimizationMap
 from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
 from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
@@ -95,6 +95,7 @@ def states(prop, mode):
     init = np.array([[1.0], [0.0]])
     target = np.array([[0.0], [1.0]])
     overlap_func = overlap_state_vector
+    fid_func = state_fidelity
 
     if mode == "OpenSystem":
         init = np.matmul(init, init.T)
@@ -105,11 +106,12 @@ def states(prop, mode):
 
         overlap_func = overlap_vectorized_density_matrix
 
-    return StateTransferFidelity(
+    return Fidelity(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_func,
+        fid=fid_func,
     )
 
 

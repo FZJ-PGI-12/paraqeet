@@ -2,8 +2,7 @@ GRAPE on a single spin
 ======================
 
 This is an introductory example to the GRAPE (Khaneja et al., 2005)
-:cite:p:`khaneja2005optimal` method and its implementation in this
-software package.
+method and its implementation in this software package.
 
 1. Generate a PWC pulse shape
 -----------------------------
@@ -74,30 +73,31 @@ As a simple toy model, we use a single spin.
 
 .. code:: ipython3
 
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.fidelity import FidelityGRAPE
+    from paraqeet.measurement.utils import gate_fidelity, overlap_state_vector
     from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
     init = np.array([[1.0], [0.0]])  # |0>
     target = np.array([[0.0], [1.0]])  # |1>
     
-    propagation = Expm(eom_func=model.get_value, resolution=2e9, initial_state=init)
+    propagation = Expm(eom_func=model.get_value, resolution=3e9, initial_state=init)
     prop = GRAPE(
         propagation,
         eom_gradient_func=model.get_gradient,
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_closed,
-        order=3
+        order=3,
     )
     
     times = np.array([0.0, t_final])
     
-    zeroone = StateTransferFidelityGRAPE(
+    zeroone = FidelityGRAPE(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=gate_fidelity,
     )
 
 .. code:: ipython3
@@ -112,8 +112,7 @@ As a simple toy model, we use a single spin.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -130,7 +129,7 @@ As a simple toy model, we use a single spin.
 
 .. parsed-literal::
 
-    Array(0.10336679, dtype=float64)
+    0.10336679494545331
 
 
 
@@ -160,7 +159,7 @@ from a ``PWCGenerator`` using ``gen.tlist``.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 3.647304680498564e-11, 'iterations': 20, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 3.647415702801027e-11, 'iterations': 20, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -176,8 +175,7 @@ iterations.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -204,7 +202,7 @@ Let’s first reset the pulse and create an open-system model
     tone.t_final.set_value(t_final)
     gen = PWCGenerator(envelopes=[tone], tlist=tlist)
     gen.multiply_flat_top = True
-    gen.max_amplitude = 5 * 1e8
+    gen.max_amplitude = 3 * 1e8
 
 .. code:: ipython3
 
@@ -234,7 +232,7 @@ Let’s test GRAPE with ODE propagation
 
 .. code:: ipython3
 
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
+    from paraqeet.measurement.fidelity import FidelityGRAPE
     from paraqeet.measurement.utils import overlap_density_matrix
     from paraqeet.propagation import GRAPE, Vern7
     from paraqeet.propagation.utils import grape_operator_sandwich_function_open, lindblad_step, reverse_lindblad_step
@@ -260,14 +258,15 @@ Let’s test GRAPE with ODE propagation
         target_state=target,
         operator_sandwich_function=grape_operator_sandwich_function_open,
         reverse_step_function=reverse_lindblad_step,
-        order=3
+        order=3,
     )
     
-    zeroone = StateTransferFidelityGRAPE(
+    zeroone = FidelityGRAPE(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_density_matrix,
+        fid=gate_fidelity,
     )
 
 .. code:: ipython3
@@ -294,8 +293,7 @@ Let’s test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -312,7 +310,7 @@ Let’s test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    Array(0.0109956, dtype=float64)
+    0.010995595533833951
 
 
 
@@ -338,7 +336,7 @@ Let’s test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    {'status': 2, 'value': 0.005283974963344429, 'iterations': 54, 'message': 'ABNORMAL: '}
+    {'status': 1, 'value': 0.005074226720400921, 'iterations': 36, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -351,8 +349,7 @@ Let’s test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -369,7 +366,7 @@ Let’s test GRAPE with ODE propagation
 
 .. parsed-literal::
 
-    Array(0.99471603, dtype=float64)
+    0.9949257732795989
 
 
 

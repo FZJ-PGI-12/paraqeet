@@ -14,7 +14,7 @@ Gradient-based optimization of a cross-resonance gate between two transmons
     from paraqeet.hamiltonian.drive import Drive
     from paraqeet.hamiltonian.transmon import TransmonHamiltonian
     from paraqeet.hamiltonian.utils import sigma_x, sigma_y, sigma_z
-    from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+    from paraqeet.measurement.fidelity import UnitaryFidelity
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer_gradient import ScipyOptimizerGradient
     from paraqeet.propagation import GOAT, Expm
@@ -28,16 +28,15 @@ Gradient-based optimization of a cross-resonance gate between two transmons
 System Setup
 ------------
 
-The system consists of two coupled transmons (Koch et al., 2007)
-:cite:p:`koch2007charge` with three levels each. We fix the transmon
-frequency and anharmonicity to values that don’t have any unwanted
-frequency collisions. The coupling strength is fixed as well. These
-parameters have to be specified as Quantities with a range, but we will
-not pass them to the optimizer in order to keep them fixed.
-Additionally, the first transmon is driven at the frequency of the
-second one to apply a cross-resonance (CR) gate (Sheldon et al., 2016)
-:cite:p:`sheldon2016procedure`. The second transmon is driven to fix the
-phases of the gate.
+The system consists of two coupled transmons (Koch et al., 2007) with
+three levels each. We fix the transmon frequency and anharmonicity to
+values that don’t have any unwanted frequency collisions. The coupling
+strength is fixed as well. These parameters have to be specified as
+Quantities with a range, but we will not pass them to the optimizer in
+order to keep them fixed. Additionally, the first transmon is driven at
+the frequency of the second one to apply a cross-resonance (CR) gate
+(Sheldon et al., 2016). The second transmon is driven to fix the phases
+of the gate.
 
 Here the tone values are set such that the optimization process is fast.
 Generally, with a lot of parameters, ``GOAT`` (in its current form) can
@@ -245,7 +244,7 @@ idling.
 
 .. parsed-literal::
 
-    Energies in GHz:  [[-0.          5.49864413  6.00109628 10.75823753 11.49735309 11.80404466 16.7555141  17.30475781 22.56021318]]
+    Energies in GHz:  [[-0.     5.499  6.001 10.758 11.497 11.804 16.756 17.305 22.56 ]]
     Transition energies in GHz:  []
 
 
@@ -253,15 +252,15 @@ idling.
 
 .. parsed-literal::
 
-    Array([[[0.00000000e+00+0.j, 6.22009913e+04+0.j, 0.00000000e+00+0.j, 1.39607610e+06+0.j, 1.57079633e+08+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j],
-            [6.22009913e+04+0.j, 3.76991118e+10+0.j, 8.79654856e+04+0.j, 1.57079633e+08+0.j, 1.39607610e+06+0.j, 2.22144147e+08+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j],
-            [0.00000000e+00+0.j, 8.79654856e+04+0.j, 7.41415866e+10+0.j, 0.00000000e+00+0.j, 2.22144147e+08+0.j, 1.39607610e+06+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j],
-            [1.39607610e+06+0.j, 1.57079633e+08+0.j, 0.00000000e+00+0.j, 3.45575192e+10+0.j, 6.22009913e+04+0.j, 0.00000000e+00+0.j, 1.97434975e+06+0.j, 2.22144147e+08+0.j, 0.00000000e+00+0.j],
-            [1.57079633e+08+0.j, 1.39607610e+06+0.j, 2.22144147e+08+0.j, 6.22009913e+04+0.j, 7.22566310e+10+0.j, 8.79654856e+04+0.j, 2.22144147e+08+0.j, 1.97434975e+06+0.j, 3.14159265e+08+0.j],
-            [0.00000000e+00+0.j, 2.22144147e+08+0.j, 1.39607610e+06+0.j, 0.00000000e+00+0.j, 8.79654856e+04+0.j, 1.08699106e+11+0.j, 0.00000000e+00+0.j, 3.14159265e+08+0.j, 1.97434975e+06+0.j],
-            [0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 1.97434975e+06+0.j, 2.22144147e+08+0.j, 0.00000000e+00+0.j, 6.76070739e+10+0.j, 6.22009913e+04+0.j, 0.00000000e+00+0.j],
-            [0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 2.22144147e+08+0.j, 1.97434975e+06+0.j, 3.14159265e+08+0.j, 6.22009913e+04+0.j, 1.05306186e+11+0.j, 8.79654856e+04+0.j],
-            [0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 0.00000000e+00+0.j, 3.14159265e+08+0.j, 1.97434975e+06+0.j, 0.00000000e+00+0.j, 8.79654856e+04+0.j, 1.41748661e+11+0.j]]], dtype=complex128)
+    Array([[[0.000e+00+0.j, 6.220e+04+0.j, 0.000e+00+0.j, 1.396e+06+0.j, 1.571e+08+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j],
+            [6.220e+04+0.j, 3.770e+10+0.j, 8.797e+04+0.j, 1.571e+08+0.j, 1.396e+06+0.j, 2.221e+08+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j],
+            [0.000e+00+0.j, 8.797e+04+0.j, 7.414e+10+0.j, 0.000e+00+0.j, 2.221e+08+0.j, 1.396e+06+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j],
+            [1.396e+06+0.j, 1.571e+08+0.j, 0.000e+00+0.j, 3.456e+10+0.j, 6.220e+04+0.j, 0.000e+00+0.j, 1.974e+06+0.j, 2.221e+08+0.j, 0.000e+00+0.j],
+            [1.571e+08+0.j, 1.396e+06+0.j, 2.221e+08+0.j, 6.220e+04+0.j, 7.226e+10+0.j, 8.797e+04+0.j, 2.221e+08+0.j, 1.974e+06+0.j, 3.142e+08+0.j],
+            [0.000e+00+0.j, 2.221e+08+0.j, 1.396e+06+0.j, 0.000e+00+0.j, 8.797e+04+0.j, 1.087e+11+0.j, 0.000e+00+0.j, 3.142e+08+0.j, 1.974e+06+0.j],
+            [0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 1.974e+06+0.j, 2.221e+08+0.j, 0.000e+00+0.j, 6.761e+10+0.j, 6.220e+04+0.j, 0.000e+00+0.j],
+            [0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 2.221e+08+0.j, 1.974e+06+0.j, 3.142e+08+0.j, 6.220e+04+0.j, 1.053e+11+0.j, 8.797e+04+0.j],
+            [0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 0.000e+00+0.j, 3.142e+08+0.j, 1.974e+06+0.j, 0.000e+00+0.j, 8.797e+04+0.j, 1.417e+11+0.j]]], dtype=complex128)
 
 
 
@@ -326,7 +325,7 @@ configure CR as a target gate.
 
 .. parsed-literal::
 
-    Array(0.03713341, dtype=float64)
+    0.03713341214936888
 
 
 
@@ -483,7 +482,7 @@ The only optimizable parameter is the frequency of transmon 1.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.9362484996671709, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.93624378929706, 'iterations': 2, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -508,9 +507,9 @@ The only optimizable parameter is the frequency of transmon 1.
 References
 ----------
 
-- **(Koch et al., 2007)** J. Koch et al., “Charge-insensitive qubit
-  design derived from the Cooper pair box,” *Physical Review A* **76**,
-  042319 (2007).
-- **(Sheldon et al., 2016)** S. Sheldon et al., “Procedure for
-  systematically tuning up cross-talk in the cross-resonance gate,”
-  *Physical Review A* **93**, 060302 (2016).
+-  **(Koch et al., 2007)** J. Koch et al., “Charge-insensitive qubit
+   design derived from the Cooper pair box,” *Physical Review A* **76**,
+   042319 (2007).
+-  **(Sheldon et al., 2016)** S. Sheldon et al., “Procedure for
+   systematically tuning up cross-talk in the cross-resonance gate,”
+   *Physical Review A* **93**, 060302 (2016).

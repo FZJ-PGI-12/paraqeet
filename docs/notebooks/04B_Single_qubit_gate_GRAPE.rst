@@ -53,8 +53,7 @@ Gaussian pulse
 
 Next, we set up the qubit system we want to control. We define the
 Hamiltonian in the rotating frame of drive such that the pulse
-oscillates slowly to apply GRAPE (Khaneja et al., 2005)
-:cite:p:`khaneja2005optimal` gradients.
+oscillates slowly to apply GRAPE (Khaneja et al., 2005) gradients.
 
 The Hamiltonian in the rotating frame of the drive is given by -
 
@@ -93,8 +92,8 @@ The Hamiltonian in the rotating frame of the drive is given by -
 
 .. code:: ipython3
 
-    from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelityGRAPE
-    from paraqeet.measurement.utils import overlap_state_vector
+    from paraqeet.measurement.fidelity import FidelityGRAPE
+    from paraqeet.measurement.utils import gate_fidelity, overlap_state_vector
     from paraqeet.propagation import GRAPE, Expm
     from paraqeet.propagation.utils import grape_operator_sandwich_function_closed
     
@@ -112,11 +111,12 @@ The Hamiltonian in the rotating frame of the drive is given by -
         order=3,
     )
     
-    zeroone = StateTransferFidelityGRAPE(
+    zeroone = FidelityGRAPE(
         propagation_func=prop.get_value,
         propagation_gradient_func=prop.get_gradient,
-        target_state=target,
+        target_states=target,
         overlap=overlap_state_vector,
+        fid=gate_fidelity,
     )
 
 .. code:: ipython3
@@ -131,8 +131,7 @@ The Hamiltonian in the rotating frame of the drive is given by -
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -151,7 +150,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    Array(0.31007536, dtype=float64)
+    0.31007536132952823
 
 
 
@@ -198,8 +197,7 @@ frequency, as in the state transfer example.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 

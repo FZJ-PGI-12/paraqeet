@@ -189,8 +189,8 @@ EOM as an input
 
 .. parsed-literal::
 
-    Array([[ 0.68933469-0.42125643j],
-           [-0.58818818-0.03735471j]], dtype=complex128)
+    Array([[ 0.689-0.421j],
+           [-0.588-0.037j]], dtype=complex128)
 
 
 
