@@ -86,6 +86,11 @@ html_theme_options = {
             "icon": "fa-brands fa-gitlab",
         },
         {
+            "name": "GitHub",
+            "url": "https://github.com/FZJ-PGI-12/ParaQeet",
+            "icon": "fa-brands fa-github",
+        },
+        {
             "name": "PyPI",
             "url": "https://pypi.org/project/paraqeet/",
             "icon": "fa-brands fa-python",
