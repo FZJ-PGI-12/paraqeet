@@ -15,6 +15,10 @@
 
 *Note: This is a preview version, a 1.0.0 release is forthcoming.*
 
+>[!NOTE]
+> Development happens on [JuGit](https://jugit.fz-juelich.de/pgi-12-external/qfc/paraqeet). The [GitHub repository](https://github.com/FZJ-PGI-12/paraqeet) is a read-only mirror, so please open issues and merge requests on JuGit.
+
+
 Choose a pulse parametrisation, simulate a quantum system, and optimize. 
 
 Combining Quantum Optimal Control (QOC) methods with automatic differentiation with JAX.
@@ -28,22 +32,58 @@ Each module interacts only with the module above it in hierarchy.
 </div>
 
 Currently implemented QOC methods:
-- GRAPE: Gradient Ascent Pulse Engineering
-- GOAT: Gradient Optimization of Analytic conTrols
-- dCRAB : (Gradient based) dressed Chopped RAndom Basis
-- GOAToverGRAPE: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
-- AD: Automatic differentiation of the state/propagator evolution
+- **GRAPE**: Gradient Ascent Pulse Engineering
+- **GOAT**: Gradient Optimization of Analytic conTrols
+- **dCRAB** : (Gradient based) dressed Chopped RAndom Basis
+- **GOAToverGRAPE**: A variant of GROUP that optimizes continuous pulse parameters with GRAPE inside.
+- **AD**: Automatic differentiation of the state/propagator evolution
 
 Currently implemented propagation methods:
-- Expm: Matrix exponential using JAX ``expm``
-- ExpmChebyshev: Matrix exponential using Chebyshev polynomial expansion
-- ODE solvers: Diffrax, Verner 7th order method, and Scipy Runge-Kutta methods
+- **Expm**: Matrix exponential using JAX ``expm``
+- **ExpmChebyshev**: Matrix exponential using Chebyshev polynomial expansion
+- **ODE solvers**: Diffrax, Verner 7th order method, and Scipy Runge-Kutta methods
 
-The propagation methods can be combined with the QOC methods leading to combinations such as GOAT QOC using ``ExpmChebyshev``.
+Propagation methods can be freely combined with QOC methods, e.g. GOAT optimization using the ``ExpmChebyshev`` propagator.
 
 
-## Installation from PyPi
-Install with `pip install paraqeet`.
+## Installation
 
-## Installation from source
-Follow the [contributing](CONTRIBUTING.md) document.
+### From PyPI
+
+Install the latest release with:
+
+```bash
+pip install paraqeet
+```
+
+### From source
+
+To install the current `main` branch for development, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
+## Contributing
+
+We warmly welcome all contributions and encourage contributors to keep the codebase semantically clear and readable. Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions.
+
+We recommend that contributors verify and test their code themselves, and declare any AI usage in merge requests. We also recommend that contributors create commits themselves, rather than relying on AI.
+
+## License
+
+Apache 2.0. See [LICENSE](LICENSE). Copyright &copy; 2026 Forschungszentum Jülich GmbH.
+
+
+## Authors
+Developed at the Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich GmbH, by:
+
+- Ashutosh Mishra 
+- Nicolas Wittler 
+- Alessandro Ciani 
+- Lidia Westphal 
+- Alexander Simm 
+- Moritz Wald 
+
+
+## Acknowledgments
+
+The codebase contains code thoroughly written and verified by the authors. Some parts were made with the assistance of AI models, including Claude Opus (Anthropic) and open-weight models such as DeepSeek.
+
