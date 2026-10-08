@@ -10,14 +10,14 @@ import jax
 import jax.numpy as jnp
 
 from paraqeet.differentiable import Differentiable
-from paraqeet.measurement.measurement import NormalizableMeasurement
+from paraqeet.measurement.measurement import CostFunction
 from paraqeet.quantity import Array, Float
 from paraqeet.signal.pwc_generator import PWCGenerator
 
 jax.config.update("jax_enable_x64", True)
 
 
-class Smoothness(NormalizableMeasurement, Differentiable):
+class Smoothness(CostFunction, Differentiable):
     """Smoothness of a pulse.
 
     It follows the definition in :cite:p:`heeres2017implementing`, in particular

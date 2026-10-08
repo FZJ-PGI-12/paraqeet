@@ -1,4 +1,4 @@
-"""Utility functions for measurements, such as state overlaps and Jacobian helpers."""
+"""Utility functions for measurements, such as state overlap, fidelity functions and Jacobian helpers."""
 
 import jax.numpy as jnp
 from jax import jit
@@ -40,3 +40,28 @@ def overlap_vectorized_density_matrix_mixed_states(final_state: Array, target_st
     target_state = convert_vec_to_dm(target_state)
     final_state = convert_vec_to_dm(final_state)
     return jnp.linalg.trace(matrix_sqrt_psd(jnp.matmul(target_state, final_state))) ** 2
+
+
+@jit
+def overlap_density_matrix_root(state: Array, target_state: Array) -> Array:
+    """Overlap of two density matrices."""
+    target_state_sqrt = matrix_sqrt_psd(target_state)
+    return jnp.array(target_state_sqrt @ state @ target_state_sqrt)
+
+
+@jit
+def gate_fidelity(overlap: Array) -> Array:
+    """Compute the fidelity of a gate based on state overlaps."""
+    return jnp.abs(jnp.average(overlap)) ** 2
+
+
+@jit
+def state_fidelity(overlap: Array) -> Array:
+    """Compute the average state transfer fidelity based on state overlaps."""
+    return jnp.average(jnp.abs(overlap) ** 2)
+
+
+@jit
+def densitiy_matrix_trace_fidelity(product: Array) -> Array:
+    """Compute the trace fidelty of a density matrix product."""
+    return jnp.abs(jnp.trace(matrix_sqrt_psd(product))) ** 2

@@ -37,7 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Constructor of model, propagation, measurement, and optimizer classes
-- Combined `StateTransferFidelity` with `StateTransferFidelityAD` classes, such that gradient of fidelity and overlap functions are automatically computed.
+- Reduced implementations of `Fidelity` to a base class to be configured by pure JAX functions as arguments
+- The analytic `RabiExperiment` is moved from `Measurement` to `Propagation` and provides a two-level state instead
 - Coupling and Drive classes take operators from the user
 - Reduced system sizes in Examples 08B and 08C for faster docs compilation
 - System to Hamiltonian. Qubit, Resonator, and Transmon are now containers for the Hamiltonian and other properties.

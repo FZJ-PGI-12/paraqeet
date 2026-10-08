@@ -10,7 +10,7 @@ First, we make the necessary imports.
     from paraqeet.eom.schroedinger_equation import SchroedingerEquation
     from paraqeet.hamiltonian.drive import Drive
     from paraqeet.hamiltonian.transmon import TransmonHamiltonian
-    from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
+    from paraqeet.measurement.fidelity import UnitaryFidelity
     from paraqeet.optimization_map import OptimizationMap
     from paraqeet.optimizers.scipy_optimizer import ScipyOptimizer
     from paraqeet.propagation import GOAT, Expm
@@ -24,8 +24,7 @@ First, we make the necessary imports.
 
 The GaussTone explicitly allows for the evaluation of an envelope signal
 and its time derivative which is then used to calculate the DRAG (Motzoi
-et al., 2009) :cite:p:`motzoi2009simple` corrected signal in the
-DRAGMixer
+et al., 2009) corrected signal in the DRAGMixer
 
 .. code:: ipython3
 
@@ -174,8 +173,7 @@ population transfer, i.e., an X-gate.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -195,7 +193,7 @@ As expected, we get a partial transfer and a low fidelity.
 
 .. parsed-literal::
 
-    Array(0.97379736, dtype=float64)
+    0.9737973556676388
 
 
 
@@ -223,7 +221,7 @@ and the parameters of the cosine tone.
 
 .. parsed-literal::
 
-    {'status': 1, 'value': 0.005760910023328569, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
+    {'status': 1, 'value': 0.005760894081225376, 'iterations': 90, 'message': 'CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH'}
 
 
 
@@ -244,10 +242,10 @@ Print all parameters that were optimized.
 
                Name:                Value                  Min                  Max
     --------------------------------------------------------------------------------
-          Amplitude:         2.455094e+08         0.000000e+00         1.000000e+09
-              Delta:        -2.493769e+09        -3.769911e+09        -1.256637e+08
-            lo_freq:         3.015935e+10         2.412743e+10         3.619115e+10
-              Phase:         3.539781e-04        -3.141593e+00         3.141593e+00
+          Amplitude:         2.455072e+08         0.000000e+00         1.000000e+09
+              Delta:        -2.493540e+09        -3.769911e+09        -1.256637e+08
+            lo_freq:         3.015934e+10         2.412743e+10         3.619115e+10
+              Phase:         2.006086e-04        -3.141593e+00         3.141593e+00
 
 
 Plot final pulse shape and population transfer. Target is the full
@@ -262,8 +260,7 @@ population transfer, i.e., an X-gate.
 
 .. parsed-literal::
 
-    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>,
-           <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
+    array([<Axes: ylabel='Amplitude \n[MHz / $2\\pi$]'>, <Axes: xlabel='Time [ns]', ylabel='Population'>], dtype=object)
 
 
 
@@ -284,13 +281,13 @@ smaller than initially.
 
 .. parsed-literal::
 
-    Array(0.99423909, dtype=float64)
+    0.9942391059239831
 
 
 
 References
 ----------
 
-- **(Motzoi et al., 2009)** F. Motzoi et al., “Simple pulses for
-  elimination of leakage in weakly nonlinear qubits,” *Physical Review
-  Letters* **103**, 110501 (2009).
+-  **(Motzoi et al., 2009)** F. Motzoi et al., “Simple pulses for
+   elimination of leakage in weakly nonlinear qubits,” *Physical Review
+   Letters* **103**, 110501 (2009).

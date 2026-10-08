@@ -2,12 +2,11 @@
 
 import jax.numpy as jnp
 
-from paraqeet.measurement.measurement import NormalizableMeasurement
 from paraqeet.optimizable import Optimizable
-from paraqeet.quantity import Array, Float, Quantity
+from paraqeet.quantity import Array, Quantity
 
 
-class RabiExperiment(NormalizableMeasurement, Optimizable):
+class RabiModel(Optimizable):
     """Analytic model of the general Rabi formula."""
 
     _qubit_freq: Quantity
@@ -31,12 +30,8 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         """
         return [self._amp, self._freq]
 
-    def get_value(self, times: Array) -> Array | Float:
-        """Return measurement in the range [0, 1]."""
-        return self.calculate_normalized_scalar(times)
-
-    def calculate_normalized_scalar(self, times: Array) -> Float:
-        """Carry out a measurement operation.
+    def get_value(self, times: Array) -> Array:
+        """Returns the analytic value state.
 
         Gives the result of a general Rabi oscillation,
         depending on drive frequency, amplitude and time.
@@ -47,10 +42,10 @@ class RabiExperiment(NormalizableMeasurement, Optimizable):
         Returns:
             Result of a general Rabi oscillation.
         """
-        t = times if isinstance(times, float) else times[-1]
         q_freq = self._qubit_freq.get_value()
         amp = self._amp.get_value() * 2 * jnp.pi
         freq = self._freq.get_value()
         diff_sq = (q_freq - freq) ** 2
         norm = jnp.sqrt(1 + diff_sq / (amp**2))
-        return float(jnp.abs(jnp.cos(jnp.sqrt(diff_sq + amp**2) / 2 * t) / norm**2).item())
+        phase = jnp.sqrt(diff_sq + amp**2) / 2 * times
+        return jnp.array([jnp.sin(phase), jnp.cos(phase)]) / norm

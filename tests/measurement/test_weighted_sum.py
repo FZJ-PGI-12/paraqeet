@@ -5,9 +5,9 @@ import itertools
 import numpy as np
 import pytest
 
+from paraqeet import UnitaryFidelity
 from paraqeet.differentiable import Differentiable
 from paraqeet.exceptions import ConfigurationException
-from paraqeet.measurement.unitary_fidelity import UnitaryFidelity
 from paraqeet.measurement.weighted_sum_goal import WeightedSumGoal
 from paraqeet.quantity import Array
 from tests.measurement.constant_measurement import ConstantMeasurement

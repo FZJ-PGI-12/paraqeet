@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from paraqeet.measurement.state_transfer_fidelity import StateTransferFidelity
-from paraqeet.measurement.utils import overlap_state_vector
+from paraqeet.measurement.fidelity import Fidelity
+from paraqeet.measurement.utils import overlap_state_vector, state_fidelity
 from tests.propagation.identity_propagation import IdentityPropagation
 from tests.propagation.random_propagation import RandomPropagation
 
@@ -21,11 +21,12 @@ def test_limits_vectors(random_state):
         target_state = random_state(size)
         propagation = RandomPropagation(size, False)
         times = np.array([0.0, 1.0])
-        measurement = StateTransferFidelity(
+        measurement = Fidelity(
             propagation_func=propagation.get_value,
             propagation_gradient_func=propagation.get_gradient,
-            target_state=target_state,
+            target_states=target_state,
             overlap=overlap_state_vector,
+            fid=state_fidelity,
         )
 
         for _ in range(20):
@@ -43,11 +44,12 @@ def test_vector_equality(identity_propagation, random_state):
         for _ in range(100):
             state = random_state(size)
             identity_propagation.set_initial_state(state)
-            measurement = StateTransferFidelity(
+            measurement = Fidelity(
                 propagation_func=identity_propagation.get_value,
                 propagation_gradient_func=identity_propagation.get_gradient,
-                target_state=state,
+                target_states=state,
                 overlap=overlap_state_vector,
+                fid=state_fidelity,
             )
             m = measurement.get_value(times=np.array([1.0]))
             np.testing.assert_almost_equal(m, 1.0)
@@ -76,11 +78,12 @@ def test_incompatible_shape(identity_propagation, random_state):
 
             identity_propagation.set_initial_state(initialState)
 
-            fid = StateTransferFidelity(
+            fid = Fidelity(
                 propagation_func=identity_propagation.get_value,
                 propagation_gradient_func=identity_propagation.get_gradient,
-                target_state=targetState,
+                target_states=targetState,
                 overlap=overlap_state_vector,
+                fid=state_fidelity,
             )
 
             with pytest.raises(Exception):
