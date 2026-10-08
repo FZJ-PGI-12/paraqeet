@@ -67,6 +67,12 @@ The propagation methods can be combined with the QOC methods leading to combinat
 
       Full documentation of every module, class, and function.
 
+   .. grid-item-card:: Citation
+      :link: citation
+      :link-type: doc
+
+      How to cite ParaQeet in your own work.
+
 
 .. toctree::
    :maxdepth: 1
@@ -81,4 +87,5 @@ The propagation methods can be combined with the QOC methods leading to combinat
    API <api>
    contributing
    changelog
+   citation
    references

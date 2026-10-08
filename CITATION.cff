@@ -14,7 +14,7 @@ authors:
 - affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
   family-names: Mishra
   given-names: Ashutosh
-  orcid: 0009-0008-4432-0408
+  orcid: https://orcid.org/0009-0008-4432-0408
 - family-names: Simm
   given-names: Alexander
 - family-names: Wald
@@ -22,16 +22,15 @@ authors:
 - affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
   family-names: Westphal
   given-names: Lidia
-  orcid: 0000-0002-6928-3884
+  orcid: https://orcid.org/0000-0002-6928-3884
 - affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
   family-names: Ciani
   given-names: Alessandro
-  orcid: 0000-0002-8707-0532
+  orcid: https://orcid.org/0000-0002-8707-0532
 - affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
   family-names: Wittler
   given-names: Nicolas
-  orcid: 0000-0002-5227-6952
-cff-version: 1.2.0
+  orcid: https://orcid.org/0000-0002-5227-6952
 date-released: '2026-10-07'
 doi: 10.5281/zenodo.23208578
 keywords:
@@ -39,5 +38,4 @@ keywords:
 - Quantum computing
 - Quantum physics
 - Python
-license:
-- apache-2.0
+license: Apache-2.0
