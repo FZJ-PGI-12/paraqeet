@@ -1,0 +1,43 @@
+# This CITATION.cff describes how to cite this software.
+# Validate after editing: pip install cffconvert && cffconvert --validate
+cff-version: 1.2.0
+message: If you use this software, please cite it using the metadata from this file.
+title: ParaQeet  -  A quantum optimal control toolkit with simple parameter management
+type: software
+version: v0.11.1
+abstract: >-
+  ParaQeet is a python library for pulse level simulation of quantum dynamics,
+  and optimization of pulse and model parameters using gradient-based and gradient-free
+  optimization methods. Its codebase is built on a modular and differentiable architecture
+  using JAX to combine analytical gradients with automatic differentiation for efficiency.
+authors:
+- affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
+  family-names: Mishra
+  given-names: Ashutosh
+  orcid: 0009-0008-4432-0408
+- family-names: Simm
+  given-names: Alexander
+- family-names: Wald
+  given-names: Moritz
+- affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
+  family-names: Westphal
+  given-names: Lidia
+  orcid: 0000-0002-6928-3884
+- affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
+  family-names: Ciani
+  given-names: Alessandro
+  orcid: 0000-0002-8707-0532
+- affiliation: "Institute for Quantum Computing Analytics (PGI-12), Forschungszentrum Jülich, Wilhelm-Johnen-Straße, Jülich, 52425, North Rhine-Westphalia, Germany"
+  family-names: Wittler
+  given-names: Nicolas
+  orcid: 0000-0002-5227-6952
+cff-version: 1.2.0
+date-released: '2026-10-07'
+doi: 10.5281/zenodo.23208578
+keywords:
+- Quantum Control
+- Quantum computing
+- Quantum physics
+- Python
+license:
+- apache-2.0

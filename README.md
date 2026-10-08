@@ -12,6 +12,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI - Version](https://img.shields.io/pypi/v/paraqeet)](https://pypi.org/project/paraqeet/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paraqeet.svg)]((https://pypi.org/project/paraqeet/))
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23208578.svg)](https://doi.org/10.5281/zenodo.23208578)
 
 *Note: This is a preview version, a 1.0.0 release is forthcoming.*
 
@@ -66,6 +67,15 @@ To install the current `main` branch for development, follow the instructions in
 We warmly welcome all contributions and encourage contributors to keep the codebase semantically clear and readable. Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions.
 
 We recommend that contributors verify and test their code themselves, and declare any AI usage in merge requests. We also recommend that contributors create commits themselves, rather than relying on AI.
+
+
+## Citation
+
+If you use this software, please cite it. Author list, ORCIDs, and the associated references are maintained in [`CITATION.cff`](CITATION.cff).
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23208578.svg)](https://doi.org/10.5281/zenodo.23208578)
+
+The badge above always resolves to the latest archived release. To cite a specific version instead, for example for reproducibility, use that version's own DOI.
 
 ## License
 

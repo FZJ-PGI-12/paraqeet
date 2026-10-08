@@ -22,7 +22,7 @@ pip install pre-commit
 pre-commit install
 ```
 
-The repository ships a [pre-commit configuration](.pre-commit-config.yaml) that runs the following checks on every commit - 
+The repository ships a pre-commit configuration that runs the following checks on every commit - 
 
 - **ruff** (linter) — checks and auto-fixes style issues, using the settings from `pyproject.toml` and including import sorting.
 - **ruff-format** (formatter) — formats the code so the whole codebase stays consistent.
